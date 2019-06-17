@@ -130,7 +130,7 @@ if {[info exists aldec]} {
   quietly set SIMULATE_LIBRARY          "-lib"             
   quietly set SIMULATE_COVERAGE         ""     
   
-  quietly set SIMULATE_RUN              "do Mentor.do ; add log -r /* ; run -all"
+  quietly set SIMULATE_RUN              "do $::SCRIPT_DIR/Mentor.do ; add log -r /* ; run -all"
   quietly set simulator                 "Mentor"
 } else {
   error "Tool Not Determined"

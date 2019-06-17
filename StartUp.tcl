@@ -50,25 +50,29 @@
 # VHDL Simulation time units - Simulator is started with this value
 set SIMULATE_TIME_UNITS        ps
 
-# Reference directory for starting
-set CURRENT_WORKING_DIRECTORY  [pwd]
+# Only Set library location if it is different from the simulation directory
+set LIB_BASE_DIR C:/tools/sim_temp
+
+# Initialize flag
+set OSVVM_SCRIPTS_INITIALIZED 0
 
 # Set location for scripts
-set SCRIPT_DIR                 $CURRENT_WORKING_DIRECTORY
+# if you use TCL "source" the following is sufficient:
+set SCRIPT_DIR  [file normalize [file dirname [info script]]]
+#
+# If you use Mentor or Aldec "do" the following is required
+# if {[info exists aldec]} {
+#   set SCRIPT_DIR [file normalize [file dirname $::argv0]]
+# } elseif {[string match [file rootname [file tail [info nameofexecutable]]] "vish"]} {
+#   set SCRIPT_DIR [file normalize [file dirname [status file]]] 
+# } else {
+#   set SCRIPT_DIR  [file normalize [file dirname [info script]]]
+# #  set SCRIPT_DIR  [file normalize ../Scripts]
+# }
+
 
 # Run Tool configuration script - detects simulator
 source ${SCRIPT_DIR}/ToolConfiguration.tcl
 
 # Run OSVVM Project build library 
 source ${SCRIPT_DIR}/OsvvmProjectScripts.tcl
-
-# Set locations for libraries and logs
-set DIR_LIB                    ${SCRIPT_DIR}/VHDL_LIBS/${ToolNameVersion}
-set DIR_LOGS                   ${SCRIPT_DIR}/logs/${ToolNameVersion}
-
-# Use OSVVM Project scripts to setup initial libraries
-# The name following "library" defines the default working library
-# For one library projects, use this.   
-# For multiple library projects, use the library procedure to define them
-InitializeLibrary
-library default

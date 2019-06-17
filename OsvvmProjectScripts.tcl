@@ -51,7 +51,8 @@
 #   re-run the startup scripts, this program included
 #
 proc StartUp {} {
-  source StartUp.tcl
+  echo source $::SCRIPT_DIR/StartUp.tcl
+  source $::SCRIPT_DIR/StartUp.tcl
 }
 
 
@@ -106,7 +107,6 @@ proc StopTranscript {{FileBaseName ""}} {
 }
 
 
-
 # -------------------------------------------------
 # include 
 #   finds and sources a project file
@@ -114,7 +114,7 @@ proc StopTranscript {{FileBaseName ""}} {
 proc include {Path_Or_File} {
   global CURRENT_WORKING_DIRECTORY
   
-  echo set StartingPath ${CURRENT_WORKING_DIRECTORY} Starting Include
+#  echo set StartingPath ${CURRENT_WORKING_DIRECTORY} Starting Include
   set StartingPath ${CURRENT_WORKING_DIRECTORY}
   
   set NormName [file normalize ${StartingPath}/${Path_Or_File}]
@@ -179,15 +179,40 @@ proc include {Path_Or_File} {
       eval do ${FileDoName} ${CURRENT_WORKING_DIRECTORY}
     }
   } 
-  echo set CURRENT_WORKING_DIRECTORY ${StartingPath} Ending Include
+#  echo set CURRENT_WORKING_DIRECTORY ${StartingPath} Ending Include
   set CURRENT_WORKING_DIRECTORY ${StartingPath}
 }
 
 proc build {{Path_Or_File "."}} {
   global CURRENT_WORKING_DIRECTORY
+  global LIB_BASE_DIR
+  global OSVVM_SCRIPTS_INITIALIZED
+  global ToolNameVersion 
+  global DIR_LIB
+  global DIR_LOGS
 
   set CURRENT_WORKING_DIRECTORY [pwd]
   
+  # First time initialization
+  if {$OSVVM_SCRIPTS_INITIALIZED == 0} {
+    set OSVVM_SCRIPTS_INITIALIZED 1
+  
+    if {![info exists LIB_BASE_DIR]} {
+      set LIB_BASE_DIR $CURRENT_WORKING_DIRECTORY
+    }
+    
+    # Set locations for libraries and logs
+    set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
+    set DIR_LOGS   ${CURRENT_WORKING_DIRECTORY}/logs/${ToolNameVersion}
+
+    # Create LIB and Results directories
+    CreateDirectory $DIR_LIB
+    CreateDirectory ${CURRENT_WORKING_DIRECTORY}/results
+
+    # Create default library
+    library default
+  }
+
   StartTranscript build.log
   set StartTime   [clock seconds] 
   echo Start time [clock format $StartTime -format %T]
@@ -210,12 +235,10 @@ proc RemoveAllLibraries {} {
 }
 
 
-proc InitializeLibrary {{Directory "."}} {
-  global DIR_LIB
-
-  if {![file exists $DIR_LIB]} {
-    echo creating directory $DIR_LIB
-    file mkdir $DIR_LIB
+proc CreateDirectory {Directory} {
+  if {![file exists $Directory]} {
+    echo creating directory $Directory
+    file mkdir $Directory
   }
 }
 
@@ -233,9 +256,9 @@ proc library {LibraryName} {
   if {![file exists ${ResolvedPathToLib}]} {
     echo vlib    ${ResolvedPathToLib}
     vlib         ${ResolvedPathToLib}
-    echo vmap    $LibraryName  ${ResolvedPathToLib}
-    vmap         $LibraryName  ${ResolvedPathToLib}
   }
+  echo vmap    $LibraryName  ${ResolvedPathToLib}
+  vmap         $LibraryName  ${ResolvedPathToLib}
   set VHDL_WORKING_LIBRARY  $LibraryName
 }
 
