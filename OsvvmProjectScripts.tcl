@@ -87,23 +87,37 @@ proc Do_List {FileWithNames ActionForName} {
 }
 
 proc StartTranscript {FileBaseName} {
-  # Create directories if they do not exist
-  set FileName [file join $::DIR_LOGS $FileBaseName]
-  set RootDir [file dirname $FileName]
-  if {![file exists $RootDir]} {
-    echo creating directory $RootDir
-    file mkdir $RootDir
-  }
+  global OsvvmCurrentTranscript
 
-  echo $::START_TRANSCRIPT $FileName
-  eval $::START_TRANSCRIPT $FileName
+  if {![info exists OsvvmCurrentTranscript]} {
+    set OsvvmCurrentTranscript ""
+  }
+  if {($FileBaseName ne "NONE.log") && ($OsvvmCurrentTranscript eq "")} {
+    # Create directories if they do not exist
+    set OsvvmCurrentTranscript $FileBaseName
+    set FileName [file join $::DIR_LOGS $FileBaseName]
+    set RootDir [file dirname $FileName]
+    if {![file exists $RootDir]} {
+      echo creating directory $RootDir
+      file mkdir $RootDir
+    }
+
+    echo $::START_TRANSCRIPT $FileName
+    eval $::START_TRANSCRIPT $FileName
+  }
 }
 
 proc StopTranscript {{FileBaseName ""}} {
-  # FileName used within the STOP_TRANSCRIPT variable if required
-  set FileName [file join $::DIR_LOGS $FileBaseName]
-  echo $::STOP_TRANSCRIPT 
-  eval $::STOP_TRANSCRIPT 
+  global OsvvmCurrentTranscript
+  
+  # Stop only if it is the transcript that is open
+  if {($OsvvmCurrentTranscript eq $FileBaseName)} {
+    # FileName used within the STOP_TRANSCRIPT variable if required
+    set FileName [file join $::DIR_LOGS $FileBaseName]
+    echo $::STOP_TRANSCRIPT 
+    eval $::STOP_TRANSCRIPT 
+    set OsvvmCurrentTranscript ""
+  }
 }
 
 
@@ -183,7 +197,7 @@ proc include {Path_Or_File} {
   set CURRENT_WORKING_DIRECTORY ${StartingPath}
 }
 
-proc build {{Path_Or_File "."}} {
+proc build {{Path_Or_File "."} {LogName "."}} {
   global CURRENT_WORKING_DIRECTORY
   global LIB_BASE_DIR
   global OSVVM_SCRIPTS_INITIALIZED
@@ -212,8 +226,16 @@ proc build {{Path_Or_File "."}} {
     # Create default library
     library default
   }
+  
+  if {[file tail ${Path_Or_File}] eq "RunTests.pro"} {
+    # Get name of directory 
+    set ScriptName [file tail [file dirname [file normalize ${Path_Or_File}]]]_RunTests
+  } else {
+    set ScriptName   [file rootname [file tail ${Path_Or_File}]]
+ # }
 
-  StartTranscript build.log
+
+  StartTranscript ${ScriptName}.log
   set StartTime   [clock seconds] 
   echo Start time [clock format $StartTime -format %T]
   
@@ -223,7 +245,7 @@ proc build {{Path_Or_File "."}} {
   set  FinishTime  [clock seconds] 
   echo Finish time [clock format $FinishTime -format %T]
   echo Elasped time [expr ($FinishTime - $StartTime)/60] minutes
-  StopTranscript build.log
+  StopTranscript ${ScriptName}.log
 }
 
 
