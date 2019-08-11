@@ -125,7 +125,7 @@ if {[info exists aldec]} {
   quietly set VERILOG_ANALYZE_LIBRARY   "-work"
 
   quietly set SIMULATE_COMMAND          "vsim"
-  quietly set SIMULATE_OPTIONS_FIRST    [concat "-t " $SIMULATE_TIME_UNITS]             
+  quietly set SIMULATE_OPTIONS_FIRST    [concat "-voptargs=\"+acc\"" "-t " $SIMULATE_TIME_UNITS]             
   quietly set SIMULATE_OPTIONS_LAST     "-suppress 8683 -suppress 8684 -suppress 8617"             
   quietly set SIMULATE_LIBRARY          "-lib"             
   quietly set SIMULATE_COVERAGE         ""     
