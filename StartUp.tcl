@@ -1,6 +1,6 @@
 #  File Name:         StartUp.tcl
 #  Purpose:           Scripts for running simulations
-#  Revision:          STANDARD VERSION
+#  Revision:          OSVVM MODELS STANDARD VERSION
 # 
 #  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
 #  Contributor(s):            
@@ -21,31 +21,29 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    11/2019   Alpha      Project descriptors in .files and .dirs files
-#    2/2019:   Beta       Project descriptors in .pro which execute 
+#    11/2018   Alpha      Project descriptors in .files and .dirs files
+#     2/2019   Beta       Project descriptors in .pro which execute 
 #                         as TCL scripts in conjunction with the library 
 #                         procedures
-# 
-# 
-#  Copyright (c) 2018-2019 by SynthWorks Design Inc.  All rights reserved.
-# 
-#  Verbatim copies of this source file may be used and 
-#  distributed without restriction.   
-# 								 
-#  This source file is free software; you can redistribute it  
-#  and/or modify it under the terms of the ARTISTIC License 
-#  as published by The Perl Foundation; either version 2.0 of 
-#  the License, or (at your option) any later version. 						 
-# 								 
-#  This source is distributed in the hope that it will be 	 
-#  useful, but WITHOUT ANY WARRANTY; without even the implied  
-#  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 	 
-#  PURPOSE. See the Artistic License for details. 							 
-# 								 
-#  You should have received a copy of the license with this source.
-#  If not download it from, 
-#     http://www.perlfoundation.org/artistic_license_2_0
-# 
+#     1/2020   2020.01    Updated Licenses to Apache
+#
+#
+#  This file is part of OSVVM.
+#  
+#  Copyright (c) 2018 - 2020 by SynthWorks Design Inc.  
+#  
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#  
+#      https://www.apache.org/licenses/LICENSE-2.0
+#  
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
 
 # VHDL Simulation time units - Simulator is started with this value
 set SIMULATE_TIME_UNITS        ps
