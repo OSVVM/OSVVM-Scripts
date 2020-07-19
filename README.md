@@ -175,21 +175,21 @@ code-block:: tcl
 |                                | create a mapping to it. Libraries are      | 
 |                                | created either in the path specified by    | 
 |                                | LIB_BASE_DIR in Scripts/StartUp.tcl.       |
-|<br><br>||                      
+|<br>||                      
 | analyze \<file\>               | Compile the file. A path name specified is | 
 |                                | relative to the location of the current    | 
 |                                | \<file\>.pro directory location. Library   | 
 |                                | is the one specified in the previous       | 
 |                                | library command.                           | 
-|<br><br>||                      
+|<br>||                      
 | simulate \<design-unit\>       | Start a simulation on the design unit.     | 
 |                                | Often best if this is a configuration      | 
 |                                | name. Library is the one specified in the  | 
 |                                | previous library command.                  | 
-|<br><br>||                      
+|<br>||                      
 | include \<directory\>          | Include accepts either a file or a         | 
 |                                | directory.                                 | 
-|<br><br>|| 
+|<br>|| 
 | include \<path\>/\<file\>      | If it is a file and its extension is .pro, | 
 |                                | .tcl, or .do, the file will be sourced. If | 
 |                                | it is a file and its extension is .files   | 
@@ -206,20 +206,20 @@ code-block:: tcl
 |                                | A path name specified is relative to the   | 
 |                                | location of the current \<file\>.pro       | 
 |                                | directory location.                        | 
-|<br><br>||                      
+|<br>||                      
 | build \<directory\>            | Re-initializes the working directory to    | 
 |                                | the script directory, opens a transcript   | 
 | build \<path\>/\<file\>        | file, and calls include. A path name       | 
 |                                | specified is relative to the location of   | 
 |                                | the current \<file\>.pro directory         | 
 |                                | location.                                  | 
-|<br><br>||                      
+|<br>||                      
 | map \<library\> \[\<path\>\]   | Create a mapping to a library              | 
-|<br><br>|| 
+|<br>|| 
 | RemoveAllLibraries             | Delete all of the working libraries.       | 
-|<br><br>||                      
+|<br>||                      
 | MapLibraries                   | Create a mapping to libraries              | 
-|<br><br>|| 
+|<br>|| 
 
 ## Deprecated Descriptor Files
 
