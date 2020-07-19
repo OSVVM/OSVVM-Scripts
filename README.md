@@ -168,60 +168,58 @@ code-block:: tcl
 
 ## Commands
 
-+------------------------+--------------------------------------------+
-| **Command**            | **Description**                            |
-+========================+============================================+
-| library \<library\>    | Make the library the active library. If    |
-|                        | the library does not exist, create it and  |
-|                        | create a mapping to it. Libraries are      |
-|                        | created either in the path specified by    |
-|                        | LIB_BASE_DIR in Scripts/StartUp.tcl.       |
-+------------------------+--------------------------------------------+
-| analyze \<file\>       | Compile the file. A path name specified is |
-|                        | relative to the location of the current    |
-|                        | \<file\>.pro directory location. Library   |
-|                        | is the one specified in the previous       |
-|                        | library command.                           |
-+------------------------+--------------------------------------------+
-| simulate \<design      | Start a simulation on the design unit.     |
-| unit\>                 | Often best if this is a configuration      |
-|                        | name. Library is the one specified in the  |
-|                        | previous library command.                  |
-+------------------------+--------------------------------------------+
-| include \<directory\>  | Include accepts either a file or a         |
-|                        | directory.                                 |
-| include                |                                            |
-| \<path\>/\<file\>      | If it is a file and its extension is .pro, |
-|                        | .tcl, or .do, the file will be sourced. If |
-|                        | it is a file and its extension is .files   |
-|                        | or .dirs it will be handled in a manner    |
-|                        | consistent with revision 1 of the scripts. |
-|                        |                                            |
-|                        | If it is a directory, then files whose     |
-|                        | base name matches the directory name and   |
-|                        | that have the extensions .pro, .dirs,      |
-|                        | .files, .tcl, and .do are searched for (in |
-|                        | this order) and any found will be          |
-|                        | processed as above if they exist.          |
-|                        |                                            |
-|                        | A path name specified is relative to the   |
-|                        | location of the current \<file\>.pro       |
-|                        | directory location.                        |
-+------------------------+--------------------------------------------+
-| build \<directory\>    | Re-initializes the working directory to    |
-|                        | the script directory, opens a transcript   |
-| build                  | file, and calls include. A path name       |
-| \<path\>/\<file\>      | specified is relative to the location of   |
-|                        | the current \<file\>.pro directory         |
-|                        | location.                                  |
-+------------------------+--------------------------------------------+
-| map \<library\>        | Create a mapping to a library              |
-| \[\<path\>\]           |                                            |
-+------------------------+--------------------------------------------+
-| RemoveAllLibraries     | Delete all of the working libraries.       |
-+------------------------+--------------------------------------------+
-| MapLibraries           | Create a mapping to libraries              |
-+------------------------+--------------------------------------------+
+| **Command**                    | **Description**                            | 
+|:-------------------------------|:-------------------------------------------| 
+| library \<library\>            | Make the library the active library. If    | 
+|                                | the library does not exist, create it and  | 
+|                                | create a mapping to it. Libraries are      | 
+|                                | created either in the path specified by    | 
+|                                | LIB_BASE_DIR in Scripts/StartUp.tcl.       |
+|<br><br>||                      
+| analyze \<file\>               | Compile the file. A path name specified is | 
+|                                | relative to the location of the current    | 
+|                                | \<file\>.pro directory location. Library   | 
+|                                | is the one specified in the previous       | 
+|                                | library command.                           | 
+|<br><br>||                      
+| simulate \<design-unit\>       | Start a simulation on the design unit.     | 
+|                                | Often best if this is a configuration      | 
+|                                | name. Library is the one specified in the  | 
+|                                | previous library command.                  | 
+|<br><br>||                      
+| include \<directory\>          | Include accepts either a file or a         | 
+|                                | directory.                                 | 
+|<br><br>|| 
+| include \<path\>/\<file\>      | If it is a file and its extension is .pro, | 
+|                                | .tcl, or .do, the file will be sourced. If | 
+|                                | it is a file and its extension is .files   | 
+|                                | or .dirs it will be handled in a manner    | 
+|                                | consistent with revision 1 of the scripts. | 
+|<br>||                          
+|                                | If it is a directory, then files whose     | 
+|                                | base name matches the directory name and   | 
+|                                | that have the extensions .pro, .dirs,      | 
+|                                | .files, .tcl, and .do are searched for (in | 
+|                                | this order) and any found will be          | 
+|                                | processed as above if they exist.          | 
+|<br>||                          
+|                                | A path name specified is relative to the   | 
+|                                | location of the current \<file\>.pro       | 
+|                                | directory location.                        | 
+|<br><br>||                      
+| build \<directory\>            | Re-initializes the working directory to    | 
+|                                | the script directory, opens a transcript   | 
+| build \<path\>/\<file\>        | file, and calls include. A path name       | 
+|                                | specified is relative to the location of   | 
+|                                | the current \<file\>.pro directory         | 
+|                                | location.                                  | 
+|<br><br>||                      
+| map \<library\> \[\<path\>\]   | Create a mapping to a library              | 
+|<br><br>|| 
+| RemoveAllLibraries             | Delete all of the working libraries.       | 
+|<br><br>||                      
+| MapLibraries                   | Create a mapping to libraries              | 
+|<br><br>|| 
 
 ## Deprecated Descriptor Files
 
