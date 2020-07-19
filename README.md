@@ -170,7 +170,7 @@ code-block:: tcl
 
 +------------------------+--------------------------------------------+
 | **Command**            | **Description**                            |
-+------------------------+--------------------------------------------+
++========================+============================================+
 | library \<library\>    | Make the library the active library. If    |
 |                        | the library does not exist, create it and  |
 |                        | create a mapping to it. Libraries are      |
