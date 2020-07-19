@@ -16,7 +16,13 @@ welcome.
 
 ## Clone the OSVVM-Libraries directory
 
-Lets start by doing. The library OSVVM-Libraries ...
+Lets start by doing. The library
+[OSVVM-Libraries](https://opensource.ieee.org/osvvm/OsvvmLibraries) 
+contains all of the OSVVM libraries as submodules.
+Download the entire OSVVM model library using git clone with the `--recursive` flag:  
+``` {.bash}
+$ git clone --recursive https://opensource.ieee.org/osvvm/OsvvmLibraries
+```
 
 ## The Script Files
 
@@ -163,8 +169,12 @@ much about how to use a model in a test by reading the testbenches. Run
 the other OSVVM verification components by doing the following. ..
 code-block:: tcl
 
-> build ../AXI4/Axi4/testbench build ../AXI4/Axi4Lite/testbench build
-> ../AXI4/AxiStream/testbench build ../UART/testbench
+``` {.tcl}
+build ../AXI4/Axi4/testbench 
+build ../AXI4/Axi4Lite/testbench 
+build ../AXI4/AxiStream/testbench 
+build ../UART/testbench
+```
 
 ## Commands
 
@@ -254,13 +264,6 @@ passed to the simulator.
 
 ## Release History
 For the release history see, [CHANGELOG.md](CHANGELOG.md)
-
-## Downloading the libraries
-
-The library [OSVVM-Libraries](https://opensource.ieee.org/osvvm/OsvvmLibraries) 
-contains all of the OSVVM libraries as submodules.
-Download the entire OSVVM model library using git clone with the "--recursive" flag:  
-        `$ git clone --recursive https://opensource.ieee.org/osvvm/OsvvmLibraries`
 
 ## Participating and Project Organization 
 
