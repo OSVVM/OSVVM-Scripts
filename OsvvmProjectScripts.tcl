@@ -111,7 +111,7 @@ proc StopTranscript {{FileBaseName ""}} {
   if {($OsvvmCurrentTranscript eq $FileBaseName)} {
     # FileName used within the STOP_TRANSCRIPT variable if required
     set FileName [file join $::DIR_LOGS $FileBaseName]
-    vendor_StartTranscript $FileName
+    vendor_StopTranscript $FileName
     set OsvvmCurrentTranscript ""
   }
 }
