@@ -24,6 +24,7 @@
 #                         as TCL scripts in conjunction with the library 
 #                         procedures
 #     1/2020   2020.01    Updated Licenses to Apache
+#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
 #
 #
 #  This file is part of OSVVM.
@@ -98,9 +99,8 @@ proc StartTranscript {FileBaseName} {
       echo creating directory $RootDir
       file mkdir $RootDir
     }
-
-    echo $::START_TRANSCRIPT $FileName
-    eval $::START_TRANSCRIPT $FileName
+    
+    vendor_StartTranscript $FileName
   }
 }
 
@@ -111,8 +111,7 @@ proc StopTranscript {{FileBaseName ""}} {
   if {($OsvvmCurrentTranscript eq $FileBaseName)} {
     # FileName used within the STOP_TRANSCRIPT variable if required
     set FileName [file join $::DIR_LOGS $FileBaseName]
-    echo $::STOP_TRANSCRIPT 
-    eval $::STOP_TRANSCRIPT 
+    vendor_StartTranscript $FileName
     set OsvvmCurrentTranscript ""
   }
 }
@@ -272,12 +271,8 @@ proc library {LibraryName} {
 
   set ResolvedPathToLib ${DIR_LIB}/${LibraryName}.lib
     
-  if {![file exists ${ResolvedPathToLib}]} {
-    echo vlib    ${ResolvedPathToLib}
-    vlib         ${ResolvedPathToLib}
-  }
-  echo vmap    $LibraryName  ${ResolvedPathToLib}
-  vmap         $LibraryName  ${ResolvedPathToLib}
+  vendor_library $LibraryName $ResolvedPathToLib
+
   set VHDL_WORKING_LIBRARY  $LibraryName
 }
 
@@ -293,13 +288,8 @@ proc map {LibraryName {PathToLib ""}} {
     set ResolvedPathToLib ${DIR_LIB}/${LibraryName}.lib
   }
   
-  if {![file exists ${ResolvedPathToLib}]} {
-      error "Map:  Creating library ${ResolvedPathToLib} since it does not exist.  "
-      echo vlib    ${ResolvedPathToLib}
-      vlib         ${ResolvedPathToLib}
-  }
-  echo vmap    $LibraryName  ${ResolvedPathToLib}
-  vmap         $LibraryName  ${ResolvedPathToLib}
+  vendor_map $LibraryName $ResolvedPathToLib
+  
   set VHDL_WORKING_LIBRARY  $LibraryName
 }
 
@@ -314,15 +304,9 @@ proc analyze {FileName} {
   set NormFileName [file normalize ${CURRENT_WORKING_DIRECTORY}/${FileName}]
 
   if {[file extension $FileName] eq ".vhd"} {
-    echo $::VHDL_ANALYZE_COMMAND $::VHDL_ANALYZE_OPTIONS $::VHDL_ANALYZE_LIBRARY $::VHDL_WORKING_LIBRARY ${NormFileName}
-    eval $::VHDL_ANALYZE_COMMAND $::VHDL_ANALYZE_OPTIONS $::VHDL_ANALYZE_LIBRARY $::VHDL_WORKING_LIBRARY ${NormFileName}
+    vendor_analyze_vhdl $::VHDL_WORKING_LIBRARY ${NormFileName}
   } elseif {[file extension $FileName] eq ".v"} {
-#
-#  Untested branch for Verilog - will need adjustment
-#
-    echo $::VERILOG_ANALYZE_COMMAND $::VERILOG_ANALYZE_OPTIONS $::VHDL_ANALYZE_LIBRARY $::VHDL_WORKING_LIBRARY ${NormFileName}
-    eval $::VERILOG_ANALYZE_COMMAND $::VERILOG_ANALYZE_OPTIONS $::VHDL_ANALYZE_LIBRARY $::VHDL_WORKING_LIBRARY ${NormFileName}
-
+    vendor_analyze_verilog $::VHDL_WORKING_LIBRARY ${NormFileName}
   } elseif {[file extension $FileName] eq ".lib"} {
     #  for handling older deprecated file format
     library [file rootname $FileName]
@@ -339,18 +323,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   set StartTime   [clock seconds] 
   echo Start time [clock format $StartTime -format %T]
 
-  echo $::SIMULATE_COMMAND $::SIMULATE_OPTIONS_FIRST $::SIMULATE_LIBRARY $VHDL_WORKING_LIBRARY ${LibraryUnit} $OptionalCommands $::SIMULATE_OPTIONS_LAST
-  eval $::SIMULATE_COMMAND $::SIMULATE_OPTIONS_FIRST $::SIMULATE_LIBRARY $VHDL_WORKING_LIBRARY ${LibraryUnit} $OptionalCommands $::SIMULATE_OPTIONS_LAST
-  
-  if {[file exists ${LibraryUnit}.tcl]} {
-    source ${LibraryUnit}.tcl
-  }
-  if {[file exists ${LibraryUnit}_$::simulator.tcl]} {
-    source ${LibraryUnit}_$::simulator.tcl
-  }
-
-  echo $::SIMULATE_RUN
-  eval $::SIMULATE_RUN
+  vendor_simulate ${VHDL_WORKING_LIBRARY} ${LibraryUnit} ${OptionalCommands}
 
   echo Start time  [clock format $StartTime -format %T]
   set  FinishTime  [clock seconds] 

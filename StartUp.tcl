@@ -26,6 +26,7 @@
 #                         as TCL scripts in conjunction with the library 
 #                         procedures
 #     1/2020   2020.01    Updated Licenses to Apache
+#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
 #
 #
 #  This file is part of OSVVM.
