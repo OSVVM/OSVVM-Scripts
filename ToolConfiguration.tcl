@@ -111,6 +111,7 @@ if {[info exists aldec]} {
   quietly set ToolVendor  "Mentor"
   #  set ToolVersion $vish_version
   quietly set ToolNameVersion $ToolBaseDir
+  quietly set simulator                 "Mentor"
   
 #  quietly set START_TRANSCRIPT          "transcript file \"\" ; transcript file"
 #  quietly set STOP_TRANSCRIPT           "transcript file \"\" "
@@ -132,7 +133,6 @@ if {[info exists aldec]} {
 #  quietly set SIMULATE_COVERAGE         ""     
 #  
 #  quietly set SIMULATE_RUN              "do $::SCRIPT_DIR/Mentor.do ; add log -r /* ; run -all"
-#  quietly set simulator                 "Mentor"
   
   source ${SCRIPT_DIR}/VendorScripts_Mentor.tcl
 } else {
