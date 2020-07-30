@@ -17,11 +17,11 @@ welcome.
 ## Clone the OSVVM-Libraries directory
 
 Lets start by doing. The library
-[OSVVM-Libraries](https://opensource.ieee.org/osvvm/OsvvmLibraries) 
+[OSVVM-Libraries](https://github.com/osvvm/OsvvmLibraries) 
 contains all of the OSVVM libraries as submodules.
 Download the entire OSVVM model library using git clone with the `--recursive` flag:  
 ``` {.bash}
-$ git clone --recursive https://opensource.ieee.org/osvvm/OsvvmLibraries
+$ git clone --recursive https://github.com/osvvm/OsvvmLibraries
 ```
 
 ## The Script Files
@@ -269,10 +269,10 @@ For the release history see, [CHANGELOG.md](CHANGELOG.md)
 
 The OSVVM project welcomes your participation with either 
 issue reports or pull requests.
-For details on [how to participate see](https://opensource.ieee.org/osvvm/OsvvmLibraries/-/blob/master/CONTRIBUTING.md)
+For details on [how to participate see](https://github.com/osvvm/OsvvmLibraries/-/blob/master/CONTRIBUTING.md)
 
-You can find the project [Authors here](https://opensource.ieee.org/osvvm/OsvvmLibraries/-/blob/master/AUTHORS.md) and
-[Contributors here](https://opensource.ieee.org/osvvm/OsvvmLibraries/-/blob/master/CONTRIBUTORS.md).
+You can find the project [Authors here](https://github.com/osvvm/OsvvmLibraries/-/blob/master/AUTHORS.md) and
+[Contributors here](https://github.com/osvvm/OsvvmLibraries/-/blob/master/CONTRIBUTORS.md).
 
 ## More Information on OSVVM
 
