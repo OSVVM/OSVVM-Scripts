@@ -63,23 +63,27 @@ proc vendor_StopTranscript {FileName} {
 # -------------------------------------------------
 # Library
 #
-proc vendor_library {LibraryName ResolvedPathToLib} {
-  if {![file exists ${ResolvedPathToLib}]} {
-    echo vlib    ${ResolvedPathToLib}
-    vlib         ${ResolvedPathToLib}
+proc vendor_library {LibraryName PathToLib} {
+  set PathAndLib ${PathToLib}/${LibraryName}.lib
+
+  if {![file exists ${PathAndLib}]} {
+    echo vlib    ${PathAndLib}
+    vlib         ${PathAndLib}
   }
-  echo vmap    $LibraryName  ${ResolvedPathToLib}
-  vmap         $LibraryName  ${ResolvedPathToLib}
+  echo vmap    $LibraryName  ${PathAndLib}
+  vmap         $LibraryName  ${PathAndLib}
 }
 
-proc vendor_map {LibraryName ResolvedPathToLib} {
-  if {![file exists ${ResolvedPathToLib}]} {
-    error "Map:  Creating library ${ResolvedPathToLib} since it does not exist.  "
-    echo vlib    ${ResolvedPathToLib}
-    vlib         ${ResolvedPathToLib}
+proc vendor_map {LibraryName PathToLib} {
+  set PathAndLib ${PathToLib}/${LibraryName}.lib
+
+  if {![file exists ${PathAndLib}]} {
+    error "Map:  Creating library ${PathAndLib} since it does not exist.  "
+    echo vlib    ${PathAndLib}
+    vlib         ${PathAndLib}
   }
-  echo vmap    $LibraryName  ${ResolvedPathToLib}
-  vmap         $LibraryName  ${ResolvedPathToLib}
+  echo vmap    $LibraryName  ${PathAndLib}
+  vmap         $LibraryName  ${PathAndLib}
 }
 
 # -------------------------------------------------

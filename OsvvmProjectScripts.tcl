@@ -269,9 +269,9 @@ proc library {LibraryName} {
   
   echo library $LibraryName 
 
-  set ResolvedPathToLib ${DIR_LIB}/${LibraryName}.lib
+# Does DIR_LIB need to be normalized?
     
-  vendor_library $LibraryName $ResolvedPathToLib
+  vendor_library $LibraryName $DIR_LIB
 
   set VHDL_WORKING_LIBRARY  $LibraryName
 }

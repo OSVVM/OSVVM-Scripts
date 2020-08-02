@@ -70,21 +70,6 @@ if {[info exists aldec]} {
   # C:\Tools\Aldec\Active-HDL-10.5-x64       # Both Console and Interactive
   # C:/Tools/Aldec/Riviera-PRO-2018.02-x64   # Both Console and Interactive
 
-  set VHDL_ANALYZE_COMMAND      "vcom"
-  set VHDL_ANALYZE_OPTIONS      "-2008 -dbg -relax"      
-  set VHDL_ANALYZE_COVERAGE     ""
-  set VHDL_ANALYZE_LIBRARY      "-work"
-
-  set VERILOG_ANALYZE_COMMAND   "vlog"
-  set VERILOG_ANALYZE_OPTIONS   ""      
-  set VERILOG_ANALYZE_COVERAGE  ""
-  set VERILOG_ANALYZE_LIBRARY   "-work"
-
-  set SIMULATE_COMMAND          "vsim"
-  set SIMULATE_OPTIONS_FIRST    [concat "-t " $SIMULATE_TIME_UNITS]           
-  set SIMULATE_OPTIONS_LAST     ""             
-  set SIMULATE_LIBRARY          "-lib"             
-  set SIMULATE_COVERAGE         ""       
 
 # Update this  
   set SIMULATE_RUN              "run -all"
@@ -92,16 +77,19 @@ if {[info exists aldec]} {
     # RivieraPro or its console
     echo RivieraPRO
     set simulator              "RivieraPRO"
-# Update this so it closes the old file at stop transcript    
-    set START_TRANSCRIPT          "transcript file \"\" ; transcript file"
-    set STOP_TRANSCRIPT           "transcript file -close \$FileName"
   
     source ${SCRIPT_DIR}/VendorScripts_RivieraPro.tcl
+  } elseif {[string match $ToolExecutableName "VSimSA"]} {
+    echo VSimSA
+    set simulator              "VSimSA"
+    set ToolNameVersion ${simulator}-${ToolNameVersion}
+    source ${SCRIPT_DIR}/VendorScripts_VSimSA.tcl
   } else {
     # ActiveHDL or its console 
     echo ActiveHDL
     set simulator              "ActiveHDL"
-    
+    set ToolNameVersion ${simulator}-${ToolNameVersion}
+
     source ${SCRIPT_DIR}/VendorScripts_ActiveHDL.tcl
   }
 } elseif {[string match $ToolExecutableName "vish"]} {
@@ -113,26 +101,6 @@ if {[info exists aldec]} {
   quietly set ToolNameVersion $ToolBaseDir
   quietly set simulator                 "Mentor"
   
-#  quietly set START_TRANSCRIPT          "transcript file \"\" ; transcript file"
-#  quietly set STOP_TRANSCRIPT           "transcript file \"\" "
-#  
-#  quietly set VHDL_ANALYZE_COMMAND      "vcom"
-#  quietly set VHDL_ANALYZE_OPTIONS      "-2008"      
-#  quietly set VHDL_ANALYZE_COVERAGE     ""
-#  quietly set VHDL_ANALYZE_LIBRARY      "-work"
-#
-#  quietly set VERILOG_ANALYZE_COMMAND   "vlog"
-#  quietly set VERILOG_ANALYZE_OPTIONS   ""      
-#  quietly set VERILOG_ANALYZE_COVERAGE  ""
-#  quietly set VERILOG_ANALYZE_LIBRARY   "-work"
-#
-#  quietly set SIMULATE_COMMAND          "vsim"
-#  quietly set SIMULATE_OPTIONS_FIRST    [concat "-voptargs=\"+acc\"" "-t " $SIMULATE_TIME_UNITS]             
-#  quietly set SIMULATE_OPTIONS_LAST     "-suppress 8683 -suppress 8684 -suppress 8617"             
-#  quietly set SIMULATE_LIBRARY          "-lib"             
-#  quietly set SIMULATE_COVERAGE         ""     
-#  
-#  quietly set SIMULATE_RUN              "do $::SCRIPT_DIR/Mentor.do ; add log -r /* ; run -all"
   
   source ${SCRIPT_DIR}/VendorScripts_Mentor.tcl
 } else {

@@ -49,13 +49,13 @@
 # StartTranscript / StopTranscxript
 #
 proc vendor_StartTranscript {FileName} {
-  transcript file ""
-  echo transcript file $FileName
-  transcript file $FileName
+  transcript off
+  echo transcript to $FileName
+  transcript to $FileName
 }
 
 proc vendor_StopTranscript {FileName} {
-  transcript file -close $FileName
+  transcript off
 }
 
 

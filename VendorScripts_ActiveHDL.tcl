@@ -50,59 +50,80 @@
 # StartTranscript / StopTranscxript
 #
 proc vendor_StartTranscript {FileName} {
-  echo $::START_TRANSCRIPT $FileName
-  eval $::START_TRANSCRIPT $FileName
+  transcript off
+  echo transcript to $FileName
+  transcript to $FileName
 }
 
 proc vendor_StopTranscript {FileName} {
-  # FileName used within the STOP_TRANSCRIPT variable if required
-  echo $::STOP_TRANSCRIPT 
-  eval $::STOP_TRANSCRIPT 
+  transcript off
 }
 
 
 # -------------------------------------------------
 # Library
 #
-proc vendor_library {LibraryName ResolvedPathToLib} {
-  if {![file exists ${ResolvedPathToLib}]} {
-    echo vlib    ${ResolvedPathToLib}
-    vlib         ${ResolvedPathToLib}
+proc vendor_library {LibraryName PathToLib} {
+  set PathAndLib ${PathToLib}/${LibraryName}
+
+  if {![file exists ${PathAndLib}]} {
+    echo design create -a  $LibraryName ${PathToLib}
+    design create -a  $LibraryName ${PathToLib}
   }
-  echo vmap    $LibraryName  ${ResolvedPathToLib}
-  vmap         $LibraryName  ${ResolvedPathToLib}
+  echo design open -a  ${PathAndLib}
+  design open -a  ${PathAndLib}
+  
+  design activate $LibraryName
 }
 
+
 proc vendor_map {LibraryName ResolvedPathToLib} {
-  if {![file exists ${ResolvedPathToLib}]} {
+  set PathAndLib ${PathToLib}/${LibraryName}
+
+  if {![file exists ${PathAndLib}]} {
     error "Map:  Creating library ${ResolvedPathToLib} since it does not exist.  "
-    echo vlib    ${ResolvedPathToLib}
-    vlib         ${ResolvedPathToLib}
+    echo design create -a  $LibraryName ${PathToLib}
+    design create -a  $LibraryName ${PathToLib}
   }
-  echo vmap    $LibraryName  ${ResolvedPathToLib}
-  vmap         $LibraryName  ${ResolvedPathToLib}
+  echo design open -a  ${PathAndLib}
+  design open -a  ${PathAndLib}
+  
+  design activate $LibraryName
 }
 
 # -------------------------------------------------
 # analyze
 #
 proc vendor_analyze_vhdl {LibraryName FileName} {
-    echo $::VHDL_ANALYZE_COMMAND $::VHDL_ANALYZE_OPTIONS $::VHDL_ANALYZE_LIBRARY $::VHDL_WORKING_LIBRARY ${FileName}
-    eval $::VHDL_ANALYZE_COMMAND $::VHDL_ANALYZE_OPTIONS $::VHDL_ANALYZE_LIBRARY $::VHDL_WORKING_LIBRARY ${FileName}
+  global DIR_LIB
+  
+  set FileBaseName [file rootname [file tail $FileName]]
+  
+  # Check src to see if it has been added
+  if {![file isfile ${DIR_LIB}/$LibraryName/src/${FileBaseName}.vcom]} {
+    echo addfile ${FileName}
+    addfile ${FileName}
+    filevhdloptions -2008 ${FileName}
+  }
+  # Compile it.
+  echo vcom -2008 -dbg -relax -work ${LibraryName} ${FileName} 
+  echo vcom -2008 -dbg -relax -work ${LibraryName} ${FileName} > ${DIR_LIB}/$LibraryName/src/${FileBaseName}.vcom
+  vcom -2008 -dbg -relax -work ${LibraryName} ${FileName}
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
 #  Untested branch for Verilog - will need adjustment
-    echo $::VERILOG_ANALYZE_COMMAND $::VERILOG_ANALYZE_OPTIONS $::VHDL_ANALYZE_LIBRARY $::VHDL_WORKING_LIBRARY ${FileName}
-    eval $::VERILOG_ANALYZE_COMMAND $::VERILOG_ANALYZE_OPTIONS $::VHDL_ANALYZE_LIBRARY $::VHDL_WORKING_LIBRARY ${FileName}
+#  Untested branch for Verilog - will need adjustment
+    echo vlog -work ${LibraryName} ${FileName}
+    vlog -work ${LibraryName} ${FileName}
 }
 
 # -------------------------------------------------
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
-  echo $::SIMULATE_COMMAND $::SIMULATE_OPTIONS_FIRST $::SIMULATE_LIBRARY ${LibraryName} ${LibraryUnit} $OptionalCommands $::SIMULATE_OPTIONS_LAST
-  eval $::SIMULATE_COMMAND $::SIMULATE_OPTIONS_FIRST $::SIMULATE_LIBRARY ${LibraryName} ${LibraryUnit} $OptionalCommands $::SIMULATE_OPTIONS_LAST
+  echo vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
+  vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   
   if {[file exists ${LibraryUnit}.tcl]} {
     source ${LibraryUnit}.tcl
@@ -111,6 +132,10 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     source ${LibraryUnit}_$::simulator.tcl
   }
 
-  echo $::SIMULATE_RUN
-  eval $::SIMULATE_RUN
+  if {[file exists ${LibraryUnit}_$::simulator.tcl]} {
+    source ${LibraryUnit}_$::simulator.tcl
+  }
+#  do $::SCRIPT_DIR/Mentor.do
+#  add log -r /*
+  run -all 
 }
