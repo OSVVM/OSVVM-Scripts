@@ -104,6 +104,8 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+  framework.documents.closeall -vhdl
+  
   echo vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   

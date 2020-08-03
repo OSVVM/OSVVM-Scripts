@@ -74,11 +74,26 @@ a simulation by doing:
 source StartUp.tcl
 ```
 
+Before doing this in ActiveHDL and VSimSA (ActiveHDL's 
+command window) instead do:
+``` {.tcl}
+scripterconf -tcl
+do -tcl StartUp.tcl
+```
+
+
 Want to avoid doing this every time? In Aldec RivieraPro, set the
 environment variable, ALDEC_STARTUPTCL to StartUp.tcl (including the
 path information). Similarly in Mentor QuestaSim/ModelSim, set the
 environment variable, MODELSIM_TCL to StartUp.tcl (including the path
 information).
+
+For ActiveHDL/VSimSA in the properties of the executable, set the 
+"Start In" directory to <PathToOsvvm>/OsvvmLibraries/Scripts.   
+For ActiveHDL, edit <ActiveHDL-Install-Dir>/script/startup.do 
+and add above to it.   Similarly for VSimSA, edit 
+<ActiveHDL-Install-Dir>/BIN/startup.do and add the above 
+to it.
 
 ## Project Files
 

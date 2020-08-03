@@ -104,6 +104,15 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+  global MentorPreviousSim
+
+  if {[info exists MentorPreviousSim]} {
+    noview ${MentorPreviousSim}.vhd
+  }
+    
+#  Faster option than MentorPreviousSim, however, leaves the window very small
+#  noview source *
+  
   echo vsim -voptargs="+acc" -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617
   vsim -voptargs="+acc" -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617
   
@@ -117,4 +126,5 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   do $::SCRIPT_DIR/Mentor.do
   add log -r /*
   run -all 
+  set MentorPreviousSim $LibraryUnit
 }

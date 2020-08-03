@@ -228,7 +228,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
     set ScriptName [file tail [file dirname [file normalize ${Path_Or_File}]]]_RunTests
   } else {
     set ScriptName   [file rootname [file tail ${Path_Or_File}]]
- # }
+  }
 
 
   StartTranscript ${ScriptName}.log

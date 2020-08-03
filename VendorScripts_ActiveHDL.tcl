@@ -64,6 +64,8 @@ proc vendor_StopTranscript {FileName} {
 # Library
 #
 proc vendor_library {LibraryName PathToLib} {
+  set MY_START_DIR [pwd]
+
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
@@ -72,12 +74,17 @@ proc vendor_library {LibraryName PathToLib} {
   }
   echo design open -a  ${PathAndLib}
   design open -a  ${PathAndLib}
-  
   design activate $LibraryName
+  cd ${PathAndLib}
+  if {![file exists results]} {
+    file link -symbolic results ${MY_START_DIR}/results  
+  }
+  cd $MY_START_DIR
 }
 
 
 proc vendor_map {LibraryName ResolvedPathToLib} {
+  set MY_START_DIR [pwd]
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
@@ -89,6 +96,7 @@ proc vendor_map {LibraryName ResolvedPathToLib} {
   design open -a  ${PathAndLib}
   
   design activate $LibraryName
+  cd $MY_START_DIR
 }
 
 # -------------------------------------------------
@@ -97,6 +105,7 @@ proc vendor_map {LibraryName ResolvedPathToLib} {
 proc vendor_analyze_vhdl {LibraryName FileName} {
   global DIR_LIB
   
+  set MY_START_DIR [pwd]
   set FileBaseName [file rootname [file tail $FileName]]
   
   # Check src to see if it has been added
@@ -109,33 +118,44 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   echo vcom -2008 -dbg -relax -work ${LibraryName} ${FileName} 
   echo vcom -2008 -dbg -relax -work ${LibraryName} ${FileName} > ${DIR_LIB}/$LibraryName/src/${FileBaseName}.vcom
   vcom -2008 -dbg -relax -work ${LibraryName} ${FileName}
+  
+  cd $MY_START_DIR
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
+  set MY_START_DIR [pwd]
+
 #  Untested branch for Verilog - will need adjustment
 #  Untested branch for Verilog - will need adjustment
     echo vlog -work ${LibraryName} ${FileName}
     vlog -work ${LibraryName} ${FileName}
+  cd $MY_START_DIR
 }
 
 # -------------------------------------------------
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+  set MY_START_DIR [pwd]
+
   echo vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   
+  cd $MY_START_DIR
   if {[file exists ${LibraryUnit}.tcl]} {
     source ${LibraryUnit}.tcl
   }
+  cd $MY_START_DIR
   if {[file exists ${LibraryUnit}_$::simulator.tcl]} {
     source ${LibraryUnit}_$::simulator.tcl
   }
-
+  cd $MY_START_DIR
   if {[file exists ${LibraryUnit}_$::simulator.tcl]} {
     source ${LibraryUnit}_$::simulator.tcl
   }
+  cd $MY_START_DIR
 #  do $::SCRIPT_DIR/Mentor.do
 #  add log -r /*
   run -all 
+  cd $MY_START_DIR
 }
