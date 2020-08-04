@@ -200,12 +200,20 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   global ToolNameVersion 
   global DIR_LIB
   global DIR_LOGS
+  global CURRENT_RUN_DIRECTORY
 
   set CURRENT_WORKING_DIRECTORY [pwd]
   
+  if {![info exists CURRENT_RUN_DIRECTORY]} {
+    set CURRENT_RUN_DIRECTORY ""
+  }
+
+  
   # First time initialization
-  if {$OSVVM_SCRIPTS_INITIALIZED == 0} {
+  if {![info exists OSVVM_SCRIPTS_INITIALIZED] || $CURRENT_WORKING_DIRECTORY ne $CURRENT_RUN_DIRECTORY } {
     set OSVVM_SCRIPTS_INITIALIZED 1
+    
+    set CURRENT_RUN_DIRECTORY $CURRENT_WORKING_DIRECTORY
   
     if {![info exists LIB_BASE_DIR]} {
       set LIB_BASE_DIR $CURRENT_WORKING_DIRECTORY
@@ -223,15 +231,21 @@ proc build {{Path_Or_File "."} {LogName "."}} {
     library default
   }
   
-  if {[file tail ${Path_Or_File}] eq "RunTests.pro"} {
-    # Get name of directory 
-    set ScriptName [file tail [file dirname [file normalize ${Path_Or_File}]]]_RunTests
+  set NormPathOrFile [file normalize ${Path_Or_File}]
+  set NormDir        [file dirname $NormPathOrFile]
+  set NormDirName    [file tail $NormDir]
+  set NormTail       [file tail $NormPathOrFile]
+  set NormTailRoot   [file rootname $NormTail]
+  
+  if {$NormDirName eq $NormTailRoot} {
+    # <Parent Dir>_<Script Name>.log
+    set LogName [file tail [file dirname $NormDir]]_${NormTailRoot}.log
   } else {
-    set ScriptName   [file rootname [file tail ${Path_Or_File}]]
+    # <Dir Name>_<Script Name>.log
+    set LogName ${NormDirName}_${NormTailRoot}.log
   }
 
-
-  StartTranscript ${ScriptName}.log
+  StartTranscript ${LogName}
   set StartTime   [clock seconds] 
   echo Start time [clock format $StartTime -format %T]
   
@@ -241,7 +255,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   set  FinishTime  [clock seconds] 
   echo Finish time [clock format $FinishTime -format %T]
   echo Elasped time [expr ($FinishTime - $StartTime)/60] minutes
-  StopTranscript ${ScriptName}.log
+  StopTranscript ${LogName}
 }
 
 
