@@ -64,6 +64,10 @@ proc vendor_StopTranscript {FileName} {
 # Library
 #
 proc vendor_library {LibraryName PathToLib} {
+  global vendor_simulate_started
+  if {[info exists vendor_simulate_started]} {
+    endsim
+  }  
   set MY_START_DIR [pwd]
 
   set PathAndLib ${PathToLib}/${LibraryName}
@@ -84,6 +88,10 @@ proc vendor_library {LibraryName PathToLib} {
 
 
 proc vendor_map {LibraryName ResolvedPathToLib} {
+  global vendor_simulate_started
+  if {[info exists vendor_simulate_started]} {
+    endsim
+  }  
   set MY_START_DIR [pwd]
   set PathAndLib ${PathToLib}/${LibraryName}
 
@@ -136,8 +144,14 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+  global vendor_simulate_started
+  if {[info exists vendor_simulate_started]} {
+    endsim
+  }  
+  set vendor_simulate_started 1
+  
   set MY_START_DIR [pwd]
-
+  
   echo vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   
