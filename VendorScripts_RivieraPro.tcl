@@ -69,8 +69,10 @@ proc vendor_library {LibraryName PathToLib} {
     echo vlib    ${PathAndLib}
     vlib         ${PathAndLib}
   }
-  echo vmap    $LibraryName  ${PathAndLib}
-  vmap         $LibraryName  ${PathAndLib}
+  if {![file exists ./compile/${LibraryName}.epr]} {
+    echo vmap    $LibraryName  ${PathAndLib}
+    vmap         $LibraryName  ${PathAndLib}
+  }
 }
 
 proc vendor_map {LibraryName PathToLib} {
@@ -81,8 +83,10 @@ proc vendor_map {LibraryName PathToLib} {
     echo vlib    ${PathAndLib}
     vlib         ${PathAndLib}
   }
-  echo vmap    $LibraryName  ${PathAndLib}
-  vmap         $LibraryName  ${PathAndLib}
+  if {![file exists ./compile/${LibraryName}.epr]} {
+    echo vmap    $LibraryName  ${PathAndLib}
+    vmap         $LibraryName  ${PathAndLib}
+  }
 }
 
 
