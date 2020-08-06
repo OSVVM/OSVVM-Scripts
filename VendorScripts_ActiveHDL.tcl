@@ -169,7 +169,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   }
   cd $MY_START_DIR
 #  do $::SCRIPT_DIR/Mentor.do
-#  add log -r /*
+  log -rec [env]/*
   run -all 
   cd $MY_START_DIR
 }

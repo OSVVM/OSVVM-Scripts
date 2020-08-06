@@ -49,8 +49,12 @@
 # VHDL Simulation time units - Simulator is started with this value
 set SIMULATE_TIME_UNITS        ps
 
+# Start out with library location unset
+  if {[info exists LIB_BASE_DIR]} {
+    unset LIB_BASE_DIR 
+  }
 # Only Set library location if it is different from the simulation directory
-set LIB_BASE_DIR C:/tools/sim_temp
+# set LIB_BASE_DIR C:/tools/sim_temp
 
 set SCRIPT_DIR  [file dirname [file normalize [info script]]]
 

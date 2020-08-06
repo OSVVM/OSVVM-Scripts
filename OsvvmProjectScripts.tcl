@@ -209,7 +209,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   }
 
   
-  # First time initialization
+  # Create 
   if {![info exists OSVVM_SCRIPTS_INITIALIZED] || $CURRENT_WORKING_DIRECTORY ne $CURRENT_RUN_DIRECTORY } {
     set OSVVM_SCRIPTS_INITIALIZED 1
     
@@ -231,6 +231,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
     library default
   }
   
+  # Create the Log File Name
   set NormPathOrFile [file normalize ${Path_Or_File}]
   set NormDir        [file dirname $NormPathOrFile]
   set NormDirName    [file tail $NormDir]

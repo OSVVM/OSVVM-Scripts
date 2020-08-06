@@ -124,6 +124,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     source ${LibraryUnit}_$::simulator.tcl
   }
 #  do $::SCRIPT_DIR/Mentor.do
-#  add log -r /*
+  log -rec [env]/*
   run -all 
 }
