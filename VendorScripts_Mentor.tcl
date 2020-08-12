@@ -105,13 +105,13 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   global MentorPreviousSim
+  global SourceMap
 
-  if {[info exists MentorPreviousSim]} {
-    noview ${MentorPreviousSim}.vhd
-  }
-    
-#  Faster option than MentorPreviousSim, however, leaves the window very small
-#  noview source *
+   if {[info exists MentorPreviousSim]} {
+     foreach index [array names SourceMap] { 
+       noview source [file tail $index] 
+     }
+   }
   
   echo vsim -voptargs="+acc" -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617
   vsim -voptargs="+acc" -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617
