@@ -71,14 +71,29 @@ The scripts need to be initialized. You can do this each time you start
 a simulation by doing:
 
 ``` {.tcl}
-source StartUp.tcl
+source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
 ```
+
+Before doing this in ActiveHDL and VSimSA (ActiveHDL's 
+command window) instead do:
+``` {.tcl}
+scripterconf -tcl
+do -tcl <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
+```
+
 
 Want to avoid doing this every time? In Aldec RivieraPro, set the
 environment variable, ALDEC_STARTUPTCL to StartUp.tcl (including the
 path information). Similarly in Mentor QuestaSim/ModelSim, set the
 environment variable, MODELSIM_TCL to StartUp.tcl (including the path
 information).
+
+For ActiveHDL/VSimSA in the properties of the executable, set the 
+"Start In" directory to <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts.   
+For ActiveHDL, edit <ActiveHDL-Install-Dir>/script/startup.do 
+and add above to it.   Similarly for VSimSA, edit 
+<ActiveHDL-Install-Dir>/BIN/startup.do and add the above 
+to it.
 
 ## Project Files
 

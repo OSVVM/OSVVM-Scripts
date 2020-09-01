@@ -26,6 +26,7 @@
 #                         as TCL scripts in conjunction with the library 
 #                         procedures
 #     1/2020   2020.01    Updated Licenses to Apache
+#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
 #
 #
 #  This file is part of OSVVM.
@@ -48,26 +49,14 @@
 # VHDL Simulation time units - Simulator is started with this value
 set SIMULATE_TIME_UNITS        ps
 
+# Start out with library location unset
+  if {[info exists LIB_BASE_DIR]} {
+    unset LIB_BASE_DIR 
+  }
 # Only Set library location if it is different from the simulation directory
-set LIB_BASE_DIR C:/tools/sim_temp
+# set LIB_BASE_DIR C:/tools/sim_temp
 
-# Initialize flag
-set OSVVM_SCRIPTS_INITIALIZED 0
-
-# Set location for scripts
-# if you use TCL "source" the following is sufficient:
-set SCRIPT_DIR  [file normalize [file dirname [info script]]]
-#
-# If you use Mentor or Aldec "do" the following is required
-# if {[info exists aldec]} {
-#   set SCRIPT_DIR [file normalize [file dirname $::argv0]]
-# } elseif {[string match [file rootname [file tail [info nameofexecutable]]] "vish"]} {
-#   set SCRIPT_DIR [file normalize [file dirname [status file]]] 
-# } else {
-#   set SCRIPT_DIR  [file normalize [file dirname [info script]]]
-# #  set SCRIPT_DIR  [file normalize ../Scripts]
-# }
-
+set SCRIPT_DIR  [file dirname [file normalize [info script]]]
 
 # Run Tool configuration script - detects simulator
 source ${SCRIPT_DIR}/ToolConfiguration.tcl
