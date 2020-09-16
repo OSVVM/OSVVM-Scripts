@@ -99,10 +99,12 @@ if {[info exists aldec]} {
   quietly set ToolNameVersion $ToolBaseDir
   quietly set simulator                 "Mentor"
   
-  
   source ${SCRIPT_DIR}/VendorScripts_Mentor.tcl
 } else {
-  error "Tool Not Determined"
+  set simulator "GHDL"
+  set ghdl "C:/Tools/ghdl/bin/ghdl.exe"
+  set ToolNameVersion "GHDL-0.37-Nightly-2020-0914"
+  source ${SCRIPT_DIR}/VendorScripts_GHDL.tcl
 }
 
 
