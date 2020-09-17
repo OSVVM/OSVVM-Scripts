@@ -116,6 +116,12 @@ proc StopTranscript {{FileBaseName ""}} {
   }
 }
 
+#
+#  Problematic since output of tests has the word log
+#
+# proc log {Message} {
+#   puts $Message   
+# }
 
 # -------------------------------------------------
 # include 
@@ -333,7 +339,7 @@ proc analyze {FileName} {
 #
 proc simulate {LibraryUnit {OptionalCommands ""}} {
   global VHDL_WORKING_LIBRARY
-  StartTranscript ${LibraryUnit}.log
+#  StartTranscript ${LibraryUnit}.log
   
   set StartTime   [clock seconds] 
   puts "Start time [clock format $StartTime -format %T]"
@@ -344,7 +350,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   set  FinishTime  [clock seconds] 
   puts "Finish time [clock format $FinishTime -format %T]"
   puts "Elasped time [expr ($FinishTime - $StartTime)/60] minutes"
-  StopTranscript ${LibraryUnit}.log
+#  StopTranscript ${LibraryUnit}.log
 }
 
 # -------------------------------------------------

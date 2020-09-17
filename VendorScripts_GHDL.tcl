@@ -44,12 +44,20 @@
 # StartTranscript / StopTranscxript
 #
 proc vendor_StartTranscript {FileName} {
-  puts "Start Transcript not implemented for GHDL"
+  global GHDL_TRANSCIPT_FILE
+   
+  if {[info exists GHDL_TRANSCIPT_FILE]} {
+    unset GHDL_TRANSCIPT_FILE 
+  }
+  set GHDL_TRANSCIPT_FILE $FileName
+  puts "Transcript $GHDL_TRANSCIPT_FILE" 
 }
 
 proc vendor_StopTranscript {FileName} {
-  # FileName not used here
-  puts "Start Transcript not implemented for GHDL"
+  global GHDL_TRANSCIPT_FILE
+   
+#  unset GHDL_TRANSCIPT_FILE 
+  puts "Stop Transcript $GHDL_TRANSCIPT_FILE" 
 }
 
 
@@ -59,11 +67,12 @@ proc vendor_StopTranscript {FileName} {
 proc vendor_library {LibraryName PathToLib} {
   global VHDL_WORKING_LIBRARY_PATH
   global VHDL_RESOURCE_LIBRARY_PATHS
-  
+  global GHDL_TRANSCIPT_FILE
+   
   set PathAndLib ${PathToLib}/${LibraryName}.lib
 
   if {![file exists ${PathAndLib}]} {
-    puts "creating library directory ${PathAndLib}"
+    puts "creating library directory ${PathAndLib}" 
     file mkdir   ${PathAndLib}
   }
 # Add old path to resource library paths
@@ -76,18 +85,19 @@ proc vendor_library {LibraryName PathToLib} {
 #    puts "set VHDL_RESOURCE_LIBRARY_PATHS [list ]"
     set VHDL_RESOURCE_LIBRARY_PATHS [list ]
   }
-  puts "VHDL Resource Library Paths:  ${VHDL_RESOURCE_LIBRARY_PATHS}"
+#  puts "VHDL Resource Library Paths:  ${VHDL_RESOURCE_LIBRARY_PATHS}"
   set VHDL_WORKING_LIBRARY_PATH  ${PathAndLib}
 }
 
 proc vendor_map {LibraryName PathToLib} {
   global VHDL_WORKING_LIBRARY_PATH
+  global GHDL_TRANSCIPT_FILE
 
   set PathAndLib ${PathToLib}/${LibraryName}.lib
 
   if {![file exists ${PathAndLib}]} {
     error "Map:  Creating library ${PathAndLib} since it does not exist.  "
-    echo creating library directory ${PathAndLib}
+    puts "creating library directory ${PathAndLib}" | tee -a $GHDL_TRANSCIPT_FILE
     file mkdir   ${PathAndLib}
   }
   set VHDL_WORKING_LIBRARY_PATH  ${PathAndLib}
@@ -97,29 +107,31 @@ proc vendor_map {LibraryName PathToLib} {
 # analyze
 #
 proc vendor_analyze_vhdl {LibraryName FileName} {
-  global ghdl
+  global ghdl console
   global VHDL_WORKING_LIBRARY_PATH
   global VHDL_RESOURCE_LIBRARY_PATHS
-    
-    puts "$ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}"
-    eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}
+  global GHDL_TRANSCIPT_FILE
+
+  puts "$ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}" 
+  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} | tee -a $GHDL_TRANSCIPT_FILE $console
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
-#  Untested branch for Verilog - will need adjustment
-    echo vlog -work ${LibraryName} ${FileName}
-    vlog -work ${LibraryName} ${FileName}
+  global GHDL_TRANSCIPT_FILE
+
+  puts "Analyzing verilog files not supported by GHDL" 
 }
 
 # -------------------------------------------------
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
-  global ghdl
+  global ghdl console
   global VHDL_WORKING_LIBRARY_PATH
   global VHDL_RESOURCE_LIBRARY_PATHS
-    
-  puts "$ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}"
-  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}  
+  global GHDL_TRANSCIPT_FILE
+
+  puts "$ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}" 
+  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} | tee -a $GHDL_TRANSCIPT_FILE $console
 
 }
