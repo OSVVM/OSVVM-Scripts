@@ -49,7 +49,7 @@
 #   re-run the startup scripts, this program included
 #
 proc StartUp {} {
-  echo source $::SCRIPT_DIR/StartUp.tcl
+  puts "source $::SCRIPT_DIR/StartUp.tcl"
   source $::SCRIPT_DIR/StartUp.tcl
 }
 
@@ -59,7 +59,7 @@ proc StartUp {} {
 #   do an operation on a list of items
 #
 proc Do_List {FileWithNames ActionForName} {
-#  echo $FileWithNames
+#  puts "$FileWithNames"
   set FileHandle [open $FileWithNames]
   set ListOfNames [split [read $FileHandle] \n]
   close $FileHandle
@@ -69,7 +69,7 @@ proc Do_List {FileWithNames ActionForName} {
     if {[string length $OneName] > 0} {
       # use # as comment character
       if {[string index $OneName 0] ne "#"} {
-        echo $ActionForName ${OneName}
+        puts "$ActionForName ${OneName}"
         # will break $OneName into individual pieces for handling
         eval $ActionForName ${OneName}  
         # leaves $OneName as a single string
@@ -96,7 +96,7 @@ proc StartTranscript {FileBaseName} {
     set FileName [file join $::DIR_LOGS $FileBaseName]
     set RootDir [file dirname $FileName]
     if {![file exists $RootDir]} {
-      echo creating directory $RootDir
+      puts "creating directory $RootDir"
       file mkdir $RootDir
     }
     
@@ -116,6 +116,12 @@ proc StopTranscript {{FileBaseName ""}} {
   }
 }
 
+#
+#  Problematic since output of tests has the word log
+#
+# proc log {Message} {
+#   puts $Message   
+# }
 
 # -------------------------------------------------
 # include 
@@ -124,7 +130,7 @@ proc StopTranscript {{FileBaseName ""}} {
 proc include {Path_Or_File} {
   global CURRENT_WORKING_DIRECTORY
   
-#  echo set StartingPath ${CURRENT_WORKING_DIRECTORY} Starting Include
+#  puts "set StartingPath ${CURRENT_WORKING_DIRECTORY} Starting Include"
   set StartingPath ${CURRENT_WORKING_DIRECTORY}
   
   set NormName [file normalize ${StartingPath}/${Path_Or_File}]
@@ -134,28 +140,28 @@ proc include {Path_Or_File} {
   
   # Path_Or_File is a File with extension .pro, .tcl, .do, .files, .dirs
   if {[file exists $NormName] && ![file isdirectory $NormName]} {
-    echo set CURRENT_WORKING_DIRECTORY ${RootDir}
+    puts "set CURRENT_WORKING_DIRECTORY ${RootDir}"
     set CURRENT_WORKING_DIRECTORY ${RootDir}
     if {$FileExtension eq ".pro" || $FileExtension eq ".tcl" || $FileExtension eq ".do"} {
-      echo source ${NormName} 
+      puts "source ${NormName}"
       source ${NormName} 
     } elseif {$FileExtension eq ".dirs"} {
-      echo Do_List ${NormName} "include"
+      puts "Do_List ${NormName} include"
       Do_List ${NormName} "include"
     } else { 
     #  was elseif {$FileExtension eq ".files"} 
-      echo Do_List ${NormName} "analyze"
+      puts "Do_List ${NormName} analyze"
       Do_List ${NormName} "analyze"
     }
   } else {
     # Path_Or_File is directory name
     if {[file isdirectory $NormName]} {
-      echo set CURRENT_WORKING_DIRECTORY ${NormName}
+      puts "set CURRENT_WORKING_DIRECTORY ${NormName}"
       set CURRENT_WORKING_DIRECTORY ${NormName}
       set FileBaseName ${NormName}/[file rootname ${NameToHandle}] 
     } else {
     # Path_Or_File is name that specifies the rootname of the file(s)
-      echo set CURRENT_WORKING_DIRECTORY ${RootDir}
+      puts "set CURRENT_WORKING_DIRECTORY ${RootDir}"
       set CURRENT_WORKING_DIRECTORY ${RootDir}
       set FileBaseName ${NormName}
     } 
@@ -167,7 +173,7 @@ proc include {Path_Or_File} {
     set FileDoName     ${FileBaseName}.do
 
     if {[file exists ${FileProName}]} {
-      echo source ${FileProName} 
+      puts "source ${FileProName}"
       source ${FileProName} 
     } 
     # .dirs is intended to be deprecated in favor of .pro
@@ -180,16 +186,16 @@ proc include {Path_Or_File} {
     }
     # .tcl intended for extended capability
     if {[file exists ${FileTclName}]} {
-      echo do ${FileTclName} ${CURRENT_WORKING_DIRECTORY}
+      puts "do ${FileTclName} ${CURRENT_WORKING_DIRECTORY}"
       eval do ${FileTclName} ${CURRENT_WORKING_DIRECTORY}
     }
     # .do intended for extended capability
     if {[file exists ${FileDoName}]} {
-      echo do ${FileDoName} ${CURRENT_WORKING_DIRECTORY}
+      puts "do ${FileDoName} ${CURRENT_WORKING_DIRECTORY}"
       eval do ${FileDoName} ${CURRENT_WORKING_DIRECTORY}
     }
   } 
-#  echo set CURRENT_WORKING_DIRECTORY ${StartingPath} Ending Include
+#  puts "set CURRENT_WORKING_DIRECTORY ${StartingPath} Ending Include"
   set CURRENT_WORKING_DIRECTORY ${StartingPath}
 }
 
@@ -248,14 +254,14 @@ proc build {{Path_Or_File "."} {LogName "."}} {
 
   StartTranscript ${LogName}
   set StartTime   [clock seconds] 
-  echo Start time [clock format $StartTime -format %T]
+  puts "Start time [clock format $StartTime -format %T]"
   
   include ${Path_Or_File}
   
-  echo Start time  [clock format $StartTime -format %T]
+  puts "Start time  [clock format $StartTime -format %T]"
   set  FinishTime  [clock seconds] 
-  echo Finish time [clock format $FinishTime -format %T]
-  echo Elasped time [expr ($FinishTime - $StartTime)/60] minutes
+  puts "Finish time [clock format $FinishTime -format %T]"
+  puts "Elapsed time [expr ($FinishTime - $StartTime)/60] minutes"
   StopTranscript ${LogName}
 }
 
@@ -270,7 +276,7 @@ proc RemoveAllLibraries {} {
 
 proc CreateDirectory {Directory} {
   if {![file exists $Directory]} {
-    echo creating directory $Directory
+    puts "creating directory $Directory"
     file mkdir $Directory
   }
 }
@@ -282,7 +288,7 @@ proc library {LibraryName} {
   global DIR_LIB
   global VHDL_WORKING_LIBRARY
   
-  echo library $LibraryName 
+  puts "library $LibraryName" 
 
 # Does DIR_LIB need to be normalized?
     
@@ -314,7 +320,7 @@ proc map {LibraryName {PathToLib ""}} {
 proc analyze {FileName} {
   global CURRENT_WORKING_DIRECTORY
   
-  echo analyze $FileName
+  puts "analyze $FileName"
   
   set NormFileName [file normalize ${CURRENT_WORKING_DIRECTORY}/${FileName}]
 
@@ -333,18 +339,18 @@ proc analyze {FileName} {
 #
 proc simulate {LibraryUnit {OptionalCommands ""}} {
   global VHDL_WORKING_LIBRARY
-  StartTranscript ${LibraryUnit}.log
+#  StartTranscript ${LibraryUnit}.log
   
   set StartTime   [clock seconds] 
-  echo Start time [clock format $StartTime -format %T]
+  puts "Start time [clock format $StartTime -format %T]"
 
   vendor_simulate ${VHDL_WORKING_LIBRARY} ${LibraryUnit} ${OptionalCommands}
 
-  echo Start time  [clock format $StartTime -format %T]
+  puts "Start time  [clock format $StartTime -format %T]"
   set  FinishTime  [clock seconds] 
-  echo Finish time [clock format $FinishTime -format %T]
-  echo Elasped time [expr ($FinishTime - $StartTime)/60] minutes
-  StopTranscript ${LibraryUnit}.log
+  puts "Finish time [clock format $FinishTime -format %T]"
+  puts "Elasped time [expr ($FinishTime - $StartTime)/60] minutes"
+#  StopTranscript ${LibraryUnit}.log
 }
 
 # -------------------------------------------------
