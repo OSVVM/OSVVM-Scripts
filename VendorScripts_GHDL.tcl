@@ -66,7 +66,7 @@ proc vendor_StopTranscript {FileName} {
 #
 proc vendor_library {LibraryName PathToLib} {
   global VHDL_WORKING_LIBRARY_PATH
-  global VHDL_RESOURCE_LIBRARY_PATHS
+#  global VHDL_RESOURCE_LIBRARY_PATHS
   global GHDL_TRANSCIPT_FILE
    
 #  set PathAndLib ${PathToLib}/${LibraryName}.lib
@@ -76,17 +76,17 @@ proc vendor_library {LibraryName PathToLib} {
     puts "creating library directory ${PathAndLib}" 
     file mkdir   ${PathAndLib}
   }
-# Add old path to resource library paths
-  if {[info exists VHDL_WORKING_LIBRARY_PATH]} {
-    if {[lsearch $VHDL_RESOURCE_LIBRARY_PATHS -P${VHDL_WORKING_LIBRARY_PATH}] == -1} {
-#      puts "set VHDL_RESOURCE_LIBRARY_PATHS [concat $VHDL_RESOURCE_LIBRARY_PATHS -P${VHDL_WORKING_LIBRARY_PATH}]"
-      set VHDL_RESOURCE_LIBRARY_PATHS [concat $VHDL_RESOURCE_LIBRARY_PATHS -P${VHDL_WORKING_LIBRARY_PATH}]
-    }
-  } else {
-#    puts "set VHDL_RESOURCE_LIBRARY_PATHS [list ]"
-    set VHDL_RESOURCE_LIBRARY_PATHS [list ]
-  }
-#  puts "VHDL Resource Library Paths:  ${VHDL_RESOURCE_LIBRARY_PATHS}"
+# # Add old path to resource library paths
+#   if {[info exists VHDL_WORKING_LIBRARY_PATH]} {
+#     if {[lsearch $VHDL_RESOURCE_LIBRARY_PATHS -P${VHDL_WORKING_LIBRARY_PATH}] == -1} {
+# #      puts "set VHDL_RESOURCE_LIBRARY_PATHS [concat $VHDL_RESOURCE_LIBRARY_PATHS -P${VHDL_WORKING_LIBRARY_PATH}]"
+#       set VHDL_RESOURCE_LIBRARY_PATHS [concat $VHDL_RESOURCE_LIBRARY_PATHS -P${VHDL_WORKING_LIBRARY_PATH}]
+#     }
+#   } else {
+# #    puts "set VHDL_RESOURCE_LIBRARY_PATHS [list ]"
+#     set VHDL_RESOURCE_LIBRARY_PATHS [list ]
+#   }
+# #  puts "VHDL Resource Library Paths:  ${VHDL_RESOURCE_LIBRARY_PATHS}"
   set VHDL_WORKING_LIBRARY_PATH  ${PathAndLib}
 }
 
@@ -110,7 +110,7 @@ proc vendor_map {LibraryName PathToLib} {
 proc vendor_analyze_vhdl {LibraryName FileName} {
   global ghdl console
   global VHDL_WORKING_LIBRARY_PATH
-  global VHDL_RESOURCE_LIBRARY_PATHS
+#  global VHDL_RESOURCE_LIBRARY_PATHS
   global GHDL_TRANSCIPT_FILE
   global DIR_LIB
 
@@ -132,7 +132,7 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   global ghdl console
   global VHDL_WORKING_LIBRARY_PATH
-  global VHDL_RESOURCE_LIBRARY_PATHS
+#  global VHDL_RESOURCE_LIBRARY_PATHS
   global GHDL_TRANSCIPT_FILE
   global DIR_LIB
 
