@@ -71,7 +71,7 @@ if {[info exists aldec]} {
   # C:/Tools/Aldec/Riviera-PRO-2018.02-x64   # Both Console and Interactive
 
 
-  if {[string match [string index $ToolNameVersion 0] "R"]} {
+  if {[string match [string index $ToolExecutableName 0] "r"]} {
     # RivieraPro or its console
     echo RivieraPRO
     set simulator              "RivieraPRO"
