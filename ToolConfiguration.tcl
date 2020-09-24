@@ -71,24 +71,27 @@ if {[info exists aldec]} {
   # C:/Tools/Aldec/Riviera-PRO-2018.02-x64   # Both Console and Interactive
 
 
-  if {[string match [string index $ToolExecutableName 0] "r"]} {
+  if {$ToolExecutableName eq "riviera" || $ToolExecutableName eq "vsimsa"} {
     # RivieraPro or its console
-    echo RivieraPRO
+#    echo RivieraPRO
     set simulator              "RivieraPRO"
-  
+    set ToolNameVersion ${simulator}-[asimVersion]
+    echo $ToolNameVersion
     source ${SCRIPT_DIR}/VendorScripts_RivieraPro.tcl
+    
   } elseif {[string match $ToolExecutableName "VSimSA"]} {
-    echo VSimSA
     set simulator              "VSimSA"
-    set ToolNameVersion ${simulator}-${ToolNameVersion}
+    set ToolNameVersion ${simulator}-[lindex [split $version] [llength $version]-1]
+    echo $ToolNameVersion
     source ${SCRIPT_DIR}/VendorScripts_VSimSA.tcl
+    
   } else {
     # ActiveHDL or its console 
-    echo ActiveHDL
     set simulator              "ActiveHDL"
-    set ToolNameVersion ${simulator}-${ToolNameVersion}
-
+    set ToolNameVersion ${simulator}-${version}
+    echo $ToolNameVersion
     source ${SCRIPT_DIR}/VendorScripts_ActiveHDL.tcl
+    
   }
 } elseif {[string match $ToolExecutableName "vish"]} {
   # Mentor settings
@@ -97,9 +100,15 @@ if {[info exists aldec]} {
   quietly set ToolVendor  "Mentor"
   #  set ToolVersion $vish_version
   quietly set ToolNameVersion $ToolBaseDir
-  quietly set simulator                 "Mentor"
-  
+  if {[lindex [split [vsim -version]] 0] eq "Questa"} {
+    quietly set simulator   "QuestaSim"
+  } else {
+    quietly set simulator   "ModelSim"
+  }
+  quietly set ToolNameVersion ${simulator}-[vsimVersion]
+  echo $ToolNameVersion
   source ${SCRIPT_DIR}/VendorScripts_Mentor.tcl
+  
 } else {
   set simulator  "GHDL"
   set ToolVendor "GHDL"
@@ -108,6 +117,7 @@ if {[info exists aldec]} {
   set console "/dev/pty0"
   set ToolNameVersion "GHDL-0.37-Nightly-2020-0914"
   source ${SCRIPT_DIR}/VendorScripts_GHDL.tcl
+  
 }
 
 
