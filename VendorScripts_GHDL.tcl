@@ -69,7 +69,8 @@ proc vendor_library {LibraryName PathToLib} {
   global VHDL_RESOURCE_LIBRARY_PATHS
   global GHDL_TRANSCIPT_FILE
    
-  set PathAndLib ${PathToLib}/${LibraryName}.lib
+#  set PathAndLib ${PathToLib}/${LibraryName}.lib
+  set PathAndLib ${PathToLib}/${LibraryName}/v08
 
   if {![file exists ${PathAndLib}]} {
     puts "creating library directory ${PathAndLib}" 
@@ -111,9 +112,12 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   global VHDL_WORKING_LIBRARY_PATH
   global VHDL_RESOURCE_LIBRARY_PATHS
   global GHDL_TRANSCIPT_FILE
+  global DIR_LIB
 
-  puts "$ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}" 
-  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} | tee -a $GHDL_TRANSCIPT_FILE $console
+#  puts "$ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}" 
+#  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} | tee -a $GHDL_TRANSCIPT_FILE $console
+  puts "$ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName}" 
+  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName} | tee -a $GHDL_TRANSCIPT_FILE $console
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
@@ -130,8 +134,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   global VHDL_WORKING_LIBRARY_PATH
   global VHDL_RESOURCE_LIBRARY_PATHS
   global GHDL_TRANSCIPT_FILE
+  global DIR_LIB
 
-  puts "$ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}" 
-  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} | tee -a $GHDL_TRANSCIPT_FILE $console
+#  puts "$ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}" 
+#  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} | tee -a $GHDL_TRANSCIPT_FILE $console
+  puts "$ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit}" 
+  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit} | tee -a $GHDL_TRANSCIPT_FILE $console
 
 }
