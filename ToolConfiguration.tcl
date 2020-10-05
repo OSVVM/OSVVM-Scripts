@@ -99,7 +99,6 @@ if {[info exists aldec]} {
   quietly set ToolType    "simulator"
   quietly set ToolVendor  "Mentor"
   #  set ToolVersion $vish_version
-  quietly set ToolNameVersion $ToolBaseDir
   if {[lindex [split [vsim -version]] 0] eq "Questa"} {
     quietly set simulator   "QuestaSim"
   } else {
