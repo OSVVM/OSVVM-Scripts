@@ -124,7 +124,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   }
 
   do $::SCRIPT_DIR/Mentor.do
-  add log -r /*
+  add log -r [env]/*
   run -all 
   set MentorPreviousSim $LibraryUnit
 }
