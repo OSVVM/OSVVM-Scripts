@@ -125,7 +125,7 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   # Compile it.
   echo vcom -2008 -dbg -relax -work ${LibraryName} ${FileName} 
   echo vcom -2008 -dbg -relax -work ${LibraryName} ${FileName} > ${DIR_LIB}/$LibraryName/src/${FileBaseName}.vcom
-  vcom -2008 -dbg -relax -work ${LibraryName} ${FileName}
+  eval vcom -2008 -dbg -relax -work ${LibraryName} ${FileName}
   
   cd $MY_START_DIR
 }
@@ -136,7 +136,7 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 #  Untested branch for Verilog - will need adjustment
 #  Untested branch for Verilog - will need adjustment
     echo vlog -work ${LibraryName} ${FileName}
-    vlog -work ${LibraryName} ${FileName}
+    eval vlog -work ${LibraryName} ${FileName}
   cd $MY_START_DIR
 }
 
@@ -153,7 +153,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   set MY_START_DIR [pwd]
   
   echo vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
-  vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
+  eval vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   
   cd $MY_START_DIR
   if {[file exists ${LibraryUnit}.tcl]} {
