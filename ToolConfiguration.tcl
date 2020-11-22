@@ -109,6 +109,7 @@ if {[info exists aldec]} {
   source ${SCRIPT_DIR}/VendorScripts_Mentor.tcl
   
 } else {
+  puts GHDL 
   set simulator  "GHDL"
   set ToolVendor "GHDL"
   set ghdl "C:/Tools/ghdl/bin/ghdl.exe"
