@@ -1,6 +1,7 @@
 # The OSVVM Verification Script Library Change Log
 
 Revision      Date             Comments
+**2020.10**   October 2020     Added eval before vendor commands to properly handle arguments.   
 **2020.07**   July 2020        Added README.md with documentation.   
                                Refactored tool execution for simpler vendor customization 
 **2020.01**   January 2020     Replaced license with Apache to prepare for IEEE Open Source
