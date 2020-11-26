@@ -112,10 +112,11 @@ if {[info exists aldec]} {
   puts GHDL 
   set simulator  "GHDL"
   set ToolVendor "GHDL"
-  set ghdl "C:/Tools/ghdl/bin/ghdl.exe"
+#  set ghdl "C:/Tools/ghdl/bin/ghdl.exe"
+  set ghdl "ghdl"
   # required for mintty
   set console "/dev/pty0"
-  set ToolNameVersion "GHDL-0.37-Nightly-2020-0914"
+  set ToolNameVersion "GHDL-v0.37.0-1063-gc5b094bb-2020-1023"
   source ${SCRIPT_DIR}/VendorScripts_GHDL.tcl
   
 }
