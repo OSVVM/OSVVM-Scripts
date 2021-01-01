@@ -1,13 +1,12 @@
 # The OSVVM Verification Script Library Change Log
 
-Revision      Date             Comments
-**2020.10**   October 2020     Added eval before vendor commands to properly handle arguments.   
-**2020.07**   July 2020        Added README.md with documentation.   
-                               Refactored tool execution for simpler vendor customization 
-**2020.01**   January 2020     Replaced license with Apache to prepare for IEEE Open Source
-**2019.02**   February 2019    Refactored s.t *.pro are executable TCL scripts 
-                               that call procedures to greatly simplify the scripting    
-**2018.11**   November 2018    Initial release    
+| Revision  | Revision Date |  Release Summary | 
+------------|---------------|----------- 
+| 2020.10   | October 2020  |  Added eval before vendor commands to properly handle arguments. 
+| 2020.07   | July 2020     |  Added README.md with documentation.  Refactored tool execution for simpler vendor customization
+| 2020.01   | January 2020  |  Updated to Apache Licenses
+| 2019.02   | February 2019 |  Refactored so that *.pro scripts are executable TCL scripts that call procedures.
+| 2018.11   | November 2018 |  Initial release
 
  
 ## Copyright and License
