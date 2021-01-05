@@ -172,27 +172,36 @@ proc include {Path_Or_File} {
     set FileTclName    ${FileBaseName}.tcl
     set FileDoName     ${FileBaseName}.do
 
+    set FoundActivity 0
     if {[file exists ${FileProName}]} {
       puts "source ${FileProName}"
       source ${FileProName} 
+      set FoundActivity 1
     } 
     # .dirs is intended to be deprecated in favor of .pro
     if {[file exists ${FileDirsName}]} {
       Do_List ${FileDirsName} "include"
+      set FoundActivity 1
     }
     # .files is intended to be deprecated in favor of .pro
     if {[file exists ${FileFilesName}]} {
       Do_List ${FileFilesName} "analyze"
+      set FoundActivity 1
     }
     # .tcl intended for extended capability
     if {[file exists ${FileTclName}]} {
       puts "do ${FileTclName} ${CURRENT_WORKING_DIRECTORY}"
       eval do ${FileTclName} ${CURRENT_WORKING_DIRECTORY}
+      set FoundActivity 1
     }
     # .do intended for extended capability
     if {[file exists ${FileDoName}]} {
       puts "do ${FileDoName} ${CURRENT_WORKING_DIRECTORY}"
       eval do ${FileDoName} ${CURRENT_WORKING_DIRECTORY}
+      set FoundActivity 1
+    }
+    if {$FoundActivity == 0} {
+      error "Build / Include did not find anything to execute"
     }
   } 
 #  puts "set CURRENT_WORKING_DIRECTORY ${StartingPath} Ending Include"
@@ -323,12 +332,13 @@ proc analyze {FileName} {
   puts "analyze $FileName"
   
   set NormFileName [file normalize ${CURRENT_WORKING_DIRECTORY}/${FileName}]
+  set FileExtension [file extension $FileName]
 
-  if {[file extension $FileName] eq ".vhd"} {
+  if {$FileExtension eq ".vhd" || $FileExtension eq ".vhdl"} {
     vendor_analyze_vhdl $::VHDL_WORKING_LIBRARY ${NormFileName}
-  } elseif {[file extension $FileName] eq ".v"} {
+  } elseif {$FileExtension eq ".v"} {
     vendor_analyze_verilog $::VHDL_WORKING_LIBRARY ${NormFileName}
-  } elseif {[file extension $FileName] eq ".lib"} {
+  } elseif {$FileExtension eq ".lib"} {
     #  for handling older deprecated file format
     library [file rootname $FileName]
   }
