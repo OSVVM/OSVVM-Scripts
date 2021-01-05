@@ -56,8 +56,20 @@ set SIMULATE_TIME_UNITS        ps
 # Only Set library location if it is different from the simulation directory
 # set LIB_BASE_DIR C:/tools/sim_temp
 
+set ToolExecutable [info nameofexecutable]
+set ToolExecutableName [file rootname [file tail $ToolExecutable]]
 set SCRIPT_DIR  [file dirname [file normalize [info script]]]
 
+#if {[info exists aldec] && [string match $ToolExecutableName "VSimSA"]} {
+if {[string match $ToolExecutableName "VSimSA"]} {
+#  puts "OSVVM Found VSimSA"
+  set SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
+#  puts $SCRIPT_DIR
+}
+#  if {$ToolExecutableName eq "riviera" || $ToolExecutableName eq "vsimsa"} {
+#    source ${SCRIPT_DIR}/Start_RivieraPro.tcl
+#  } elseif {[string match $ToolExecutableName "VSimSA"]} {
+#
 # Run Tool configuration script - detects simulator
 source ${SCRIPT_DIR}/ToolConfiguration.tcl
 
