@@ -46,6 +46,11 @@
 #
 
 # variables to allow setup of tool commands
+# C:/Tools/questasim64_10.7/win64/vish.exe
+# C:/Tools/Aldec/Active-HDL-10.5-x64/BIN/avhdl_core.exe
+# C:/Tools/Aldec/Active-HDL-10.5-x64/BIN/VSimSA.exe
+# C:/Tools/Aldec/Riviera-PRO-2018.02-x64/bin/riviera.exe
+# C:/Tools/Aldec/Riviera-PRO-2018.02-x64/bin/vsimsa.exe - console
 
 # Set time units if project settings file did not
 if {![info exists SIMULATE_TIME_UNITS]} {
@@ -53,13 +58,7 @@ if {![info exists SIMULATE_TIME_UNITS]} {
 }
 
 set ToolExecutable [info nameofexecutable]
-# C:/Tools/questasim64_10.7/win64/vish.exe
-# C:/Tools/Aldec/Active-HDL-10.5-x64/BIN/avhdl_core.exe
-# C:/Tools/Aldec/Active-HDL-10.5-x64/BIN/VSimSA.exe
-# C:/Tools/Aldec/Riviera-PRO-2018.02-x64/bin/riviera.exe
-# C:/Tools/Aldec/Riviera-PRO-2018.02-x64/bin/vsimsa.exe - console
 set ToolExecutableName [file rootname [file tail $ToolExecutable]]
-set ToolBaseDir [file tail [file dirname [file dirname $ToolExecutable]]]
 
 if {[info exists aldec]} {
   # found either RivieraPro or ActiveHDL
