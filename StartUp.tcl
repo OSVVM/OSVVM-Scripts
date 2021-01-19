@@ -28,6 +28,7 @@
 #     1/2020   2020.01    Updated Licenses to Apache
 #     7/2020   2020.07    Refactored tool execution for simpler vendor customization
 #     2/2020   2020.07    Moved tool determination to outer layer
+#     2/2021   2021.02    Refactored tool settings from ToolConfiguration.tcl
 #
 #
 #  This file is part of OSVVM.

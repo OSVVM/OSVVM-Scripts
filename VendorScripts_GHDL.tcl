@@ -20,11 +20,12 @@
 #  Revision History:
 #    Date      Version    Description
 #     9/2020   2020.09    Initial Version
+#     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2020 by SynthWorks Design Inc.  
+#  Copyright (c) 2020 - 2021 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.

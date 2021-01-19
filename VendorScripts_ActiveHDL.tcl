@@ -26,11 +26,12 @@
 #     1/2020   2020.01    Updated Licenses to Apache
 #     7/2020   2020.07    Refactored for simpler vendor customization
 #     7/2020   2020.07    Refactored tool execution for simpler vendor customization
+#     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2020 by SynthWorks Design Inc.  
+#  Copyright (c) 2018 - 2021 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
