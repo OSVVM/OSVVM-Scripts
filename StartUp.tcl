@@ -27,11 +27,12 @@
 #                         procedures
 #     1/2020   2020.01    Updated Licenses to Apache
 #     7/2020   2020.07    Refactored tool execution for simpler vendor customization
+#     2/2020   2020.07    Moved tool determination to outer layer
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2020 by SynthWorks Design Inc.  
+#  Copyright (c) 2018 - 2021 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -46,32 +47,34 @@
 #  limitations under the License.
 #
 
-# VHDL Simulation time units - Simulator is started with this value
-set SIMULATE_TIME_UNITS        ps
-
-# Start out with library location unset
-  if {[info exists LIB_BASE_DIR]} {
-    unset LIB_BASE_DIR 
-  }
-# Only Set library location if it is different from the simulation directory
-# set LIB_BASE_DIR C:/tools/sim_temp
-
-set ToolExecutable [info nameofexecutable]
-set ToolExecutableName [file rootname [file tail $ToolExecutable]]
+# Initial SCRIPT_DIR setup - revised by ActiveHDL VSimSA
 set SCRIPT_DIR  [file dirname [file normalize [info script]]]
 
-#if {[info exists aldec] && [string match $ToolExecutableName "VSimSA"]} {
-if {[string match $ToolExecutableName "VSimSA"]} {
-#  puts "OSVVM Found VSimSA"
-  set SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
-#  puts $SCRIPT_DIR
-}
-#  if {$ToolExecutableName eq "riviera" || $ToolExecutableName eq "vsimsa"} {
-#    source ${SCRIPT_DIR}/Start_RivieraPro.tcl
-#  } elseif {[string match $ToolExecutableName "VSimSA"]} {
+# 
+# Find the simulator
 #
-# Run Tool configuration script - detects simulator
-source ${SCRIPT_DIR}/ToolConfiguration.tcl
+set ToolExecutable [info nameofexecutable]
+set ToolExecutableName [file rootname [file tail $ToolExecutable]]
 
-# Run OSVVM Project build library 
+if {[info exists aldec]} {
+  if {$ToolExecutableName eq "riviera" || $ToolExecutableName eq "vsimsa"} {
+    source ${SCRIPT_DIR}/VendorScripts_RivieraPro.tcl
+
+  } elseif {[string match $ToolExecutableName "VSimSA"]} {
+    set SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
+    source ${SCRIPT_DIR}/VendorScripts_VSimSA.tcl
+
+  } else {
+    source ${SCRIPT_DIR}/VendorScripts_ActiveHDL.tcl
+  }
+} elseif {[string match $ToolExecutableName "vish"]} {
+  source ${SCRIPT_DIR}/VendorScripts_Mentor.tcl
+} else {
+  source ${SCRIPT_DIR}/VendorScripts_GHDL.tcl
+}
+
+# Set OSVVM Script Defaults
+source ${SCRIPT_DIR}/OsvvmScriptDefaults.tcl
+
+# OSVVM Project Scripts 
 source ${SCRIPT_DIR}/OsvvmProjectScripts.tcl
