@@ -44,6 +44,15 @@
 #  limitations under the License.
 #
 
+# -------------------------------------------------
+# Tool Settings
+#
+  set ToolType    "simulator"
+  set ToolVendor  "Aldec"
+  set simulator   "VSimSA"
+  set ToolNameVersion ${simulator}-[lindex [split $version] [llength $version]-1]
+  puts $ToolNameVersion
+
 
 # -------------------------------------------------
 # StartTranscript / StopTranscxript

@@ -47,6 +47,16 @@
 
 
 # -------------------------------------------------
+# Tool Settings
+#
+  set ToolType    "simulator"
+  set ToolVendor  "Aldec"
+  set simulator   "ActiveHDL"
+  set ToolNameVersion ${simulator}-${version}
+  puts $ToolNameVersion
+
+
+# -------------------------------------------------
 # StartTranscript / StopTranscxript
 #
 proc vendor_StartTranscript {FileName} {

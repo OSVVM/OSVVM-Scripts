@@ -46,6 +46,20 @@
 
 
 # -------------------------------------------------
+# Tool Settings
+#
+  quietly set ToolType    "simulator"
+  quietly set ToolVendor  "Siemens"
+  if {[lindex [split [vsim -version]] 0] eq "Questa"} {
+    quietly set simulator   "QuestaSim"
+  } else {
+    quietly set simulator   "ModelSim"
+  }
+  quietly set ToolNameVersion ${simulator}-[vsimVersion]
+  puts $ToolNameVersion
+
+
+# -------------------------------------------------
 # StartTranscript / StopTranscxript
 #
 proc vendor_StartTranscript {FileName} {

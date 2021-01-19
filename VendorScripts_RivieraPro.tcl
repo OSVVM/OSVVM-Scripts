@@ -46,6 +46,17 @@
 
 
 # -------------------------------------------------
+# Tool Settings
+#
+  set ToolType    "simulator"
+  set ToolVendor  "Aldec"
+  set simulator   "RivieraPRO"
+  #  Could differentiate between RivieraPRO and VSimSA
+  set ToolNameVersion ${simulator}-[asimVersion]
+  puts $ToolNameVersion
+
+
+# -------------------------------------------------
 # StartTranscript / StopTranscxript
 #
 proc vendor_StartTranscript {FileName} {

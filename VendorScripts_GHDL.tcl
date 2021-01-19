@@ -41,6 +41,19 @@
 
 
 # -------------------------------------------------
+# Tool Settings
+#
+  set ToolType   "simulator"
+  set ToolVendor "GHDL"
+  set simulator  "GHDL"
+  set ghdl "ghdl"
+  # required for mintty
+  set console "/dev/pty0"
+  set ToolNameVersion "GHDL-v0.37.0-1063-gc5b094bb-2020-1023"
+  puts $ToolNameVersion
+
+
+# -------------------------------------------------
 # StartTranscript / StopTranscxript
 #
 proc vendor_StartTranscript {FileName} {
