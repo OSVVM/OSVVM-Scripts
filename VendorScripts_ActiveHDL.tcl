@@ -55,6 +55,8 @@
   set simulator   "ActiveHDL"
   set ToolNameVersion ${simulator}-${version}
   puts $ToolNameVersion
+  # Allow global OSVVM library to be updated
+  setlibrarymode -rw osvvm
 
 
 # -------------------------------------------------
