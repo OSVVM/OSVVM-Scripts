@@ -74,8 +74,8 @@ if {[info exists aldec]} {
   source ${SCRIPT_DIR}/VendorScripts_GHDL.tcl
 }
 
-# Set OSVVM Script Defaults
-source ${SCRIPT_DIR}/OsvvmScriptDefaults.tcl
-
 # OSVVM Project Scripts 
 source ${SCRIPT_DIR}/OsvvmProjectScripts.tcl
+
+# Set OSVVM Script Defaults - defaults may call scripts
+source ${SCRIPT_DIR}/OsvvmScriptDefaults.tcl
