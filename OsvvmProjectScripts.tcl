@@ -129,8 +129,13 @@ proc StopTranscript {{FileBaseName ""}} {
 #
 proc include {Path_Or_File} {
   global CURRENT_WORKING_DIRECTORY
+  global VHDL_WORKING_LIBRARY
   
 #  puts "set StartingPath ${CURRENT_WORKING_DIRECTORY} Starting Include"
+  # If a library does not exist, then create the default
+  if {![info exists VHDL_WORKING_LIBRARY]} {
+    library default
+  }
   set StartingPath ${CURRENT_WORKING_DIRECTORY}
   
   set NormName [file normalize ${StartingPath}/${Path_Or_File}]
@@ -210,12 +215,8 @@ proc include {Path_Or_File} {
 
 proc build {{Path_Or_File "."} {LogName "."}} {
   global CURRENT_WORKING_DIRECTORY
-  global LIB_BASE_DIR
-  global OSVVM_SCRIPTS_INITIALIZED
-  global ToolNameVersion 
-  global DIR_LIB
-  global DIR_LOGS
   global CURRENT_RUN_DIRECTORY
+  global VHDL_WORKING_LIBRARY
 
   set CURRENT_WORKING_DIRECTORY [pwd]
   
@@ -223,28 +224,13 @@ proc build {{Path_Or_File "."} {LogName "."}} {
     set CURRENT_RUN_DIRECTORY ""
   }
 
-  
-  # Create 
-  if {![info exists OSVVM_SCRIPTS_INITIALIZED] || $CURRENT_WORKING_DIRECTORY ne $CURRENT_RUN_DIRECTORY } {
-    set OSVVM_SCRIPTS_INITIALIZED 1
-    
-    set CURRENT_RUN_DIRECTORY $CURRENT_WORKING_DIRECTORY
-  
-    if {![info exists LIB_BASE_DIR]} {
-      set LIB_BASE_DIR $CURRENT_WORKING_DIRECTORY
+  # Initialize 
+  if {![info exists VHDL_WORKING_LIBRARY] || $CURRENT_WORKING_DIRECTORY ne $CURRENT_RUN_DIRECTORY } {
+    if {[info exists VHDL_WORKING_LIBRARY]} {
+      unset VHDL_WORKING_LIBRARY
     }
-    
-    # Set locations for libraries and logs
-    set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
-    set DIR_LOGS   ${CURRENT_WORKING_DIRECTORY}/logs/${ToolNameVersion}
-
-    # Create LIB and Results directories
-    CreateDirectory $DIR_LIB
-    CreateDirectory ${CURRENT_WORKING_DIRECTORY}/results
-
-    # Create default library
-    library default
-  }
+    library default 
+  } 
   
   # Create the Log File Name
   set NormPathOrFile [file normalize ${Path_Or_File}]
@@ -291,11 +277,45 @@ proc CreateDirectory {Directory} {
 }
 
 # -------------------------------------------------
+# OsvvmInitialize
+#
+proc OsvvmInitialize {} {
+  global CURRENT_WORKING_DIRECTORY
+  global CURRENT_RUN_DIRECTORY
+  global LIB_BASE_DIR
+  global DIR_LIB
+  global DIR_LOGS
+  global ToolNameVersion 
+
+  if {![info exists CURRENT_WORKING_DIRECTORY]} {
+    set CURRENT_WORKING_DIRECTORY [pwd]
+  }
+  set CURRENT_RUN_DIRECTORY [pwd]
+
+  if {![info exists LIB_BASE_DIR]} {
+    set LIB_BASE_DIR $CURRENT_RUN_DIRECTORY
+  }
+  
+  # Set locations for libraries and logs
+  set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
+  set DIR_LOGS   ${CURRENT_RUN_DIRECTORY}/logs/${ToolNameVersion}
+
+  # Create LIB and Results directories
+  CreateDirectory $DIR_LIB
+  CreateDirectory ${CURRENT_RUN_DIRECTORY}/results
+}
+
+# -------------------------------------------------
 # Library
 #
 proc library {LibraryName} {
-  global DIR_LIB
   global VHDL_WORKING_LIBRARY
+  global DIR_LIB
+  
+  # If VHDL_WORKING_LIBRARY does not exist, then initialize
+  if {![info exists VHDL_WORKING_LIBRARY]} {
+    OsvvmInitialize
+  }
   
   puts "library $LibraryName" 
 
@@ -309,6 +329,10 @@ proc library {LibraryName} {
 proc map {LibraryName {PathToLib ""}} {
   global DIR_LIB
   global VHDL_WORKING_LIBRARY
+
+  if {![info exists VHDL_WORKING_LIBRARY]} {
+    OsvvmInitialize
+  }
 
   if {![string match $PathToLib ""]} {
     # only for mapping to external existing library
@@ -328,6 +352,12 @@ proc map {LibraryName {PathToLib ""}} {
 #
 proc analyze {FileName} {
   global CURRENT_WORKING_DIRECTORY
+  global VHDL_WORKING_LIBRARY
+
+  # If a library does not exist, then create the default
+  if {![info exists VHDL_WORKING_LIBRARY]} {
+    library default
+  }
   
   puts "analyze $FileName"
   
@@ -335,9 +365,9 @@ proc analyze {FileName} {
   set FileExtension [file extension $FileName]
 
   if {$FileExtension eq ".vhd" || $FileExtension eq ".vhdl"} {
-    vendor_analyze_vhdl $::VHDL_WORKING_LIBRARY ${NormFileName}
+    vendor_analyze_vhdl ${VHDL_WORKING_LIBRARY} ${NormFileName}
   } elseif {$FileExtension eq ".v"} {
-    vendor_analyze_verilog $::VHDL_WORKING_LIBRARY ${NormFileName}
+    vendor_analyze_verilog ${VHDL_WORKING_LIBRARY} ${NormFileName}
   } elseif {$FileExtension eq ".lib"} {
     #  for handling older deprecated file format
     library [file rootname $FileName]
@@ -351,6 +381,10 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   global VHDL_WORKING_LIBRARY
 #  StartTranscript ${LibraryUnit}.log
   
+  # If a library does not exist, then create the default
+  if {![info exists VHDL_WORKING_LIBRARY]} {
+    library default
+  }
   set StartTime   [clock seconds] 
   puts "Start time [clock format $StartTime -format %T]"
 
