@@ -38,17 +38,18 @@
 #  limitations under the License.
 #
 
+# SetVHDLVersion:   Set compile/simulate version.   
+# OSVVM requires 2008 or newer
+# Accepted parameters:  1993, 2002, 2008, 2019
+# OSVVM Usage:  test 2019 features
+SetVHDLVersion 2008
+
 # VHDL Simulation time units - Simulator is started with this value
-set SIMULATE_TIME_UNITS        ps
+SetSimulatorResolution  ps
 
-# Start out with library location unset
-  if {[info exists LIB_BASE_DIR]} {
-    unset LIB_BASE_DIR 
-  }
-# Only Set library location if it is different from the simulation directory
-# set LIB_BASE_DIR C:/tools/sim_temp
+# Setup the Library Directory.  Use one of the following.
+# Use run directory as library directory
+SetLibraryDirectory
+# Use directory C:/tools/sim_temp as the library directory
+# SetLibraryDirectory C:/tools/sim_temp
 
-# Set time units if project settings file did not
-if {![info exists SIMULATE_TIME_UNITS]} {
-  set SIMULATE_TIME_UNITS ps
-}
