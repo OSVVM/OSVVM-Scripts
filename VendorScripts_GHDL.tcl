@@ -19,8 +19,8 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#     9/2020   2020.09    Initial Version
 #     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
+#     9/2020   2020.09    Initial Version
 #
 #
 #  This file is part of OSVVM.
@@ -122,7 +122,9 @@ proc vendor_map {LibraryName PathToLib} {
 # analyze
 #
 proc vendor_analyze_vhdl {LibraryName FileName} {
-  global ghdl console
+  global OsvvmVhdlShortVersion
+  global ghdl 
+  global console
   global VHDL_WORKING_LIBRARY_PATH
 #  global VHDL_RESOURCE_LIBRARY_PATHS
   global GHDL_TRANSCIPT_FILE
@@ -130,8 +132,8 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
 
 #  puts "$ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}" 
 #  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} | tee -a $GHDL_TRANSCIPT_FILE $console
-  puts "$ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName}" 
-  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName} | tee -a $GHDL_TRANSCIPT_FILE $console
+  exec echo "$ghdl -a --std=${OsvvmVhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName}" | tee -a $GHDL_TRANSCIPT_FILE $console
+  eval exec $ghdl -a --std=${OsvvmVhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName} | tee -a $GHDL_TRANSCIPT_FILE $console
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
@@ -144,7 +146,9 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
-  global ghdl console
+  global OsvvmVhdlShortVersion
+  global ghdl 
+  global console
   global VHDL_WORKING_LIBRARY_PATH
 #  global VHDL_RESOURCE_LIBRARY_PATHS
   global GHDL_TRANSCIPT_FILE
@@ -152,7 +156,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 
 #  puts "$ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}" 
 #  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} | tee -a $GHDL_TRANSCIPT_FILE $console
-  puts "$ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit}" 
-  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit} | tee -a $GHDL_TRANSCIPT_FILE $console
+  exec echo "$ghdl --elab-run --std=${OsvvmVhdlShortVersion} --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit}" | tee -a $GHDL_TRANSCIPT_FILE $console
+  eval exec $ghdl --elab-run --std=${OsvvmVhdlShortVersion} --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit} | tee -a $GHDL_TRANSCIPT_FILE $console
 
 }

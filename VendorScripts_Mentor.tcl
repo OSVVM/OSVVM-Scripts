@@ -19,13 +19,14 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    11/2018   Alpha      Project descriptors in .files and .dirs files
+#    Date      Version    Description
+#     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
+#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
+#     1/2020   2020.01    Updated Licenses to Apache
 #     2/2019   Beta       Project descriptors in .pro which execute 
 #                         as TCL scripts in conjunction with the library 
 #                         procedures
-#     1/2020   2020.01    Updated Licenses to Apache
-#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
-#     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
+#    11/2018   Alpha      Project descriptors in .files and .dirs files
 #
 #
 #  This file is part of OSVVM.
@@ -105,14 +106,15 @@ proc vendor_map {LibraryName PathToLib} {
 # analyze
 #
 proc vendor_analyze_vhdl {LibraryName FileName} {
-    echo vcom -2008 -work ${LibraryName} ${FileName}
-    eval vcom -2008 -work ${LibraryName} ${FileName}
+  global OsvvmVhdlVersion
+  echo vcom -${OsvvmVhdlVersion} -work ${LibraryName} ${FileName}
+  eval vcom -${OsvvmVhdlVersion} -work ${LibraryName} ${FileName}
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
 #  Untested branch for Verilog - will need adjustment
-    echo vlog -work ${LibraryName} ${FileName}
-    eval vlog -work ${LibraryName} ${FileName}
+  echo vlog -work ${LibraryName} ${FileName}
+  eval vlog -work ${LibraryName} ${FileName}
 }
 
 # -------------------------------------------------
