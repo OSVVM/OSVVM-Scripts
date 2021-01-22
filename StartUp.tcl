@@ -21,14 +21,19 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    11/2018   Alpha      Project descriptors in .files and .dirs files
+#     2/2021   2021.02    Refactored.                                                          
+#                         - Tool now determined in here (was in ToolConfiguration.tcl). 
+#                            - Simplifies ActiveHDL startup
+#                         - Initial tool settings now in VendorScripts_*.tcl (was in ToolConfiguration.tcl)              
+#                         - Added: Default settings now in OsvvmScriptDefaults.tcl (was here)         
+#                         - Removed: ToolConfiguration.tcl (now in StartUp.tcl and VendorScripts_*.tcl)                                
+#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
+#     2/2020   2020.02    Moved tool determination to outer layer
+#     1/2020   2020.01    Updated Licenses to Apache
 #     2/2019   Beta       Project descriptors in .pro which execute 
+#    11/2018   Alpha      Project descriptors in .files and .dirs files
 #                         as TCL scripts in conjunction with the library 
 #                         procedures
-#     1/2020   2020.01    Updated Licenses to Apache
-#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
-#     2/2020   2020.07    Moved tool determination to outer layer
-#     2/2021   2021.02    Refactored tool settings from ToolConfiguration.tcl
 #
 #
 #  This file is part of OSVVM.
