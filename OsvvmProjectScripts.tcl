@@ -124,6 +124,14 @@ proc StopTranscript {{FileBaseName ""}} {
   }
 }
 
+proc TerminateTranscript {} {
+  global OsvvmCurrentTranscript
+
+  if {[info exists OsvvmCurrentTranscript]} {
+    set OsvvmCurrentTranscript ""
+  }
+}
+
 #
 #  Problematic since output of tests has the word log
 #
@@ -239,6 +247,9 @@ proc build {{Path_Or_File "."} {LogName "."}} {
     }
     library default 
   } 
+  
+  # If Transcript Open, then Close it
+  TerminateTranscript
   
   # Create the Log File Name
   set NormPathOrFile [file normalize ${Path_Or_File}]
