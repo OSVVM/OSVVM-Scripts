@@ -95,6 +95,27 @@ to it.
 Note, with 2021.02, you no longer need to set the "Start In" 
 directory to the OSVVM Scripts directory.
 
+### GHDL
+I currently run GHDL using MSYS2 64 bit under windows.
+The scripts must run under tcl (tclsh).  As a result, to start
+the OSVVM scripting environment, in a shell window do:   
+``` {.tcl}
+winpty rlwrap tclsh
+source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
+```
+
+To simplify this, I put the `source .../StartUp.tcl` in my 
+`.tclshrc` file and as a result I do not have to do the source command.   
+I have added a short cut that includes `C:\tools\msys64\mingw64.exe winpty rlwrap tclsh`.
+I added the short cut to my start menu.
+With these two, one click and you are running in the OSVVM
+tcl execution environment.
+
+Alternately, if you are not running in windows, create the `.tclshrc` as
+above and then in your `.bashrc` create the alias `alias gsim='winpty rlwrap tclsh'`
+to simplify starting tclsh.   From there, at the command line type
+gsim and you are running ghdl in the OSVVM environment.
+
 ## Project Files
 
 A project file is a script that allows the specification of basic tasks
