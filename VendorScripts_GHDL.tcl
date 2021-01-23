@@ -58,20 +58,21 @@
 # StartTranscript / StopTranscxript
 #
 proc vendor_StartTranscript {FileName} {
-  global GHDL_TRANSCIPT_FILE
+  global GHDL_TRANSCRIPT_FILE
    
-  if {[info exists GHDL_TRANSCIPT_FILE]} {
-    unset GHDL_TRANSCIPT_FILE 
+  if {[info exists GHDL_TRANSCRIPT_FILE]} {
+    unset GHDL_TRANSCRIPT_FILE 
   }
-  set GHDL_TRANSCIPT_FILE $FileName
-  puts "Transcript $GHDL_TRANSCIPT_FILE" 
+  set GHDL_TRANSCRIPT_FILE $FileName
+  puts "Transcript $GHDL_TRANSCRIPT_FILE" 
+  exec touch $GHDL_TRANSCRIPT_FILE
 }
 
 proc vendor_StopTranscript {FileName} {
-  global GHDL_TRANSCIPT_FILE
+  global GHDL_TRANSCRIPT_FILE
    
-#  unset GHDL_TRANSCIPT_FILE 
-  puts "Stop Transcript $GHDL_TRANSCIPT_FILE" 
+#  unset GHDL_TRANSCRIPT_FILE 
+  puts "Stop Transcript $GHDL_TRANSCRIPT_FILE" 
 }
 
 
@@ -81,7 +82,7 @@ proc vendor_StopTranscript {FileName} {
 proc vendor_library {LibraryName PathToLib} {
   global VHDL_WORKING_LIBRARY_PATH
 #  global VHDL_RESOURCE_LIBRARY_PATHS
-  global GHDL_TRANSCIPT_FILE
+  global GHDL_TRANSCRIPT_FILE
    
 #  set PathAndLib ${PathToLib}/${LibraryName}.lib
   set PathAndLib ${PathToLib}/${LibraryName}/v08
@@ -106,13 +107,13 @@ proc vendor_library {LibraryName PathToLib} {
 
 proc vendor_map {LibraryName PathToLib} {
   global VHDL_WORKING_LIBRARY_PATH
-  global GHDL_TRANSCIPT_FILE
+  global GHDL_TRANSCRIPT_FILE
 
   set PathAndLib ${PathToLib}/${LibraryName}.lib
 
   if {![file exists ${PathAndLib}]} {
     error "Map:  Creating library ${PathAndLib} since it does not exist.  "
-    puts "creating library directory ${PathAndLib}" | tee -a $GHDL_TRANSCIPT_FILE
+    puts "creating library directory ${PathAndLib}" | tee -a $GHDL_TRANSCRIPT_FILE
     file mkdir   ${PathAndLib}
   }
   set VHDL_WORKING_LIBRARY_PATH  ${PathAndLib}
@@ -127,17 +128,17 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   global console
   global VHDL_WORKING_LIBRARY_PATH
 #  global VHDL_RESOURCE_LIBRARY_PATHS
-  global GHDL_TRANSCIPT_FILE
+  global GHDL_TRANSCRIPT_FILE
   global DIR_LIB
 
 #  puts "$ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}" 
-#  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} | tee -a $GHDL_TRANSCIPT_FILE $console
-  exec echo "$ghdl -a --std=${OsvvmVhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName}" | tee -a $GHDL_TRANSCIPT_FILE $console
-  eval exec $ghdl -a --std=${OsvvmVhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName} | tee -a $GHDL_TRANSCIPT_FILE $console
+#  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} | tee -a $GHDL_TRANSCRIPT_FILE $console
+  exec echo "$ghdl -a --std=${OsvvmVhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName}" | tee -a $GHDL_TRANSCRIPT_FILE $console
+  eval exec $ghdl -a --std=${OsvvmVhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName} | tee -a $GHDL_TRANSCRIPT_FILE $console
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
-  global GHDL_TRANSCIPT_FILE
+  global GHDL_TRANSCRIPT_FILE
 
   puts "Analyzing verilog files not supported by GHDL" 
 }
@@ -151,12 +152,12 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   global console
   global VHDL_WORKING_LIBRARY_PATH
 #  global VHDL_RESOURCE_LIBRARY_PATHS
-  global GHDL_TRANSCIPT_FILE
+  global GHDL_TRANSCRIPT_FILE
   global DIR_LIB
 
 #  puts "$ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}" 
-#  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} | tee -a $GHDL_TRANSCIPT_FILE $console
-  exec echo "$ghdl --elab-run --std=${OsvvmVhdlShortVersion} --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit}" | tee -a $GHDL_TRANSCIPT_FILE $console
-  eval exec $ghdl --elab-run --std=${OsvvmVhdlShortVersion} --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit} | tee -a $GHDL_TRANSCIPT_FILE $console
+#  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} | tee -a $GHDL_TRANSCRIPT_FILE $console
+  exec echo "$ghdl --elab-run --std=${OsvvmVhdlShortVersion} --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit}" | tee -a $GHDL_TRANSCRIPT_FILE $console
+  eval exec $ghdl --elab-run --std=${OsvvmVhdlShortVersion} --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit} | tee -a $GHDL_TRANSCRIPT_FILE $console
 
 }
