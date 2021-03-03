@@ -1,12 +1,30 @@
 # The OSVVM Verification Script Library Change Log
 
-| Revision  | Revision Date |  Release Summary | 
-------------|---------------|----------- 
-| 2020.10   | October 2020  |  Added eval before vendor commands to properly handle arguments. 
-| 2020.07   | July 2020     |  Added README.md with documentation.  Refactored tool execution for simpler vendor customization
-| 2020.01   | January 2020  |  Updated to Apache Licenses
-| 2019.02   | February 2019 |  Refactored so that *.pro scripts are executable TCL scripts that call procedures.
-| 2018.11   | November 2018 |  Initial release
+| **Revision**  | **Revision Date**  |  **Release Summary**                                                  | 
+|---------------|--------------------|-----------------------------------------------------------------------| 
+| 2021.02       | January 2021       | Refactored.                                                           |
+|               |                    |    - Tool now determined in StartUp.tcl. Simplifies ActiveHDL startup |
+|               |                    |    - Initial tool settings now in VendorScripts_*.tcl                 |
+|               |                    |       - In ActiveHDL, set global OSVVM library to read/write          |
+|               |                    |    - Added: Default settings now in OsvvmScriptDefaults.tcl           |
+|               |                    |    - Removed: ToolConfiguration.tcl                                   |
+|               |                    | In VendorScripts_GHDL.tcl, fixed log file generation in GHDL          |
+|               |                    | In OsvvmProjectScripts.tcl                                            |
+|               |                    |    - Updated initialization of libraries                              |
+|               |                    |    - Analyze allows ".vhdl" extensions as well as ".vhd"              |
+|               |                    |    - Include/Build signal error if nothing to run                          |
+|               |                    |    - Added SetVHDLVersion / GetVHDLVersion to support 2019 work            |
+|               |                    |    - Added SetSimulatorResolution / GetSimulatorResolution to support GHDL |
+|               |                    |    - Added beta of LinkLibrary to support linking in project libraries     |
+|               |                    |    - Added beta of SetLibraryDirectory / GetLibraryDirectory               |
+|               |                    |    - Added beta of ResetRunLibrary                                         |
+| 2020.10       | October 2020       | Added eval before vendor commands to properly handle arguments.       |
+| 2020.07       | July 2020          | Added README.md with documentation.                                   |
+|               |                    | Refactored tool execution for simpler vendor customization            |
+| 2020.01       | January 2020       | Updated to Apache Licenses                                            |
+| 2019.02       | February 2019      | Refactored so that *.pro scripts are executable TCL scripts           |
+|               |                    | that call procedures.                                                 |
+| 2018.11       | November 2018      | Initial release                                                       |
 
  
 ## Copyright and License

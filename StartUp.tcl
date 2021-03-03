@@ -21,17 +21,24 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    11/2018   Alpha      Project descriptors in .files and .dirs files
+#     2/2021   2021.02    Refactored.                                                          
+#                         - Tool now determined in here (was in ToolConfiguration.tcl). 
+#                            - Simplifies ActiveHDL startup
+#                         - Initial tool settings now in VendorScripts_*.tcl (was in ToolConfiguration.tcl)              
+#                         - Added: Default settings now in OsvvmScriptDefaults.tcl (was here)         
+#                         - Removed: ToolConfiguration.tcl (now in StartUp.tcl and VendorScripts_*.tcl)                                
+#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
+#     2/2020   2020.02    Moved tool determination to outer layer
+#     1/2020   2020.01    Updated Licenses to Apache
 #     2/2019   Beta       Project descriptors in .pro which execute 
+#    11/2018   Alpha      Project descriptors in .files and .dirs files
 #                         as TCL scripts in conjunction with the library 
 #                         procedures
-#     1/2020   2020.01    Updated Licenses to Apache
-#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2020 by SynthWorks Design Inc.  
+#  Copyright (c) 2018 - 2021 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -46,20 +53,34 @@
 #  limitations under the License.
 #
 
-# VHDL Simulation time units - Simulator is started with this value
-set SIMULATE_TIME_UNITS        ps
-
-# Start out with library location unset
-  if {[info exists LIB_BASE_DIR]} {
-    unset LIB_BASE_DIR 
-  }
-# Only Set library location if it is different from the simulation directory
-# set LIB_BASE_DIR C:/tools/sim_temp
-
+# Initial SCRIPT_DIR setup - revised by ActiveHDL VSimSA
 set SCRIPT_DIR  [file dirname [file normalize [info script]]]
 
-# Run Tool configuration script - detects simulator
-source ${SCRIPT_DIR}/ToolConfiguration.tcl
+# 
+# Find the simulator
+#
+set ToolExecutable [info nameofexecutable]
+set ToolExecutableName [file rootname [file tail $ToolExecutable]]
 
-# Run OSVVM Project build library 
+if {[info exists aldec]} {
+  if {$ToolExecutableName eq "riviera" || $ToolExecutableName eq "vsimsa"} {
+    source ${SCRIPT_DIR}/VendorScripts_RivieraPro.tcl
+
+  } elseif {[string match $ToolExecutableName "VSimSA"]} {
+    set SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
+    source ${SCRIPT_DIR}/VendorScripts_VSimSA.tcl
+
+  } else {
+    source ${SCRIPT_DIR}/VendorScripts_ActiveHDL.tcl
+  }
+} elseif {[string match $ToolExecutableName "vish"]} {
+  source ${SCRIPT_DIR}/VendorScripts_Mentor.tcl
+} else {
+  source ${SCRIPT_DIR}/VendorScripts_GHDL.tcl
+}
+
+# OSVVM Project Scripts 
 source ${SCRIPT_DIR}/OsvvmProjectScripts.tcl
+
+# Set OSVVM Script Defaults - defaults may call scripts
+source ${SCRIPT_DIR}/OsvvmScriptDefaults.tcl

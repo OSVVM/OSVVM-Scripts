@@ -27,17 +27,16 @@ $ git clone --recursive https://github.com/osvvm/OsvvmLibraries
 ## The Script Files
 
 -   Startup.tcl
-    -   Initializes the OSVVM simulator scripts. Sets up locations for
-        scripts, libraries, and logs. It calls the other scripts to set
-        up the entire environment.
--   ToolConfiguration.tcl
-    -   Detects the simulator running and sets variables to specialize
-        the scripts for that simulator.
+    -   Detects the simulator running and calls the VendorScript_???.tcl.
+        Also calls OsvvmProjectScripts.tcl and OsvvmScriptDefaults.tcl 
+-   VendorScript_???.tcl
+    -   TCL procedures that do simulator specific actions.
+    -   ??? = one of (ActiveHDL, GHDL, Mentor, RivieraPro, VSimSA)
+    -   VSimSA is the one associated with ActiveHDL.
 -   OsvvmProjectScripts.tcl
     -   TCL procedures that do common simulator and project build tasks.
--   OsvvmCreateLibraryMapOverrideScripts.tcl
-    -   Used to create a library mapping in an alternate directory
-    -   Used as a means to deal with long file path names
+-   OsvvmScriptDefaults.tcl
+    -   Default settings for the OSVVM Script environment.
 
 ## Create a Sim directory
 
@@ -66,13 +65,19 @@ set LIB_BASE_DIR C:/tools/sim_temp
 ```
 
 ## Initialization
-
-The scripts need to be initialized. You can do this each time you start
-a simulation by doing:
-
+### RivieraPRO, QuestaSim, ModelSim
+Initialize the OSVVM Script environment by doing:
 ``` {.tcl}
 source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
 ```
+
+Want to avoid doing this every time? In Aldec RivieraPro, set the
+environment variable, ALDEC_STARTUPTCL to StartUp.tcl (including the
+path information). Similarly in Mentor QuestaSim/ModelSim, set the
+environment variable, MODELSIM_TCL to StartUp.tcl (including the path
+information).
+
+### ActiveHDL
 
 Before doing this in ActiveHDL and VSimSA (ActiveHDL's 
 command window) instead do:
@@ -82,18 +87,34 @@ do -tcl <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
 ```
 
 
-Want to avoid doing this every time? In Aldec RivieraPro, set the
-environment variable, ALDEC_STARTUPTCL to StartUp.tcl (including the
-path information). Similarly in Mentor QuestaSim/ModelSim, set the
-environment variable, MODELSIM_TCL to StartUp.tcl (including the path
-information).
-
-For ActiveHDL/VSimSA in the properties of the executable, set the 
-"Start In" directory to <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts.   
+Want to avoid doing this every time? 
 For ActiveHDL, edit <ActiveHDL-Install-Dir>/script/startup.do 
 and add above to it.   Similarly for VSimSA, edit 
 <ActiveHDL-Install-Dir>/BIN/startup.do and add the above 
 to it.
+Note, with 2021.02, you no longer need to set the "Start In" 
+directory to the OSVVM Scripts directory.
+
+### GHDL
+I currently run GHDL using MSYS2 64 bit under windows.
+The scripts must run under tcl (tclsh).  As a result, to start
+the OSVVM scripting environment, in a shell window do:   
+``` {.tcl}
+winpty rlwrap tclsh
+source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
+```
+
+To simplify this, I put the `source .../StartUp.tcl` in my 
+`.tclshrc` file and as a result I do not have to do the source command.   
+I have added a short cut that includes `C:\tools\msys64\mingw64.exe winpty rlwrap tclsh`.
+I added the short cut to my start menu.
+With these two, one click and you are running in the OSVVM
+tcl execution environment.
+
+Alternately, if you are not running in windows, create the `.tclshrc` as
+above and then in your `.bashrc` create the alias `alias gsim='winpty rlwrap tclsh'`
+to simplify starting tclsh.   From there, at the command line type
+gsim and you are running ghdl in the OSVVM environment.
 
 ## Project Files
 
@@ -233,8 +254,8 @@ build ../UART/testbench
 |                                | directory location.                        | 
 |<br>||                      
 | build \<directory\>            | Re-initializes the working directory to    | 
-|                                | the script directory, opens a transcript   | 
-| build \<path\>/\<file\>        | file, and calls include. A path name       | 
+| build \<path\>/\<file\>        | the script directory, opens a transcript   | 
+|                                | file, and calls include. A path name       | 
 |                                | specified is relative to the location of   | 
 |                                | the current \<file\>.pro directory         | 
 |                                | location.                                  | 
@@ -243,8 +264,26 @@ build ../UART/testbench
 |<br>|| 
 | RemoveAllLibraries             | Delete all of the working libraries.       | 
 |<br>||                      
-| MapLibraries                   | Create a mapping to libraries              | 
+| SetVHDLVersion                 | Set VHDL analyze version                   | 
+|                                | Valid values = (2008, 2019, 1993, 2002)    | 
+|                                | OSVVM libraries require 2008 or newer      | 
 |<br>|| 
+| GetVHDLVersion                 | Return the current VHDL Version            | 
+|<br>|| 
+| SetSimulatorResolution         | Set Simulator Resolution                   | 
+|                                | Any value supported by the simulator is ok | 
+|<br>|| 
+| GetSimulatorResolution         | Return the current Simulator Resolution    | 
+|<br>|| 
+| LinkLibrary <LibraryDirectory> | Link libraries that are in the LibraryDirectory | 
+|                                | LibraryDirectory is the directory that contains |
+|                                | an OSVVM created VHDL_LIBS directory       | 
+|<br>|| 
+| Undocumented Procedures        | Any undocumented procedure is in development | 
+|                                | and may change in a future revision          |
+|<br>|| 
+
+
 
 ## Deprecated Descriptor Files
 

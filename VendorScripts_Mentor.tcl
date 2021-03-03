@@ -19,17 +19,19 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    11/2018   Alpha      Project descriptors in .files and .dirs files
+#    Date      Version    Description
+#     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
+#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
+#     1/2020   2020.01    Updated Licenses to Apache
 #     2/2019   Beta       Project descriptors in .pro which execute 
 #                         as TCL scripts in conjunction with the library 
 #                         procedures
-#     1/2020   2020.01    Updated Licenses to Apache
-#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
+#    11/2018   Alpha      Project descriptors in .files and .dirs files
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2020 by SynthWorks Design Inc.  
+#  Copyright (c) 2018 - 2021 by SynthWorks Design Inc.    
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -43,6 +45,20 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
+
+# -------------------------------------------------
+# Tool Settings
+#
+  quietly set ToolType    "simulator"
+  quietly set ToolVendor  "Siemens"
+  if {[lindex [split [vsim -version]] 0] eq "Questa"} {
+    quietly set simulator   "QuestaSim"
+  } else {
+    quietly set simulator   "ModelSim"
+  }
+  quietly set ToolNameVersion ${simulator}-[vsimVersion]
+  puts $ToolNameVersion
 
 
 # -------------------------------------------------
@@ -90,14 +106,15 @@ proc vendor_map {LibraryName PathToLib} {
 # analyze
 #
 proc vendor_analyze_vhdl {LibraryName FileName} {
-    echo vcom -2008 -work ${LibraryName} ${FileName}
-    eval vcom -2008 -work ${LibraryName} ${FileName}
+  global OsvvmVhdlVersion
+  echo vcom -${OsvvmVhdlVersion} -work ${LibraryName} ${FileName}
+  eval vcom -${OsvvmVhdlVersion} -work ${LibraryName} ${FileName}
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
 #  Untested branch for Verilog - will need adjustment
-    echo vlog -work ${LibraryName} ${FileName}
-    eval vlog -work ${LibraryName} ${FileName}
+  echo vlog -work ${LibraryName} ${FileName}
+  eval vlog -work ${LibraryName} ${FileName}
 }
 
 # -------------------------------------------------
