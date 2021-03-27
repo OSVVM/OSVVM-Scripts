@@ -58,7 +58,7 @@
 #
 proc StartUp {} { 
   puts "source $::SCRIPT_DIR/StartUp.tcl"
-  source $::SCRIPT_DIR/StartUp.tcl
+  eval source $::SCRIPT_DIR/StartUp.tcl
 }
 
 
@@ -267,15 +267,17 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   }
 
   StartTranscript ${LogName}
-  set StartTime   [clock seconds] 
-  puts "Start time [clock format $StartTime -format %T]"
+  set BuildStartTime   [clock seconds] 
+  puts "Build Start time [clock format $BuildStartTime -format %T]"
   
   include ${Path_Or_File}
   
-  puts "Start time  [clock format $StartTime -format %T]"
-  set  FinishTime  [clock seconds] 
-  puts "Finish time [clock format $FinishTime -format %T]"
-  puts "Elapsed time [expr ($FinishTime - $StartTime)/60] minutes"
+  puts "Build Start time  [clock format $BuildStartTime -format %T]"
+  set  BuildFinishTime  [clock seconds] 
+  set  BuildElapsedTime  [expr ($BuildFinishTime - $BuildStartTime)]    
+#  puts "Finish time [clock format $BuildFinishTime -format %T]"
+  puts "Build Finish time [clock format $BuildFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
+#  puts "Elapsed time [expr ($BuildFinishTime - $BuildStartTime)/60] minutes"
   StopTranscript ${LogName}
 }
 
@@ -404,15 +406,16 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   if {![info exists VHDL_WORKING_LIBRARY]} {
     library default
   }
-  set StartTime   [clock seconds] 
-  puts "Start time [clock format $StartTime -format %T]"
+  set SimulateStartTime   [clock seconds] 
+  puts "Simulate Start time [clock format $SimulateStartTime -format %T]"
 
   vendor_simulate ${VHDL_WORKING_LIBRARY} ${LibraryUnit} ${OptionalCommands}
 
-  puts "Start time  [clock format $StartTime -format %T]"
-  set  FinishTime  [clock seconds] 
-  puts "Finish time [clock format $FinishTime -format %T]"
-  puts "Elasped time [expr ($FinishTime - $StartTime)/60] minutes"
+  #puts "Start time  [clock format $SimulateStartTime -format %T]"
+  set  SimulateFinishTime  [clock seconds] 
+  set  SimulateElapsedTime  [expr ($SimulateFinishTime - $SimulateStartTime)]    
+  puts "Simulate Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
+#  puts "Elasped time [expr ($FinishTime - $SimulateStartTime)/60] minutes"
 #  StopTranscript ${LibraryUnit}.log
 }
 

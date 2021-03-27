@@ -115,6 +115,12 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+  global vendor_simulate_started
+  if {[info exists vendor_simulate_started]} {
+    endsim
+  }  
+  set vendor_simulate_started 1
+
   echo vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   eval vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   

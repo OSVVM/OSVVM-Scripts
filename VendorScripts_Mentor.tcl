@@ -125,9 +125,10 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   global SourceMap
 
    if {[info exists MentorPreviousSim]} {
-     foreach index [array names SourceMap] { 
-       noview source [file tail $index] 
-     }
+    foreach index [array names SourceMap] { 
+      noview source [file tail $index] 
+    }
+    quit -sim
    }
   
   echo vsim -voptargs="+acc" -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617

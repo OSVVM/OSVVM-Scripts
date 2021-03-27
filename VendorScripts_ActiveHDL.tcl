@@ -162,7 +162,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     endsim
   }  
   set vendor_simulate_started 1
-  
+
   set MY_START_DIR [pwd]
   
   echo vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
