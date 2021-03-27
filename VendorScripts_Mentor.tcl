@@ -19,7 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    Date      Version    Description
+#     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate
 #     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
 #     7/2020   2020.07    Refactored tool execution for simpler vendor customization
 #     1/2020   2020.01    Updated Licenses to Apache
@@ -118,31 +118,64 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 }
 
 # -------------------------------------------------
+# End Previous Simulation
+#
+proc vendor_end_previous_simulation {} {
+  global SourceMap
+
+  # close junk in source window
+  foreach index [array names SourceMap] { 
+    noview source [file tail $index] 
+  }
+  
+  quit -sim
+}
+
+# -------------------------------------------------
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
-  global MentorPreviousSim
-  global SourceMap
+  global SCRIPT_DIR
+  global ToolVendor
+  global simulator
 
-   if {[info exists MentorPreviousSim]} {
-    foreach index [array names SourceMap] { 
-      noview source [file tail $index] 
-    }
-    quit -sim
-   }
-  
-  echo vsim -voptargs="+acc" -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617
+#  puts "Simulate Start time [clock format $::SimulateStartTime -format %T]"
+  puts {vsim -voptargs="+acc" -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617}
   eval vsim -voptargs="+acc" -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617
   
+  ### Project level settings - in OsvvmLibraries/Scripts
+  # Historical name.  Must be run with "do" for actions to work
+  if {[file exists ${SCRIPT_DIR}/Mentor.do]} {
+    do ${SCRIPT_DIR}/Mentor.do
+  }
+  # Project Vendor script
+  if {[file exists ${SCRIPT_DIR}/${ToolVendor}.tcl]} {
+    source ${SCRIPT_DIR}/${ToolVendor}.tcl
+  }
+  # Project Simulator Script
+  if {[file exists ${SCRIPT_DIR}/${simulator}.tcl]} {
+    source ${SCRIPT_DIR}/${simulator}.tcl
+  }
+
+  ### User level settings for simulator in the simulation run directory
+  # User Vendor script
+  if {[file exists ${ToolVendor}.tcl]} {
+    source ${ToolVendor}.tcl
+  }
+  # User Simulator Script
+  if {[file exists ${simulator}.tcl]} {
+    source ${simulator}.tcl
+  }
+  # User Testbench Script
   if {[file exists ${LibraryUnit}.tcl]} {
     source ${LibraryUnit}.tcl
   }
-  if {[file exists ${LibraryUnit}_$::simulator.tcl]} {
-    source ${LibraryUnit}_$::simulator.tcl
+  # User Testbench + Simulator Script
+  if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
+    source ${LibraryUnit}_${simulator}.tcl
   }
-
-  do $::SCRIPT_DIR/Mentor.do
+  
+  # Removed.  Desirable, but causes crashes if no signals in testbench.
 #  add log -r [env]/*
   run -all 
-  set MentorPreviousSim $LibraryUnit
 }

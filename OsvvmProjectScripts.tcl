@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     3/2021   2021.03    Updated printing of start/finish times
 #     2/2021   2021.02    Updated initialization of libraries                 
 #                         Analyze allows ".vhdl" extensions as well as ".vhd" 
 #                         Include/Build signal error if nothing to run                         
@@ -233,6 +234,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   global CURRENT_WORKING_DIRECTORY
   global CURRENT_RUN_DIRECTORY
   global VHDL_WORKING_LIBRARY
+  global vendor_simulate_started
 
   set CURRENT_WORKING_DIRECTORY [pwd]
   
@@ -248,6 +250,12 @@ proc build {{Path_Or_File "."} {LogName "."}} {
     library default 
   } 
   
+  if {[info exists vendor_simulate_started]} {
+    puts "Ending Previous Simulation"
+    vendor_end_previous_simulation
+    unset vendor_simulate_started
+  }  
+
   # If Transcript Open, then Close it
   TerminateTranscript
   
@@ -266,9 +274,9 @@ proc build {{Path_Or_File "."} {LogName "."}} {
     set LogName ${NormDirName}_${NormTailRoot}.log
   }
 
-  StartTranscript ${LogName}
   set BuildStartTime   [clock seconds] 
   puts "Build Start time [clock format $BuildStartTime -format %T]"
+  StartTranscript ${LogName}
   
   include ${Path_Or_File}
   
@@ -399,7 +407,15 @@ proc analyze {FileName} {
 # Simulate
 #
 proc simulate {LibraryUnit {OptionalCommands ""}} {
+  global vendor_simulate_started
   global VHDL_WORKING_LIBRARY
+  global SimulateStartTime
+  
+  if {[info exists vendor_simulate_started]} {
+    vendor_end_previous_simulation
+  }  
+  set vendor_simulate_started 1
+  
 #  StartTranscript ${LibraryUnit}.log
   
   # If a library does not exist, then create the default
@@ -407,6 +423,8 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
     library default
   }
   set SimulateStartTime   [clock seconds] 
+  
+  puts "simulate $LibraryUnit $OptionalCommands"
   puts "Simulate Start time [clock format $SimulateStartTime -format %T]"
 
   vendor_simulate ${VHDL_WORKING_LIBRARY} ${LibraryUnit} ${OptionalCommands}

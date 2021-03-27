@@ -19,7 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    Date      Version    Description
+#     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate
 #     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
 #     7/2020   2020.07    Refactored tool execution for simpler vendor customization
 #     1/2020   2020.01    Updated Licenses to Apache
@@ -118,31 +118,53 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 }
 
 # -------------------------------------------------
+# End Previous Simulation
+#
+proc vendor_end_previous_simulation {} {
+  quit -sim
+  framework.documents.closeall -vhdl
+}  
+
+# -------------------------------------------------
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
-  global vendor_simulate_started
-  if {[info exists vendor_simulate_started]} {
-    quit -sim
-  }  
-  set vendor_simulate_started 1
+  global SCRIPT_DIR
+  global ToolVendor
+  global simulator
 
-  framework.documents.closeall -vhdl
-  
-  echo vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
+#  puts "Simulate Start time [clock format $::SimulateStartTime -format %T]"
+  puts {vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}} 
   eval vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   
+  ### Project level settings - in OsvvmLibraries/Scripts
+  # Project Vendor script
+  if {[file exists ${SCRIPT_DIR}/${ToolVendor}.tcl]} {
+    source ${SCRIPT_DIR}/${ToolVendor}.tcl
+  }
+  # Project Simulator Script
+  if {[file exists ${SCRIPT_DIR}/${simulator}.tcl]} {
+    source ${SCRIPT_DIR}/${simulator}.tcl
+  }
+
+  ### User level settings for simulator in the simulation run directory
+  # User Vendor script
+  if {[file exists ${ToolVendor}.tcl]} {
+    source ${ToolVendor}.tcl
+  }
+  # User Simulator Script
+  if {[file exists ${simulator}.tcl]} {
+    source ${simulator}.tcl
+  }
+  # User Testbench Script
   if {[file exists ${LibraryUnit}.tcl]} {
     source ${LibraryUnit}.tcl
   }
-  if {[file exists ${LibraryUnit}_$::simulator.tcl]} {
-    source ${LibraryUnit}_$::simulator.tcl
+  # User Testbench + Simulator Script
+  if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
+    source ${LibraryUnit}_${simulator}.tcl
   }
 
-  if {[file exists ${LibraryUnit}_$::simulator.tcl]} {
-    source ${LibraryUnit}_$::simulator.tcl
-  }
-#  do $::SCRIPT_DIR/Mentor.do
   log -rec [env]/*
   run -all 
 }
