@@ -272,7 +272,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   
   include ${Path_Or_File}
   
-  puts "Build Start time  [clock format $BuildStartTime -format %T]"
+  puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   set  BuildFinishTime  [clock seconds] 
   set  BuildElapsedTime  [expr ($BuildFinishTime - $BuildStartTime)]    
 #  puts "Finish time [clock format $BuildFinishTime -format %T]"
