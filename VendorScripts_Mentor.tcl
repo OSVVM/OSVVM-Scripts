@@ -174,6 +174,10 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
     source ${LibraryUnit}_${simulator}.tcl
   }
+  # User wave.do
+  if {[file exists wave.do]} {
+    do wave.do
+  }
   
   # Removed.  Desirable, but causes crashes if no signals in testbench.
 #  add log -r [env]/*

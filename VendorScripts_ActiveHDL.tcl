@@ -211,6 +211,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     source ${LibraryUnit}_${simulator}.tcl
     cd $MY_START_DIR
   }
+  # User wave.do
+  if {[file exists wave.do]} {
+    do wave.do
+    cd $MY_START_DIR
+  }
 
   log -rec [env]/*
   run -all 

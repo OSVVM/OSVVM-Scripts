@@ -250,6 +250,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
     library default 
   } 
   
+  # End simulations if started - only set by simulate
   if {[info exists vendor_simulate_started]} {
     puts "Ending Previous Simulation"
     vendor_end_previous_simulation
