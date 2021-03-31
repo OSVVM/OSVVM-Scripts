@@ -2,7 +2,8 @@
 
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                  | 
 |---------------|--------------------|-----------------------------------------------------------------------| 
-| 2021.02       | January 2021       | Refactored.                                                           |
+| 2021.03       | March 2021         | Minor work around for vendor tool issues                              |
+| 2021.02       | February 2021      | Refactored.                                                           |
 |               |                    |    - Tool now determined in StartUp.tcl. Simplifies ActiveHDL startup |
 |               |                    |    - Initial tool settings now in VendorScripts_*.tcl                 |
 |               |                    |       - In ActiveHDL, set global OSVVM library to read/write          |
