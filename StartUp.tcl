@@ -53,34 +53,39 @@
 #  limitations under the License.
 #
 
-# Initial SCRIPT_DIR setup - revised by ActiveHDL VSimSA
-set SCRIPT_DIR  [file dirname [file normalize [info script]]]
 
-# 
-# Find the simulator
-#
-set ToolExecutable [info nameofexecutable]
-set ToolExecutableName [file rootname [file tail $ToolExecutable]]
+namespace eval ::osvvm {
+  # Initial SCRIPT_DIR setup - revised by ActiveHDL VSimSA
+  variable SCRIPT_DIR  [file dirname [file normalize [info script]]]
+  
+  # 
+  # Find the simulator
+  #
+  variable ToolExecutable [info nameofexecutable]
+  variable ToolExecutableName [file rootname [file tail $ToolExecutable]]
 
-if {[info exists aldec]} {
-  if {$ToolExecutableName eq "riviera" || $ToolExecutableName eq "vsimsa"} {
-    source ${SCRIPT_DIR}/VendorScripts_RivieraPro.tcl
+  if {[info exists aldec]} {
+    if {$ToolExecutableName eq "riviera" || $ToolExecutableName eq "vsimsa"} {
+      source ${SCRIPT_DIR}/VendorScripts_RivieraPro.tcl
 
-  } elseif {[string match $ToolExecutableName "VSimSA"]} {
-    set SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
-    source ${SCRIPT_DIR}/VendorScripts_VSimSA.tcl
+    } elseif {[string match $ToolExecutableName "VSimSA"]} {
+      set SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
+      source ${SCRIPT_DIR}/VendorScripts_VSimSA.tcl
 
+    } else {
+      source ${SCRIPT_DIR}/VendorScripts_ActiveHDL.tcl
+    }
+  } elseif {[string match $ToolExecutableName "vish"]} {
+    source ${SCRIPT_DIR}/VendorScripts_Mentor.tcl
+  } elseif {[string match -nocase $ToolExecutableName "vivado"]} {
+    source ${SCRIPT_DIR}/VendorScripts_Vivado.tcl
   } else {
-    source ${SCRIPT_DIR}/VendorScripts_ActiveHDL.tcl
+    source ${SCRIPT_DIR}/VendorScripts_GHDL.tcl
   }
-} elseif {[string match $ToolExecutableName "vish"]} {
-  source ${SCRIPT_DIR}/VendorScripts_Mentor.tcl
-} else {
-  source ${SCRIPT_DIR}/VendorScripts_GHDL.tcl
 }
 
 # OSVVM Project Scripts 
-source ${SCRIPT_DIR}/OsvvmProjectScripts.tcl
+source ${::osvvm::SCRIPT_DIR}/OsvvmProjectScripts.tcl
 
 # Set OSVVM Script Defaults - defaults may call scripts
-source ${SCRIPT_DIR}/OsvvmScriptDefaults.tcl
+source ${::osvvm::SCRIPT_DIR}/OsvvmScriptDefaults.tcl

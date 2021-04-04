@@ -147,7 +147,7 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 # -------------------------------------------------
 # End Previous Simulation
 #
-proc vendor_end_previous_simulation  {
+proc vendor_end_previous_simulation {} {
   # Do Nothing
 }  
 
