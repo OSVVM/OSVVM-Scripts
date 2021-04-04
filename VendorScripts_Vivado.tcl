@@ -44,7 +44,7 @@
   
   # Quite unfortunately, much of Vivado doesn't support VHDL-2008 properly.
   # Therefore the default assumption has to be for VHDL-2002
-  set DefaultVHDLVersion 2002
+  variable DefaultVHDLVersion 2002
   
   # Try to get the default library name from the open project, but we can
   # fall back to a hard-coded default if necessary.
@@ -75,26 +75,10 @@ proc vendor_StopTranscript {FileName} {
 # Library
 #
 
-# Vivado doesn't maintain library files per se, so just keep track internally
-# of the active library name.  The path is ignored.
+# Vivado doesn't maintain library files per se, so there's nothing to do.
 
 proc vendor_library {LibraryName PathToLib} {}
 proc vendor_map {LibraryName PathToLib} {}
-
-# 
-# proc vendor_map {LibraryName PathToLib} {
-#   global XILINX_LIB
-#   set XILINX_LIB $LibraryName
-# }
-# proc vendor_library {LibraryName PathToLib} {
-#   global XILINX_LIB
-#   set XILINX_LIB $LibraryName
-# }
-# 
-# proc vendor_map {LibraryName PathToLib} {
-#   global XILINX_LIB
-#   set XILINX_LIB $LibraryName
-# }
 
 # -------------------------------------------------
 # analyze
