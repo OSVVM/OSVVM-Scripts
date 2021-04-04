@@ -482,6 +482,7 @@ proc SetSimulatorResolution {SimulatorResolution} {
 }
 
 proc GetSimulatorResolution {} {
+  variable SIMULATE_TIME_UNITS
   return $SIMULATE_TIME_UNITS
 }
 
@@ -502,7 +503,7 @@ proc SetLibraryDirectory {{LibraryDirectory ""}} {
   
   if {$LibraryDirectory eq ""} {
     if {[info exists CURRENT_RUN_DIRECTORY]} {
-      set LIB_BASE_DIR ${CURRENT_RUN_DIRECTORY}
+      set LIB_BASE_DIR $CURRENT_RUN_DIRECTORY
       set DIR_LIB      ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
     } else {
       # Instead, will be set by first call to build, include, analyze, simulate, or library
@@ -515,8 +516,7 @@ proc SetLibraryDirectory {{LibraryDirectory ""}} {
     }
   } else {
     set LIB_BASE_DIR $LibraryDirectory
-    puts "${LIB_BASE_DIR} ${CURRENT_RUN_DIRECTORY}"
-    set DIR_LIB     ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
+    set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
   }
 }
 
