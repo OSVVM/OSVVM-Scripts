@@ -42,6 +42,7 @@
 # OSVVM requires 2008 or newer
 # Accepted parameters:  1993, 2002, 2008, 2019
 # OSVVM Usage:  test 2019 features
+
 SetVHDLVersion [expr {[info exists ::osvvm::DefaultVHDLVersion] ? $::osvvm::DefaultVHDLVersion : 2008 }]
 
 # VHDL Simulation time units - Simulator is started with this value

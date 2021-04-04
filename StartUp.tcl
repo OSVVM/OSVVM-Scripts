@@ -86,6 +86,7 @@ namespace eval ::osvvm {
 
 # OSVVM Project Scripts 
 source ${::osvvm::SCRIPT_DIR}/OsvvmProjectScripts.tcl
+namespace import ::osvvm::*
 
 # Set OSVVM Script Defaults - defaults may call scripts
 source ${::osvvm::SCRIPT_DIR}/OsvvmScriptDefaults.tcl
