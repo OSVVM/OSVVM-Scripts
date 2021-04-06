@@ -53,13 +53,16 @@
 #  limitations under the License.
 #
 
+namespace eval ::osvvm {
+
 # -------------------------------------------------
 # StartUp
 #   re-run the startup scripts, this program included
 #
 proc StartUp {} { 
-  puts "source $::SCRIPT_DIR/StartUp.tcl"
-  eval source $::SCRIPT_DIR/StartUp.tcl
+  variable SCRIPT_DIR
+  puts "source ${SCRIPT_DIR}/StartUp.tcl"
+  eval "source ${SCRIPT_DIR}/StartUp.tcl"
 }
 
 
@@ -94,15 +97,16 @@ proc Do_List {FileWithNames ActionForName} {
 }
 
 proc StartTranscript {FileBaseName} {
-  global OsvvmCurrentTranscript
-
-  if {![info exists OsvvmCurrentTranscript]} {
-    set OsvvmCurrentTranscript ""
+  variable CurrentTranscript
+  variable DIR_LOGS
+  
+  if {![info exists CurrentTranscript]} {
+    set CurrentTranscript ""
   }
-  if {($FileBaseName ne "NONE.log") && ($OsvvmCurrentTranscript eq "")} {
+  if {($FileBaseName ne "NONE.log") && ($CurrentTranscript eq "")} {
     # Create directories if they do not exist
-    set OsvvmCurrentTranscript $FileBaseName
-    set FileName [file join $::DIR_LOGS $FileBaseName]
+    set CurrentTranscript $FileBaseName
+    set FileName [file join $DIR_LOGS $FileBaseName]
     set RootDir [file dirname $FileName]
     if {![file exists $RootDir]} {
       puts "creating directory $RootDir"
@@ -114,22 +118,22 @@ proc StartTranscript {FileBaseName} {
 }
 
 proc StopTranscript {{FileBaseName ""}} {
-  global OsvvmCurrentTranscript
+  variable CurrentTranscript
+  variable DIR_LOGS
   
   # Stop only if it is the transcript that is open
-  if {($OsvvmCurrentTranscript eq $FileBaseName)} {
+  if {($CurrentTranscript eq $FileBaseName)} {
     # FileName used within the STOP_TRANSCRIPT variable if required
-    set FileName [file join $::DIR_LOGS $FileBaseName]
+    set FileName [file join $DIR_LOGS $FileBaseName]
     vendor_StopTranscript $FileName
-    set OsvvmCurrentTranscript ""
+    set CurrentTranscript ""
   }
 }
 
 proc TerminateTranscript {} {
-  global OsvvmCurrentTranscript
-
-  if {[info exists OsvvmCurrentTranscript]} {
-    set OsvvmCurrentTranscript ""
+  variable CurrentTranscript
+  if {[info exists CurrentTranscript]} {
+    set CurrentTranscript ""
   }
 }
 
@@ -145,8 +149,8 @@ proc TerminateTranscript {} {
 #   finds and sources a project file
 #
 proc include {Path_Or_File} {
-  global CURRENT_WORKING_DIRECTORY
-  global VHDL_WORKING_LIBRARY
+  variable CURRENT_WORKING_DIRECTORY
+  variable VHDL_WORKING_LIBRARY
   
 #  puts "set StartingPath ${CURRENT_WORKING_DIRECTORY} Starting Include"
   # If a library does not exist, then create the default
@@ -155,7 +159,11 @@ proc include {Path_Or_File} {
   }
   set StartingPath ${CURRENT_WORKING_DIRECTORY}
   
-  set NormName [file normalize ${StartingPath}/${Path_Or_File}]
+  if {[file pathtype $Path_Or_File] eq "absolute"} {
+    set NormName [file normalize $Path_Or_File]
+  } else {
+    set NormName [file normalize ${StartingPath}/${Path_Or_File}]
+  }
   set RootDir [file dirname $NormName]
   set NameToHandle [file tail $NormName]
   set FileExtension [file extension $NameToHandle]
@@ -223,7 +231,7 @@ proc include {Path_Or_File} {
       set FoundActivity 1
     }
     if {$FoundActivity == 0} {
-      error "Build / Include did not find anything to execute"
+      error "Build / Include did not find anything to execute for ${Path_Or_File}"
     }
   } 
 #  puts "set CURRENT_WORKING_DIRECTORY ${StartingPath} Ending Include"
@@ -231,11 +239,11 @@ proc include {Path_Or_File} {
 }
 
 proc build {{Path_Or_File "."} {LogName "."}} {
-  global CURRENT_WORKING_DIRECTORY
-  global CURRENT_RUN_DIRECTORY
-  global VHDL_WORKING_LIBRARY
-  global vendor_simulate_started
-
+  variable CURRENT_WORKING_DIRECTORY
+  variable CURRENT_RUN_DIRECTORY
+  variable VHDL_WORKING_LIBRARY
+  variable vendor_simulate_started
+  
   set CURRENT_WORKING_DIRECTORY [pwd]
   
   if {![info exists CURRENT_RUN_DIRECTORY]} {
@@ -295,7 +303,8 @@ proc build {{Path_Or_File "."} {LogName "."}} {
 # RemoveAllLibraries
 #
 proc RemoveAllLibraries {} {
-  file delete -force -- $::DIR_LIB
+  variable DIR_LIB
+  file delete -force -- $DIR_LIB
 }
 
 
@@ -310,25 +319,23 @@ proc CreateDirectory {Directory} {
 # OsvvmInitialize
 #
 proc OsvvmInitialize {} {
-  global CURRENT_WORKING_DIRECTORY
-  global CURRENT_RUN_DIRECTORY
-  global LIB_BASE_DIR
-  global DIR_LIB
-  global DIR_LOGS
-  global ToolNameVersion 
-
+  variable CURRENT_WORKING_DIRECTORY
+  variable LIB_BASE_DIR
+  variable DIR_LIB
+  variable ToolNameVersion
+  
   if {![info exists CURRENT_WORKING_DIRECTORY]} {
     set CURRENT_WORKING_DIRECTORY [pwd]
   }
-  set CURRENT_RUN_DIRECTORY [pwd]
+  variable CURRENT_RUN_DIRECTORY [pwd]
 
   if {![info exists LIB_BASE_DIR]} {
     set LIB_BASE_DIR $CURRENT_RUN_DIRECTORY
   }
   
   # Set locations for libraries and logs
-  set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
-  set DIR_LOGS   ${CURRENT_RUN_DIRECTORY}/logs/${ToolNameVersion}
+  variable DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
+  variable DIR_LOGS   ${CURRENT_RUN_DIRECTORY}/logs/${ToolNameVersion}
 
   # Create LIB and Results directories
   CreateDirectory $DIR_LIB
@@ -339,8 +346,8 @@ proc OsvvmInitialize {} {
 # Library
 #
 proc library {LibraryName} {
-  global VHDL_WORKING_LIBRARY
-  global DIR_LIB
+  variable VHDL_WORKING_LIBRARY
+  variable DIR_LIB
   
   # If VHDL_WORKING_LIBRARY does not exist, then initialize
   if {![info exists VHDL_WORKING_LIBRARY]} {
@@ -350,16 +357,15 @@ proc library {LibraryName} {
   puts "library $LibraryName" 
 
 # Does DIR_LIB need to be normalized?
-    
   vendor_library $LibraryName $DIR_LIB
 
   set VHDL_WORKING_LIBRARY  $LibraryName
 }
 
 proc map {LibraryName {PathToLib ""}} {
-  global DIR_LIB
-  global VHDL_WORKING_LIBRARY
-
+  variable VHDL_WORKING_LIBRARY
+  variable DIR_LIB
+  
   if {![info exists VHDL_WORKING_LIBRARY]} {
     OsvvmInitialize
   }
@@ -381,9 +387,9 @@ proc map {LibraryName {PathToLib ""}} {
 # analyze
 #
 proc analyze {FileName} {
-  global CURRENT_WORKING_DIRECTORY
-  global VHDL_WORKING_LIBRARY
-
+  variable VHDL_WORKING_LIBRARY
+  variable CURRENT_WORKING_DIRECTORY
+  
   # If a library does not exist, then create the default
   if {![info exists VHDL_WORKING_LIBRARY]} {
     library default
@@ -408,9 +414,8 @@ proc analyze {FileName} {
 # Simulate
 #
 proc simulate {LibraryUnit {OptionalCommands ""}} {
-  global vendor_simulate_started
-  global VHDL_WORKING_LIBRARY
-  global SimulateStartTime
+  variable VHDL_WORKING_LIBRARY
+  variable vendor_simulate_started
   
   if {[info exists vendor_simulate_started]} {
     vendor_end_previous_simulation
@@ -438,48 +443,47 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
 #  StopTranscript ${LibraryUnit}.log
 }
 
-
-
 # -------------------------------------------------
 # Settings
 #
-proc SetVHDLVersion {VhdlVersion} {
-  global OsvvmVhdlVersion
-  global OsvvmVhdlShortVersion
+proc SetVHDLVersion {Version} {  
+  variable VhdlVersion
+  variable VhdlShortVersion
   
-  if {$VhdlVersion eq "2008" || $VhdlVersion eq "08"} {
-    set OsvvmVhdlVersion 2008
-    set OsvvmVhdlShortVersion 08
-  } elseif {$VhdlVersion eq "2019" || $VhdlVersion eq "19" } {
-    set OsvvmVhdlVersion 2019
-    set OsvvmVhdlShortVersion 19
-  } elseif {$VhdlVersion eq "2002" || $VhdlVersion eq "02" } {
-    set OsvvmVhdlVersion 2002
-    set OsvvmVhdlShortVersion 02
+  if {$Version eq "2008" || $Version eq "08"} {
+    set VhdlVersion 2008
+    set VhdlShortVersion 08
+  } elseif {$Version eq "2019" || $Version eq "19" } {
+    set VhdlVersion 2019
+    set VhdlShortVersion 19
+  } elseif {$Version eq "2002" || $Version eq "02" } {
+    set VhdlVersion 2002
+    set VhdlShortVersion 02
     puts "\nWARNING:  VHDL Version set to 2002.  OSVVM Requires 2008 or newer\n"
-  } elseif {$VhdlVersion eq "1993" || $VhdlVersion eq "93" } {
-    set OsvvmVhdlVersion 93
-    set OsvvmVhdlShortVersion 93
+  } elseif {$Version eq "1993" || $Version eq "93" } {
+    set VhdlVersion 93
+    set VhdlShortVersion 93
     puts "\nWARNING:  VHDL Version set to 1993.  OSVVM Requires 2008 or newer\n"
   } else {
-    set OsvvmVhdlVersion 2008
-    set OsvvmVhdlShortVersion 08
+    set VhdlVersion 2008
+    set VhdlShortVersion 08
     puts "\nWARNING:  Input to SetVHDLVersion not recognized.   Using 2008.\n"
-  }  
+  }
 }
 
 proc GetVHDLVersion {} {
-  return $::OsvvmVhdlVersion
+  variable VhdlVersion
+  return $VhdlVersion
 }
 
 proc SetSimulatorResolution {SimulatorResolution} {
-  global SIMULATE_TIME_UNITS
-
-  set SIMULATE_TIME_UNITS        $SimulatorResolution
+  variable SIMULATE_TIME_UNITS
+  set SIMULATE_TIME_UNITS $SimulatorResolution
 }
 
 proc GetSimulatorResolution {} {
-  return $::SIMULATE_TIME_UNITS
+  variable SIMULATE_TIME_UNITS
+  return $SIMULATE_TIME_UNITS
 }
 
 #
@@ -491,15 +495,16 @@ proc GetSimulatorResolution {} {
 #  Currently only set in OsvvmScriptDefaults
 #
 proc SetLibraryDirectory {{LibraryDirectory ""}} {
-  global CURRENT_RUN_DIRECTORY
-  global LIB_BASE_DIR
-  global VHDL_WORKING_LIBRARY
-  global ToolNameVersion
+  variable CURRENT_RUN_DIRECTORY
+  variable LIB_BASE_DIR
+  variable DIR_LIB
+  variable VHDL_WORKING_LIBRARY
+  variable ToolNameVersion
   
   if {$LibraryDirectory eq ""} {
     if {[info exists CURRENT_RUN_DIRECTORY]} {
       set LIB_BASE_DIR $CURRENT_RUN_DIRECTORY
-      set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
+      set DIR_LIB      ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
     } else {
       # Instead, will be set by first call to build, include, analyze, simulate, or library
       if {[info exists LIB_BASE_DIR]} {
@@ -515,8 +520,8 @@ proc SetLibraryDirectory {{LibraryDirectory ""}} {
   }
 }
 
-proc GetLibraryDirectory {} {
-  global LIB_BASE_DIR
+proc GetLibraryDirectory {} { 
+  variable LIB_BASE_DIR
   
   if {[info exists LIB_BASE_DIR]} {
     return "${LIB_BASE_DIR}"
@@ -527,9 +532,9 @@ proc GetLibraryDirectory {} {
 }
   
 proc ResetRunDirectory {} {
-  global CURRENT_RUN_DIRECTORY
-  global LIB_BASE_DIR
-  global VHDL_WORKING_LIBRARY
+  variable CURRENT_RUN_DIRECTORY
+  variable LIB_BASE_DIR
+  variable VHDL_WORKING_LIBRARY
   
   if {[info exists CURRENT_RUN_DIRECTORY]} {
     unset CURRENT_RUN_DIRECTORY
@@ -543,8 +548,9 @@ proc ResetRunDirectory {} {
 }
 
 proc LinkLibrary {{LibraryDirectory ""}} {
-  global CURRENT_RUN_DIRECTORY
-  global ToolNameVersion
+  variable DIR_LIB
+  variable CURRENT_RUN_DIRECTORY
+  variable ToolNameVersion
   
   if {$LibraryDirectory eq ""} {
     if {[info exists DIR_LIB]} {
@@ -581,7 +587,7 @@ proc LinkLibrary {{LibraryDirectory ""}} {
 #   different version of library, analyze, and simulate
 #
 proc MapLibraries {{Path_Or_File "."}} {
-  global SCRIPT_DIR
+  variable SCRIPT_DIR
   source ${SCRIPT_DIR}/OsvvmCreateLibraryMapOverrideScripts.tcl
   include $Path_Or_File
 #  build $Path_Or_File
@@ -591,4 +597,17 @@ proc MapLibraries {{Path_Or_File "."}} {
 # MapAllLibraries - deprecated, but for older script support
 proc MapAllLibraries {{Path_Or_File "."}} {
   MapLibraries ${Path_Or_File}
+}
+
+# Don't export the following due to conflicts with Tcl built-ins
+# map
+
+namespace export analyze build include library
+namespace export StartUp Do_List StartTranscript StopTranscript TerminateTranscript
+namespace export RemoveAllLibraries CreateDirectory OsvvmInitialize
+namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
+namespace export SetLibraryDirectory GetLibraryDirectory ResetRunDirectory
+namespace export LinkLibrary MapLibraries MapAllLibraries
+
+# end namespace ::osvvm
 }
