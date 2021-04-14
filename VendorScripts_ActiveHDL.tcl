@@ -82,7 +82,6 @@ proc vendor_library {LibraryName PathToLib} {
     endsim
   }  
   set MY_START_DIR [pwd]
-
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
@@ -166,14 +165,14 @@ proc vendor_end_previous_simulation {} {
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
+  variable SIMULATE_TIME_UNITS
   variable ToolVendor
   variable simulator
 
   set MY_START_DIR [pwd]
   
-#  puts "Simulate Start time [clock format $::SimulateStartTime -format %T]"
-  puts {vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}} 
-  eval vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
+  puts {vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}} 
+  eval vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   
   # ActiveHDL changes the directory, so change it back to the OSVVM run directory
   cd $MY_START_DIR

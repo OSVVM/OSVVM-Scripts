@@ -124,12 +124,12 @@ proc vendor_end_previous_simulation {} {
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
+  variable SIMULATE_TIME_UNITS
   variable ToolVendor
   variable simulator
 
-#  puts "Simulate Start time [clock format $::SimulateStartTime -format %T]"
-  puts {vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}}
-  eval vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
+  puts {vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}}
+  eval vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   
   ### Project level settings - in OsvvmLibraries/Scripts
   # Project Vendor script
