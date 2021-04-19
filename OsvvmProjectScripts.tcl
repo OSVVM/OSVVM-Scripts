@@ -603,7 +603,7 @@ proc MapAllLibraries {{Path_Or_File "."}} {
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
-namespace export analyze build include library
+namespace export analyze simulate build include library
 namespace export StartUp Do_List StartTranscript StopTranscript TerminateTranscript
 namespace export RemoveAllLibraries CreateDirectory OsvvmInitialize
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
