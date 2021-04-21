@@ -56,7 +56,7 @@
     variable console {}
   }
   
-  regexp {GHDL\s+\d+\.\d+\.\S+} [exec $ghdl --version] VersionString
+  regexp {GHDL\s+\d+\.\d+\S*} [exec $ghdl --version] VersionString
   variable ToolNameVersion [regsub {\s+} $VersionString -]
   puts $ToolNameVersion
 
