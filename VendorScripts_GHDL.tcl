@@ -48,11 +48,17 @@
   variable ToolVendor "GHDL"
   variable simulator  "GHDL"
   variable ghdl "ghdl"
+  
   # required for mintty
-  variable console "/dev/pty0"
-  variable ToolNameVersion "GHDL-v0.37.0-1063-gc5b094bb-2020-1023"
+  if {[file writable "/dev/pty0" ]} {
+    variable console "/dev/pty0"
+  } else {
+    variable console {}
+  }
+  
+  regexp {GHDL\s+\d+\.\d+\.\S+} [exec $ghdl --version] VersionString
+  variable ToolNameVersion [regsub {\s+} $VersionString -]
   puts $ToolNameVersion
-
 
 # -------------------------------------------------
 # StartTranscript / StopTranscxript
@@ -86,7 +92,7 @@ proc vendor_library {LibraryName PathToLib} {
   variable GHDL_TRANSCRIPT_FILE
    
 #  set PathAndLib ${PathToLib}/${LibraryName}.lib
-  set PathAndLib ${PathToLib}/${LibraryName}/v08
+  set PathAndLib ${PathToLib}/[string tolower ${LibraryName}]/v08
 
   if {![file exists ${PathAndLib}]} {
     puts "creating library directory ${PathAndLib}" 
@@ -110,7 +116,7 @@ proc vendor_map {LibraryName PathToLib} {
   variable VHDL_WORKING_LIBRARY_PATH
   variable GHDL_TRANSCRIPT_FILE
 
-  set PathAndLib ${PathToLib}/${LibraryName}.lib
+  set PathAndLib ${PathToLib}/[string tolower ${LibraryName}].lib
 
   if {![file exists ${PathAndLib}]} {
     error "Map:  Creating library ${PathAndLib} since it does not exist.  "
@@ -118,6 +124,16 @@ proc vendor_map {LibraryName PathToLib} {
     file mkdir   ${PathAndLib}
   }
   set VHDL_WORKING_LIBRARY_PATH  ${PathAndLib}
+}
+
+proc get_tee {} {
+  variable GHDL_TRANSCRIPT_FILE
+  variable console
+  set tee [list tee -a $GHDL_TRANSCRIPT_FILE]
+  if {$console ne {}} {
+    lappend tee $console
+  }
+  return $tee
 }
 
 # -------------------------------------------------
@@ -134,8 +150,8 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
 
 #  puts "$ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}" 
 #  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} | tee -a $GHDL_TRANSCRIPT_FILE $console
-  exec echo "$ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName}" | tee -a $GHDL_TRANSCRIPT_FILE $console
-  eval exec $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName} |& tee -a $GHDL_TRANSCRIPT_FILE $console
+  exec echo "$ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName}" | {*}[get_tee]
+  eval exec $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName} |& {*}[get_tee]
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
@@ -165,6 +181,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 
 #  puts "$ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}" 
 #  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} | tee -a $GHDL_TRANSCRIPT_FILE $console
-  exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit}" | tee -a $GHDL_TRANSCRIPT_FILE $console
-  eval exec $ghdl --elab-run --std=${VhdlShortVersion} --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit} |& tee -a $GHDL_TRANSCRIPT_FILE $console
+  exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit}" | {*}[get_tee]
+  eval exec $ghdl --elab-run --std=${VhdlShortVersion} --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit} |& {*}[get_tee]
 }
