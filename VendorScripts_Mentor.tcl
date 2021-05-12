@@ -120,7 +120,7 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 # End Previous Simulation
 #
 proc vendor_end_previous_simulation {} {
-  variable SourceMap
+  global SourceMap
 
   # close junk in source window
   foreach index [array names SourceMap] { 
