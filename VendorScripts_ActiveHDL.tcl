@@ -50,12 +50,12 @@
 # -------------------------------------------------
 # Tool Settings
 #
-  set ToolType    "simulator"
-  set ToolVendor  "Aldec"
-  set simulator   "ActiveHDL"
-  set ToolNameVersion ${simulator}-${version}
+  variable ToolType    "simulator"
+  variable ToolVendor  "Aldec"
+  variable simulator   "ActiveHDL"
+  variable ToolNameVersion ${simulator}-${version}
   puts $ToolNameVersion
-  # Allow global OSVVM library to be updated
+  # Allow variable OSVVM library to be updated
   setlibrarymode -rw osvvm
 
 
@@ -77,12 +77,11 @@ proc vendor_StopTranscript {FileName} {
 # Library
 #
 proc vendor_library {LibraryName PathToLib} {
-  global vendor_simulate_started
+  variable vendor_simulate_started
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
   set MY_START_DIR [pwd]
-
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
@@ -101,7 +100,7 @@ proc vendor_library {LibraryName PathToLib} {
 
 
 proc vendor_map {LibraryName ResolvedPathToLib} {
-  global vendor_simulate_started
+  variable vendor_simulate_started
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
@@ -124,8 +123,8 @@ proc vendor_map {LibraryName ResolvedPathToLib} {
 # analyze
 #
 proc vendor_analyze_vhdl {LibraryName FileName} {
-  global OsvvmVhdlVersion
-  global DIR_LIB
+  variable VhdlVersion
+  variable DIR_LIB
   
   set MY_START_DIR [pwd]
   set FileBaseName [file rootname [file tail $FileName]]
@@ -134,12 +133,12 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   if {![file isfile ${DIR_LIB}/$LibraryName/src/${FileBaseName}.vcom]} {
     echo addfile ${FileName}
     addfile ${FileName}
-    filevhdloptions -${OsvvmVhdlVersion} ${FileName}
+    filevhdloptions -${VhdlVersion} ${FileName}
   }
   # Compile it.
-  echo vcom -${OsvvmVhdlVersion} -dbg -relax -work ${LibraryName} ${FileName} 
-  echo vcom -${OsvvmVhdlVersion} -dbg -relax -work ${LibraryName} ${FileName} > ${DIR_LIB}/$LibraryName/src/${FileBaseName}.vcom
-  eval vcom -${OsvvmVhdlVersion} -dbg -relax -work ${LibraryName} ${FileName}
+  echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName} 
+  echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName} > ${DIR_LIB}/$LibraryName/src/${FileBaseName}.vcom
+  eval vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName}
   
   cd $MY_START_DIR
 }
@@ -165,15 +164,15 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
-  global SCRIPT_DIR
-  global ToolVendor
-  global simulator
+  variable SCRIPT_DIR
+  variable SIMULATE_TIME_UNITS
+  variable ToolVendor
+  variable simulator
 
   set MY_START_DIR [pwd]
   
-#  puts "Simulate Start time [clock format $::SimulateStartTime -format %T]"
-  puts {vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}} 
-  eval vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
+  puts {vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}} 
+  eval vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   
   # ActiveHDL changes the directory, so change it back to the OSVVM run directory
   cd $MY_START_DIR

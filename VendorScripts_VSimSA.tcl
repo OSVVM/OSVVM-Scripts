@@ -49,10 +49,10 @@
 # -------------------------------------------------
 # Tool Settings
 #
-  set ToolType    "simulator"
-  set ToolVendor  "Aldec"
-  set simulator   "VSimSA"
-  set ToolNameVersion ${simulator}-[lindex [split $version] [llength $version]-1]
+  variable ToolType    "simulator"
+  variable ToolVendor  "Aldec"
+  variable simulator   "VSimSA"
+  variable ToolNameVersion ${simulator}-[lindex [split $version] [llength $version]-1]
   puts $ToolNameVersion
 
 
@@ -101,9 +101,9 @@ proc vendor_map {LibraryName PathToLib} {
 # analyze
 #
 proc vendor_analyze_vhdl {LibraryName FileName} {
-  global OsvvmVhdlVersion
-  echo vcom -${OsvvmVhdlVersion} -dbg -relax -work ${LibraryName} ${FileName}
-  eval vcom -${OsvvmVhdlVersion} -dbg -relax -work ${LibraryName} ${FileName}
+  variable VhdlVersion
+  echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName}
+  eval vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName}
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
@@ -123,13 +123,13 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
-  global SCRIPT_DIR
-  global ToolVendor
-  global simulator
+  variable SCRIPT_DIR
+  variable SIMULATE_TIME_UNITS
+  variable ToolVendor
+  variable simulator
 
-#  puts "Simulate Start time [clock format $::SimulateStartTime -format %T]"
-  puts {vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}}
-  eval vsim -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
+  puts {vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}}
+  eval vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   
   ### Project level settings - in OsvvmLibraries/Scripts
   # Project Vendor script

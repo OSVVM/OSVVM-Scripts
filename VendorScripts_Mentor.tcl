@@ -46,18 +46,17 @@
 #  limitations under the License.
 #
 
-
 # -------------------------------------------------
 # Tool Settings
 #
-  quietly set ToolType    "simulator"
-  quietly set ToolVendor  "Siemens"
+  variable ToolType    "simulator"
+  variable ToolVendor  "Siemens"
   if {[lindex [split [vsim -version]] 0] eq "Questa"} {
-    quietly set simulator   "QuestaSim"
+    variable simulator   "QuestaSim"
   } else {
-    quietly set simulator   "ModelSim"
+    variable simulator   "ModelSim"
   }
-  quietly set ToolNameVersion ${simulator}-[vsimVersion]
+  variable ToolNameVersion ${simulator}-[vsimVersion]
   puts $ToolNameVersion
 
 
@@ -106,9 +105,9 @@ proc vendor_map {LibraryName PathToLib} {
 # analyze
 #
 proc vendor_analyze_vhdl {LibraryName FileName} {
-  global OsvvmVhdlVersion
-  echo vcom -${OsvvmVhdlVersion} -work ${LibraryName} ${FileName}
-  eval vcom -${OsvvmVhdlVersion} -work ${LibraryName} ${FileName}
+  variable VhdlVersion
+  echo vcom -${VhdlVersion} -work ${LibraryName} ${FileName}
+  eval vcom -${VhdlVersion} -work ${LibraryName} ${FileName}
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
@@ -135,13 +134,13 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
-  global SCRIPT_DIR
-  global ToolVendor
-  global simulator
+  variable SCRIPT_DIR
+  variable SIMULATE_TIME_UNITS
+  variable ToolVendor
+  variable simulator
 
-#  puts "Simulate Start time [clock format $::SimulateStartTime -format %T]"
-  puts {vsim -voptargs="+acc" -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617}
-  eval vsim -voptargs="+acc" -t $::SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617
+  puts {vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617}
+  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617
   
   ### Project level settings - in OsvvmLibraries/Scripts
   # Historical name.  Must be run with "do" for actions to work
