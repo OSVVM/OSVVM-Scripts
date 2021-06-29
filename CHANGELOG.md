@@ -2,6 +2,10 @@
 
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                  | 
 |---------------|--------------------|-----------------------------------------------------------------------| 
+| 2021.06       | June 2021          | Updated VendorScripts_GHDL to better handle GHDL return values        |
+| 2021.05       | May 2021           | Updates related to adding namespace for osvvm                         |
+|               |                    |    Added VendorScripts_Vivado.tcl - thanks Rob Gaddi                  |
+| 2021.03       | March 2021         | Minor work around for vendor tool issues                              |
 | 2021.03       | March 2021         | Minor work around for vendor tool issues                              |
 | 2021.02       | February 2021      | Refactored.                                                           |
 |               |                    |    - Tool now determined in StartUp.tcl. Simplifies ActiveHDL startup |
@@ -29,8 +33,8 @@
 
  
 ## Copyright and License
-Copyright (C) 2006-2020 by [SynthWorks Design Inc.](http://www.synthworks.com/)   
-Copyright (C) 2020 by [OSVVM contributors](CONTRIBUTOR.md)   
+Copyright (C) 2006-2021 by [SynthWorks Design Inc.](http://www.synthworks.com/)   
+Copyright (C) 2021 by [OSVVM contributors](CONTRIBUTOR.md)   
 
 This file is part of OSVVM.
 

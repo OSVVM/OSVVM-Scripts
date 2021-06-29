@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     6/2021   2021.06    Updated to better handle return values from GHDL
 #     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
 #     9/2020   2020.09    Initial Version
 #
