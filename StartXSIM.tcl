@@ -1,4 +1,4 @@
-#  File Name:         StartUp.tcl
+#  File Name:         StartXSim.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 

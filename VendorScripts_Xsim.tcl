@@ -1,4 +1,4 @@
-#  File Name:         VendorScripts_RivieraPro.tcl
+#  File Name:         VendorScripts_Xsim.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 
@@ -51,9 +51,9 @@
 # Tool Settings
 #
   variable ToolType    "simulator"
-  variable ToolVendor  "XILINX"
+  variable ToolVendor  "Xilinx"
   variable simulator   "XSIM"
-  variable ToolNameVersion "XSIM-2021.01"
+  variable ToolNameVersion "xsim_21_1"
   puts $ToolNameVersion
 
 
