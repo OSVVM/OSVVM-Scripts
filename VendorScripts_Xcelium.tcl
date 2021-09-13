@@ -51,11 +51,11 @@
 # Tool Settings
 #
   variable ToolType    "simulator"
-  variable ToolVendor  "Synopsys"
-  variable simulator   "vcs"
-  variable ToolNameVersion "R2020_12"
+  variable ToolVendor  "Cadence"
+  variable simulator   "Xcelium"
+  variable ToolNameVersion "21.03-s006"
+  # xmvhdl -version
   puts $ToolNameVersion
-
 
 # -------------------------------------------------
 # StartTranscript / StopTranscxript
@@ -83,18 +83,26 @@ proc vendor_library {LibraryName PathToLib} {
   puts $PathAndLib
 
   if {![file exists ${PathAndLib}]} {
-    puts {file mkdir    ${PathAndLib}}
-    eval  file mkdir    ${PathAndLib}/64
-    if {[file exists synopsys_sim.setup]} {
-      set SynFile [open "synopsys_sim.setup" a]
+    puts "file mkdir    ${PathAndLib}"
+    eval  file mkdir    ${PathAndLib}
+    if {[file exists cds.lib]} {
+      set CdsFile [open "cds.lib" a]
     } else {
-      set SynFile [open "synopsys_sim.setup" w]
-      puts $SynFile "ASSERT_STOP=FAILURE" 
+      set CdsFile [open "cds.lib" w]
+#      puts $CdsFile "softinclude ~/tools/Cadence/XCELIUM/tools/inca/files/cds.lib" 
+      puts $CdsFile "softinclude \$CDS_INST_DIR/tools/inca/files/cds.lib" 
     }
-    puts  $SynFile "${LibraryName} : ${PathAndLib}" 
-    close $SynFile
+    puts  $CdsFile "define ${LibraryName} ${PathAndLib}" 
+    close $CdsFile
+    if {![file exists hdl.var]} {
+      set HdlFile [open "hdl.var" w]
+      puts $HdlFile "softinclude \$CDS_INST_DIR/tools/inca/files/hdl.var" 
+      puts  $HdlFile "DEFINE intovf_severity_level WARNING"
+      close $HdlFile
+    }
   }
 }
+
 
 proc vendor_map {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
@@ -114,10 +122,11 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   variable DIR_LIB
   variable VENDOR_TRANSCRIPT_FILE
 
-  exec echo "vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName}"
-  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
-#  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -kdb -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
+  exec echo "xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}"
+  exec       xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
+#  exec       xmvhdl -CDSLIB cds.lib -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
 }
+
 
 proc vendor_analyze_verilog {LibraryName FileName} {
 #  Untested branch for Verilog - will need adjustment
@@ -143,49 +152,50 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable simulator
   variable VENDOR_TRANSCRIPT_FILE
 
-  # Building the Synopsys_run.tcl Script
-  set SynFile [open "temp_Synopsys_run.tcl" w]
+  # Building the temp_Cadence_run.tcl Script
+  set RunFile [open "temp_Cadence_run.tcl" w]
+
+  puts  $RunFile "set intovf_severity_level WARNING"
 
   # Project Vendor script
   if {[file exists ${SCRIPT_DIR}/${ToolVendor}.tcl]} {
-    puts  $SynFile "source ${SCRIPT_DIR}/${ToolVendor}.tcl"
+    puts  $RunFile "source ${SCRIPT_DIR}/${ToolVendor}.tcl"
   }
 # Project Simulator Script
   if {[file exists ${SCRIPT_DIR}/${simulator}.tcl]} {
-    puts  $SynFile "source ${SCRIPT_DIR}/${simulator}.tcl"
+    puts  $RunFile "source ${SCRIPT_DIR}/${simulator}.tcl"
   }
  
 ### User level settings for simulator in the simulation run directory
 # User Vendor script
   if {[file exists ${ToolVendor}.tcl]} {
-    puts  $SynFile "source ${ToolVendor}.tcl"
+    puts  $RunFile "source ${ToolVendor}.tcl"
   }
 # User Simulator Script
   if {[file exists ${simulator}.tcl]} {
-    puts  $SynFile "source ${simulator}.tcl"
+    puts  $RunFile "source ${simulator}.tcl"
   }
 # User Testbench Script
   if {[file exists ${LibraryUnit}.tcl]} {
-    puts  $SynFile "source ${LibraryUnit}.tcl"
+    puts  $RunFile "source ${LibraryUnit}.tcl"
   }
 # User Testbench + Simulator Script
   if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
-    puts  $SynFile "source ${LibraryUnit}_${simulator}.tcl"
+    puts  $RunFile "source ${LibraryUnit}_${simulator}.tcl"
   }
 # User wave.do
   if {[file exists wave.do]} {
-    puts  $SynFile "do wave.do"
+    puts  $RunFile "do wave.do"
   }
-  puts  $SynFile "run" 
-  puts  $SynFile "quit" 
-  close $SynFile
+  puts  $RunFile "run" 
+  puts  $RunFile "exit" 
+  close $RunFile
 
   # removed $OptionalCommands
-#  puts {exec vcs -full64 -a ${VENDOR_TRANSCRIPT_FILE} -R -sim_res=${SIMULATE_TIME_UNITS} +vhdllib+${LibraryName} ${LibraryUnit}}
-# caution there is a performance impact of -debug_access+all
-  puts      "vcs -full64 -time $SIMULATE_TIME_UNITS -debug_access+all ${LibraryName}.${LibraryUnit}"
-  eval  exec vcs -full64 -time $SIMULATE_TIME_UNITS -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
-#  eval  exec vcs -full64 -kdb -time $SIMULATE_TIME_UNITS -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
-  puts "./simv -ucli -do temp_Synopsys_run.tcl"
-  exec  ./simv -ucli -do temp_Synopsys_run.tcl |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+  puts  "xmelab  ${LibraryName}.${LibraryUnit}"
+  eval  exec xmelab  ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+  puts  "xmsim  ${LibraryName}.${LibraryUnit}"
+  exec  xmsim  -input temp_Cadence_run.tcl ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+#  run 
+#  exit
 }

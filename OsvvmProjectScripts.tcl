@@ -68,10 +68,10 @@ proc StartUp {} {
 
 
 # -------------------------------------------------
-# Do_List
+# IterateFile
 #   do an operation on a list of items
 #
-proc Do_List {FileWithNames ActionForName} {
+proc IterateFile {FileWithNames ActionForName} {
 #  puts "$FileWithNames"
   set FileHandle [open $FileWithNames]
   set ListOfNames [split [read $FileHandle] \n]
@@ -177,12 +177,12 @@ proc include {Path_Or_File} {
       puts "source ${NormName}"
       source ${NormName} 
     } elseif {$FileExtension eq ".dirs"} {
-      puts "Do_List ${NormName} include"
-      Do_List ${NormName} "include"
+      puts "IterateFile ${NormName} include"
+      IterateFile ${NormName} "include"
     } else { 
     #  was elseif {$FileExtension eq ".files"} 
-      puts "Do_List ${NormName} analyze"
-      Do_List ${NormName} "analyze"
+      puts "IterateFile ${NormName} analyze"
+      IterateFile ${NormName} "analyze"
     }
   } else {
     # Path_Or_File is directory name
@@ -211,12 +211,12 @@ proc include {Path_Or_File} {
     } 
     # .dirs is intended to be deprecated in favor of .pro
     if {[file exists ${FileDirsName}]} {
-      Do_List ${FileDirsName} "include"
+      IterateFile ${FileDirsName} "include"
       set FoundActivity 1
     }
     # .files is intended to be deprecated in favor of .pro
     if {[file exists ${FileFilesName}]} {
-      Do_List ${FileFilesName} "analyze"
+      IterateFile ${FileFilesName} "analyze"
       set FoundActivity 1
     }
     # .tcl intended for extended capability
@@ -239,11 +239,13 @@ proc include {Path_Or_File} {
   set CURRENT_WORKING_DIRECTORY ${StartingPath}
 }
 
+# -------------------------------------------------
 proc build {{Path_Or_File "."} {LogName "."}} {
   variable CURRENT_WORKING_DIRECTORY
   variable CURRENT_RUN_DIRECTORY
   variable VHDL_WORKING_LIBRARY
   variable vendor_simulate_started
+  variable test_suite_started
   
   set CURRENT_WORKING_DIRECTORY [pwd]
   
@@ -265,7 +267,9 @@ proc build {{Path_Or_File "."} {LogName "."}} {
     vendor_end_previous_simulation
     unset vendor_simulate_started
   }  
-
+  
+  set test_suite_started "FALSE"
+  
   # If Transcript Open, then Close it
   TerminateTranscript
   
@@ -278,25 +282,46 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   
   if {$NormDirName eq $NormTailRoot} {
     # <Parent Dir>_<Script Name>.log
-    set LogName [file tail [file dirname $NormDir]]_${NormTailRoot}.log
+#    set LogName [file tail [file dirname $NormDir]]_${NormTailRoot}
+    # <Script Name>.log
+    set LogName ${NormTailRoot}
   } else {
     # <Dir Name>_<Script Name>.log
-    set LogName ${NormDirName}_${NormTailRoot}.log
+    set LogName ${NormDirName}_${NormTailRoot}
   }
+  set LogFileName ${LogName}.log
 
-  set BuildStartTime   [clock seconds] 
+  set BuildStartTime     [clock seconds] 
   puts "Build Start time [clock format $BuildStartTime -format %T]"
-  StartTranscript ${LogName}
+  
+  set   RunFile  [open "OsvvmRun.yml" w]
+  puts  $RunFile "Build:"
+  puts  $RunFile "  Name: $LogName"
+  puts  $RunFile "  Date: [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
+  puts  $RunFile "  Simulator: $::osvvm::simulator"
+  puts  $RunFile "  Version: $::osvvm::ToolNameVersion"
+#  puts  $RunFile "  Date: [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
+  close $RunFile
+
+  StartTranscript ${LogFileName}
   
   include ${Path_Or_File}
   
-  puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   set  BuildFinishTime  [clock seconds] 
   set  BuildElapsedTime  [expr ($BuildFinishTime - $BuildStartTime)]    
-#  puts "Finish time [clock format $BuildFinishTime -format %T]"
+  puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   puts "Build Finish time [clock format $BuildFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
-#  puts "Elapsed time [expr ($BuildFinishTime - $BuildStartTime)/60] minutes"
-  StopTranscript ${LogName}
+  StopTranscript ${LogFileName}
+  
+  set   RunFile  [open "OsvvmRun.yml" a]
+  puts  $RunFile "Run:"
+  puts  $RunFile "  Start:  [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
+  puts  $RunFile "  Finish: [clock format $BuildFinishTime -format {%Y-%m-%dT%H:%M%z}]"
+  puts  $RunFile "  Elapsed:  [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]]"
+  close $RunFile
+  # short sleep to allow the file to close
+  after 1000
+  file rename -force "OsvvmRun.yml" ${LogName}.yml
 }
 
 
@@ -443,6 +468,67 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
 #  puts "Elasped time [expr ($FinishTime - $SimulateStartTime)/60] minutes"
 #  StopTranscript ${LibraryUnit}.log
 }
+
+
+# -------------------------------------------------
+proc TestSuite {SuiteName} {
+  variable test_suite_started
+
+  if {[file exists "OsvvmRun.yml"]} {
+    set RunFile [open "OsvvmRun.yml" a]
+  } else {
+    set RunFile [open "OsvvmRun.yml" w]
+  }
+  if {$test_suite_started ne "TRUE"} {
+    puts  $RunFile "TestSuites: "
+    set test_suite_started "TRUE"
+  }  
+  puts  $RunFile "  - Name: $SuiteName"
+  puts  $RunFile "    TestCases:"
+  close $RunFile
+}
+
+
+# -------------------------------------------------
+# RunTest
+#
+proc RunTest {FileName} {
+
+  set SimName [file rootname [file tail $FileName]]
+  
+  puts "RunTest $FileName"
+  
+  if {[file exists "OsvvmRun.yml"]} {
+    set RunFile [open "OsvvmRun.yml" a]
+  } else {
+    set RunFile [open "OsvvmRun.yml" w]
+  }
+  puts  $RunFile "    - TestName: $SimName"
+  close $RunFile
+  
+  analyze   ${FileName}
+  simulate  ${SimName}  
+}
+
+# -------------------------------------------------
+# SkipTest
+#
+proc SkipTest {FileName Reason} {
+
+  set SimName [file rootname [file tail $FileName]]
+  
+  puts "SkipTest $FileName $Reason"
+  
+  if {[file exists "OsvvmRun.yml"]} {
+    set RunFile [open "OsvvmRun.yml" a]
+  } else {
+    set RunFile [open "OsvvmRun.yml" w]
+  }
+  puts  $RunFile "    - TestName: $SimName"
+  puts  $RunFile "      Results: {Status: Skipped, Name: $SimName, Reason: $Reason}"
+  close $RunFile  
+}
+
 
 # -------------------------------------------------
 # Settings
@@ -603,8 +689,8 @@ proc MapAllLibraries {{Path_Or_File "."}} {
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
-namespace export analyze simulate build include library
-namespace export StartUp Do_List StartTranscript StopTranscript TerminateTranscript
+namespace export analyze simulate build include library RunTest SkipTest TestSuite
+namespace export StartUp IterateFile StartTranscript StopTranscript TerminateTranscript
 namespace export RemoveAllLibraries CreateDirectory OsvvmInitialize
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory ResetRunDirectory

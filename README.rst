@@ -80,8 +80,8 @@ directory that is not backed up. Such as:
 Initialization
 --------------
 
-RivieraPRO, QuestaSim, ModelSim
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Aldec RivieraPRO, Siemens QuestaSim and ModelSim
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Initialize the OSVVM Script environment by doing:
 
@@ -95,8 +95,8 @@ path information). Similarly in Mentor QuestaSim/ModelSim, set the
 environment variable, MODELSIM_TCL to StartUp.tcl (including the path
 information).
 
-ActiveHDL
-~~~~~~~~~
+Aldec ActiveHDL
+~~~~~~~~~~~~~~~
 
 Before doing this in ActiveHDL and VSimSA (ActiveHDL’s command window)
 instead do:
@@ -136,6 +136,57 @@ as above and then in your ``.bashrc`` create the alias
 ``alias gsim='winpty rlwrap tclsh'`` to simplify starting tclsh. From
 there, at the command line type gsim and you are running ghdl in the
 OSVVM environment.
+
+Synopsys VCS
+~~~~~~~~~~~~
+
+Synopsys scripts are beta level quality.  VCS runs
+under Unix/Linux.    The scripts must run under tcl (tclsh). As a 
+result, to start the OSVVM scripting environment, in a shell window do:
+
+.. code:: tcl
+
+   rlwrap tclsh
+   source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartVCS.tcl
+
+To simplify this, I put the ``source .../StartVCS.tcl`` in my
+``.tclshrc`` file and as a result I do not have to do the source
+command. 
+
+Cadence Xcelium
+~~~~~~~~~~~~~~~
+
+Cadence Xcelium scripts are alpha level quality.  Xcelium runs
+under Unix/Linux.    The scripts must run under tcl (tclsh). As a 
+result, to start the OSVVM scripting environment, in a shell window do:
+
+.. code:: tcl
+
+   rlwrap tclsh
+   source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartXcelium.tcl
+
+To simplify this, I put the ``source .../StartXcelium.tcl`` in my
+``.tclshrc`` file and as a result I do not have to do the source
+command. 
+
+Xilinx XSIM
+~~~~~~~~~~~
+
+Using OSVVM in Xilinx XSIM is under development.  So far, Xilinx seems 
+to be able to compile OSVVM utility library, however, we have not had
+any of our internal test cases pass.  
+
+To run OSVVM scripts in XSIM, start Vivado and then run the StartXSIM
+script shown below:
+
+.. code:: tcl
+
+   source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartXSIM.tcl
+
+If someone from XILINX is interested, the internal OSVVM utility library
+testbenches can be provided under an NDA.
+
+
 
 Project Files
 -------------
