@@ -490,21 +490,32 @@ proc TestSuite {SuiteName} {
 
 
 # -------------------------------------------------
-# RunTest
-#
-proc RunTest {FileName} {
+proc TestCase {TestName} {
 
-  set SimName [file rootname [file tail $FileName]]
-  
-  puts "RunTest $FileName"
-  
   if {[file exists "OsvvmRun.yml"]} {
     set RunFile [open "OsvvmRun.yml" a]
   } else {
     set RunFile [open "OsvvmRun.yml" w]
   }
-  puts  $RunFile "    - TestName: $SimName"
+  puts  $RunFile "    - TestName: $TestName"
   close $RunFile
+}
+
+
+# -------------------------------------------------
+# RunTest
+#
+proc RunTest {FileName {SimName ""}} {
+
+	if {$SimName eq ""} {
+    set SimName [file rootname [file tail $FileName]]
+    puts "RunTest $FileName"
+    TestCase $SimName
+  } else {
+    puts "RunTest $FileName $SimName"
+    set ShortFileName [file rootname [file tail $FileName]]
+    TestCase "${SimName}(${ShortFileName})"
+  }
   
   analyze   ${FileName}
   simulate  ${SimName}  
@@ -525,7 +536,8 @@ proc SkipTest {FileName Reason} {
     set RunFile [open "OsvvmRun.yml" w]
   }
   puts  $RunFile "    - TestName: $SimName"
-  puts  $RunFile "      Results: {Status: Skipped, Name: $SimName, Reason: $Reason}"
+  puts  $RunFile "      Status: Skipped"
+  puts  $RunFile "      Results: {Name: $SimName, Reason: $Reason}"
   close $RunFile  
 }
 
