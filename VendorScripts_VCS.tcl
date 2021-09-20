@@ -83,7 +83,7 @@ proc vendor_library {LibraryName PathToLib} {
   puts $PathAndLib
 
   if {![file exists ${PathAndLib}]} {
-    puts {file mkdir    ${PathAndLib}}
+    puts "file mkdir    ${PathAndLib}"
     eval  file mkdir    ${PathAndLib}/64
     if {[file exists synopsys_sim.setup]} {
       set SynFile [open "synopsys_sim.setup" a]
@@ -100,9 +100,9 @@ proc vendor_map {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
-    puts {file mkdir    ${PathAndLib}}
+    puts "file mkdir    ${PathAndLib}"
     eval  file mkdir    ${PathAndLib}
-    puts {${LibraryName} : ${PathAndLib}} > synopsys_sim.setup
+    puts "${LibraryName} : ${PathAndLib}" > synopsys_sim.setup
   }
 }
 
@@ -121,7 +121,7 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
 
 proc vendor_analyze_verilog {LibraryName FileName} {
 #  Untested branch for Verilog - will need adjustment
-   puts {Verilog is not supported for now}
+   puts "Verilog is not supported for now"
 #   eval vlog -work ${LibraryName} ${FileName}
 }
 
@@ -181,7 +181,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   close $SynFile
 
   # removed $OptionalCommands
-#  puts {exec vcs -full64 -a ${VENDOR_TRANSCRIPT_FILE} -R -sim_res=${SIMULATE_TIME_UNITS} +vhdllib+${LibraryName} ${LibraryUnit}}
+#  puts "exec vcs -full64 -a ${VENDOR_TRANSCRIPT_FILE} -R -sim_res=${SIMULATE_TIME_UNITS} +vhdllib+${LibraryName} ${LibraryUnit}"
 # caution there is a performance impact of -debug_access+all
   puts      "vcs -full64 -time $SIMULATE_TIME_UNITS -debug_access+all ${LibraryName}.${LibraryUnit}"
   eval  exec vcs -full64 -time $SIMULATE_TIME_UNITS -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 

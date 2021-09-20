@@ -171,7 +171,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 
   set MY_START_DIR [pwd]
   
-  puts {vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}} 
+  puts "vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}" 
   eval vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   
   # ActiveHDL changes the directory, so change it back to the OSVVM run directory

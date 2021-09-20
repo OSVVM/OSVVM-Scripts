@@ -139,7 +139,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable ToolVendor
   variable simulator
 
-  puts {vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617}
+  puts "vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683"
 #  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617
   eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 
   

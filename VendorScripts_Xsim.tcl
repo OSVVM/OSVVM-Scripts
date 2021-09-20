@@ -78,7 +78,7 @@ proc vendor_library {LibraryName PathToLib} {
 #  set PathAndLib ${PathToLib}/${LibraryName}
 #
 #  if {![file exists ${PathAndLib}]} {
-#    puts {file mkdir    ${PathAndLib}}
+#    puts "file mkdir    ${PathAndLib}"
 #    puts "" > ${PathAndLib}
 #    eval file mkdir    ${PathAndLib}
 #  }
@@ -121,7 +121,7 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
 
 proc vendor_analyze_verilog {LibraryName FileName} {
 #  Untested branch for Verilog - will need adjustment
-   puts {Verilog is not supported for now}
+   puts "Verilog is not supported for now"
 #   eval vlog -work ${LibraryName} ${FileName}
 }
 

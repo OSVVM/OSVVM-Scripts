@@ -128,7 +128,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable ToolVendor
   variable simulator
 
-  puts {vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}}
+  puts "vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}"
   eval vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
   
   ### Project level settings - in OsvvmLibraries/Scripts
