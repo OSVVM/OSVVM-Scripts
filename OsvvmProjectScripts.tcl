@@ -497,7 +497,7 @@ proc TestCase {TestName} {
   } else {
     set RunFile [open "OsvvmRun.yml" w]
   }
-  puts  $RunFile "    - TestName: $TestName"
+  puts  $RunFile "    - Name: $TestName"
   close $RunFile
 }
 
@@ -535,7 +535,7 @@ proc SkipTest {FileName Reason} {
   } else {
     set RunFile [open "OsvvmRun.yml" w]
   }
-  puts  $RunFile "    - TestName: $SimName"
+  puts  $RunFile "    - Name: $SimName"
   puts  $RunFile "      Status: Skipped"
   puts  $RunFile "      Results: {Name: $SimName, Reason: $Reason}"
   close $RunFile  
