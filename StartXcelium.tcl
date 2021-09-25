@@ -21,25 +21,12 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#     8/2021   2021.08    Refactored to be used for Starting Cadence
-#     2/2021   2021.02    Refactored.                                                          
-#                         - Tool now determined in here (was in ToolConfiguration.tcl). 
-#                            - Simplifies ActiveHDL startup
-#                         - Initial tool settings now in VendorScripts_*.tcl (was in ToolConfiguration.tcl)              
-#                         - Added: Default settings now in OsvvmScriptDefaults.tcl (was here)         
-#                         - Removed: ToolConfiguration.tcl (now in StartUp.tcl and VendorScripts_*.tcl)                                
-#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
-#     2/2020   2020.02    Moved tool determination to outer layer
-#     1/2020   2020.01    Updated Licenses to Apache
-#     2/2019   Beta       Project descriptors in .pro which execute 
-#    11/2018   Alpha      Project descriptors in .files and .dirs files
-#                         as TCL scripts in conjunction with the library 
-#                         procedures
+#     9/2021   2021.09    Created from StartUp.tcl
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2021 by SynthWorks Design Inc.  
+#  Copyright (c) 2021 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.

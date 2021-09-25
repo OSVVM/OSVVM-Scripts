@@ -2,6 +2,8 @@
 
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                  | 
 |---------------|--------------------|-----------------------------------------------------------------------| 
+| 2021.09       | September 2021     | Added support for Synopsys VCS and Cadence Xcelium.                   |
+|               |                    | Added support for creation of YAML files.                             |
 | 2021.06       | June 2021          | Updated VendorScripts_GHDL to better handle GHDL return values        |
 | 2021.05       | May 2021           | Updates related to adding namespace for osvvm                         |
 |               |                    |    Added VendorScripts_Vivado.tcl - thanks Rob Gaddi                  |

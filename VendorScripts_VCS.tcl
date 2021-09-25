@@ -19,14 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate
-#     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
-#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
-#     1/2020   2020.01    Updated Licenses to Apache
-#     2/2019   Beta       Project descriptors in .pro which execute 
-#                         as TCL scripts in conjunction with the library 
-#                         procedures
-#    11/2018   Alpha      Project descriptors in .files and .dirs files
+#     9/2021   2021.09    Created from VendorScripts_xxx.tcl
 #
 #
 #  This file is part of OSVVM.
