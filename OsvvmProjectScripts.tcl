@@ -295,6 +295,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   puts "Build Start time [clock format $BuildStartTime -format %T]"
   
   set   RunFile  [open "OsvvmRun.yml" w]
+  puts  $RunFile "Version: 1.0"
   puts  $RunFile "Build:"
   puts  $RunFile "  Name: $LogName"
   puts  $RunFile "  Date: [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
