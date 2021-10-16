@@ -85,6 +85,7 @@ namespace eval ::osvvm {
 }
 
 # OSVVM Project Scripts 
+source ${::osvvm::SCRIPT_DIR}/Cov2Html.tcl
 source ${::osvvm::SCRIPT_DIR}/OsvvmProjectScripts.tcl
 namespace import ::osvvm::*
 
