@@ -85,7 +85,11 @@ namespace eval ::osvvm {
 }
 
 # OSVVM Project Scripts 
-source ${::osvvm::SCRIPT_DIR}/Cov2Html.tcl
+if {![catch {package require yaml}]} {
+  source ${::osvvm::SCRIPT_DIR}/Cov2Html.tcl
+} else {
+  source ${::osvvm::SCRIPT_DIR}/NoYamlPackage.tcl
+}
 source ${::osvvm::SCRIPT_DIR}/OsvvmProjectScripts.tcl
 namespace import ::osvvm::*
 
