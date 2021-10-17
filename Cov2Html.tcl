@@ -125,8 +125,8 @@ proc OsvvmCovBins2Html {BinInfoDict BinsArray} {
     puts $ResultsFile "        <td>[dict get $BinDict Count]</td>"
     puts $ResultsFile "        <td>[dict get $BinDict AtLeast]</td>"
     puts $ResultsFile "        <td>[dict get $BinDict PercentCov]</td>"
+    puts $ResultsFile "      </tr>"
   }
-  puts $ResultsFile "      </tr>"
   puts $ResultsFile "      </table>"
   puts $ResultsFile "      </details></li>"
 }
