@@ -1,5 +1,5 @@
-#  File Name:         StartUp.tcl
-#  Purpose:           Scripts for running simulations
+#  File Name:         Cov2Html.tcl
+#  Purpose:           Convert OSVVM coverage in YAML to HTML
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 
 #  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
@@ -42,6 +42,7 @@
 #
 
 package require yaml
+set tcl_precision 1
 
 proc Cov2Html {CovFile} {
   variable ResultsFile
@@ -119,7 +120,7 @@ proc OsvvmCovBins2Html {BinInfoDict BinsArray} {
     puts $ResultsFile "        <td>[dict get $BinDict Name]</td>"
     puts $ResultsFile "        <td>[dict get $BinDict Type]</td>"
     foreach RangeDict [dict get $BinDict Range] {
-      puts $ResultsFile "        <td>[dict get $RangeDict From] to [dict get $RangeDict To]</td>"
+      puts $ResultsFile "        <td>[dict get $RangeDict Min] to [dict get $RangeDict Max]</td>"
     }
     puts $ResultsFile "        <td>[dict get $BinDict Count]</td>"
     puts $ResultsFile "        <td>[dict get $BinDict AtLeast]</td>"
