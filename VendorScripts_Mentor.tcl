@@ -90,7 +90,7 @@ proc vendor_library {LibraryName PathToLib} {
 }
 
 proc vendor_map {LibraryName PathToLib} {
-  set PathAndLib ${PathToLib}/${LibraryName}.lib
+  set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
     error "Map:  Creating library ${PathAndLib} since it does not exist.  "

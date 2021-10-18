@@ -402,7 +402,7 @@ proc map {LibraryName {PathToLib ""}} {
     set ResolvedPathToLib $PathToLib
   } else {
     # naming pattern for project libraries
-    set ResolvedPathToLib ${DIR_LIB}/${LibraryName}.lib
+    set ResolvedPathToLib ${DIR_LIB}/${LibraryName}
   }
   
   vendor_map $LibraryName $ResolvedPathToLib
