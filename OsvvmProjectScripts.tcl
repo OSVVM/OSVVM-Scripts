@@ -53,19 +53,17 @@
 #  limitations under the License.
 #
 
-
-namespace eval ::osvvm {
-
 # -------------------------------------------------
 # StartUp
 #   re-run the startup scripts, this program included
 #
 proc StartUp {} { 
-  variable SCRIPT_DIR
-  puts "source ${SCRIPT_DIR}/StartUp.tcl"
-  eval "source ${SCRIPT_DIR}/StartUp.tcl"
+  puts "source $::osvvm::SCRIPT_DIR/StartUp.tcl"
+  eval "source $::osvvm::SCRIPT_DIR/StartUp.tcl"
 }
 
+
+namespace eval ::osvvm {
 
 # -------------------------------------------------
 # IterateFile
@@ -367,6 +365,7 @@ proc OsvvmInitialize {} {
   # Create LIB and Results directories
   CreateDirectory $DIR_LIB
   CreateDirectory ${CURRENT_RUN_DIRECTORY}/results
+  CreateDirectory ${CURRENT_RUN_DIRECTORY}/reports
 }
 
 # -------------------------------------------------
@@ -443,6 +442,7 @@ proc analyze {FileName} {
 proc simulate {LibraryUnit {OptionalCommands ""}} {
   variable VHDL_WORKING_LIBRARY
   variable vendor_simulate_started
+  variable TestCaseName
   
   if {[info exists vendor_simulate_started]} {
     vendor_end_previous_simulation
@@ -456,6 +456,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
     library default
   }
   set SimulateStartTime   [clock seconds] 
+  set SimulateStartTimeMs [clock milliseconds] 
   
   puts "simulate $LibraryUnit $OptionalCommands"
   puts "Simulate Start time [clock format $SimulateStartTime -format %T]"
@@ -463,11 +464,28 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   vendor_simulate ${VHDL_WORKING_LIBRARY} ${LibraryUnit} ${OptionalCommands}
 
   #puts "Start time  [clock format $SimulateStartTime -format %T]"
-  set  SimulateFinishTime  [clock seconds] 
-  set  SimulateElapsedTime  [expr ($SimulateFinishTime - $SimulateStartTime)]    
+  set  SimulateFinishTime    [clock seconds] 
+  set  SimulateElapsedTime   [expr ($SimulateFinishTime - $SimulateStartTime)]
+  set  SimulateFinishTimeMs  [clock milliseconds] 
+  set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
+
   puts "Simulate Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
 #  puts "Elasped time [expr ($FinishTime - $SimulateStartTime)/60] minutes"
 #  StopTranscript ${LibraryUnit}.log
+
+  if {[file exists reports/${TestCaseName}_cov.yml]} {
+    Cov2Html reports/${TestCaseName}_cov.yml
+  }
+
+  if {[file exists "OsvvmRun.yml"]} {
+    set RunFile [open "OsvvmRun.yml" a]
+    puts  $RunFile "      ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
+    if {[file exists reports/${TestCaseName}_cov.html]} {
+      puts  $RunFile "      Coverage: reports/${TestCaseName}_cov.html"
+#      <a href="reports/${TestCaseName}_cov.html">Coverage</a>
+    }
+    close $RunFile
+  }
 }
 
 
@@ -492,6 +510,9 @@ proc TestSuite {SuiteName} {
 
 # -------------------------------------------------
 proc TestCase {TestName} {
+  variable TestCaseName
+  
+  set TestCaseName $TestName
 
   if {[file exists "OsvvmRun.yml"]} {
     set RunFile [open "OsvvmRun.yml" a]
@@ -703,7 +724,7 @@ proc MapAllLibraries {{Path_Or_File "."}} {
 # map
 
 namespace export analyze simulate build include library RunTest SkipTest TestSuite
-namespace export StartUp IterateFile StartTranscript StopTranscript TerminateTranscript
+namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
 namespace export RemoveAllLibraries CreateDirectory OsvvmInitialize
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory ResetRunDirectory

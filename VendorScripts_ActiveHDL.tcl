@@ -95,6 +95,9 @@ proc vendor_library {LibraryName PathToLib} {
   if {![file exists results]} {
     file link -symbolic results ${MY_START_DIR}/results  
   }
+  if {![file exists reports]} {
+    file link -symbolic reports ${MY_START_DIR}/reports  
+  }
   cd $MY_START_DIR
 }
 
