@@ -42,7 +42,6 @@
 #
 
 package require yaml
-set tcl_precision 1
 
 proc Cov2Html {CovFile} {
   variable ResultsFile
@@ -51,22 +50,24 @@ proc Cov2Html {CovFile} {
   file copy -force ${::osvvm::SCRIPT_DIR}/header_cov.html ${FileName}
   set ResultsFile [open ${FileName} a]
 
-  set TestData [::yaml::yaml2dict -file ${CovFile}]
-  set VersionNum  [dict get $TestData Version]
+  set TestDict [::yaml::yaml2dict -file ${CovFile}]
+  set VersionNum  [dict get $TestDict Version]
   
-#  puts "Version: $VersionNum"
-  foreach TestDict [dict get $TestData Tests] {
-#    puts [dict keys $TestDict]
-    
-    puts $ResultsFile "  <li>Test: [dict get $TestDict Name]"
+  foreach ModelDict [dict get $TestDict Models] {
+    puts $ResultsFile "  <li><details><summary>Coverage Model: [dict get $ModelDict Name]</summary>"
     puts $ResultsFile "  <ul>"
-    puts $ResultsFile "    <li>Coverage: [dict get $TestDict Coverage]</li>"
-    
-#    OsvvmCovInfo2Html [dict get $TestDict Information] "    "
-    OsvvmCovModels2Html [dict get $TestDict Models] 
+    puts $ResultsFile "    <li>TestCases: [dict get $ModelDict TestCases]</li>"
+    puts $ResultsFile "    <li>Coverage: [format %.1f [dict get $ModelDict Coverage]]</li>"
+    puts $ResultsFile "    <li><details><summary>Settings</summary>"
+    puts $ResultsFile "    <ul>"
+    OsvvmCovInfo2Html [dict get $ModelDict Settings] "      "
+    puts $ResultsFile "    </ul>"
+    puts $ResultsFile "    </details></li>"
+    OsvvmCovBins2Html [dict get $ModelDict BinInfo] [dict get $ModelDict Bins]
     puts $ResultsFile "  </ul>"
-    puts $ResultsFile "  </li>"
-  } 
+    puts $ResultsFile "  <br>"
+    puts $ResultsFile "  </details></li>"
+  }
   puts $ResultsFile "  </ul>"
   puts $ResultsFile "  </body>"
   close $ResultsFile
@@ -80,28 +81,9 @@ proc OsvvmCovInfo2Html {CovInformation Prefix} {
   }
 }
 
-proc OsvvmCovModels2Html {CovModelArray} {
-  variable ResultsFile
-
-  foreach ModelDict ${CovModelArray} {
-    puts $ResultsFile "  <li><details><summary>Coverage Model: [dict get $ModelDict Name]</summary>"
-    puts $ResultsFile "  <ul>"
-    puts $ResultsFile "    <li>Coverage: [dict get $ModelDict Coverage]</li>"
-    puts $ResultsFile "    <li><details><summary>Settings</summary>"
-    puts $ResultsFile "    <ul>"
-    OsvvmCovInfo2Html [dict get $ModelDict Settings] "      "
-    puts $ResultsFile "    </ul>"
-    puts $ResultsFile "    </details></li>"
-    OsvvmCovBins2Html [dict get $ModelDict BinInfo] [dict get $ModelDict Bins]
-    puts $ResultsFile "  </ul>"
-    puts $ResultsFile "  <br>"
-    puts $ResultsFile "  </details></li>"
-  }
-}
-
 proc OsvvmCovBins2Html {BinInfoDict BinsArray} {
   variable ResultsFile
-
+  
   puts $ResultsFile "    <li><details open><summary>Bins</summary>"
   puts $ResultsFile "      <table>"
   puts $ResultsFile "      <tr>"
@@ -124,7 +106,7 @@ proc OsvvmCovBins2Html {BinInfoDict BinsArray} {
     }
     puts $ResultsFile "        <td>[dict get $BinDict Count]</td>"
     puts $ResultsFile "        <td>[dict get $BinDict AtLeast]</td>"
-    puts $ResultsFile "        <td>[dict get $BinDict PercentCov]</td>"
+    puts $ResultsFile "        <td>[format %.1f [dict get $BinDict PercentCov]]</td>"
     puts $ResultsFile "      </tr>"
   }
   puts $ResultsFile "      </table>"
