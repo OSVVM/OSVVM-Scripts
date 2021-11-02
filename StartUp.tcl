@@ -95,3 +95,7 @@ namespace import ::osvvm::*
 
 # Set OSVVM Script Defaults - defaults may call scripts
 source ${::osvvm::SCRIPT_DIR}/OsvvmScriptDefaults.tcl
+
+if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl]} {
+  source ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl
+}
