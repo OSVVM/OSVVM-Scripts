@@ -32,13 +32,13 @@ The Script Files
 
 -  Startup.tcl
 
-   -  Detects the simulator running and calls the VendorScript_???.tcl.
+   -  Detects the simulator running and calls the VendorScript_vendor-name.tcl.
       Also calls OsvvmProjectScripts.tcl and OsvvmScriptDefaults.tcl
 
--  VendorScript_???.tcl
+-  VendorScript_vendor-name.tcl
 
    -  TCL procedures that do simulator specific actions.
-   -  ??? = one of (ActiveHDL, GHDL, Mentor, RivieraPro, VSimSA)
+   -  <vendor-name> = one of (ActiveHDL, GHDL, Mentor, RivieraPro, VSimSA)
    -  VSimSA is the one associated with ActiveHDL.
 
 -  OsvvmProjectScripts.tcl
@@ -53,7 +53,7 @@ Create a Sim directory
 ----------------------
 
 Create a simulation directory. Generally I name this "sim" or
-"sim_<simulator name>". Creating a simulation directory means that
+"sim_vendor-name". Creating a simulation directory means that
 cleanup before running regressions is just a matter of deleting the sim
 directory and recreating a new one.
 
@@ -187,7 +187,6 @@ If someone from XILINX is interested, the internal OSVVM utility library
 testbenches can be provided under an NDA.
 
 
-
 Project Files
 -------------
 
@@ -198,8 +197,11 @@ to run a simulation:
    not exist.
 -  analyze - Compile the design into the active library.
 -  Simulate - Simulate the design using the active library.
+-  RunTest - compile and simulate in one step
 -  include – include another project script
 -  build – include + start a new log file for this task
+-  TestSuite - identifies the TestSuite that is active
+-  TestCase - identify the TestCase that is active
 
 The above tasks are TCL procedures. Hence, a project file is actually a
 TCL file, and when necessary, TCL can be used, however, the intent is to
@@ -224,23 +226,42 @@ files in the src directory.
    analyze ./src/Axi4Memory.vhd
 
 The following is an excerpt from
-OsvvmLibraries/AXI4/Axi4/testbench/testbench.pro. It first activates the
-library osvvm_TbAxi4. Next it compiles the entity for the testbench
-sequencer (TestCtrl_e.vhd), the test harness (TbAxi4.vhd), and the test
-architectures (TbAxi4_RandomReadWrite.vhd and TbAxi4_MemoryBurst.vhd).
-Finally it simulates the test TbAxi4_MemoryBurst by calling its
-configuration (which follows the test architecture in the same file).
+OsvvmLibraries/AXI4/Axi4/RunAllTests.pro. It sets the TestSuite
+name to Axi4Full and activates the library osvvm_TbAxi4. 
+Next it does three includes.  The first one is `include ./testbench`.   
+Since `testbench` is a directory, this is a shorthand for 
+`include ./testbench/testbench.pro`.  
 
 .. code:: tcl
 
+   TestSuite Axi4Full
    library osvvm_TbAxi4
-   analyze TestCtrl_e.vhd
-   analyze TbAxi4.vhd
-   analyze TbAxi4_RandomReadWrite.vhd
-   analyze TbAxi4_MemoryBurst.vhd
+   
+   include ./testbench
+   include ./TestCases
+   include ./testbench_MultipleMemory
+   
+The following is an excerpt from testbench_MultipleMemory.pro, which 
+is run by the above `include ./testbench_MultipleMemory`.  
+It activates its library.  We use separate libraries for 
+our testbenches as each has an entity named TestCtrl.
+It analyzes the testbench and then uses RunTest to 
+analyze and simulate the testbench.  
+With RunTest, if design unit you are simulating does not 
+match the base name of the file, you need to specify it separately.
+This is shown with TbAxi4_Shared1 (but this is not needed here).
+OSVVM uses configurations to run our tests - this ensures that
+an exact test case runs when the configuration is called. 
 
-   # simulate TbAxi4_RandomReadWrite
-   simulate TbAxi4_MemoryBurst
+.. code:: tcl
+   library osvvm_TbAxi4_MultipleMemory
+
+   analyze TestCtrl_e.vhd
+   analyze TbAxi4_MultipleMemory.vhd
+
+   RunTest TbAxi4_Shared1.vhd TbAxi4_Shared1
+   RunTest TbAxi4_Separate1.vhd
+
 
 Building and Running OSVVM Testbenches
 --------------------------------------
@@ -262,13 +283,11 @@ testbench.pro.
 
 .. code:: tcl
 
-   build ../AXI4/Axi4/testbench
+   build ../AXI4/Axi4/RunAllTests.pro
 
-Note in the AXI4 testbench.pro script, the test, TbAxi4_RandomreadWrite,
-was not run. Lets run it now. After running the testbench.pro script,
-the active library is still osvvm_TbAxi4. From the simulator command
-line, you can run the TbAxi4_RandomreadWrite test by typing the
-following:
+This runs all of the tests.   If you need to re-run one of the 
+tests, such as TbAxi4_RandomreadWrite, you can do this with the 
+following simulate:
 
 .. code:: tcl
 
@@ -280,10 +299,10 @@ the other OSVVM verification components by doing the following.
 
 .. code:: tcl
 
-   build ../AXI4/Axi4/testbench
-   build ../AXI4/Axi4Lite/testbench
-   build ../AXI4/AxiStream/testbench
-   build ../UART/testbench
+   build ../AXI4/Axi4/RunAllTests.pro
+   build ../AXI4/Axi4Lite/RunAllTests.pro
+   build ../AXI4/AxiStream/RunAllTests.pro
+   build ../UART/RunAllTests.pro
 
 Commands
 --------
@@ -312,6 +331,17 @@ Commands
 |                         | Library is the one specified in the          |
 |                         | previous                                     |
 |                         | library command.                             |
++-------------------------+----------------------------------------------+
+| RunTest <file>          | RunTest combines TestCase, analyze, and      |
+|                         | simulate.                                    |
+| RunTest <file> <name>   | RunTest optionally takes two parameters.     |
+|                         | With two parameters, the first is the file   |
+|                         | name to analyze, the second is the design    |
+|                         | unit name to use for simulation and TestCase.|
+|                         | With one parameter, the first parameter is   |
+|                         | the file name.  The second parameter is      |
+|                         | the base name of the file name - any path    |
+|                         | and file extension are removed.              |
 +-------------------------+----------------------------------------------+
 | include <name>          | Include accepts an argument "name" that      |
 |                         | is                                           |
@@ -347,10 +377,6 @@ Commands
 |                         | the current <file>.pro directory             |
 |                         | location.                                    |
 +-------------------------+----------------------------------------------+
-| map <library> [<path>]  | Create a mapping to a library                |
-+-------------------------+----------------------------------------------+
-| RemoveAllLibraries      | Delete all of the working libraries.         |
-+-------------------------+----------------------------------------------+
 | SetVHDLVersion          | Set VHDL analyze version.                    |
 |                         | Valid values = (2008, 2019, 1993, 2002).     |
 |                         | OSVVM libraries require 2008 or newer        |
@@ -362,6 +388,14 @@ Commands
 |                         | ok.                                          |
 +-------------------------+----------------------------------------------+
 | GetSimulatorResolution  | Return the current Simulator Resolution      |
++-------------------------+----------------------------------------------+
+| TestCase <name>         | Set the test case name.                      |
++-------------------------+----------------------------------------------+
+| TestSuite <name>        | Set the test suite name.                     |
++-------------------------+----------------------------------------------+
+| map <library> [<path>]  | Create a mapping to a library                |
++-------------------------+----------------------------------------------+
+| RemoveAllLibraries      | Delete all of the working libraries.         |
 +-------------------------+----------------------------------------------+
 | LinkLibrary             | Link libraries that are in the               |
 |                         | LibraryDirectory                             |
