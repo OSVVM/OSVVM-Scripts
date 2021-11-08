@@ -1,4 +1,4 @@
-#  File Name:         VendorScripts_Mentor.tcl
+#  File Name:         VendorScripts_VSimSA.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 

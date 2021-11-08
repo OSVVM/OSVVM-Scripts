@@ -321,6 +321,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   # short sleep to allow the file to close
   after 1000
   file rename -force "OsvvmRun.yml" ${LogName}.yml
+  Report2Html ${LogName}.yml
 }
 
 
@@ -470,19 +471,18 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
 
   puts "Simulate Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
-#  puts "Elasped time [expr ($FinishTime - $SimulateStartTime)/60] minutes"
-#  StopTranscript ${LibraryUnit}.log
 
-  if {[file exists reports/${TestCaseName}_cov.yml]} {
-    Cov2Html reports/${TestCaseName}_cov.yml
-  }
+  GenerateSimulationReports $TestCaseName 
 
   if {[file exists "OsvvmRun.yml"]} {
     set RunFile [open "OsvvmRun.yml" a]
     puts  $RunFile "      ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
-    if {[file exists reports/${TestCaseName}_cov.html]} {
-      puts  $RunFile "      Coverage: reports/${TestCaseName}_cov.html"
-#      <a href="reports/${TestCaseName}_cov.html">Coverage</a>
+    if {[file exists reports/${TestCaseName}_cov.yml]} {
+#!! This needs to be adjusted to be calculated functional coverage from the file.
+#      puts  $RunFile "      FunctionalCoverage: reports/${TestCaseName}.html#FunctionalCoverage"
+      puts  $RunFile "      FunctionalCoverage: ${TestCaseName}"
+    } else {
+      puts  $RunFile "      FunctionalCoverage: "
     }
     close $RunFile
   }
@@ -519,7 +519,7 @@ proc TestCase {TestName} {
   } else {
     set RunFile [open "OsvvmRun.yml" w]
   }
-  puts  $RunFile "    - Name: $TestName"
+  puts  $RunFile "    - TestCaseName: $TestName"
   close $RunFile
 }
 
@@ -557,8 +557,9 @@ proc SkipTest {FileName Reason} {
   } else {
     set RunFile [open "OsvvmRun.yml" w]
   }
-  puts  $RunFile "    - Name: $SimName"
-  puts  $RunFile "      Status: Skipped"
+  puts  $RunFile "    - TestCaseName: $SimName"
+  puts  $RunFile "      Name: $SimName"
+  puts  $RunFile "      Status: SKIPPED"
   puts  $RunFile "      Results: {Name: $SimName, Reason: $Reason}"
   close $RunFile  
 }
