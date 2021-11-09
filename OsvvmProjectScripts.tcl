@@ -243,13 +243,16 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   variable CURRENT_RUN_DIRECTORY
   variable VHDL_WORKING_LIBRARY
   variable vendor_simulate_started
-  variable test_suite_started
+  variable TestSuiteName
   
   set CURRENT_WORKING_DIRECTORY [pwd]
   
   if {![info exists CURRENT_RUN_DIRECTORY]} {
     set CURRENT_RUN_DIRECTORY ""
   }
+  if {[info exists TestSuiteName]} {
+    unset TestSuiteName
+  }  
 
   # Initialize 
   if {![info exists VHDL_WORKING_LIBRARY] || $CURRENT_WORKING_DIRECTORY ne $CURRENT_RUN_DIRECTORY } {
@@ -265,9 +268,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
     vendor_end_previous_simulation
     unset vendor_simulate_started
   }  
-  
-  set test_suite_started "FALSE"
-  
+    
   # If Transcript Open, then Close it
   TerminateTranscript
   
@@ -322,6 +323,10 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   after 1000
   file rename -force "OsvvmRun.yml" ${LogName}.yml
   Report2Html ${LogName}.yml
+  
+  if {[info exists TestSuiteName]} {
+    unset TestSuiteName
+  }  
 }
 
 
@@ -445,6 +450,10 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   variable vendor_simulate_started
   variable TestCaseName
   
+  if {![info exists TestCaseName]} {
+    TestCase $LibraryUnit
+  }  
+  
   if {[info exists vendor_simulate_started]} {
     vendor_end_previous_simulation
   }  
@@ -472,7 +481,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
 
   puts "Simulate Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
 
-  GenerateSimulationReports $TestCaseName 
+  set Coverage [GenerateSimulationReports $TestCaseName]
 
   if {[file exists "OsvvmRun.yml"]} {
     set RunFile [open "OsvvmRun.yml" a]
@@ -480,28 +489,31 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
     if {[file exists reports/${TestCaseName}_cov.yml]} {
 #!! This needs to be adjusted to be calculated functional coverage from the file.
 #      puts  $RunFile "      FunctionalCoverage: reports/${TestCaseName}.html#FunctionalCoverage"
-      puts  $RunFile "      FunctionalCoverage: ${TestCaseName}"
+      puts  $RunFile "      FunctionalCoverage: ${Coverage}"
     } else {
       puts  $RunFile "      FunctionalCoverage: "
     }
     close $RunFile
   }
+  
+  unset TestCaseName
 }
 
 
 # -------------------------------------------------
 proc TestSuite {SuiteName} {
-  variable test_suite_started
+  variable TestSuiteName
+
 
   if {[file exists "OsvvmRun.yml"]} {
     set RunFile [open "OsvvmRun.yml" a]
   } else {
     set RunFile [open "OsvvmRun.yml" w]
   }
-  if {$test_suite_started ne "TRUE"} {
+  if {![info exists TestSuiteName]} {
     puts  $RunFile "TestSuites: "
-    set test_suite_started "TRUE"
   }  
+  set   TestSuiteName $SuiteName
   puts  $RunFile "  - Name: $SuiteName"
   puts  $RunFile "    TestCases:"
   close $RunFile
@@ -511,6 +523,11 @@ proc TestSuite {SuiteName} {
 # -------------------------------------------------
 proc TestCase {TestName} {
   variable TestCaseName
+  variable TestSuiteName
+
+  if {![info exists TestSuiteName]} {
+    TestSuite Default
+  }  
   
   set TestCaseName $TestName
 
@@ -560,7 +577,7 @@ proc SkipTest {FileName Reason} {
   puts  $RunFile "    - TestCaseName: $SimName"
   puts  $RunFile "      Name: $SimName"
   puts  $RunFile "      Status: SKIPPED"
-  puts  $RunFile "      Results: {Name: $SimName, Reason: $Reason}"
+  puts  $RunFile "      Results: {Name: $SimName, Reason: \"$Reason\"}"
   close $RunFile  
 }
 

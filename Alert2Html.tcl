@@ -119,10 +119,6 @@ proc AlertSettings {AlertDict} {
   set ExternalError   [expr {$Error   > 0 ? $Error   : 0}   ]
   set ExternalWarning [expr {$Warning > 0 ? $Warning : 0}   ]
 
-  puts $ResultsFile "<title>$Name Alert Report</title>"
-  puts $ResultsFile "</head>"
-  puts $ResultsFile "<body>"
-
   puts $ResultsFile "<hr>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
   puts $ResultsFile "<h2 id=\"AlertSummary\">OSVVM Alert Report for $Name</h2>"

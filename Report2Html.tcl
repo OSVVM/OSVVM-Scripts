@@ -59,6 +59,7 @@ proc Report2Html {ReportFile} {
 
   puts $ResultsFile "<br><br>"
   puts $ResultsFile "</body>"
+  puts $ResultsFile "</html>"
   close $ResultsFile
 }
 

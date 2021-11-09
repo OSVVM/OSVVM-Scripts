@@ -38,7 +38,22 @@
 #  limitations under the License.
 #
 
-proc Cov2Html {CovFile} {
+proc Report2Html {ReportFile} {
+  puts "To generate OSVVM Test Suite Report HTML files, please install TCL yaml package from Tcllib"
+  puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+}
+
+proc GenerateSimulationReports {TestCaseName} {
+  puts "To generate OSVVM simulation HTML files, please install TCL yaml package from Tcllib"
+  puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+}
+
+proc Cov2Html {TestCaseName} {
+  puts "To generate OSVVM coverage HTML files, please install TCL yaml package from Tcllib"
+  puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+}
+
+proc Alert2Html {TestCaseName} {
   puts "To generate OSVVM coverage HTML files, please install TCL yaml package from Tcllib"
   puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
 }

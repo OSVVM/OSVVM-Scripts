@@ -43,6 +43,14 @@
 
 package require yaml
 
+proc GetCov {TestCaseName} {
+  set CovFile reports/${TestCaseName}_cov.yml
+  set TestDict [::yaml::yaml2dict -file ${CovFile}]
+  set Coverage    [dict get $TestDict Coverage]
+  
+  return $Coverage
+}
+
 proc Cov2Html {TestCaseName} {
   variable ResultsFile
   
@@ -59,6 +67,11 @@ proc Cov2Html {TestCaseName} {
 
   set TestDict [::yaml::yaml2dict -file ${CovFile}]
   set VersionNum  [dict get $TestDict Version]
+  set Coverage    [dict get $TestDict Coverage]
+  puts $ResultsFile "<strong>Total Coverage: $Coverage</strong>"
+  puts $ResultsFile "<br><br>"
+
+
   
   foreach ModelDict [dict get $TestDict Models] {
     puts $ResultsFile "  <details open><summary style=\"font-size: 16px;\"><strong>Coverage Model: [dict get $ModelDict Name]</strong></summary>"

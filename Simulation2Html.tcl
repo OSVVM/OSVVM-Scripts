@@ -21,7 +21,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#    10/2021   Alpha      Alert2Html: Convert OSVVM Alert results to HTML
+#    10/2021   Alpha      Simulation2Html: Convert OSVVM Alert results to HTML
 #
 #
 #  This file is part of OSVVM.
@@ -54,9 +54,13 @@ proc GenerateSimulationReports {TestCaseName} {
   
   if {[file exists reports/${TestCaseName}_cov.yml]} {
     Cov2Html ${TestCaseName}
+    set Coverage [GetCov ${TestCaseName}]
+  } else {
+    set Coverage 0.0
   }
   
   FinalizeSimulationReportFile $TestCaseName
+  return $Coverage
 }
 
 proc OpenSimulationReportFile {TestCaseName {initialize 0}} {
@@ -106,8 +110,8 @@ proc FinalizeSimulationReportFile {TestCaseName} {
 
   OpenSimulationReportFile $TestCaseName
   
-  puts $ResultsFile "  </body>"
-  puts $ResultsFile "  </html>"
+  puts $ResultsFile "</body>"
+  puts $ResultsFile "</html>"
   close $ResultsFile
 }
 
