@@ -43,6 +43,12 @@ proc Report2Html {ReportFile} {
   puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
 }
 
+proc Report2Junit {ReportFile} {
+  puts "To generate OSVVM Test Suite Report JUnit XML CI Results files, please install TCL yaml package from Tcllib"
+  puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+}
+
+
 proc GenerateSimulationReports {TestCaseName} {
   puts "To generate OSVVM simulation HTML files, please install TCL yaml package from Tcllib"
   puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"

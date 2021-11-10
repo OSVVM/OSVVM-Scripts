@@ -322,7 +322,8 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   # short sleep to allow the file to close
   after 1000
   file rename -force "OsvvmRun.yml" ${LogName}.yml
-  Report2Html ${LogName}.yml
+  Report2Html  ${LogName}.yml
+  Report2Junit ${LogName}.yml
   
   if {[info exists TestSuiteName]} {
     unset TestSuiteName

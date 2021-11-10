@@ -18,7 +18,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#    10/2021   Alpha      Report2Html: Convert OSVVM coverage results to HTML
+#    10/2021   Alpha      OsvvmYamlSupport: Convert OSVVM results to HTML
 #
 #
 #  This file is part of OSVVM.
@@ -44,9 +44,10 @@ package require yaml
 
   source ${::osvvm::SCRIPT_DIR}/Simulation2Html.tcl
   source ${::osvvm::SCRIPT_DIR}/Cov2Html.tcl
-  source ${::osvvm::SCRIPT_DIR}/Report2Html.tcl
   source ${::osvvm::SCRIPT_DIR}/Alert2Html.tcl
+  source ${::osvvm::SCRIPT_DIR}/Report2Html.tcl
+  source ${::osvvm::SCRIPT_DIR}/Report2Junit.tcl
   
-namespace export GenerateSimulationReports Cov2Html Report2Html Alert2Html
+namespace export GenerateSimulationReports Cov2Html Alert2Html Report2Html Report2Junit
 # end namespace ::osvvm
 }

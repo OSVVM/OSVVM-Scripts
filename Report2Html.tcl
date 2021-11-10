@@ -304,7 +304,7 @@ proc ReportTestSuites {TestDict} {
           puts $ResultsFile "      <td>[SumAlertCount ${DisabledAlertCount}]</td>"
           puts $ResultsFile "      <td>[dict get $TestCase ElapsedTime]</td>"
         } else {
-          puts $ResultsFile "      <td colspan=\"5\">[dict get $TestResults Reason]</td>"
+          puts $ResultsFile "      <td colspan=\"6\">[dict get $TestResults Reason]</td>"
         }
         puts $ResultsFile "  </tr>"
       }
