@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    10/2021   2021.10    Added calls to Report2Html, Report2JUnit, and GenerateSimulationReports
 #     3/2021   2021.03    Updated printing of start/finish times
 #     2/2021   2021.02    Updated initialization of libraries                 
 #                         Analyze allows ".vhdl" extensions as well as ".vhd" 

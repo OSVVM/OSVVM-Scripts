@@ -1,5 +1,5 @@
 #  File Name:         NoYamlPackage.tcl
-#  Purpose:           Convert OSVVM coverage in YAML to HTML
+#  Purpose:           Provides handling when YAML packages are not available
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 
 #  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
@@ -7,7 +7,11 @@
 #     Jim Lewis      email:  jim@synthworks.com   
 # 
 #  Description
-#    Provides warnings about missing YAML packages
+#    Called when YAML packages are missing.   
+#    Provides implementations of Report2Html, Report2Junit, 
+#    GenerateSimulationReports, Cov2Html, Alert2Html
+#    that generate error messages and provide information on 
+#    how to load the tcl library.
 #    
 #  Developed by: 
 #        SynthWorks Design Inc. 
@@ -18,7 +22,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    10/2021   Alpha      Cov2Html: Convert OSVVM coverage results to HTML
+#    10/2021   Initial    Initial Revision
 #
 #
 #  This file is part of OSVVM.

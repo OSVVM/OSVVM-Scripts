@@ -1,5 +1,5 @@
 #  File Name:         Report2Html.tcl
-#  Purpose:           Convert OSVVM coverage in YAML to HTML
+#  Purpose:           Convert OSVVM YAML build reports to HTML
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:        Jim Lewis      email:  jim@synthworks.com
@@ -7,10 +7,8 @@
 #     Jim Lewis      email:  jim@synthworks.com
 #
 #  Description
-#    Tcl procedures to configure and adapt the OSVVM simulator
-#    scripting methodology for a particular project.
-#    As part of its tasks, it runs OSVVM scripts that define
-#    procedures use in the OSVVM scripting methodology.
+#    Convert OSVVM YAML build reports to HTML
+#    Visible externally:  Report2Html
 #
 #  Developed by:
 #        SynthWorks Design Inc.
@@ -21,7 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#    10/2021   Alpha      Report2Html: Convert OSVVM coverage results to HTML
+#    10/2021   Initial    Initial Revision
 #
 #
 #  This file is part of OSVVM.

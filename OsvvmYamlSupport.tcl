@@ -1,5 +1,5 @@
 #  File Name:         OsvvmYamlSupport.tcl
-#  Purpose:           Utilities for handling OSVVM YAML files
+#  Purpose:           Utilities to convert OSVVM YAML files to HTML and JUnit XML
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
 #  Maintainer:        Jim Lewis      email:  jim@synthworks.com
@@ -7,7 +7,7 @@
 #     Jim Lewis      email:  jim@synthworks.com
 #
 #  Description
-#    Utilities to convert OSVVM YAML files mainly to HTML
+#    Utilities to convert OSVVM YAML files to HTML and JUnit XML
 #
 #  Developed by:
 #        SynthWorks Design Inc.
@@ -18,7 +18,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#    10/2021   Alpha      OsvvmYamlSupport: Convert OSVVM results to HTML
+#    10/2021   Initial    Initial Revision
 #
 #
 #  This file is part of OSVVM.
