@@ -4,6 +4,7 @@
 |---------------|--------------------|-----------------------------------------------------------------------| 
 | 2021.10       | October 2021       | Added support to convert build YAML files to HTML and XML (JUnit)     |
 |               |                    |    Added support to convert Alert and coverage YAML to HTML reports   |
+|               |                    |    Added support to convert Alert and coverage YAML to HTML reports   |
 | 2021.09       | September 2021     | Added support for Synopsys VCS and Cadence Xcelium.                   |
 |               |                    | Added support for creation of YAML files.                             |
 | 2021.06       | June 2021          | Updated VendorScripts_GHDL to better handle GHDL return values        |
