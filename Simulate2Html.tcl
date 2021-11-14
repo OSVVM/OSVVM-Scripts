@@ -1,4 +1,4 @@
-#  File Name:         Simulation2Html.tcl
+#  File Name:         Simulate2Html.tcl
 #  Purpose:           Convert OSVVM Alert and Coverage results to HTML
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
@@ -41,7 +41,7 @@
 
 package require yaml
 
-proc GenerateSimulationReports {TestCaseName} {
+proc Simulate2Html {TestCaseName} {
   variable ResultsFile
 
   CreateSimulationReportFile $TestCaseName
