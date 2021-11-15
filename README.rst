@@ -8,8 +8,8 @@ The intent of this scripting approach is to:
 
 -  Run the same scripts on any simulator
 -  Be as easy to read as a compile order list.
--  Know the directory the script is in, so it does not have to be
-   passed.
+-  Know the directory the script is in, the script only manages relative 
+   paths to itself.  No Awkward path management in the scripts.
 -  Simplify integration of other libraries that use the same approach
 
 This is an evolving approach. So it may change in the future. Input is
@@ -30,24 +30,48 @@ model library using git clone with the ``--recursive`` flag:
 The Script Files
 ----------------
 
--  Startup.tcl
+-  StartUp.tcl
 
+   -  StartUp script for ActiveHDL, GHDL, Mentor, RivieraPro, and VSimSA (ActiveHDL)
    -  Detects the simulator running and calls the VendorScript_vendor-name.tcl.
       Also calls OsvvmProjectScripts.tcl and OsvvmScriptDefaults.tcl
 
--  VendorScript_vendor-name.tcl
+-  StartVCS.tcl
+
+   -  StartUp script for Synopsys VCS.  Does what StartUp.tcl does except is specific to VCS
+      
+-  StartXcelium.tcl
+
+   -  StartUp script for Cadence Xcelium.  Does what StartUp.tcl does except is specific to Xcelium
+      
+-  StartXSIM.tcl
+
+   -  StartUp script for Xilinx XSIM.  Does what StartUp.tcl does except is specific to Xsim
+   -  Note, XSIM is currently a alpha level, experimental release.
+      
+-  VendorScript_tool-name.tcl
 
    -  TCL procedures that do simulator specific actions.
-   -  <vendor-name> = one of (ActiveHDL, GHDL, Mentor, RivieraPro, VSimSA)
+   -  "tool-name" = one of (ActiveHDL, GHDL, Mentor, RivieraPro, VSimSA, VCS, Xcelium, Xsim)
    -  VSimSA is the one associated with ActiveHDL.
+   -  Called by StartUp.tcl 
 
 -  OsvvmProjectScripts.tcl
 
    -  TCL procedures that do common simulator and project build tasks.
+   -  Called by StartUp.tcl
 
 -  OsvvmScriptDefaults.tcl
 
    -  Default settings for the OSVVM Script environment.
+   -  Called by StartUp.tcl
+   
+-  LocalScriptDefaults.tcl
+
+   -  User default settings for the OSVVM Script environment.
+   -  Not in OSVVM repository so it will not be replaced on OSVVM updates
+   -  If it exists, called by StartUp.tcl
+
 
 Create a Sim directory
 ----------------------
@@ -63,19 +87,6 @@ OsvvmLibraries directory.
 Alternately, you can run simulations out of the Scripts, but cleanup is
 a mess as a simulator tends to create numerous temporaries.
 
-Preparation
------------
-
-Edit StartUp.tcl and adjust LIB_BASE_DIR to be appropriate for your
-project. LIB_BASE_DIR determines where libraries are created – note that
-OSVVM uses a separate named library for different families of
-verification components. This directory can be your sim directory you
-created in the previous step, however, I prefer that it goes into a
-directory that is not backed up. Such as:
-
-.. code:: tcl
-
-   set LIB_BASE_DIR C:/tools/sim_temp
 
 Initialization
 --------------
@@ -121,7 +132,7 @@ environment, in a shell window do:
 
 .. code:: tcl
 
-   winpty rlwrap tclsh
+   winpty tclsh
    source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
 
 To simplify this, I put the ``source .../StartUp.tcl`` in my
@@ -190,7 +201,7 @@ testbenches can be provided under an NDA.
 Project Files
 -------------
 
-A project file is a script that allows the specification of basic tasks
+A project file is a TCL script that allows the specification of basic tasks
 to run a simulation:
 
 -  library - Make this library the active library. Create it if it does
@@ -208,94 +219,125 @@ TCL file, and when necessary, TCL can be used, however, the intent is to
 keep it simple. The naming of the project file is of the form
 <Name>.pro.
 
-The following is an excerpt from OsvvmLibraries/AXI4/Axi4/Axi4.pro. It
-first activates the library osvvm_axi4. Next it compiles all of the
-files in the src directory.
+Running a Simple Test
+~~~~~~~~~~~~~~~~~~~~~~
+At the heart of running a simulation is setting the library, 
+compiling files, and starting the simulation. 
+To do this, we use library, analyze, and simulate. 
+
+The following is an excerpt from the scripts used to 
+run OSVVM verification component library regressions.
 
 .. code:: tcl
 
-   library osvvm_axi4
-   analyze ./src/Axi4MasterComponentPkg.vhd
-   analyze ./src/Axi4ResponderComponentPkg.vhd
-   analyze ./src/Axi4MemoryComponentPkg.vhd
-   analyze ./src/Axi4MonitorComponentPkg.vhd
-   analyze ./src/Axi4Context.vhd
-   analyze ./src/Axi4Master.vhd
-   analyze ./src/Axi4Monitor_dummy.vhd
-   analyze ./src/Axi4Responder_Transactor.vhd
-   analyze ./src/Axi4Memory.vhd
+   library  osvvm_TbAxi4_MultipleMemory
+   analyze  TestCtrl_e.vhd
+   analyze  TbAxi4_MultipleMemory.vhd
+   analyze  TbAxi4_Shared1.vhd
+   simulate TbAxi4_Shared1
 
-The following is an excerpt from
-OsvvmLibraries/AXI4/Axi4/RunAllTests.pro. It sets the TestSuite
-name to Axi4Full and activates the library osvvm_TbAxi4. 
-Next it does three includes.  The first one is `include ./testbench`.   
-Since `testbench` is a directory, this is a shorthand for 
-`include ./testbench/testbench.pro`.  
+In OSVVM scripting, calling library activates the library. 
+Hence, there is no need to specify the library in analyze 
+and simulate. 
+This is consistent with VHDL’s sense of the "working library".
 
-.. code:: tcl
+Adding Scripts to Simulate
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Often with simulations, we want to add a custom waveform
+file.  
+This may be for all designs or just one particular design.
+We may also need specific actions to be done when running
+on a particular simulator.
 
-   TestSuite Axi4Full
-   library osvvm_TbAxi4
-   
-   include ./testbench
-   include ./TestCases
-   include ./testbench_MultipleMemory
-   
-The following is an excerpt from testbench_MultipleMemory.pro, which 
-is run by the above `include ./testbench_MultipleMemory`.  
-It activates its library.  We use separate libraries for 
-our testbenches as each has an entity named TestCtrl.
-It analyzes the testbench and then uses RunTest to 
-analyze and simulate the testbench.  
-With RunTest, if design unit you are simulating does not 
-match the base name of the file, you need to specify it separately.
-This is shown with TbAxi4_Shared1 (but this is not needed here).
-OSVVM uses configurations to run our tests - this ensures that
-an exact test case runs when the configuration is called. 
+As a result, when simulate runs, it will also include the
+following files in order, if they exist:
 
-.. code:: tcl
-   library osvvm_TbAxi4_MultipleMemory
+-  OsvvmLibraries/Scripts/"ToolVendor".tcl
+-  OsvvmLibraries/Scripts/"simulator".tcl
+-  "sim-run-dir"/"ToolVendor".tcl
+-  "sim-run-dir"/"simulator".tcl
+-  "sim-run-dir"/"LibraryUnit".tcl
+-  "sim-run-dir"/"LibraryUnit"_"simulator".tcl
+-  "sim-run-dir"/wave.do
 
-   analyze TestCtrl_e.vhd
-   analyze TbAxi4_MultipleMemory.vhd
+ToolVendor is either {Aldec, Siemens, Cadence, Synopsys}. 
+Simulator is one of {QuestaSim, ModelSim, RivieraPRO, ActiveHDL, VCS, Xcelium}. 
+LibraryUnit is the name of the design being simulated. 
+"Sim run dir" is the directory from which you run the simulator.
 
-   RunTest TbAxi4_Shared1.vhd TbAxi4_Shared1
-   RunTest TbAxi4_Separate1.vhd
+Currently GHDL does not run any extra scripts since it is a batch
+simulator.
 
+Including Scripts
+~~~~~~~~~~~~~~~~~
+We build our designs hierarchically.
+Therefore our scripts need to be build hierarchically.
 
-Building and Running OSVVM Testbenches
---------------------------------------
+In TCL, source (or with EDA tools do) is used to run lower level scripts. 
+For an EDA tool, there are two directories of interest, 
+the directory the tool is running in and the script directory. 
+EDA tool settings are directory dependent, 
+so the script cannot change directories. 
+This forces the script to manage the location 
+of the files referenced in the script and 
+makes scripting awkward.
 
-To build all of the OSVVM Libraries, run the script, OsvvmLibraries.pro.
-In your simulator do the following. This will make you ready to run any
-of the testbenches.
+To address this situation, OSVVM adds include. 
+Include manages both the run directory and the script directory. 
+All calls to the OSVVM script API that reference a file, 
+reference the file relative to the current script directory – 
+rather than the run directory. 
+Hence, a script only needs to reference files relative to 
+its location, making path references simple. 
+It also simplifies making directory structure changes to a project.
 
-.. code:: tcl
-
-   cd <OsvvmLibraries directory>/sim
-   build ../OsvvmLibraries.pro
-
-Now lets run the AXI4 testbench by doing the following in your
-simulator. You might note that the ".pro" extension was left off. When
-this is done and the last name is a directory, it looks for a file in
-that directory of the form <directory-name>.pro – hence here
-testbench.pro.
-
-.. code:: tcl
-
-   build ../AXI4/Axi4/RunAllTests.pro
-
-This runs all of the tests.   If you need to re-run one of the 
-tests, such as TbAxi4_RandomreadWrite, you can do this with the 
-following simulate:
+The script, OsvvmLibraries.pro shown below, 
+is the starting point for compiling all of OSVVM. 
+It simply calls the scripts from the OSVVM Utility library, 
+Verification Component Common library, 
+UART verification component library, and 
+AXI4 verification component libraries using include.
 
 .. code:: tcl
 
-   simulate TbAxi4_RandomReadWrite
+   include ./osvvm/osvvm.pro
+   include ./Common/Common.pro
+   include ./UART/UART.pro
+   include ./AXI4/AXI4.pro
 
-All OSVVM verification components include a testbench. You can learn
-much about how to use a model in a test by reading the testbenches. Run
-the other OSVVM verification components by doing the following.
+Building the OSVVM Libraries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Build is a layer on top of include (it calls include) that creates a logging point. 
+For each build, OSVVM creates collects all tool output into 
+a log file for the entire build in ./logs/<tool_name>-<version>/<build>.log.
+
+In addition, when a test is started with build, run with simulate,
+and includes a call to "EndOfTestReports" at the end of the VHDL testbench,
+a build report with the formats YAML, HTML, and JUnit XML reporting. 
+In addition, a detailed test report (in YAML and HTML) will be created that 
+lists out all AlertLogIDs and their state (PASSED, FAILED, Errors, ...)
+as well as reports of coverage models (if the test has any).
+
+In general, build is called from the simulator API (when we run something) 
+and include is called from scripts.
+
+To compile all of the OSVVM libraries, use build as shown below. 
+
+.. code:: tcl
+
+   build <path_to_OsvvmLibraries>/OsvvmLibraries.pro
+
+Running OSVVM Libraries
+~~~~~~~~~~~~~~~~~~~~~~~
+To run the full OSVVM verification component regression suite use the build shown below.
+
+.. code:: tcl
+
+   build <path_to_OsvvmLibraries>/RunAllTests.pro
+
+Everything in OSVVM is composed hierarchically. 
+So if you want to run a regression on a particular verification
+component, you simply run its build.  These are shown below.
 
 .. code:: tcl
 
@@ -303,9 +345,161 @@ the other OSVVM verification components by doing the following.
    build ../AXI4/Axi4Lite/RunAllTests.pro
    build ../AXI4/AxiStream/RunAllTests.pro
    build ../UART/RunAllTests.pro
+   
+Build Summary Report
+~~~~~~~~~~~~~~~~~~~~~~~
+The build summary report is a summary of all tests run 
+during that build in YAML, HTML, and JUnit XML.
+This report allows us to confirm that all tests finished successfully.
 
-Commands
---------
+The best way to see the reports is run one of the OSVVM regressions.   
+Run build OsvvmLibraries/RunAllTests.pro, then open the file 
+OsvvmLibraries_RunAllTests.html.   
+
+The following is an excerpt of OsvvmLibraries_RunAllTests.html.  
+Failures are shown in red (none here).  Passing tests are shown in green.
+
+.. image:: images/BuildReport.png
+ 
+
+Detailed Test Report
+~~~~~~~~~~~~~~~~~~~~~~~
+The detailed test report is a detailed report of 
+alerts and coverage models.   
+The best way to see the reports is run one of the OSVVM 
+regression suites.   
+After running one of the regressions, open one of the HTML files 
+in the directory ./reports.   
+
+The first half of the report is a summary of the alerts encountered
+for each AlertLogID during the test.   
+This is shown in the following figure.
+
+.. image:: images/AlertReport.png
+
+The second half of the report is the coverage report for each coverage 
+model defined in the test environment. 
+Note that items with a triangle in front of them can be closed for
+more compact viewing.
+The coverage report below is for test TbCov_CovDb_2 in the OSVVM 
+utility library regression suite.   Note that coverage model 
+"Test 3" is closed for more compact viewing.
+
+.. image:: images/CoverageReport.png
+
+VHDL Aspects of Generating Reports
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To generate reports, you need to have the following OSVVM test code in your VHDL testbench.
+More details of this are in OSVVM Test Writers User Guide in the documentation repository.
+
+.. code:: vhdl
+
+   -- Reference to OSVVM Utility Library
+   library OSVVM ;
+   context OSVVM.OsvvmContext ;
+   . . . 
+   TestProc : process
+   begin
+     -- Name the Test
+     SetAlertLogName("TestName") ; 
+     . . .
+     -- Do some Checks
+     AffirmIfEqual(Data, X"A025", "Check Data") ;
+     . . . 
+     -- Generate Reports (replaces call to ReportAlerts)
+     EndOfTestReports ; 
+     std.env.stop(GetAlertCount) ; 
+   end process TestProc ; 
+
+
+Using Multiple Test Suites
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you go back to the build report for OsvvmLibraries_RunAllTests
+you will note that the OSVVM test suite uses four named test suites,
+Axi4Lite, Axi4Full, AxiStream, and Uart.   
+
+If you just use library, analyze, and simulate in your script and use
+build to run your script, you will have one test suite named "Default".
+Use the script "TestSuite" to name your suite of tests.   
+
+If you just use simulate to run your test, your test name will be the
+name you provide to simulate.  Sometimes it may need to be different.
+Use the script "TestCase" to name your test case separately from simulate.
+
+The following example shows the usage of TestSuite and TestCase while
+running a testbench.
+In this case, we using the testbench framework shown in the
+OSVVM Test Writers User Guide (see documentation repository).
+The test harness is named TbUart.  
+The test sequencer entity is in TestCtrl_e.vhd.
+Tests are in architectures of TestCtrl in the files,
+TestCtrl_SendGet1.vhd, TestCtrl_SendGet2.vhd, and TbUart_Scoreboard1.vhd.
+Without configurations, the tests are run by calling "simulate TbUart".
+TestCase is used to specify the test name that is running.
+The test case that is run is the latest one that was analyzed.
+
+.. code:: tcl
+
+   TestSuite Uart
+   library   osvvm_TbUart
+   analyze   TestCtrl_e.vhd
+   analyze   TbUart.vhd
+
+   TestCase  TbUart_SendGet1
+   analyze   TestCtrl_SendGet1.vhd 
+   simulate  TbUart
+
+   TestCase  TbUart_SendGet2
+   analyze   TestCtrl_SendGet2.vhd 
+   simulate  TbUart
+
+   TestCase  TbUart_Scoreboard1
+   analyze   TestCtrl_Scoreboard1.vhd 
+   simulate  TbUart
+   
+One weakness of running VHDL tests in this way is that the 
+actual test that runs is the one that was the latest that was
+"successfully" analyzed.  
+As a result, if analyze fails, but the test continues, the 
+previous compiled test runs.
+By using TestCase to set the test name, when running test reports 
+its name and that name does not match the TestCase name, then the 
+test will be counted as failing.
+
+The easiest way to avoid this situation is to use configurations.
+As a result, in the OSVVM verification component suite, we use 
+configurations.
+We give the configuration, the test case, and the file the same name.
+When we run a test that uses a configuration, simulate specifies 
+the configuration's design unit name.
+Hence, we would revise the sequence of running one test to be as follows.
+
+.. code:: tcl
+
+   TestCase  TbUart_SendGet1
+   analyze   TbUart_SendGet1.vhd 
+   simulate  TbUart_SendGet1
+
+When running a large test suite, this gets tedious, so we added 
+a shortcut named RunTest that encapsulates the above three
+steps into the single step.  
+This changes our original script to the following. 
+If the name in RunTest has a path, the path is only used with analyze.
+
+.. code:: tcl
+
+   TestSuite Uart
+   library   osvvm_TbUart
+   analyze   TestCtrl_e.vhd
+   analyze   TbUart.vhd
+
+   RunTest   TestCtrl_SendGet1.vhd 
+   RunTest   TestCtrl_SendGet2.vhd 
+   RunTest   TestCtrl_Scoreboard1.vhd 
+
+
+Command Summary
+----------------
 
 +-------------------------+----------------------------------------------+
 | **Command**             | **Description**                              |
@@ -408,27 +602,6 @@ Commands
 |                         | and may change in a future revision          |
 +-------------------------+----------------------------------------------+
 
-Extra Scripts Run during Simulation
------------------------------------
-
-When "simulate" is called, it will call the following scripts, in
-order, if they exist:
-
--  OsvvmLibraries/Scripts/<ToolVendor>.tcl
--  OsvvmLibraries/Scripts/<simulator>.tcl
--  <sim-run-dir>/<ToolVendor>.tcl
--  <sim-run-dir>/<simulator>.tcl
--  <sim-run-dir>/<LibraryUnit>.tcl
--  <sim-run-dir>/<LibraryUnit>_<simulator>.tcl
--  <sim-run-dir>/wave.do
-
-ToolVendor is either {Aldec, Siemens}. Simulator is one of {QuestaSim,
-ModelSim, RivieraPRO, ActiveHDL}. LibraryUnit is the name of the design
-being simulated. Sim run dir is the directory from which you run the
-simulator.
-
-Currently GHDL does not run any extra scripts since it is a batch
-simulator.
 
 Deprecated Descriptor Files
 ---------------------------
