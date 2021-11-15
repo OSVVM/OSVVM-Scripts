@@ -42,7 +42,7 @@ namespace eval ::osvvm {
 
 package require yaml
 
-  source ${::osvvm::SCRIPT_DIR}/Simulation2Html.tcl
+  source ${::osvvm::SCRIPT_DIR}/Simulate2Html.tcl
   source ${::osvvm::SCRIPT_DIR}/Cov2Html.tcl
   source ${::osvvm::SCRIPT_DIR}/Alert2Html.tcl
   source ${::osvvm::SCRIPT_DIR}/Report2Html.tcl

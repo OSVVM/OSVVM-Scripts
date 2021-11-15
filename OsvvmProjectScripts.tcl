@@ -19,7 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    10/2021   2021.10    Added calls to Report2Html, Report2JUnit, and GenerateSimulationReports
+#    10/2021   2021.10    Added calls to Report2Html, Report2JUnit, and Simulate2Html
 #     3/2021   2021.03    Updated printing of start/finish times
 #     2/2021   2021.02    Updated initialization of libraries                 
 #                         Analyze allows ".vhdl" extensions as well as ".vhd" 
@@ -483,7 +483,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
 
   puts "Simulate Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
 
-  set Coverage [GenerateSimulationReports $TestCaseName]
+  set Coverage [Simulate2Html $TestCaseName]
 
   if {[file exists "OsvvmRun.yml"]} {
     set RunFile [open "OsvvmRun.yml" a]
