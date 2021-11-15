@@ -45,7 +45,7 @@
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Synopsys"
-  variable simulator   "vcs"
+  variable simulator   "VCS"
   variable ToolNameVersion "R2020_12"
   puts $ToolNameVersion
 
