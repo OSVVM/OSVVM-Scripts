@@ -48,6 +48,6 @@ package require yaml
   source ${::osvvm::SCRIPT_DIR}/Report2Html.tcl
   source ${::osvvm::SCRIPT_DIR}/Report2Junit.tcl
   
-namespace export GenerateSimulationReports Cov2Html Alert2Html Report2Html Report2Junit
+namespace export Simulate2Html Cov2Html Alert2Html Report2Html Report2Junit
 # end namespace ::osvvm
 }
