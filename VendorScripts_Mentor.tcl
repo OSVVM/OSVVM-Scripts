@@ -131,7 +131,64 @@ proc vendor_end_previous_simulation {} {
 }
 
 # -------------------------------------------------
-# Simulate
+# vendor_simulate
+#
+# Note about ignored vsim warnings:
+# OSVVM ignores the following errors in the call to vsim.  
+#   They are QuestaSim alerting use to potential issues with port drivers.
+#   Below we explain why they are not an issue for OSVVM verification components.
+#   We ignore them only because they slow QuestaSim down to a crawl.
+#
+# Detailed analysis follows.   
+#
+# Using "verror 8683", QuestaSim produces the following explaination:
+# vsim Message # 8683:
+# An output port has no default expression in its declaration and has no
+# drivers.  The VHDL LRM-compliant value it propagates to higher-level
+# connected signals may not be what is desired.  In particular, this
+# behavior might not correspond to the synthesis view of initialization.
+# The vsim switch "-defaultstdlogicinittoz" or "-forcestdlogicinittoz"
+# may be useful in this situation.
+#
+# OSVVM Verification Components use resolution functions that use  
+#    minimum as a resolution function.  Hence, driving the default 
+#    value (type'left) on a signal has no negative impact.
+#    Hence, we disable this warning since it does not apply and
+#    it slows Questasim down significantly
+#
+#
+# Using "verror 8684", QuestaSim produces the following explaination:
+# vsim Message # 8684:
+# An output port having no drivers has been combined with a higher-level
+# connected signal.  The port will get its initial value from this
+# higher-level connected signal; this is not compliant with the behavior
+# required by the VHDL LRM.
+# LRM compliant behavior would require the port's initial value come from its
+# declaration, however since it was combined or collapsed with the port or signal
+# higher in the hierarchy, the initial value came from that port or signal.
+# LRM compliant behavior can be obtained by preventing the collapsing of these
+# ports with the vsim switch -donotcollapsepartiallydriven.
+# If the port is collapsed to a port or signal with the same initialization (as
+# is often the case of default initializations being applied), there is no
+# problem and the proper initialization is done and the simulation is LRM
+# compliant.
+#
+# Older OSVVM Verification Components initialize port values to 'Z'.  
+#    QuestaSim in what is non-VHDL compliant behavior, ignore this.
+#    If you are using older OSVVM verification component interfaces, 
+#    make sure to initialize the transaction record in the test harness 
+#    to all 'Z'.  This avoids any negative impact of the QuestaSim
+#    non-VHDL compliant behavior.  
+#    Hence, we disable this warning since if you use older OSVVM interfaces
+#    and you initialize teh test harness signal also, then this 
+#    does not apply and it slows Questasim down significantly
+#
+# OSVVM recommends that you migragate older interfaces to the newer 
+#    that uses types and resolution functions defined in ResolutionPkg 
+#    such as std_logic_max, std_logic_vector_max, or std_logic_vector_max_c 
+#    rather than std_logic or std_logic_vector.   
+#    ResolutionPkg supports a richer set of types, such as integer_max, real_max, ...
+#    Note these then will still generate message 8683.
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
@@ -139,9 +196,10 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable ToolVendor
   variable simulator
 
-  puts "vsim -voptargs='+acc' -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683"
-#  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 -suppress 8617
-  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 
+  puts "vsim -voptargs='+acc' -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
+#  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 
+  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684
+
   
   ### Project level settings - in OsvvmLibraries/Scripts
   # Historical name.  Must be run with "do" for actions to work
@@ -166,6 +224,10 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   if {[file exists ${simulator}.tcl]} {
     source ${simulator}.tcl
   }
+  # User wave.do
+  if {[file exists wave.do]} {
+    do wave.do
+  }
   # User Testbench Script
   if {[file exists ${LibraryUnit}.tcl]} {
     source ${LibraryUnit}.tcl
@@ -173,10 +235,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   # User Testbench + Simulator Script
   if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
     source ${LibraryUnit}_${simulator}.tcl
-  }
-  # User wave.do
-  if {[file exists wave.do]} {
-    do wave.do
   }
   
   # Removed.  Desirable, but causes crashes if no signals in testbench.

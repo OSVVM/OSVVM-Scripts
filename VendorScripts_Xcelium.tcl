@@ -168,6 +168,10 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   if {[file exists ${simulator}.tcl]} {
     puts  $RunFile "source ${simulator}.tcl"
   }
+# User wave.do
+  if {[file exists wave.do]} {
+    puts  $RunFile "do wave.do"
+  }
 # User Testbench Script
   if {[file exists ${LibraryUnit}.tcl]} {
     puts  $RunFile "source ${LibraryUnit}.tcl"
@@ -175,10 +179,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 # User Testbench + Simulator Script
   if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
     puts  $RunFile "source ${LibraryUnit}_${simulator}.tcl"
-  }
-# User wave.do
-  if {[file exists wave.do]} {
-    puts  $RunFile "do wave.do"
   }
   puts  $RunFile "run" 
   puts  $RunFile "exit" 

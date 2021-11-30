@@ -157,6 +157,10 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   if {[file exists ${simulator}.tcl]} {
     puts  $SynFile "source ${simulator}.tcl"
   }
+# User wave.do
+  if {[file exists wave.do]} {
+    puts  $SynFile "do wave.do"
+  }
 # User Testbench Script
   if {[file exists ${LibraryUnit}.tcl]} {
     puts  $SynFile "source ${LibraryUnit}.tcl"
@@ -164,10 +168,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 # User Testbench + Simulator Script
   if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
     puts  $SynFile "source ${LibraryUnit}_${simulator}.tcl"
-  }
-# User wave.do
-  if {[file exists wave.do]} {
-    puts  $SynFile "do wave.do"
   }
   puts  $SynFile "run" 
   puts  $SynFile "quit" 

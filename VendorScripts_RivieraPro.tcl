@@ -81,6 +81,7 @@ proc vendor_library {LibraryName PathToLib} {
   if {![file exists ${PathAndLib}]} {
     echo vlib    ${PathAndLib}
     eval vlib    ${PathAndLib}
+    after 1000
   }
   if {![file exists ./compile/${LibraryName}.epr]} {
     echo vmap    $LibraryName  ${PathAndLib}
@@ -156,6 +157,10 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   if {[file exists ${simulator}.tcl]} {
     source ${simulator}.tcl
   }
+  # User wave.do
+  if {[file exists wave.do]} {
+    do wave.do
+  }
   # User Testbench Script
   if {[file exists ${LibraryUnit}.tcl]} {
     source ${LibraryUnit}.tcl
@@ -163,10 +168,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   # User Testbench + Simulator Script
   if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
     source ${LibraryUnit}_${simulator}.tcl
-  }
-  # User wave.do
-  if {[file exists wave.do]} {
-    do wave.do
   }
 
   log -rec [env]/*

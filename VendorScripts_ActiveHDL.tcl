@@ -203,6 +203,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     source ${simulator}.tcl
     cd $MY_START_DIR
   }
+  # User wave.do
+  if {[file exists wave.do]} {
+    do wave.do
+    cd $MY_START_DIR
+  }
   # User Testbench Script
   if {[file exists ${LibraryUnit}.tcl]} {
     source ${LibraryUnit}.tcl
@@ -211,11 +216,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   # User Testbench + Simulator Script
   if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
     source ${LibraryUnit}_${simulator}.tcl
-    cd $MY_START_DIR
-  }
-  # User wave.do
-  if {[file exists wave.do]} {
-    do wave.do
     cd $MY_START_DIR
   }
 
