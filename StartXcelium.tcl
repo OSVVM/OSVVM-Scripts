@@ -56,8 +56,17 @@ namespace eval ::osvvm {
 }
 
 # OSVVM Project Scripts 
+if {![catch {package require yaml}]} {
+  source ${::osvvm::SCRIPT_DIR}/OsvvmYamlSupport.tcl
+} else {
+  source ${::osvvm::SCRIPT_DIR}/NoYamlPackage.tcl
+}
 source ${::osvvm::SCRIPT_DIR}/OsvvmProjectScripts.tcl
 namespace import ::osvvm::*
 
 # Set OSVVM Script Defaults - defaults may call scripts
 source ${::osvvm::SCRIPT_DIR}/OsvvmScriptDefaults.tcl
+
+if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl]} {
+  source ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl
+}
