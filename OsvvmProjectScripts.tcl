@@ -245,7 +245,8 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   variable VHDL_WORKING_LIBRARY
   variable vendor_simulate_started
   variable TestSuiteName
-  
+  variable TestSuiteStartTimeMs
+
   set CURRENT_WORKING_DIRECTORY [pwd]
   
   if {![info exists CURRENT_RUN_DIRECTORY]} {
@@ -308,13 +309,22 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   
   include ${Path_Or_File}
   
+
+  set   RunFile  [open "OsvvmRun.yml" a]
+
+  if {[info exists TestSuiteName]} {
+    # Ending a Test Suite here
+    set   TestSuiteFinishTimeMs  [clock milliseconds] 
+    set   TestSuiteElapsedTimeMs [expr ($TestSuiteFinishTimeMs - $TestSuiteStartTimeMs)]
+    puts  $RunFile "    ElapsedTime: [format %.3f [expr ${TestSuiteElapsedTimeMs}/1000.0]]"
+  }
+  
   set  BuildFinishTime  [clock seconds] 
   set  BuildElapsedTime  [expr ($BuildFinishTime - $BuildStartTime)]    
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   puts "Build Finish time [clock format $BuildFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
   StopTranscript ${LogFileName}
   
-  set   RunFile  [open "OsvvmRun.yml" a]
   puts  $RunFile "Run:"
   puts  $RunFile "  Start:  [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
   puts  $RunFile "  Finish: [clock format $BuildFinishTime -format {%Y-%m-%dT%H:%M%z}]"
@@ -451,6 +461,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   variable VHDL_WORKING_LIBRARY
   variable vendor_simulate_started
   variable TestCaseName
+  variable TestSuiteName
   
   if {![info exists TestCaseName]} {
     TestCase $LibraryUnit
@@ -483,7 +494,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
 
   puts "Simulate Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
 
-  set Coverage [Simulate2Html $TestCaseName]
+  set Coverage [Simulate2Html $TestCaseName $TestSuiteName]
 
   if {[file exists "OsvvmRun.yml"]} {
     set RunFile [open "OsvvmRun.yml" a]
@@ -505,6 +516,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
 # -------------------------------------------------
 proc TestSuite {SuiteName} {
   variable TestSuiteName
+  variable TestSuiteStartTimeMs
 
 
   if {[file exists "OsvvmRun.yml"]} {
@@ -514,11 +526,19 @@ proc TestSuite {SuiteName} {
   }
   if {![info exists TestSuiteName]} {
     puts  $RunFile "TestSuites: "
-  }  
+  } else {
+    # Ending a Test Suite here
+    set   TestSuiteFinishTimeMs  [clock milliseconds] 
+    set   TestSuiteElapsedTimeMs [expr ($TestSuiteFinishTimeMs - $TestSuiteStartTimeMs)]
+    puts  $RunFile "    ElapsedTime: [format %.3f [expr ${TestSuiteElapsedTimeMs}/1000.0]]"
+  }
   set   TestSuiteName $SuiteName
   puts  $RunFile "  - Name: $SuiteName"
   puts  $RunFile "    TestCases:"
   close $RunFile
+  
+  # Starting a Test Suite here
+  set TestSuiteStartTimeMs   [clock milliseconds] 
 }
 
 
@@ -579,7 +599,7 @@ proc SkipTest {FileName Reason} {
   puts  $RunFile "    - TestCaseName: $SimName"
   puts  $RunFile "      Name: $SimName"
   puts  $RunFile "      Status: SKIPPED"
-  puts  $RunFile "      Results: {Name: $SimName, Reason: \"$Reason\"}"
+  puts  $RunFile "      Results: {Reason: \"$Reason\"}"
   close $RunFile  
 }
 

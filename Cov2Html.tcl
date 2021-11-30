@@ -49,19 +49,19 @@ proc GetCov {TestCaseName} {
   return $Coverage
 }
 
-proc Cov2Html {TestCaseName} {
+proc Cov2Html {TestCaseName TestSuiteName} {
   variable ResultsFile
   
 #  set FileName  [file rootname ${CovFile}].html
 #  file copy -force ${::osvvm::SCRIPT_DIR}/header_cov.html ${FileName}
 #  set ResultsFile [open ${FileName} a]
   
-  OpenSimulationReportFile $TestCaseName
+  OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
   set CovFile reports/${TestCaseName}_cov.yml
 
   puts $ResultsFile "<hr>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
-  puts $ResultsFile "<h2 id=\"FunctionalCoverage\">OSVVM Coverage Report for $TestCaseName</h2>"
+  puts $ResultsFile "<h2 id=\"FunctionalCoverage\">$TestCaseName Coverage Report</h2>"
 
   set TestDict [::yaml::yaml2dict -file ${CovFile}]
   set VersionNum  [dict get $TestDict Version]
@@ -70,7 +70,7 @@ proc Cov2Html {TestCaseName} {
   puts $ResultsFile "<br><br>"
   
   foreach ModelDict [dict get $TestDict Models] {
-    puts $ResultsFile "  <details open><summary style=\"font-size: 16px;\"><strong>Coverage Model: [dict get $ModelDict Name] &emsp; &emsp; Coverage: [format %.1f [dict get $ModelDict Coverage]]</strong></summary>"
+    puts $ResultsFile "  <details open><summary style=\"font-size: 16px;\"><strong>[dict get $ModelDict Name] Coverage Model &emsp; &emsp; Coverage: [format %.1f [dict get $ModelDict Coverage]]</strong></summary>"
     puts $ResultsFile "  <div  style=\"margin: 5px 30px;\">"
     OsvvmCovInfo2Html $ModelDict
     OsvvmCovBins2Html $ModelDict
@@ -87,7 +87,7 @@ proc OsvvmCovInfo2Html {ModelDict} {
   set CovInformation [dict get $ModelDict Settings] 
   
   puts $ResultsFile "    <DIV STYLE=\"font-size:5px\"><BR></DIV>"
-  puts $ResultsFile "    <details><summary>Coverage Settings for [dict get $ModelDict Name]</summary>"
+  puts $ResultsFile "    <details><summary>[dict get $ModelDict Name] Coverage Settings</summary>"
   puts $ResultsFile "    <DIV STYLE=\"font-size:10px\"><BR></DIV>"
   puts $ResultsFile "    <div  style=\"margin: 0px 30px;\">"
   puts $ResultsFile "    <table>"
@@ -109,7 +109,7 @@ proc OsvvmCovBins2Html {ModelDict} {
   set BinsArray   [dict get $ModelDict Bins]
 
   puts $ResultsFile "      <DIV STYLE=\"font-size:5px\"><BR></DIV>"
-  puts $ResultsFile "      <details open><summary>Coverage Bins for [dict get $ModelDict Name]</summary>"
+  puts $ResultsFile "      <details open><summary>[dict get $ModelDict Name] Coverage Bins</summary>"
   puts $ResultsFile "      <DIV STYLE=\"font-size:10px\"><BR></DIV>"
   puts $ResultsFile "      <div  style=\"margin: 0px 30px;\">"
   puts $ResultsFile "      <table>"
@@ -138,10 +138,9 @@ proc OsvvmCovBins2Html {ModelDict} {
     puts $ResultsFile "        <td>[format %.1f [dict get $BinDict PercentCov]]</td>"
     puts $ResultsFile "      </tr>"
   }
-  set NumBinsLessOne [expr 3 + [llength $RangeArray]]
+  set NumBins [expr 5 + [llength $RangeArray]]
   puts $ResultsFile "      <tr>"
-  puts $ResultsFile "        <th style=\"text-align: left\" colspan=\"$NumBinsLessOne\">Total Percent Coverage</th>"
-  puts $ResultsFile "        <td style=\"text-align: center\" colspan=\"2\">[format %.1f [dict get $ModelDict Coverage]]</td>"
+  puts $ResultsFile "        <td style=\"text-align: left\" colspan=\"$NumBins\"><strong>Total Percent Coverage:</strong> &emsp; [format %.1f [dict get $ModelDict Coverage]]</td>"
   puts $ResultsFile "      </tr>"
   puts $ResultsFile "      </table>"
   puts $ResultsFile "      </div>"

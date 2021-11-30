@@ -45,7 +45,7 @@ proc Report2Html {ReportFile} {
   variable ResultsFile
 
   set FileName  [file rootname ${ReportFile}].html
-  file copy -force ${::osvvm::SCRIPT_DIR}/header_report.html ${FileName}
+  file copy -force ${::osvvm::SCRIPT_DIR}/summary_header_report.html ${FileName}
   set ResultsFile [open ${FileName} a]
 
   set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
@@ -94,11 +94,12 @@ proc ReportElaborateStatus {TestDict} {
             set TestReqGoal   [dict get $TestResults RequirementsGoal]
             set TestReqPassed [dict get $TestResults RequirementsPassed]
             set SuiteDisabledAlerts [expr $SuiteDisabledAlerts + [SumAlertCount [dict get $TestResults DisabledAlertCount]]]
+            set VhdlName [dict get $TestCase Name]
           } else {
             set TestReqGoal   0
             set TestReqPassed 0
+            set VhdlName $TestName
           }
-          set VhdlName [dict get $TestCase Name]
         } else {
           set TestStatus  "FAILED"
           set TestReqGoal   0
@@ -128,6 +129,11 @@ proc ReportElaborateStatus {TestDict} {
           }
         }
       }
+      if {[dict exists $TestSuite ElapsedTime]} {
+        set SuiteElapsedTime [dict get $TestSuite ElapsedTime]
+      } else {
+        set SuiteElapsedTime 0
+      }
       if { $SuitePassed > 0 && $SuiteFailed == 0 } {
         set SuiteStatus "PASSED"
       } else {
@@ -142,6 +148,7 @@ proc ReportElaborateStatus {TestDict} {
       dict append SuiteDict ReqPassed       $SuiteReqPassed
       dict append SuiteDict ReqGoal         $SuiteReqGoal
       dict append SuiteDict DisabledAlerts  $SuiteDisabledAlerts
+      dict append SuiteDict ElapsedTime     $SuiteElapsedTime
   #    lappend ReportTestSuiteSummary [dict create Name $SuiteName Status $SuiteStatus Passed $SuitePassed Failed $SuiteFailed Skipped $SuiteSkipped ReqPassed $SuiteReqPassed ReqGoal $SuiteReqGoal]
       lappend ReportTestSuiteSummary $SuiteDict
 
@@ -174,7 +181,7 @@ proc ReportElaborateStatus {TestDict} {
     set SkippedColor "#D09000"
   }
   puts $ResultsFile "<br>"
-  puts $ResultsFile "<h1>OSVVM Build Report for $BuildName</h1>"
+  puts $ResultsFile "<h2>$BuildName Build Summary Report</h2>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
   puts $ResultsFile "<table>"
   puts $ResultsFile "  <tr style=\"height:40px\"><th>Build</th><th>$BuildName</th></tr>"
@@ -208,23 +215,28 @@ proc ReportElaborateStatus {TestDict} {
     foreach TestSuite $ReportTestSuiteSummary {
       set SuiteName [dict get $TestSuite Name]
       set SuiteStatus  [dict get $TestSuite Status]
+      set PassedColor  "#000000" 
+      set FailedColor  "#000000" 
+
       if { ${SuiteStatus} eq "PASSED" } {
         set StatusColor  "#00C000" 
+        set PassedColor  "#00C000" 
       } elseif { ${SuiteStatus} eq "FAILED" } {
         set StatusColor  "#FF0000" 
+        set FailedColor  "#FF0000" 
       } else {
         set StatusColor  "#D09000" 
       }
-      puts $ResultsFile "  <tr style=color:${StatusColor}>"
+      puts $ResultsFile "  <tr>"
       puts $ResultsFile "      <td><a href=\"#${SuiteName}\">${SuiteName}</a></td>"
-      puts $ResultsFile "      <td>$SuiteStatus</td>"
-      puts $ResultsFile "      <td>[dict get $TestSuite PASSED] </td>"
-      puts $ResultsFile "      <td>[dict get $TestSuite FAILED] </td>"
+      puts $ResultsFile "      <td style=color:${StatusColor}>$SuiteStatus</td>"
+      puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestSuite PASSED] </td>"
+      puts $ResultsFile "      <td style=color:${FailedColor}>[dict get $TestSuite FAILED] </td>"
       puts $ResultsFile "      <td>[dict get $TestSuite SKIPPED]</td>"
       puts $ResultsFile "      <td>[dict get $TestSuite ReqPassed] / [dict get $TestSuite ReqGoal]</td>"
       puts $ResultsFile "      <td>[dict get $TestSuite DisabledAlerts]</td>"
   # Add Elapsed Time in Simulation Scripts
-      puts $ResultsFile "      <td>0 </td>"
+      puts $ResultsFile "      <td>[dict get $TestSuite ElapsedTime]</td>"
       puts $ResultsFile "  </tr>"
     }
     puts $ResultsFile "</table>"
@@ -260,49 +272,68 @@ proc ReportTestSuites {TestDict} {
       foreach TestCase [dict get $TestSuite TestCases] {
         set TestName    [dict get $TestCase TestCaseName]
         
-        if { [dict exists $TestCase Results] } { 
+        if { [dict exists $TestCase Status] } { 
+          set TestStatus    [dict get $TestCase Status]
           set TestResults [dict get $TestCase Results]
-          set TestStatus  [dict get $TestCase Status]
-          set VhdlName    [dict get $TestCase Name]
-          if { $TestStatus ne "SKIPPED" } {
-            set DisabledAlertCount [dict get $TestResults DisabledAlertCount]
+          if { $TestStatus eq "SKIPPED" } {
+            set TestReport  "NONE"
+            set Reason      [dict get $TestResults Reason]
           } else {
-            set DisabledAlertCount [dict create Failure 0 Error 0 Warning 0]
+            set TestReport  "REPORT"
+            set VhdlName    [dict get $TestCase Name]
           }
-        } else {
-          set TestResults [dict create RequirementsGoal 0 RequirementsPassed 0 PassedCount 0 AffirmCount 0 TotalErrors 1 ]
-          set TestStatus  "FAILED"
-          set VhdlName    $TestName
-          set DisabledAlertCount [dict create Failure 0 Error 0 Warning 0]
+        } elseif { ![dict exists $TestCase FunctionalCoverage] } { 
+          set TestReport "NONE"
+          set TestStatus "FAILED"
+          set Reason     "Simulate Did Not Run"
+        } else { 
+          set TestReport "NONE"
+          set TestStatus "FAILED"
+          set Reason     "No VHDL Results.  Test did not call EndOfTestReports"
         }
         
-        if { ${TestName} ne ${VhdlName} } {
-          set TestStatus "NAME_MISMATCH"
-          set TestColor "#D09000" 
-        } elseif { ${TestStatus} eq "PASSED" } {
-          set TestColor "#00C000" 
-        } elseif { ${TestStatus} eq "SKIPPED" } {
-          set TestColor "#D09000" 
+        set PassedColor  "#000000" 
+        set FailedColor  "#000000" 
+        if { ${TestReport} eq "REPORT"} {
+          if { ${TestName} ne ${VhdlName} } {
+            set TestStatus   "NAME_MISMATCH"
+            set StatusColor  "#D09000" 
+            set PassedColor  "#D09000" 
+            set FailedColor  "#D09000" 
+          } elseif { ${TestStatus} eq "PASSED" } {
+            set StatusColor  "#00C000" 
+            set PassedColor  "#00C000" 
+          } else {
+            set StatusColor  "#FF0000" 
+            set FailedColor  "#FF0000" 
+          }
         } else {
-          set TestColor "#FF0000" 
+          if { ${TestStatus} eq "SKIPPED" } {
+            set StatusColor  "#D09000" 
+            set PassedColor  "#D09000" 
+            set FailedColor  "#D09000" 
+          } else {
+            set StatusColor  "#FF0000" 
+            set FailedColor  "#FF0000" 
+          }
         }
-        puts $ResultsFile "  <tr style=color:${TestColor}>"
-        puts $ResultsFile "      <td><a href=\"reports/${TestName}.html#AlertSummary\">${TestName}</a></td>"
-        puts $ResultsFile "      <td>$TestStatus</td>"
-        if { $TestStatus ne "SKIPPED" } {
-          puts $ResultsFile "      <td>[dict get $TestResults PassedCount] /  [dict get $TestResults AffirmCount]</td>"
-          puts $ResultsFile "      <td>[dict get $TestResults TotalErrors] </td>"
+        puts $ResultsFile "  <tr>"
+        puts $ResultsFile "      <td><a href=\"reports/${SuiteName}/${TestName}.html#AlertSummary\">${TestName}</a></td>"
+        puts $ResultsFile "      <td style=color:${StatusColor}>$TestStatus</td>"
+        if { $TestReport eq "REPORT" } {
+          puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestResults PassedCount] /  [dict get $TestResults AffirmCount]</td>"
+          puts $ResultsFile "      <td style=color:${FailedColor}>[dict get $TestResults TotalErrors] </td>"
           puts $ResultsFile "      <td>[dict get $TestResults RequirementsPassed] /  [dict get $TestResults RequirementsGoal]</td>"
           set FunctionalCov [dict get $TestCase FunctionalCoverage]
           if { ${FunctionalCov} ne "" } {
-            puts $ResultsFile "      <td><a href=\"reports/${TestName}.html#FunctionalCoverage\">${FunctionalCov}</a></td>"
+            puts $ResultsFile "      <td><a href=\"reports/${SuiteName}/${TestName}.html#FunctionalCoverage\">${FunctionalCov}</a></td>"
           } else {
             puts $ResultsFile "      <td>-</td>"
           }
-          puts $ResultsFile "      <td>[SumAlertCount ${DisabledAlertCount}]</td>"
+          puts $ResultsFile "      <td>[SumAlertCount [dict get $TestResults DisabledAlertCount]]</td>"
           puts $ResultsFile "      <td>[dict get $TestCase ElapsedTime]</td>"
         } else {
-          puts $ResultsFile "      <td colspan=\"6\">[dict get $TestResults Reason]</td>"
+          puts $ResultsFile "      <td style=\"text-align: left\" colspan=\"6\"> &emsp; $Reason</td>"
         }
         puts $ResultsFile "  </tr>"
       }

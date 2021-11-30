@@ -41,51 +41,57 @@
 
 package require yaml
 
-proc Simulate2Html {TestCaseName} {
+proc Simulate2Html {TestCaseName TestSuiteName} {
   variable ResultsFile
 
-  CreateSimulationReportFile $TestCaseName
+  CreateSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
   if {[file exists reports/${TestCaseName}_alerts.yml]} {
-    Alert2Html ${TestCaseName}
+    Alert2Html ${TestCaseName} ${TestSuiteName}
   }
   
   if {[file exists reports/${TestCaseName}_cov.yml]} {
-    Cov2Html ${TestCaseName}
+    Cov2Html ${TestCaseName} ${TestSuiteName}
     set Coverage [GetCov ${TestCaseName}]
   } else {
     set Coverage 0.0
   }
   
-  FinalizeSimulationReportFile $TestCaseName
+  FinalizeSimulationReportFile ${TestCaseName} ${TestSuiteName}
   return $Coverage
 }
 
-proc OpenSimulationReportFile {TestCaseName {initialize 0}} {
+proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
   variable ResultsFile
 
-  set FileName reports/${TestCaseName}.html
+  set ReportDir Reports/${TestSuiteName}
+	if {![file exists ${ReportDir}]} {
+    puts "Creating Reports directory for $TestSuiteName"
+    file mkdir ${ReportDir}
+  }
+
+  set FileName reports/${TestSuiteName}/${TestCaseName}.html
   if { $initialize } {
     file copy -force ${::osvvm::SCRIPT_DIR}/header_report.html ${FileName}
   }
   set ResultsFile [open ${FileName} a]
 }
 
-proc CreateSimulationReportFile {TestCaseName} {
+proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   variable ResultsFile
 
-  OpenSimulationReportFile $TestCaseName 1
+  OpenSimulationReportFile ${TestCaseName} ${TestSuiteName} 1
   
 #  set FileName reports/${TestCaseName}].html
 #  file copy -force ${::osvvm::SCRIPT_DIR}/header_report.html ${FileName}
 #  set ResultsFile [open ${FileName} a]
 
-  puts $ResultsFile "<title>$TestCaseName Test Reports</title>"
+  puts $ResultsFile "<title>$TestCaseName Test Case Detailed Report</title>"
   puts $ResultsFile "</head>"
   puts $ResultsFile "<body>"
 
   puts $ResultsFile "<br>"
-  puts $ResultsFile "<h1>OSVVM Test Reports for $TestCaseName</h1>"
+  puts $ResultsFile "<h2>$TestCaseName Test Case Detailed Report</h2>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
 
   puts $ResultsFile "<br>"
@@ -103,10 +109,10 @@ proc CreateSimulationReportFile {TestCaseName} {
   close $ResultsFile
 }
 
-proc FinalizeSimulationReportFile {TestCaseName} {
+proc FinalizeSimulationReportFile {TestCaseName TestSuiteName} {
   variable ResultsFile
 
-  OpenSimulationReportFile $TestCaseName
+  OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
   puts $ResultsFile "</body>"
   puts $ResultsFile "</html>"

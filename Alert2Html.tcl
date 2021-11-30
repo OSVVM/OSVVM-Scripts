@@ -41,14 +41,14 @@
 
 package require yaml
 
-proc Alert2Html {TestCaseName} {
+proc Alert2Html {TestCaseName TestSuiteName} {
   variable ResultsFile
 
 #  set FileName  [file rootname ${AlertFile}].html
 #  file copy -force ${::osvvm::SCRIPT_DIR}/header_report.html ${FileName}
 #  set ResultsFile [open ${FileName} a]
 
-  OpenSimulationReportFile $TestCaseName
+  OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
   set AlertFile reports/${TestCaseName}_alerts.yml
   
@@ -57,7 +57,7 @@ proc Alert2Html {TestCaseName} {
   AlertSettings $Alert2HtmlDict
 
   puts $ResultsFile "<DIV STYLE=\"font-size:25px\"><BR></DIV>"
-  puts $ResultsFile "<details open><summary style=\"font-size: 16px;\"><strong>Alert Results for $TestCaseName</strong></summary>"
+  puts $ResultsFile "<details open><summary style=\"font-size: 16px;\"><strong>$TestCaseName Alert Results</strong></summary>"
   puts $ResultsFile "<DIV STYLE=\"font-size:10px\"><BR></DIV>"
 
   puts $ResultsFile "<table>"
@@ -119,10 +119,10 @@ proc AlertSettings {AlertDict} {
 
   puts $ResultsFile "<hr>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
-  puts $ResultsFile "<h2 id=\"AlertSummary\">OSVVM Alert Report for $Name</h2>"
+  puts $ResultsFile "<h3 id=\"AlertSummary\">$Name Alert Report</h3>"
 
 #  puts $ResultsFile "<DIV STYLE=\"font-size:25px\"><BR></DIV>"
-  puts $ResultsFile "<details open><summary style=\"font-size: 16px;\"><strong>Alert Settings for $Name</strong></summary>"
+  puts $ResultsFile "<details open><summary style=\"font-size: 16px;\"><strong>$Name Alert Settings</strong></summary>"
   puts $ResultsFile "<DIV STYLE=\"font-size:10px\"><BR></DIV>"
 
   puts $ResultsFile "<div  style=\"margin: 5px 40px;\">"
@@ -185,33 +185,103 @@ proc AlertWrite {AlertDict {Prefix ""}} {
 
   if {[dict exists $AlertDict Name]} {
    
-    set Name     [dict get $AlertDict Name]
-    set Results  [dict get $AlertDict Results]
+    set Results              [dict get $AlertDict    Results]
+    set AlertCount           [dict get $Results      AlertCount]
+    set DisabledAlertCount   [dict get $Results      DisabledAlertCount]
+
+    set Name                 [dict get $AlertDict          Name]
+    set Status               [dict get $AlertDict          Status]
+    set PassedCount          [dict get $Results            PassedCount]
+    set AffirmCount          [dict get $Results            AffirmCount]
+    set TotalErrors          [dict get $Results            TotalErrors]
+    set AlertFailure         [dict get $AlertCount         Failure]
+    set AlertError           [dict get $AlertCount         Error]
+    set AlertWarning         [dict get $AlertCount         Warning]
+    set RequirementsPassed   [dict get $Results            RequirementsPassed]
+    set RequirementsGoal     [dict get $Results            RequirementsGoal]
+    set DisabledAlertFailure [dict get $DisabledAlertCount Failure]
+    set DisabledAlertError   [dict get $DisabledAlertCount Error]
+    set DisabledAlertWarning [dict get $DisabledAlertCount Warning]    
     
-    set Status [dict get $AlertDict Status]
-    if { $Status eq "PASSED" } {
-      set TestColor "#00C000"
+    set StatusColor       "#00C000"
+    set PassedCountColor  "#00C000"
+    set AlertFailureColor         "#000000"
+    set AlertErrorColor           "#000000"
+    set AlertWarningColor         "#000000"
+    set RequirementsColor         "#000000"
+    set DisabledAlertFailureColor "#000000"
+    set DisabledAlertErrorColor   "#000000"
+    set DisabledAlertWarningColor "#000000"
+    if { $Status ne "PASSED" } {
+      set StatusColor "#F00000"
+# Errors that could have contributed to the root cause error(s)
+      if {$PassedCount < $AffirmCount} {
+        set PassedCountColor "#F00000"
+      }
+      if {$AlertFailure > 0} {
+        set AlertFailureColor "#F00000"
+      }
+      if {$AlertError > 0} {
+        set AlertErrorColor "#F00000"
+      }
+      if {$AlertWarning > 0} {
+        set AlertWarningColor "#F00000"
+      }
+      if {$RequirementsPassed < $RequirementsGoal} {
+        set RequirementsColor "#F00000"
+      }
+      if {$DisabledAlertFailure > 0} {
+        set DisabledAlertFailureColor "#F00000"
+      }
+      if {$DisabledAlertError > 0} {
+        set DisabledAlertErrorColor "#F00000"
+      }
+      if {$DisabledAlertWarning > 0} {
+        set DisabledAlertWarningColor "#F00000"
+      }
     } else {
-      set TestColor "#F00000"
+# Errors Expected or Disabled, Show as Yellow/Orange
+      if {$PassedCount < $AffirmCount} {
+        set PassedCountColor "#D09000"
+      }
+      if {$AlertFailure > 0} {
+        set AlertFailureColor "#D09000"
+      }
+      if {$AlertError > 0} {
+        set AlertErrorColor "#D09000"
+      }
+      if {$AlertWarning > 0} {
+        set AlertWarningColor "#D09000"
+      }
+      if {$RequirementsPassed < $RequirementsGoal} {
+        set RequirementsColor "#D09000"
+      }
+      if {$DisabledAlertFailure > 0} {
+        set DisabledAlertFailureColor "#D09000"
+      }
+      if {$DisabledAlertError > 0} {
+        set DisabledAlertErrorColor "#D09000"
+      }
+      if {$DisabledAlertWarning > 0} {
+        set DisabledAlertWarningColor "#D09000"
+      }
+
     }
 
-    set AlertCount  [dict get $Results AlertCount]
-    set DisabledAlertCount  [dict get $Results DisabledAlertCount]
-
-    puts $ResultsFile "  <tr style=color:${TestColor}>"
+    puts $ResultsFile "  <tr>"
     puts $ResultsFile "      <td>${Prefix}${Name}</td>"
-    puts $ResultsFile "      <td>$Status</td>"
-    puts $ResultsFile "      <td>[dict get $Results PassedCount]</td>"
-    puts $ResultsFile "      <td>[dict get $Results AffirmCount]</td>"
-    puts $ResultsFile "      <td>[dict get $Results TotalErrors]</td>"
-    puts $ResultsFile "      <td>[dict get $AlertCount Failure]</td>"
-    puts $ResultsFile "      <td>[dict get $AlertCount Error]</td>"
-    puts $ResultsFile "      <td>[dict get $AlertCount Warning]</td>"
-    puts $ResultsFile "      <td>[dict get $Results RequirementsPassed]</td>"
-    puts $ResultsFile "      <td>[dict get $Results RequirementsGoal]</td>"
-    puts $ResultsFile "      <td>[dict get $DisabledAlertCount Failure]</td>"
-    puts $ResultsFile "      <td>[dict get $DisabledAlertCount Error]</td>"
-    puts $ResultsFile "      <td>[dict get $DisabledAlertCount Warning]</td>"
+    puts $ResultsFile "      <td style=color:${StatusColor}>$Status</td>"
+    puts $ResultsFile "      <td style=color:${PassedCountColor}>$PassedCount</td>"
+    puts $ResultsFile "      <td style=color:${PassedCountColor}>$AffirmCount</td>"
+    puts $ResultsFile "      <td style=color:${StatusColor}>$TotalErrors</td>"
+    puts $ResultsFile "      <td style=color:${AlertFailureColor}>$AlertFailure</td>"
+    puts $ResultsFile "      <td style=color:${AlertErrorColor}>$AlertError</td>"
+    puts $ResultsFile "      <td style=color:${AlertWarningColor}>$AlertWarning</td>"
+    puts $ResultsFile "      <td style=color:${RequirementsColor}>$RequirementsPassed</td>"
+    puts $ResultsFile "      <td style=color:${RequirementsColor}>$RequirementsGoal</td>"
+    puts $ResultsFile "      <td style=color:${DisabledAlertErrorColor}>$DisabledAlertFailure</td>"
+    puts $ResultsFile "      <td style=color:${DisabledAlertErrorColor}>$DisabledAlertError</td>"
+    puts $ResultsFile "      <td style=color:${DisabledAlertWarningColor}>$DisabledAlertWarning</td>"
     puts $ResultsFile "  </tr>"
        
     set Children [dict get $AlertDict Children]
