@@ -134,6 +134,11 @@ proc JunitCreateSummary {TestDict} {
         }
       }
     }
+    if {[dict exists $TestSuite ElapsedTime]} {
+      set SuiteElapsedTime [dict get $TestSuite ElapsedTime]
+    } else {
+      set SuiteElapsedTime 0
+    }
     if { $SuitePassed > 0 && $SuiteFailed == 0 } {
       set SuiteStatus "PASSED"
     } else {
@@ -148,6 +153,7 @@ proc JunitCreateSummary {TestDict} {
     dict append SuiteDict ReqPassed       $SuiteReqPassed
     dict append SuiteDict ReqGoal         $SuiteReqGoal
     dict append SuiteDict DisabledAlerts  $SuiteDisabledAlerts
+    dict append SuiteDict ElapsedTime     $SuiteElapsedTime
 #    lappend ReportTestSuiteSummary [dict create Name $SuiteName Status $SuiteStatus Passed $SuitePassed Failed $SuiteFailed Skipped $SuiteSkipped ReqPassed $SuiteReqPassed ReqGoal $SuiteReqGoal]
     lappend ReportTestSuiteSummary $SuiteDict
   }
@@ -178,6 +184,7 @@ proc JunitTestSuiteInfo { TestSuiteSummaryDict } {
   set SuiteSkipped [dict get $TestSuiteSummaryDict SKIPPED]
   puts $ResultsFile "<testsuite "
   puts $ResultsFile "   name=\"[dict get $TestSuiteSummaryDict Name]\""
+  puts $ResultsFile "   time=\"[dict get $TestSuiteSummaryDict ElapsedTime]\""
   puts $ResultsFile "   tests=\"[expr {$SuitePassed + $SuiteFailed + $SuiteSkipped}]\""
   puts $ResultsFile "   failures=\"$SuiteFailed\""
   puts $ResultsFile "   errors=\"0\""
