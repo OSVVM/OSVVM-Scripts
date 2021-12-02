@@ -100,10 +100,7 @@ proc StartTranscript {FileBaseName} {
   variable CurrentTranscript
   variable DIR_LOGS
   
-  if {![info exists CurrentTranscript]} {
-    set CurrentTranscript ""
-  }
-  if {($FileBaseName ne "NONE.log") && ($CurrentTranscript eq "")} {
+  if {($FileBaseName ne "NONE.log") && (![info exists CurrentTranscript])} {
     # Create directories if they do not exist
     set CurrentTranscript $FileBaseName
     set FileName [file join $DIR_LOGS $FileBaseName]
@@ -112,7 +109,6 @@ proc StartTranscript {FileBaseName} {
       puts "creating directory $RootDir"
       file mkdir $RootDir
     }
-    
     vendor_StartTranscript $FileName
   }
 }
@@ -122,27 +118,21 @@ proc StopTranscript {{FileBaseName ""}} {
   variable DIR_LOGS
   
   # Stop only if it is the transcript that is open
-  if {($CurrentTranscript eq $FileBaseName)} {
+  if {($FileBaseName eq $CurrentTranscript)} {
     # FileName used within the STOP_TRANSCRIPT variable if required
     set FileName [file join $DIR_LOGS $FileBaseName]
     vendor_StopTranscript $FileName
-    set CurrentTranscript ""
+    unset CurrentTranscript 
   }
 }
 
 proc TerminateTranscript {} {
   variable CurrentTranscript
   if {[info exists CurrentTranscript]} {
-    set CurrentTranscript ""
+    unset CurrentTranscript 
   }
 }
 
-#
-#  Problematic since output of tests has the word log
-#
-# proc log {Message} {
-#   puts $Message   
-# }
 
 # -------------------------------------------------
 # include 
@@ -292,7 +282,8 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   }
   set LogFileName ${LogName}.log
 
-  set BuildStartTime     [clock seconds] 
+  set  BuildStartTime    [clock seconds] 
+  set  BuildStartTimeMs  [clock milliseconds] 
   puts "Build Start time [clock format $BuildStartTime -format %T]"
   
   set   RunFile  [open "OsvvmRun.yml" w]
@@ -310,6 +301,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   include ${Path_Or_File}
   
 
+  # Print Elapsed time for last TestSuite (if any ran) and the entire build
   set   RunFile  [open "OsvvmRun.yml" a]
 
   if {[info exists TestSuiteName]} {
@@ -320,17 +312,20 @@ proc build {{Path_Or_File "."} {LogName "."}} {
     puts  $RunFile "    ElapsedTime: [format %.3f [expr ${TestSuiteElapsedTimeMs}/1000.0]]"
   }
   
-  set  BuildFinishTime  [clock seconds] 
-  set  BuildElapsedTime  [expr ($BuildFinishTime - $BuildStartTime)]    
+  set   BuildFinishTime     [clock seconds] 
+  set   BuildFinishTimeMs   [clock milliseconds] 
+  set   BuildElapsedTime    [expr ($BuildFinishTime   - $BuildStartTime)]
+  set   BuildElapsedTimeMs  [expr ($BuildFinishTimeMs - $BuildStartTimeMs)]
+  puts  $RunFile "Run:"
+  puts  $RunFile "  Start:    [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
+  puts  $RunFile "  Finish:   [clock format $BuildFinishTime -format {%Y-%m-%dT%H:%M%z}]"
+  puts  $RunFile "  Elapsed:  [format %.3f [expr ${BuildElapsedTimeMs}/1000.0]]"
+  close $RunFile
+  
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   puts "Build Finish time [clock format $BuildFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
   StopTranscript ${LogFileName}
   
-  puts  $RunFile "Run:"
-  puts  $RunFile "  Start:  [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
-  puts  $RunFile "  Finish: [clock format $BuildFinishTime -format {%Y-%m-%dT%H:%M%z}]"
-  puts  $RunFile "  Elapsed:  [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]]"
-  close $RunFile
   # short sleep to allow the file to close
   after 1000
   file rename -force "OsvvmRun.yml" ${LogName}.yml
