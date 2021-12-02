@@ -94,13 +94,8 @@ proc vendor_map {LibraryName PathToLib} {
 
   if {![file exists ${PathAndLib}]} {
     error "Map:  Creating library ${PathAndLib} since it does not exist.  "
-    echo vlib    ${PathAndLib}
-    eval vlib    ${PathAndLib}
   }
-  if {![file exists ./compile/${LibraryName}.epr]} {
-    echo vmap    $LibraryName  ${PathAndLib}
-    eval vmap    $LibraryName  ${PathAndLib}
-  }
+  vendor_library $LibraryName  ${PathAndLib}
 }
 
 # -------------------------------------------------

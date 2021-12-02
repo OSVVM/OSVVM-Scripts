@@ -83,48 +83,45 @@ proc vendor_StopTranscript {FileName} {
   exec echo "Stop Time [clock format [clock seconds] -format %T]" >> $GHDL_TRANSCRIPT_FILE
 }
 
+# -------------------------------------------------
+# GhdlLibraryPath
+#
+proc GhdlLibraryPath {LibraryName PathToLib} {
+  set PathAndLib ${PathToLib}/[string tolower ${LibraryName}]/v08
+  return $PathAndLib
+}
 
 # -------------------------------------------------
 # Library
 #
 proc vendor_library {LibraryName PathToLib} {
-  variable VHDL_WORKING_LIBRARY_PATH
-#  variable VHDL_RESOURCE_LIBRARY_PATHS
+  variable VHDL_RESOURCE_LIBRARY_PATHS
   variable GHDL_TRANSCRIPT_FILE
    
-#  set PathAndLib ${PathToLib}/${LibraryName}.lib
-  set PathAndLib ${PathToLib}/[string tolower ${LibraryName}]/v08
+#  set PathAndLib ${PathToLib}/[string tolower ${LibraryName}]/v08
+  set PathAndLib [GhdlLibraryPath $LibraryName $PathToLib]
 
   if {![file exists ${PathAndLib}]} {
     puts "creating library directory ${PathAndLib}" 
     file mkdir   ${PathAndLib}
   }
-# # Add old path to resource library paths
-#   if {[info exists VHDL_WORKING_LIBRARY_PATH]} {
-#     if {[lsearch $VHDL_RESOURCE_LIBRARY_PATHS -P${VHDL_WORKING_LIBRARY_PATH}] == -1} {
-# #      puts "set VHDL_RESOURCE_LIBRARY_PATHS [concat $VHDL_RESOURCE_LIBRARY_PATHS -P${VHDL_WORKING_LIBRARY_PATH}]"
-#       set VHDL_RESOURCE_LIBRARY_PATHS [concat $VHDL_RESOURCE_LIBRARY_PATHS -P${VHDL_WORKING_LIBRARY_PATH}]
-#     }
-#   } else {
-# #    puts "set VHDL_RESOURCE_LIBRARY_PATHS [list ]"
-#     set VHDL_RESOURCE_LIBRARY_PATHS [list ]
-#   }
-# #  puts "VHDL Resource Library Paths:  ${VHDL_RESOURCE_LIBRARY_PATHS}"
-  set VHDL_WORKING_LIBRARY_PATH  ${PathAndLib}
+  
+  if {![info exists VHDL_RESOURCE_LIBRARY_PATHS]} {
+    # Create Initial empty list
+    set VHDL_RESOURCE_LIBRARY_PATHS ""
+  }
+  if {[lsearch $VHDL_RESOURCE_LIBRARY_PATHS "*${PathToLib}"] < 0} {
+    lappend VHDL_RESOURCE_LIBRARY_PATHS "-P$PathToLib"
+  }
 }
 
 proc vendor_map {LibraryName PathToLib} {
-  variable VHDL_WORKING_LIBRARY_PATH
-  variable GHDL_TRANSCRIPT_FILE
-
-  set PathAndLib ${PathToLib}/[string tolower ${LibraryName}].lib
+  set PathAndLib [GhdlLibraryPath $LibraryName $PathToLib]
 
   if {![file exists ${PathAndLib}]} {
     error "Map:  Creating library ${PathAndLib} since it does not exist.  "
-    puts "creating library directory ${PathAndLib}" 
-    file mkdir   ${PathAndLib}
   }
-  set VHDL_WORKING_LIBRARY_PATH  ${PathAndLib}
+  vendor_library $LibraryName $PathToLib
 }
 
 proc get_tee {} {
@@ -137,6 +134,7 @@ proc get_tee {} {
   return $tee
 }
 
+
 # -------------------------------------------------
 # analyze
 #
@@ -144,15 +142,18 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   variable VhdlShortVersion
   variable ghdl 
   variable console
-  variable VHDL_WORKING_LIBRARY_PATH
-#  variable VHDL_RESOURCE_LIBRARY_PATHS
+  variable VHDL_RESOURCE_LIBRARY_PATHS
   variable GHDL_TRANSCRIPT_FILE
   variable DIR_LIB
 
+  set VHDL_WORKING_LIBRARY_PATH   [GhdlLibraryPath $LibraryName $DIR_LIB]
+
 #  puts "$ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}" 
 #  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} | tee -a $GHDL_TRANSCRIPT_FILE $console
-  exec echo "$ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName}" | {*}[get_tee]
-  eval exec $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName} |& {*}[get_tee]
+#  exec echo "$ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName}" | {*}[get_tee]
+#  eval exec  $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName} |& {*}[get_tee]
+  exec echo "$ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}" | {*}[get_tee]
+  eval exec  $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} |& {*}[get_tee]
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
@@ -175,16 +176,19 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable VhdlShortVersion
   variable ghdl 
   variable console
-  variable VHDL_WORKING_LIBRARY_PATH
-#  variable VHDL_RESOURCE_LIBRARY_PATHS
+  variable VHDL_RESOURCE_LIBRARY_PATHS
   variable GHDL_TRANSCRIPT_FILE
   variable DIR_LIB
 
+  set VHDL_WORKING_LIBRARY_PATH   [GhdlLibraryPath $LibraryName $DIR_LIB]
+
 #  puts "$ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}" 
 #  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} | tee -a $GHDL_TRANSCRIPT_FILE $console
-  exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit}" | {*}[get_tee]
+#  exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit}" | {*}[get_tee]
 #  eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit} |& {*}[get_tee]
-  if { [catch {eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit} |& {*}[get_tee]} SimErr]} { 
+  exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}" | {*}[get_tee]
+#  eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} |& {*}[get_tee]
+  if { [catch {eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${VHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} |& {*}[get_tee]} SimErr]} { 
     puts "ghdl --elab-run ended with error $SimErr"
   }
 }
