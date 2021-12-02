@@ -180,6 +180,9 @@ proc ReportElaborateStatus {TestDict} {
     set StatusColor  "#D09000" 
     set SkippedColor "#D09000"
   }
+  set ElapsedTimeSeconds [dict get $RunInfo Elapsed]
+  set ElapsedTimeSecondsInt [expr {round($ElapsedTimeSeconds)}]
+  set ElapsedTimeHms     [format %d:%02d:%02d [expr ($ElapsedTimeSecondsInt/(60*60))] [expr (($ElapsedTimeSecondsInt/60)%60)] [expr (${ElapsedTimeSecondsInt}%60)]]
   puts $ResultsFile "<br>"
   puts $ResultsFile "<h2>$BuildName Build Summary Report</h2>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
@@ -189,7 +192,8 @@ proc ReportElaborateStatus {TestDict} {
   puts $ResultsFile "  <tr style=color:${PassedColor}><td>PASSED</td>  <td>$TestCasesPassed</td></tr>"
   puts $ResultsFile "  <tr style=color:${FailedColor}><td>FAILED</td>  <td>$TestCasesFailed</td></tr>"
   puts $ResultsFile "  <tr style=color:${SkippedColor}><td>SKIPPED</td> <td>$TestCasesSkipped</td></tr>"
-  puts $ResultsFile "  <tr><td>Elapsed Time</td>                      <td>[dict get $RunInfo Elapsed]</td></tr>"
+  puts $ResultsFile "  <tr><td>Elapsed Time (h:m:s)</td>              <td>$ElapsedTimeHms</td></tr>"
+  puts $ResultsFile "  <tr><td>Elapsed Time (seconds)</td>            <td>$ElapsedTimeSeconds</td></tr>"
   puts $ResultsFile "  <tr><td>Date</td>                              <td>[dict get $BuildInfo Date]</td></tr>"
   puts $ResultsFile "  <tr><td>Simulator</td>                         <td>[dict get $BuildInfo Simulator]</td></tr>"
   puts $ResultsFile "  <tr><td>Version</td>                           <td>[dict get $BuildInfo Version]</td></tr>"
