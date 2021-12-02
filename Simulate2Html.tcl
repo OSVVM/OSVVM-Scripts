@@ -64,13 +64,13 @@ proc Simulate2Html {TestCaseName TestSuiteName} {
 proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
   variable ResultsFile
 
-  set ReportDir Reports/${TestSuiteName}
+  set ReportDir reports/${TestSuiteName}
 	if {![file exists ${ReportDir}]} {
     puts "Creating Reports directory for $TestSuiteName"
     file mkdir ${ReportDir}
   }
 
-  set FileName reports/${TestSuiteName}/${TestCaseName}.html
+  set FileName ${ReportDir}/${TestCaseName}.html
   if { $initialize } {
     file copy -force ${::osvvm::SCRIPT_DIR}/header_report.html ${FileName}
   }
