@@ -66,6 +66,8 @@ proc StartUp {} {
 
 namespace eval ::osvvm {
 
+variable OsvvmYamlResultsFile "./reports/OsvvmRun.yml"
+
 # -------------------------------------------------
 # IterateFile
 #   do an operation on a list of items
@@ -286,7 +288,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   set  BuildStartTimeMs  [clock milliseconds] 
   puts "Build Start time [clock format $BuildStartTime -format %T]"
   
-  set   RunFile  [open "OsvvmRun.yml" w]
+  set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} w]
   puts  $RunFile "Version: 1.0"
   puts  $RunFile "Build:"
   puts  $RunFile "  Name: $LogName"
@@ -302,7 +304,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   
 
   # Print Elapsed time for last TestSuite (if any ran) and the entire build
-  set   RunFile  [open "OsvvmRun.yml" a]
+  set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} a]
 
   if {[info exists TestSuiteName]} {
     # Test Suite does not exist if only doing library and analyze
@@ -328,7 +330,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   
   # short sleep to allow the file to close
   after 1000
-  file rename -force "OsvvmRun.yml" ${LogName}.yml
+  file rename -force ${::osvvm::OsvvmYamlResultsFile} ${LogName}.yml
   Report2Html  ${LogName}.yml
   Report2Junit ${LogName}.yml
   
@@ -404,9 +406,10 @@ proc library {LibraryName} {
     set LibraryList ""
     set LibraryDirectoryList ""
   }
+  # Needs to be here to activate library (ActiveHDL)
+  puts "library $LibraryName" 
+  vendor_library $LibraryName $DIR_LIB
   if {[lsearch $LibraryList "${LibraryName} *"] < 0} {
-    puts "library $LibraryName" 
-    vendor_library $LibraryName $DIR_LIB
     lappend LibraryList "$LibraryName $DIR_LIB"
     if {[lsearch $LibraryDirectoryList "${DIR_LIB}"] < 0} {
       lappend LibraryDirectoryList "$DIR_LIB"
@@ -514,8 +517,8 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
 
   set Coverage [Simulate2Html $TestCaseName $TestSuiteName]
 
-  if {[file exists "OsvvmRun.yml"]} {
-    set RunFile [open "OsvvmRun.yml" a]
+  if {[file exists ${::osvvm::OsvvmYamlResultsFile}]} {
+    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
     puts  $RunFile "      ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
     if {[file exists reports/${TestCaseName}_cov.yml]} {
 #!! This needs to be adjusted to be calculated functional coverage from the file.
@@ -537,10 +540,10 @@ proc TestSuite {SuiteName} {
   variable TestSuiteStartTimeMs
 
 
-  if {[file exists "OsvvmRun.yml"]} {
-    set RunFile [open "OsvvmRun.yml" a]
+  if {[file exists ${::osvvm::OsvvmYamlResultsFile}]} {
+    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
   } else {
-    set RunFile [open "OsvvmRun.yml" w]
+    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
   }
   if {![info exists TestSuiteName]} {
     puts  $RunFile "TestSuites: "
@@ -571,10 +574,10 @@ proc TestCase {TestName} {
   
   set TestCaseName $TestName
 
-  if {[file exists "OsvvmRun.yml"]} {
-    set RunFile [open "OsvvmRun.yml" a]
+  if {[file exists ${::osvvm::OsvvmYamlResultsFile}]} {
+    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
   } else {
-    set RunFile [open "OsvvmRun.yml" w]
+    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
   }
   puts  $RunFile "    - TestCaseName: $TestName"
   close $RunFile
@@ -609,10 +612,10 @@ proc SkipTest {FileName Reason} {
   
   puts "SkipTest $FileName $Reason"
   
-  if {[file exists "OsvvmRun.yml"]} {
-    set RunFile [open "OsvvmRun.yml" a]
+  if {[file exists ${::osvvm::OsvvmYamlResultsFile}]} {
+    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
   } else {
-    set RunFile [open "OsvvmRun.yml" w]
+    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
   }
   puts  $RunFile "    - TestCaseName: $SimName"
   puts  $RunFile "      Name: $SimName"
@@ -781,7 +784,7 @@ proc MapAllLibraries {{Path_Or_File "."}} {
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
-namespace export analyze simulate build include library RunTest SkipTest TestSuite
+namespace export analyze simulate build include library RunTest SkipTest TestSuite TestCase
 namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
 namespace export RemoveAllLibraries CreateDirectory OsvvmInitialize
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution

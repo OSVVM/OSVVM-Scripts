@@ -81,7 +81,7 @@ proc vendor_library {LibraryName PathToLib} {
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
-  set MY_START_DIR [pwd]
+  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
@@ -107,7 +107,7 @@ proc vendor_map {LibraryName ResolvedPathToLib} {
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
-  set MY_START_DIR [pwd]
+  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
@@ -129,7 +129,7 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   variable VhdlVersion
   variable DIR_LIB
   
-  set MY_START_DIR [pwd]
+  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set FileBaseName [file rootname [file tail $FileName]]
   
   # Check src to see if it has been added
@@ -147,7 +147,7 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
-  set MY_START_DIR [pwd]
+  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
 
 #  Untested branch for Verilog - will need adjustment
 #  Untested branch for Verilog - will need adjustment
@@ -172,7 +172,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable ToolVendor
   variable simulator
 
-  set MY_START_DIR [pwd]
+  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   
   puts "vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}" 
   eval vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
@@ -205,7 +205,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   }
   # User wave.do
   if {[file exists wave.do]} {
-    do wave.do
+    source wave.do
     cd $MY_START_DIR
   }
   # User Testbench Script
@@ -220,6 +220,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   }
 
   log -rec [env]/*
+  cd $MY_START_DIR
   run -all 
   cd $MY_START_DIR
 }
