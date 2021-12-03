@@ -2,6 +2,7 @@
 
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                  | 
 |---------------|--------------------|-----------------------------------------------------------------------| 
+| 2021.11       | November 2021      | Updated scripting to fine tune HTML and XML reporting.                |
 | 2021.10       | October 2021       | Added support to convert build YAML files to HTML and XML (JUnit)     |
 |               |                    |    Added support to convert Alert and coverage YAML to HTML reports   |
 |               |                    |    Added support to convert Alert and coverage YAML to HTML reports   |
