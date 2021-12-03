@@ -239,10 +239,11 @@ proc JunitTestSuites {TestDict TestSuiteSummary } {
       puts $ResultsFile ">"
       
       if { $TestStatus eq "FAILED" } {
-        puts $ResultsFile "<failure message=\"$Reason\"></failure>"
+        puts $ResultsFile "<failure message=\"$Reason\">$Reason</failure>"
       
       } elseif { $TestStatus eq "SKIPPED" } {
-        puts $ResultsFile "<skipped message=\"[dict get $TestResults Reason]\"></skipped>"
+        set Reason [dict get $TestResults Reason]
+        puts $ResultsFile "<skipped message=\"$Reason\">$Reason</skipped>"
       }
       puts $ResultsFile "</testcase>"
     }
