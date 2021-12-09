@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    12/2021   2021.12    Refactored for library handling
 #    10/2021   2021.10    Added calls to Report2Html, Report2JUnit, and Simulate2Html
 #     3/2021   2021.03    Updated printing of start/finish times
 #     2/2021   2021.02    Updated initialization of libraries                 
@@ -39,7 +40,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2020 by SynthWorks Design Inc.  
+#  Copyright (c) 2018 - 2021 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -98,43 +99,6 @@ proc IterateFile {FileWithNames ActionForName} {
   }
 }
 
-proc StartTranscript {FileBaseName} {
-  variable CurrentTranscript
-  variable DIR_LOGS
-  
-  if {($FileBaseName ne "NONE.log") && (![info exists CurrentTranscript])} {
-    # Create directories if they do not exist
-    set CurrentTranscript $FileBaseName
-    set FileName [file join $DIR_LOGS $FileBaseName]
-    set RootDir [file dirname $FileName]
-    if {![file exists $RootDir]} {
-      puts "creating directory $RootDir"
-      file mkdir $RootDir
-    }
-    vendor_StartTranscript $FileName
-  }
-}
-
-proc StopTranscript {{FileBaseName ""}} {
-  variable CurrentTranscript
-  variable DIR_LOGS
-  
-  # Stop only if it is the transcript that is open
-  if {($FileBaseName eq $CurrentTranscript)} {
-    # FileName used within the STOP_TRANSCRIPT variable if required
-    set FileName [file join $DIR_LOGS $FileBaseName]
-    vendor_StopTranscript $FileName
-    unset CurrentTranscript 
-  }
-}
-
-proc TerminateTranscript {} {
-  variable CurrentTranscript
-  if {[info exists CurrentTranscript]} {
-    unset CurrentTranscript 
-  }
-}
-
 
 # -------------------------------------------------
 # include 
@@ -144,6 +108,7 @@ proc include {Path_Or_File} {
   variable CURRENT_WORKING_DIRECTORY
   variable VHDL_WORKING_LIBRARY
   
+# probably move.  Redundant with analyze and simulate  
 #  puts "set StartingPath ${CURRENT_WORKING_DIRECTORY} Starting Include"
   # If a library does not exist, then create the default
   if {![info exists VHDL_WORKING_LIBRARY]} {
@@ -239,22 +204,12 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   variable TestSuiteName
   variable TestSuiteStartTimeMs
 
-  set CURRENT_WORKING_DIRECTORY [pwd]
-  
-  if {![info exists CURRENT_SIMULATION_DIRECTORY]} {
-    set CURRENT_SIMULATION_DIRECTORY ""
-  }
+  # Close any previous build information
   if {[info exists TestSuiteName]} {
     unset TestSuiteName
   }  
-
-  # Initialize 
-  if {![info exists VHDL_WORKING_LIBRARY] || $CURRENT_WORKING_DIRECTORY ne $CURRENT_SIMULATION_DIRECTORY } {
-    if {[info exists VHDL_WORKING_LIBRARY]} {
-      unset VHDL_WORKING_LIBRARY
-    }
-    library default 
-  } 
+  # If Transcript Open, then Close it
+  TerminateTranscript
   
   # End simulations if started - only set by simulate
   if {[info exists vendor_simulate_started]} {
@@ -262,9 +217,11 @@ proc build {{Path_Or_File "."} {LogName "."}} {
     vendor_end_previous_simulation
     unset vendor_simulate_started
   }  
-    
-  # If Transcript Open, then Close it
-  TerminateTranscript
+
+  # Current Build Setup
+  set CURRENT_WORKING_DIRECTORY [pwd]  
+  CheckWorkingDir
+  CheckSimulationDirs
   
   # Create the Log File Name
   set NormPathOrFile [file normalize ${Path_Or_File}]
@@ -341,14 +298,8 @@ proc build {{Path_Or_File "."} {LogName "."}} {
 
 
 # -------------------------------------------------
-# RemoveAllLibraries
+# CreateDirectory - Create directory if does not exist
 #
-proc RemoveAllLibraries {} {
-  variable DIR_LIB
-  file delete -force -- $DIR_LIB
-}
-
-
 proc CreateDirectory {Directory} {
   if {![file exists $Directory]} {
     puts "creating directory $Directory"
@@ -357,32 +308,136 @@ proc CreateDirectory {Directory} {
 }
 
 # -------------------------------------------------
-# OsvvmInitialize
+# CheckWorkingDir
+#   Used by library, analyze, and simulate
 #
-proc OsvvmInitialize {} {
-  variable CURRENT_WORKING_DIRECTORY
+proc CheckWorkingDir {} {
+  variable CURRENT_WORKING_DIRECTORY 
   variable CURRENT_SIMULATION_DIRECTORY
+  variable VHDL_WORKING_LIBRARY
+  variable LibraryList
+  variable LibraryDirectoryList
+#  variable OldLibraryList
+#  variable OldLibraryDirectoryList
+
+  set CurrentDir [pwd]
+  if {![info exists CURRENT_WORKING_DIRECTORY]} {
+    set CURRENT_WORKING_DIRECTORY $CurrentDir
+  }
+  if {![info exists CURRENT_SIMULATION_DIRECTORY]} {
+    set CURRENT_SIMULATION_DIRECTORY $CurrentDir
+  }
+  if {$CURRENT_SIMULATION_DIRECTORY ne $CurrentDir } {
+    # Simulation Directory Moved, Libraries are invalid
+    set CURRENT_SIMULATION_DIRECTORY $CurrentDir   
+    if {[info exists LIB_BASE_DIR]} {
+      unset LIB_BASE_DIR
+      unset DIR_LIB
+      if {[info exists VHDL_WORKING_LIBRARY]} { 
+        unset VHDL_WORKING_LIBRARY
+#        set   OldLibraryList          $LibraryList
+#        set   OldLibraryDirectoryList $LibraryDirectoryList
+        unset LibraryList
+        unset LibraryDirectoryList
+      }
+    }
+  } 
+}
+
+# -------------------------------------------------
+# CheckLibraryInit 
+#   Used by library
+#
+proc CheckLibraryInit {} {
   variable LIB_BASE_DIR
   variable DIR_LIB
+  variable CURRENT_SIMULATION_DIRECTORY
   variable ToolNameVersion
-  
-  set CURRENT_SIMULATION_DIRECTORY [pwd]
-  if {![info exists CURRENT_WORKING_DIRECTORY]} {
-    set CURRENT_WORKING_DIRECTORY $CURRENT_SIMULATION_DIRECTORY
-  }
 
   if {![info exists LIB_BASE_DIR]} {
     set LIB_BASE_DIR $CURRENT_SIMULATION_DIRECTORY
+    set DIR_LIB ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
   }
   
-  # Set locations for libraries and logs
-  variable DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
-  variable DIR_LOGS   ${CURRENT_SIMULATION_DIRECTORY}/logs/${ToolNameVersion}
-
   # Create LIB and Results directories
   CreateDirectory $DIR_LIB
+}
+
+# -------------------------------------------------
+# CheckLibraryExists 
+#   Used by analyze, and simulate
+#
+proc CheckLibraryExists {} {
+  variable VHDL_WORKING_LIBRARY
+
+  if {![info exists VHDL_WORKING_LIBRARY]} {
+    library default
+  }
+}
+
+
+# -------------------------------------------------
+# CheckSimulationDirs 
+#   Used by simulate
+#
+proc CheckSimulationDirs {} {
+  variable CURRENT_SIMULATION_DIRECTORY
   CreateDirectory ${CURRENT_SIMULATION_DIRECTORY}/results
   CreateDirectory ${CURRENT_SIMULATION_DIRECTORY}/reports
+}
+
+
+# -------------------------------------------------
+# StartTranscript 
+#   Used by build 
+#
+proc StartTranscript {FileBaseName} {
+  variable CurrentTranscript
+  variable DIR_LOGS
+  variable CURRENT_SIMULATION_DIRECTORY
+  variable ToolNameVersion
+  
+  CheckWorkingDir 
+
+  if {![info exists DIR_LOGS]} {
+    set DIR_LOGS   ${CURRENT_SIMULATION_DIRECTORY}/logs/${ToolNameVersion}
+  }
+
+  if {($FileBaseName ne "NONE.log") && (![info exists CurrentTranscript])} {
+    # Create directories if they do not exist
+    set FileName [file join $DIR_LOGS $FileBaseName]
+    CreateDirectory [file dirname $FileName]
+    set CurrentTranscript $FileBaseName
+    vendor_StartTranscript $FileName
+  }
+}
+
+# -------------------------------------------------
+# StopTranscript 
+#   Used by build 
+#
+proc StopTranscript {{FileBaseName ""}} {
+  variable CurrentTranscript
+  variable DIR_LOGS
+  
+  # Stop only if it is the transcript that is open
+  if {($FileBaseName eq $CurrentTranscript)} {
+    # FileName used within the STOP_TRANSCRIPT variable if required
+    set FileName [file join $DIR_LOGS $FileBaseName]
+    vendor_StopTranscript $FileName
+    unset CurrentTranscript 
+  }
+}
+
+# -------------------------------------------------
+# TerminateTranscript 
+#   Used by build 
+#
+proc TerminateTranscript {} {
+  variable CurrentTranscript
+  if {[info exists CurrentTranscript]} {
+    unset CurrentTranscript 
+  }
 }
 
 # -------------------------------------------------
@@ -394,12 +449,9 @@ proc library {LibraryName} {
   variable LibraryList
   variable LibraryDirectoryList
 
-  # If VHDL_WORKING_LIBRARY does not exist, then initialize
-  if {![info exists VHDL_WORKING_LIBRARY]} {
-    OsvvmInitialize
-  }
-
-
+  CheckWorkingDir 
+  CheckLibraryInit
+  
 # Does DIR_LIB need to be normalized?
   if {![info exists LibraryList]} {
     # Create Initial empty list
@@ -431,9 +483,8 @@ proc map {LibraryName {PathToLib ""}} {
   variable VHDL_WORKING_LIBRARY
   variable DIR_LIB
   
-  if {![info exists VHDL_WORKING_LIBRARY]} {
-    OsvvmInitialize
-  }
+  CheckWorkingDir 
+  CheckLibraryInit
 
   if {![string match $PathToLib ""]} {
     # only for mapping to external existing library
@@ -455,11 +506,9 @@ proc analyze {FileName} {
   variable VHDL_WORKING_LIBRARY
   variable CURRENT_WORKING_DIRECTORY
   
-  # If a library does not exist, then create the default
-  if {![info exists VHDL_WORKING_LIBRARY]} {
-    library default
-  }
-  
+  CheckWorkingDir 
+  CheckLibraryExists
+    
   puts "analyze $FileName"
   
   set NormFileName [file normalize ${CURRENT_WORKING_DIRECTORY}/${FileName}]
@@ -484,6 +533,10 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   variable TestCaseName
   variable TestSuiteName
   
+  CheckWorkingDir 
+  CheckLibraryExists
+  CheckSimulationDirs
+
   if {![info exists TestCaseName]} {
     TestCase $LibraryUnit
   }  
@@ -495,10 +548,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   
 #  StartTranscript ${LibraryUnit}.log
   
-  # If a library does not exist, then create the default
-  if {![info exists VHDL_WORKING_LIBRARY]} {
-    library default
-  }
+
   set SimulateStartTime   [clock seconds] 
   set SimulateStartTimeMs [clock milliseconds] 
   
@@ -691,6 +741,7 @@ proc SetLibraryDirectory {{LibraryDirectory ""}} {
       # Instead, will be set by first call to build, include, analyze, simulate, or library
       if {[info exists LIB_BASE_DIR]} {
         unset LIB_BASE_DIR
+        unset DIR_LIB
       }
       if {[info exists VHDL_WORKING_LIBRARY]} {
         unset VHDL_WORKING_LIBRARY
