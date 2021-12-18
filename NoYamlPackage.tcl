@@ -53,7 +53,7 @@ proc Report2Junit {ReportFile} {
 }
 
 
-proc GenerateSimulationReports {TestCaseName} {
+proc Simulate2Html {TestCaseName TestSuiteName} {
   puts "To generate OSVVM simulation HTML files, please install TCL yaml package from Tcllib"
   puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
 }

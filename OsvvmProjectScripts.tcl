@@ -451,13 +451,14 @@ proc library {LibraryName} {
 
   CheckWorkingDir 
   CheckLibraryInit
-  
-# Does DIR_LIB need to be normalized?
+  CheckSimulationDirs
+
   if {![info exists LibraryList]} {
     # Create Initial empty list
     set LibraryList ""
     set LibraryDirectoryList ""
   }
+  
   # Needs to be here to activate library (ActiveHDL)
   puts "library $LibraryName" 
   vendor_library $LibraryName $DIR_LIB
@@ -479,14 +480,15 @@ proc ListLibraries {} {
 }
 
 
-proc map {LibraryName {PathToLib ""}} {
+proc LinkLibrary {LibraryName {PathToLib ""}} {
   variable VHDL_WORKING_LIBRARY
   variable DIR_LIB
   
   CheckWorkingDir 
   CheckLibraryInit
+  CheckSimulationDirs
 
-  if {![string match $PathToLib ""]} {
+  if {$PathToLib ne ""} {
     # only for mapping to external existing library
     set ResolvedPathToLib $PathToLib
   } else {
@@ -676,7 +678,7 @@ proc SkipTest {FileName Reason} {
 
 
 # -------------------------------------------------
-# Settings
+# SetVHDLVersion, GetVHDLVersion
 #
 proc SetVHDLVersion {Version} {  
   variable VhdlVersion
@@ -708,6 +710,9 @@ proc GetVHDLVersion {} {
   return $VhdlVersion
 }
 
+# -------------------------------------------------
+# SetSimulatorResolution, GetSimulatorResolution
+#
 proc SetSimulatorResolution {SimulatorResolution} {
   variable SIMULATE_TIME_UNITS
   set SIMULATE_TIME_UNITS $SimulatorResolution
@@ -718,13 +723,9 @@ proc GetSimulatorResolution {} {
   return $SIMULATE_TIME_UNITS
 }
 
-#
-# Remaining proc are Experimental, Alpha code and are likely to change.
-# Use at your own risk.
-#
 
-#
-#  Currently only set in OsvvmScriptDefaults
+# -------------------------------------------------
+# SetLibraryDirectory
 #
 proc SetLibraryDirectory {{LibraryDirectory ""}} {
   variable CURRENT_SIMULATION_DIRECTORY
@@ -763,24 +764,12 @@ proc GetLibraryDirectory {} {
     return ""
   }
 }
-  
-proc ResetRunDirectory {} {
-  variable CURRENT_SIMULATION_DIRECTORY
-  variable LIB_BASE_DIR
-  variable VHDL_WORKING_LIBRARY
-  
-  if {[info exists CURRENT_SIMULATION_DIRECTORY]} {
-    unset CURRENT_SIMULATION_DIRECTORY
-  }
-  if {[info exists LIB_BASE_DIR]} {
-    unset LIB_BASE_DIR
-  }
-  if {[info exists VHDL_WORKING_LIBRARY]} {
-    unset VHDL_WORKING_LIBRARY
-  }
-}
 
-proc LinkLibrary {{LibraryDirectory ""}} {
+
+# -------------------------------------------------
+#  LinkLibraryDirectory
+#
+proc LinkLibraryDirectory {{LibraryDirectory ""}} {
   variable DIR_LIB
   variable CURRENT_SIMULATION_DIRECTORY
   variable ToolNameVersion
@@ -804,33 +793,6 @@ proc LinkLibrary {{LibraryDirectory ""}} {
   }
 }
 
-# -------------------------------------------------
-# MapLibraries
-#   Likely this will be replaced by LinkLibrary.
-#
-#   Used to create a library mapping in a  
-#   directory different from the initial/normal simulation 
-#   directory.  
-#
-#   Most projects should not need this, however, 
-#   it was used on a project to work around long name
-#   issues in Windows 10 Home.
-#
-#   Accomplishes this by temporarily switching in a 
-#   different version of library, analyze, and simulate
-#
-proc MapLibraries {{Path_Or_File "."}} {
-  variable SCRIPT_DIR
-  source ${SCRIPT_DIR}/OsvvmCreateLibraryMapOverrideScripts.tcl
-  include $Path_Or_File
-#  build $Path_Or_File
-  source ${SCRIPT_DIR}/OsvvmProjectScripts.tcl
-}
-
-# MapAllLibraries - deprecated, but for older script support
-proc MapAllLibraries {{Path_Or_File "."}} {
-  MapLibraries ${Path_Or_File}
-}
 
 # Don't export the following due to conflicts with Tcl built-ins
 # map
@@ -839,8 +801,8 @@ namespace export analyze simulate build include library RunTest SkipTest TestSui
 namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
 namespace export RemoveAllLibraries CreateDirectory OsvvmInitialize
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
-namespace export SetLibraryDirectory GetLibraryDirectory ResetRunDirectory
-namespace export LinkLibrary MapLibraries MapAllLibraries ListLibraries
+namespace export SetLibraryDirectory GetLibraryDirectory 
+namespace export LinkLibrary ListLibraries
 
 # end namespace ::osvvm
 }

@@ -46,8 +46,8 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Cadence"
   variable simulator   "Xcelium"
-  variable ToolNameVersion "21.03-s006"
-  # xmvhdl -version
+  variable ToolNameVersion [lindex [exec xmvhdl -version] 2] 
+#  variable ToolNameVersion "21.03-s006"
   puts $ToolNameVersion
 
 # -------------------------------------------------
