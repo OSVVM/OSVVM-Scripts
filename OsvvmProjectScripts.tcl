@@ -108,6 +108,8 @@ proc include {Path_Or_File} {
   variable CURRENT_WORKING_DIRECTORY
   variable VHDL_WORKING_LIBRARY
   
+  puts "include $Path_Or_File" 
+
 # probably move.  Redundant with analyze and simulate  
 #  puts "set StartingPath ${CURRENT_WORKING_DIRECTORY} Starting Include"
   # If a library does not exist, then create the default
@@ -203,6 +205,8 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   variable vendor_simulate_started
   variable TestSuiteName
   variable TestSuiteStartTimeMs
+
+  puts "build $Path_Or_File" 
 
   # Close any previous build information
   if {[info exists TestSuiteName]} {
@@ -513,7 +517,7 @@ proc analyze {FileName} {
     
   puts "analyze $FileName"
   
-  set NormFileName [file normalize ${CURRENT_WORKING_DIRECTORY}/${FileName}]
+  set NormFileName  [file normalize ${CURRENT_WORKING_DIRECTORY}/${FileName}]
   set FileExtension [file extension $FileName]
 
   if {$FileExtension eq ".vhd" || $FileExtension eq ".vhdl"} {
