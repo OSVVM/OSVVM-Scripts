@@ -82,11 +82,11 @@ proc vendor_library {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
-    echo vlib    ${PathAndLib}
-    eval vlib    ${PathAndLib}
+    puts "vlib   ${PathAndLib} "
+          vlib   ${PathAndLib}
   }
-  echo vmap    $LibraryName  ${PathAndLib}
-  eval vmap    $LibraryName  ${PathAndLib}
+  puts "vmap   $LibraryName  ${PathAndLib}"
+        vmap   $LibraryName  ${PathAndLib}
 }
 
 proc vendor_map {LibraryName PathToLib} {
@@ -94,11 +94,11 @@ proc vendor_map {LibraryName PathToLib} {
 
   if {![file exists ${PathAndLib}]} {
     error "Map:  Creating library ${PathAndLib} since it does not exist.  "
-    echo vlib    ${PathAndLib}
-    eval vlib    ${PathAndLib}
+    puts "vlib   ${PathAndLib} "
+          vlib   ${PathAndLib}
   }
-  echo vmap    $LibraryName  ${PathAndLib}
-  eval vmap    $LibraryName  ${PathAndLib}
+  puts "vmap   $LibraryName  ${PathAndLib}"
+        vmap   $LibraryName  ${PathAndLib}
 }
 
 # -------------------------------------------------
@@ -106,14 +106,14 @@ proc vendor_map {LibraryName PathToLib} {
 #
 proc vendor_analyze_vhdl {LibraryName FileName} {
   variable VhdlVersion
-  echo vcom -${VhdlVersion} -work ${LibraryName} ${FileName}
-  eval vcom -${VhdlVersion} -work ${LibraryName} ${FileName}
+  puts "vcom -${VhdlVersion} -work ${LibraryName} ${FileName} "
+        vcom -${VhdlVersion} -work ${LibraryName} ${FileName}
 }
 
 proc vendor_analyze_verilog {LibraryName FileName} {
 #  Untested branch for Verilog - will need adjustment
-  echo vlog -work ${LibraryName} ${FileName}
-  eval vlog -work ${LibraryName} ${FileName}
+  puts "vlog -work ${LibraryName} ${FileName} "
+        vlog -work ${LibraryName} ${FileName}
 }
 
 # -------------------------------------------------
