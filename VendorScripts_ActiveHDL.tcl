@@ -76,11 +76,12 @@ proc vendor_StopTranscript {FileName} {
 # -------------------------------------------------
 # Library
 #
-proc vendor_library {LibraryName PathToLib} {
+proc vendor_library {LibraryName RelativePathToLib} {
   variable vendor_simulate_started
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
+  set PathToLib [file normalize RelativePathToLib]
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set PathAndLib ${PathToLib}/${LibraryName}
 
@@ -102,7 +103,7 @@ proc vendor_library {LibraryName PathToLib} {
 }
 
 
-proc vendor_map {LibraryName ResolvedPathToLib} {
+proc vendor_map {LibraryName PathToLib} {
   variable vendor_simulate_started
   if {[info exists vendor_simulate_started]} {
     endsim
@@ -125,10 +126,11 @@ proc vendor_map {LibraryName ResolvedPathToLib} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName} {
+proc vendor_analyze_vhdl {LibraryName RelativePathToFile} {
   variable VhdlVersion
   variable DIR_LIB
   
+  set FileName [file normalize $RelativePathToFile]
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set FileBaseName [file rootname [file tail $FileName]]
   
@@ -146,8 +148,10 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   cd $MY_START_DIR
 }
 
-proc vendor_analyze_verilog {LibraryName FileName} {
+proc vendor_analyze_verilog {LibraryName File_Relative_Path} {
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  
+  set FileName [file normalize $File_Relative_Path]
 
 #  Untested branch for Verilog - will need adjustment
 #  Untested branch for Verilog - will need adjustment
