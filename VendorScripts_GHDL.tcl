@@ -70,7 +70,7 @@ proc vendor_StartTranscript {FileName} {
   if {[info exists GHDL_TRANSCRIPT_FILE]} {
     unset GHDL_TRANSCRIPT_FILE 
   }
-  set GHDL_TRANSCRIPT_FILE $FileName
+  set GHDL_TRANSCRIPT_FILE "$FileName"
   puts "Transcript $GHDL_TRANSCRIPT_FILE" 
   exec echo "Start Time [clock format [clock seconds] -format %T]" > $GHDL_TRANSCRIPT_FILE
 }
@@ -87,7 +87,7 @@ proc vendor_StopTranscript {FileName} {
 # GhdlLibraryPath
 #
 proc GhdlLibraryPath {LibraryName PathToLib} {
-  set PathAndLib ${PathToLib}/[string tolower ${LibraryName}]/v08
+  set PathAndLib "${PathToLib}/[string tolower ${LibraryName}]/v08"
   return $PathAndLib
 }
 

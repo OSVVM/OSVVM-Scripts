@@ -77,7 +77,7 @@ proc vendor_library {LibraryName PathToLib} {
 
   if {![file exists ${PathAndLib}]} {
     puts "file mkdir    ${PathAndLib}"
-    eval  file mkdir    ${PathAndLib}/64
+          file mkdir    ${PathAndLib}/64
     if {[file exists synopsys_sim.setup]} {
       set SynFile [open "synopsys_sim.setup" a]
     } else {
@@ -94,7 +94,7 @@ proc vendor_map {LibraryName PathToLib} {
 
   if {![file exists ${PathAndLib}]} {
     puts "file mkdir    ${PathAndLib}"
-    eval  file mkdir    ${PathAndLib}
+          file mkdir    ${PathAndLib}
     puts "${LibraryName} : ${PathAndLib}" > synopsys_sim.setup
   }
 }
@@ -115,7 +115,7 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
 proc vendor_analyze_verilog {LibraryName FileName} {
 #  Untested branch for Verilog - will need adjustment
    puts "Verilog is not supported for now"
-#   eval vlog -work ${LibraryName} ${FileName}
+#        vlog -work ${LibraryName} ${FileName}
 }
 
 # -------------------------------------------------

@@ -141,7 +141,7 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   # Compile it.
   echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName} 
   echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName} > ${DIR_LIB}/$LibraryName/src/${FileBaseName}.vcom
-  eval vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName}
+  vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName}
   
   cd $MY_START_DIR
 }
@@ -152,7 +152,7 @@ proc vendor_analyze_verilog {LibraryName FileName} {
 #  Untested branch for Verilog - will need adjustment
 #  Untested branch for Verilog - will need adjustment
     echo vlog -work ${LibraryName} ${FileName}
-    eval vlog -work ${LibraryName} ${FileName}
+    vlog -work ${LibraryName} ${FileName}
   cd $MY_START_DIR
 }
 
