@@ -110,7 +110,7 @@ proc include {Path_Or_File} {
   
   puts "include $Path_Or_File" 
 
-# probably move.  Redundant with analyze and simulate  
+# probably remove.  Redundant with analyze and simulate  
 #  puts "set StartingPath ${CURRENT_WORKING_DIRECTORY} Starting Include"
   # If a library does not exist, then create the default
   if {![info exists VHDL_WORKING_LIBRARY]} {
@@ -118,13 +118,16 @@ proc include {Path_Or_File} {
   }
   set StartingPath ${CURRENT_WORKING_DIRECTORY}
   
-  if {[file pathtype $Path_Or_File] eq "absolute"} {
-    set NormName [file normalize $Path_Or_File]
-  } else {
-    set NormName [file normalize ${StartingPath}/${Path_Or_File}]
-  }
-  set RootDir [file dirname $NormName]
-  set NameToHandle [file tail $NormName]
+#  if {[file pathtype $Path_Or_File] eq "absolute"} {
+#    set NormName [file normalize $Path_Or_File]
+#  } else {
+#    set NormName [file normalize ${StartingPath}/${Path_Or_File}]
+#  }
+  set JoinName [file join ${StartingPath} ${Path_Or_File}]
+  set NormName [ReducePath $JoinName]
+  set RootDir  [file dirname $NormName]
+  # Normalize to handle ".." and "."
+  set NameToHandle [file tail [file normalize $NormName]]
   set FileExtension [file extension $NameToHandle]
   
   # Path_Or_File is a File with extension .pro, .tcl, .do, .files, .dirs
@@ -198,6 +201,29 @@ proc include {Path_Or_File} {
 }
 
 # -------------------------------------------------
+proc SetLogName {Path_Or_File} {
+  # Create the Log File Name
+  # Normalize to elaborate names, especially when Path_Or_File is "."
+  set NormPathOrFile [file normalize ${Path_Or_File}]
+  set NormDir        [file dirname $NormPathOrFile]
+  set NormDirName    [file tail $NormDir]
+  set NormTail       [file tail $NormPathOrFile]
+  set NormTailRoot   [file rootname $NormTail]
+  
+  if {$NormDirName eq $NormTailRoot} {
+    # <Parent Dir>_<Script Name>.log
+#    set LogName [file tail [file dirname $NormDir]]_${NormTailRoot}
+    # <Script Name>.log
+    set LogName ${NormTailRoot}
+  } else {
+    # <Dir Name>_<Script Name>.log
+    set LogName ${NormDirName}_${NormTailRoot}
+  }
+
+  return $LogName
+}
+
+# -------------------------------------------------
 proc build {{Path_Or_File "."} {LogName "."}} {
   variable CURRENT_WORKING_DIRECTORY
   variable CURRENT_SIMULATION_DIRECTORY
@@ -223,26 +249,12 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   }  
 
   # Current Build Setup
-  set CURRENT_WORKING_DIRECTORY [pwd]  
+#  set CURRENT_WORKING_DIRECTORY [pwd]  
+  set CURRENT_WORKING_DIRECTORY ""
   CheckWorkingDir
   CheckSimulationDirs
   
-  # Create the Log File Name
-  set NormPathOrFile [file normalize ${Path_Or_File}]
-  set NormDir        [file dirname $NormPathOrFile]
-  set NormDirName    [file tail $NormDir]
-  set NormTail       [file tail $NormPathOrFile]
-  set NormTailRoot   [file rootname $NormTail]
-  
-  if {$NormDirName eq $NormTailRoot} {
-    # <Parent Dir>_<Script Name>.log
-#    set LogName [file tail [file dirname $NormDir]]_${NormTailRoot}
-    # <Script Name>.log
-    set LogName ${NormTailRoot}
-  } else {
-    # <Dir Name>_<Script Name>.log
-    set LogName ${NormDirName}_${NormTailRoot}
-  }
+  set LogName [SetLogName $Path_Or_File]
   set LogFileName ${LogName}.log
 
   set  BuildStartTime    [clock seconds] 
@@ -326,12 +338,13 @@ proc CheckWorkingDir {} {
 
   set CurrentDir [pwd]
   if {![info exists CURRENT_WORKING_DIRECTORY]} {
-    set CURRENT_WORKING_DIRECTORY $CurrentDir
+#    set CURRENT_WORKING_DIRECTORY $CurrentDir
+    set CURRENT_WORKING_DIRECTORY ""
   }
   if {![info exists CURRENT_SIMULATION_DIRECTORY]} {
     set CURRENT_SIMULATION_DIRECTORY $CurrentDir
   }
-  if {$CURRENT_SIMULATION_DIRECTORY ne $CurrentDir } {
+  if {$CURRENT_SIMULATION_DIRECTORY ne [file normalize $CurrentDir] } {
     # Simulation Directory Moved, Libraries are invalid
     set CURRENT_SIMULATION_DIRECTORY $CurrentDir   
     if {[info exists LIB_BASE_DIR]} {
@@ -379,7 +392,6 @@ proc CheckLibraryExists {} {
   }
 }
 
-
 # -------------------------------------------------
 # CheckSimulationDirs 
 #   Used by simulate
@@ -390,9 +402,26 @@ proc CheckSimulationDirs {} {
   CreateDirectory ${CURRENT_SIMULATION_DIRECTORY}/reports
 }
 
+# -------------------------------------------------
+# ReducePath 
+#   Remove "." from path
+#
+proc ReducePath {PathIn} {
+  
+  set NoDotPath ""
+  foreach item [file split $PathIn] {
+    if {$item ne "."}  {
+      lappend NoDotPath $item
+    }
+  }
+  if {$NoDotPath eq ""} {
+    set NoDotPath "."
+  }
+  return [eval file join $NoDotPath]
+}
 
 # -------------------------------------------------
-# StartTranscript 
+# StartTranscript  
 #   Used by build 
 #
 proc StartTranscript {FileBaseName} {
@@ -517,7 +546,8 @@ proc analyze {FileName} {
     
   puts "analyze $FileName"
   
-  set NormFileName  [file normalize ${CURRENT_WORKING_DIRECTORY}/${FileName}]
+#  set NormFileName  [file normalize ${CURRENT_WORKING_DIRECTORY}/${FileName}]
+  set NormFileName  [ReducePath [file join ${CURRENT_WORKING_DIRECTORY} ${FileName}]]
   set FileExtension [file extension $FileName]
 
   if {$FileExtension eq ".vhd" || $FileExtension eq ".vhdl"} {
@@ -806,7 +836,7 @@ namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
 namespace export RemoveAllLibraries CreateDirectory OsvvmInitialize
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory 
-namespace export LinkLibrary ListLibraries
+namespace export LinkLibrary ListLibraries ReducePath
 
 # end namespace ::osvvm
 }
