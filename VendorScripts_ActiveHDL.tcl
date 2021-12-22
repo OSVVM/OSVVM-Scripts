@@ -81,7 +81,7 @@ proc vendor_library {LibraryName RelativePathToLib} {
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
-  set PathToLib [file normalize RelativePathToLib]
+  set PathToLib [file normalize $RelativePathToLib]
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set PathAndLib ${PathToLib}/${LibraryName}
 
@@ -103,11 +103,12 @@ proc vendor_library {LibraryName RelativePathToLib} {
 }
 
 
-proc vendor_map {LibraryName PathToLib} {
+proc vendor_map {LibraryName RelativePathToLib} {
   variable vendor_simulate_started
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
+  set PathToLib [file normalize $RelativePathToLib]
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set PathAndLib ${PathToLib}/${LibraryName}
 
