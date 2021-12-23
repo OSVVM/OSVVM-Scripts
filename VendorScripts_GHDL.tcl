@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    12/2021   2021.12    Updated to use relative paths.
 #     6/2021   2021.06    Updated to better handle return values from GHDL
 #     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
 #     9/2020   2020.09    Initial Version
@@ -115,13 +116,14 @@ proc vendor_library {LibraryName PathToLib} {
   }
 }
 
-proc vendor_map {LibraryName PathToLib} {
+proc vendor_LinkLibrary {LibraryName PathToLib} {
   set PathAndLib [GhdlLibraryPath $LibraryName $PathToLib]
 
   if {![file exists ${PathAndLib}]} {
     error "Map:  Creating library ${PathAndLib} since it does not exist.  "
+  } else {
+    vendor_library $LibraryName $PathToLib
   }
-  vendor_library $LibraryName $PathToLib
 }
 
 proc get_tee {} {

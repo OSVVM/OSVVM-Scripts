@@ -78,32 +78,37 @@ proc vendor_library {LibraryName PathToLib} {
   if {![file exists ${PathAndLib}]} {
     puts "file mkdir    ${PathAndLib}"
           file mkdir    ${PathAndLib}
-    if {[file exists cds.lib]} {
-      set CdsFile [open "cds.lib" a]
-    } else {
-      set CdsFile [open "cds.lib" w]
-#      puts $CdsFile "softinclude ~/tools/Cadence/XCELIUM/tools/inca/files/cds.lib" 
-      puts $CdsFile "softinclude \$CDS_INST_DIR/tools/inca/files/cds.lib" 
-    }
-    puts  $CdsFile "define ${LibraryName} ${PathAndLib}" 
-    close $CdsFile
-    if {![file exists hdl.var]} {
-      set HdlFile [open "hdl.var" w]
-      puts $HdlFile "softinclude \$CDS_INST_DIR/tools/inca/files/hdl.var" 
-      puts  $HdlFile "DEFINE intovf_severity_level WARNING"
-      close $HdlFile
-    }
   }
 }
 
 
-proc vendor_map {LibraryName PathToLib} {
+proc vendor_LinkLibrary {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
-    puts "file mkdir    ${PathAndLib}"
-          file mkdir    ${PathAndLib}
-    puts "${LibraryName} : ${PathAndLib}" > synopsys_sim.setup
+    error "LinkLibrary: ${PathAndLib} does not exist."
+  }
+}
+
+# -------------------------------------------------
+proc CreateToolSetup {} {
+  variable LibraryList
+  
+  set SetupFile [open "cds.lib" w]
+  puts $SetupFile "softinclude \$CDS_INST_DIR/tools/inca/files/cds.lib" 
+  
+  foreach item $LibraryList {
+    set LibraryName [lindex $item 0]
+    set PathToLib   [lindex $item 1]
+    puts $SetupFile "define ${LibraryName} ${PathToLib}/${LibraryName}"
+  }
+  close $SetupFile
+  
+  if {![file exists hdl.var]} {
+    set HdlFile [open "hdl.var" w]
+    puts $HdlFile "softinclude \$CDS_INST_DIR/tools/inca/files/hdl.var" 
+    puts  $HdlFile "DEFINE intovf_severity_level WARNING"
+    close $HdlFile
   }
 }
 
@@ -115,6 +120,8 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   variable DIR_LIB
   variable VENDOR_TRANSCRIPT_FILE
 
+  CreateToolSetup
+
   exec echo "xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}"
   exec       xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
 #  exec       xmvhdl -CDSLIB cds.lib -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
@@ -123,6 +130,8 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
 
 proc vendor_analyze_verilog {LibraryName FileName} {
 #  Untested branch for Verilog - will need adjustment
+  CreateToolSetup
+
    puts "Verilog is not supported for now"
 #        vlog -work ${LibraryName} ${FileName}
 }
@@ -144,6 +153,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable ToolVendor
   variable simulator
   variable VENDOR_TRANSCRIPT_FILE
+
+  CreateToolSetup
 
   # Building the temp_Cadence_run.tcl Script
   set RunFile [open "temp_Cadence_run.tcl" w]

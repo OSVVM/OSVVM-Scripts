@@ -73,31 +73,36 @@ proc vendor_StopTranscript {FileName} {
 #
 proc vendor_library {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
-  puts $PathAndLib
 
   if {![file exists ${PathAndLib}]} {
     puts "file mkdir    ${PathAndLib}"
           file mkdir    ${PathAndLib}/64
-    if {[file exists synopsys_sim.setup]} {
-      set SynFile [open "synopsys_sim.setup" a]
-    } else {
-      set SynFile [open "synopsys_sim.setup" w]
-      puts $SynFile "ASSERT_STOP=FAILURE" 
-    }
-    puts  $SynFile "${LibraryName} : ${PathAndLib}" 
-    close $SynFile
   }
 }
 
-proc vendor_map {LibraryName PathToLib} {
+proc vendor_LinkLibrary {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
-    puts "file mkdir    ${PathAndLib}"
-          file mkdir    ${PathAndLib}
-    puts "${LibraryName} : ${PathAndLib}" > synopsys_sim.setup
+    error "LinkLibrary: ${PathAndLib} does not exist."
   }
 }
+
+# -------------------------------------------------
+proc CreateToolSetup {} {
+  variable LibraryList
+  
+  set SetupFile [open "synopsys_sim.setup" w]
+  puts $SetupFile "ASSERT_STOP=FAILURE" 
+  
+  foreach item $LibraryList {
+    set LibraryName [lindex $item 0]
+    set PathToLib   [lindex $item 1]
+    puts $SetupFile "${LibraryName} : ${PathToLib}/${LibraryName}"
+  }
+  close $SetupFile
+}
+
 
 # -------------------------------------------------
 # analyze
@@ -106,6 +111,8 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   variable VhdlShortVersion
   variable DIR_LIB
   variable VENDOR_TRANSCRIPT_FILE
+
+  CreateToolSetup
 
   exec echo "vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName}"
   exec       vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
@@ -135,6 +142,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable ToolVendor
   variable simulator
   variable VENDOR_TRANSCRIPT_FILE
+
+  CreateToolSetup
 
   # Building the Synopsys_run.tcl Script
   set SynFile [open "temp_Synopsys_run.tcl" w]

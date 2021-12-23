@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    12/2021   2021.12    Updated to use relative paths.
 #     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate
 #     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
 #     7/2020   2020.07    Refactored tool execution for simpler vendor customization
@@ -79,21 +80,20 @@ proc vendor_library {LibraryName PathToLib} {
   if {![file exists ${PathAndLib}]} {
     echo vlib    ${PathAndLib}
          vlib    ${PathAndLib}
+    after 1000
   }
   echo vmap    $LibraryName  ${PathAndLib}
        vmap    $LibraryName  ${PathAndLib}
 }
 
-proc vendor_map {LibraryName PathToLib} {
-  set PathAndLib ${PathToLib}/${LibraryName}.lib
+proc vendor_LinkLibrary {LibraryName PathToLib} {
+  set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
-    error "Map:  Creating library ${PathAndLib} since it does not exist.  "
-    echo vlib    ${PathAndLib}
-         vlib    ${PathAndLib}
+    error "LinkLibrary: ${PathAndLib} does not exist."
+  } else {
+    vendor_library $LibraryName $PathToLib
   }
-  echo vmap    $LibraryName  ${PathAndLib}
-       vmap    $LibraryName  ${PathAndLib}
 }
 
 

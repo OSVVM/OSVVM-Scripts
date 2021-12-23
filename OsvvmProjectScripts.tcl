@@ -19,7 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    12/2021   2021.12    Refactored for library handling.  Changed to relative paths
+#    12/2021   2021.12    Refactored for library handling.  Changed to relative paths.
 #    10/2021   2021.10    Added calls to Report2Html, Report2JUnit, and Simulate2Html
 #     3/2021   2021.03    Updated printing of start/finish times
 #     2/2021   2021.02    Updated initialization of libraries                 
@@ -98,7 +98,6 @@ proc IterateFile {FileWithNames ActionForName} {
     }
   }
 }
-
 
 # -------------------------------------------------
 # include 
@@ -222,7 +221,6 @@ proc SetLogName {Path_Or_File} {
     # <Dir Name>_<Script Name>.log
     set LogName ${NormDirName}_${NormTailRoot}
   }
-
   return $LogName
 }
 
@@ -336,30 +334,29 @@ proc CheckWorkingDir {} {
   variable VHDL_WORKING_LIBRARY
   variable LibraryList
   variable LibraryDirectoryList
-#  variable OldLibraryList
-#  variable OldLibraryDirectoryList
 
   set CurrentDir [pwd]
   if {![info exists CURRENT_WORKING_DIRECTORY]} {
 #    set CURRENT_WORKING_DIRECTORY $CurrentDir
     set CURRENT_WORKING_DIRECTORY ""
   }
-  if {![info exists CURRENT_SIMULATION_DIRECTORY]} {
-    set CURRENT_SIMULATION_DIRECTORY $CurrentDir
-  }
-  if {$CURRENT_SIMULATION_DIRECTORY ne [file normalize $CurrentDir] } {
+#  if {![info exists CURRENT_SIMULATION_DIRECTORY]} {
+#    set CURRENT_SIMULATION_DIRECTORY ""
+#  }
+  if {![info exists CURRENT_SIMULATION_DIRECTORY] || $CURRENT_SIMULATION_DIRECTORY ne [file normalize $CurrentDir] } {
     # Simulation Directory Moved, Libraries are invalid
+    puts "set CURRENT_SIMULATION_DIRECTORY $CurrentDir"
     set CURRENT_SIMULATION_DIRECTORY $CurrentDir   
     if {[info exists LIB_BASE_DIR]} {
       unset LIB_BASE_DIR
       unset DIR_LIB
-      if {[info exists VHDL_WORKING_LIBRARY]} { 
-        unset VHDL_WORKING_LIBRARY
-#        set   OldLibraryList          $LibraryList
-#        set   OldLibraryDirectoryList $LibraryDirectoryList
-        unset LibraryList
-        unset LibraryDirectoryList
-      }
+    }
+    if {[info exists VHDL_WORKING_LIBRARY]} { 
+      unset VHDL_WORKING_LIBRARY
+    }
+    if {[info exists LibraryList]} { 
+      unset LibraryList
+      unset LibraryDirectoryList
     }
   } 
 }
@@ -407,7 +404,7 @@ proc CheckSimulationDirs {} {
 
 # -------------------------------------------------
 # ReducePath 
-#   Remove "." from path
+#   Remove "." and ".." from path
 #
 proc ReducePath {PathIn} {
   
@@ -488,45 +485,94 @@ proc TerminateTranscript {} {
 }
 
 # -------------------------------------------------
-# Library
+# Library Commands
 #
-proc library {LibraryName} {
-  variable VHDL_WORKING_LIBRARY
+
+# -------------------------------------------------
+proc FindLibraryPath {PathToLib} {
   variable DIR_LIB
+  variable ToolNameVersion
+
+  set ResolvedPathToLib ""
+  if {$PathToLib eq ""} {
+    # Use existing library directory
+    set ResolvedPathToLib ${DIR_LIB}
+  } else {
+    set FullName [file join $PathToLib VHDL_LIBS ${ToolNameVersion}]
+    set LibsName [file join $PathToLib ${ToolNameVersion}]
+    if      {[file exists $FullName] && [file isdirectory $FullName]} {
+      set ResolvedPathToLib $FullName
+    } elseif {[file exists $LibsName] && [file isdirectory $LibsName]} {
+      set ResolvedPathToLib $LibsName
+    } elseif {[file exists $PathToLib] && [file isdirectory $PathToLib]} {
+      set ResolvedPathToLib $PathToLib
+    } 
+  }
+  return $ResolvedPathToLib
+}
+
+# -------------------------------------------------
+proc AddLibraryToList {LibraryName PathToLib} {
   variable LibraryList
   variable LibraryDirectoryList
-
-  CheckWorkingDir 
-  CheckLibraryInit
-  CheckSimulationDirs
-
+  
   if {![info exists LibraryList]} {
     # Create Initial empty list
     set LibraryList ""
     set LibraryDirectoryList ""
   }
-  
-  # Needs to be here to activate library (ActiveHDL)
-  puts "library $LibraryName" 
-  vendor_library $LibraryName $DIR_LIB
-  if {[lsearch $LibraryList "${LibraryName} *"] < 0} {
-    lappend LibraryList "$LibraryName $DIR_LIB"
-    if {[lsearch $LibraryDirectoryList "${DIR_LIB}"] < 0} {
-      lappend LibraryDirectoryList "$DIR_LIB"
+  set found [lsearch $LibraryList "${LibraryName} *"]
+  if {$found < 0} {
+    lappend LibraryList "$LibraryName $PathToLib"
+    if {[lsearch $LibraryDirectoryList "${PathToLib}"] < 0} {
+      lappend LibraryDirectoryList "$PathToLib"
     }
   }
-  set VHDL_WORKING_LIBRARY  $LibraryName
+  return $found
 }
 
+# -------------------------------------------------
 proc ListLibraries {} {
   variable LibraryList
   
-  foreach LibraryName $LibraryList {
-    puts $LibraryName
-  }
+  if {[info exists LibraryList]} {
+    foreach LibraryName $LibraryList {
+      puts $LibraryName
+    }
+  } 
 }
 
+# -------------------------------------------------
+# Library 
+#
+proc library {LibraryName {PathToLib ""}} {
+  variable VHDL_WORKING_LIBRARY
+  variable LibraryList
 
+  CheckWorkingDir 
+  CheckLibraryInit
+  CheckSimulationDirs
+  
+  set ResolvedPathToLib [FindLibraryPath $PathToLib]
+  if  {![file exists $ResolvedPathToLib] || ![file isdirectory $ResolvedPathToLib]} {
+    error "library $LibraryName ${PathToLib} : Library directory does not exist."
+  }
+  # Needs to be here to activate library (ActiveHDL)
+  set found [AddLibraryToList $LibraryName $ResolvedPathToLib]
+  if {$found >= 0} {
+    # Lookup Existing Library Directory
+    set item [lindex $LibraryList $found]
+    set ResolvedPathToLib [lindex $item 1]
+  }
+  puts  "library $LibraryName $ResolvedPathToLib" 
+  vendor_library $LibraryName $ResolvedPathToLib
+
+  set VHDL_WORKING_LIBRARY  $LibraryName
+}
+
+# -------------------------------------------------
+# LinkLibrary - aka map in some vendor tools
+#
 proc LinkLibrary {LibraryName {PathToLib ""}} {
   variable VHDL_WORKING_LIBRARY
   variable DIR_LIB
@@ -535,17 +581,64 @@ proc LinkLibrary {LibraryName {PathToLib ""}} {
   CheckLibraryInit
   CheckSimulationDirs
 
-  if {$PathToLib ne ""} {
-    # only for mapping to external existing library
-    set ResolvedPathToLib $PathToLib
+  puts "LinkLibrary $LibraryName $PathToLib"
+  set ResolvedPathToLib [FindLibraryPath $PathToLib]
+  if  {[file exists $ResolvedPathToLib] && [file isdirectory $ResolvedPathToLib]} {
+    if {[AddLibraryToList $LibraryName $ResolvedPathToLib] < 0} {
+      vendor_LinkLibrary $LibraryName $ResolvedPathToLib
+    }
   } else {
-    # naming pattern for project libraries
-    set ResolvedPathToLib ${DIR_LIB}/${LibraryName}
+    error "LinkLibrary $LibraryName ${PathToLib} : Library directory does not exist."
   }
+}
+
+# -------------------------------------------------
+#  LinkLibraryDirectory
+#
+proc LinkLibraryDirectory {{LibraryDirectory ""}} {
+  variable DIR_LIB
+  variable CURRENT_SIMULATION_DIRECTORY
+  variable ToolNameVersion
   
-  vendor_map $LibraryName $ResolvedPathToLib
+  CheckWorkingDir 
+  CheckLibraryInit
+  CheckSimulationDirs
+
+  set ResolvedLibraryDirectory [file normalize [FindLibraryPath $LibraryDirectory]]
+  if  {[file exists $ResolvedLibraryDirectory] && [file isdirectory $ResolvedLibraryDirectory]} {
+    foreach item [glob -directory $ResolvedLibraryDirectory *] {
+      if {[file isdirectory $item]} {
+        set LibraryName [file rootname [file tail $item]]
+        LinkLibrary $LibraryName $ResolvedLibraryDirectory
+      }
+    }  
+  } else {
+    puts "LinkLibraryDirectory $LibraryDirectory : $ResolvedLibraryDirectory does not exist"
+  }
+}
+
+# -------------------------------------------------
+# LinkCurrentLibraries
+#   EDA tools are centric to the current directory
+#   If you change directory, they loose all of their library information
+#   LinkCurrentLibraries reestablishes the library information
+#
+proc LinkCurrentLibraries {} {
+  variable LibraryList
+  set OldLibraryList $LibraryList
+ 
+  # If directory changed, update CURRENT_SIMULATION_DIRECTORY, LibraryList
+  CheckWorkingDir
   
-  set VHDL_WORKING_LIBRARY  $LibraryName
+  puts "LinkCurrentLibraries 1 \r"
+  ListLibraries
+  puts "LinkCurrentLibraries 2 \r"
+  
+  foreach item $OldLibraryList {
+    set LibraryName [lindex $item 0]
+    set PathToLib   [lindex $item 1]
+    LinkLibrary ${LibraryName} ${PathToLib}
+  }
 }
 
 # -------------------------------------------------
@@ -780,6 +873,8 @@ proc SetLibraryDirectory {{LibraryDirectory ""}} {
   variable LIB_BASE_DIR
   variable DIR_LIB
   variable VHDL_WORKING_LIBRARY
+  variable LibraryList
+  variable LibraryDirectoryList
   variable ToolNameVersion
   
   if {$LibraryDirectory eq ""} {
@@ -794,6 +889,8 @@ proc SetLibraryDirectory {{LibraryDirectory ""}} {
       }
       if {[info exists VHDL_WORKING_LIBRARY]} {
         unset VHDL_WORKING_LIBRARY
+        unset LibraryList
+        unset LibraryDirectoryList
       }
     }
   } else {
@@ -814,34 +911,6 @@ proc GetLibraryDirectory {} {
 }
 
 
-# -------------------------------------------------
-#  LinkLibraryDirectory
-#
-proc LinkLibraryDirectory {{LibraryDirectory ""}} {
-  variable DIR_LIB
-  variable CURRENT_SIMULATION_DIRECTORY
-  variable ToolNameVersion
-  
-  if {$LibraryDirectory eq ""} {
-    if {[info exists DIR_LIB]} {
-      set CurrentLib $DIR_LIB
-    } else {
-      set CurrentLib ${CURRENT_SIMULATION_DIRECTORY}/VHDL_LIBS/${ToolNameVersion}
-    }
-  } else {
-      set CurrentLib ${LibraryDirectory}/VHDL_LIBS/${ToolNameVersion}
-  }
-  if {[file isdirectory $CurrentLib]} {
-    foreach LibToLink [glob -directory $CurrentLib *] {
-      set LibName [file rootname [file tail $LibToLink]]
-      library $LibName
-    }  
-  } else {
-    puts "$CurrentLib does not exist"
-  }
-}
-
-
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
@@ -850,7 +919,8 @@ namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
 namespace export RemoveAllLibraries CreateDirectory OsvvmInitialize
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory 
-namespace export LinkLibrary ListLibraries ReducePath
+namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries
+namespace export CheckWorkingDir 
 
 # end namespace ::osvvm
 }

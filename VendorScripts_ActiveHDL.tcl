@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    12/2021   2021.12    Updated since OsvvmProjectScripts uses relative paths.
 #     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate
 #     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
 #     7/2020   2020.07    Refactored tool execution for simpler vendor customization
@@ -83,14 +84,16 @@ proc vendor_library {LibraryName RelativePathToLib} {
   }  
   set PathToLib [file normalize $RelativePathToLib]
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
     echo design create -a  $LibraryName ${PathToLib}
     design create -a  $LibraryName ${PathToLib}
   }
-  echo design open -a  ${PathAndLib}
+  puts "design open -a  ${PathAndLib}"
   design open -a  ${PathAndLib}
+  puts "design activate $LibraryName"
   design activate $LibraryName
   cd ${PathAndLib}
   if {![file exists results]} {
@@ -102,8 +105,7 @@ proc vendor_library {LibraryName RelativePathToLib} {
   cd $MY_START_DIR
 }
 
-
-proc vendor_map {LibraryName RelativePathToLib} {
+proc vendor_LinkLibrary {LibraryName RelativePathToLib} {
   variable vendor_simulate_started
   if {[info exists vendor_simulate_started]} {
     endsim
@@ -113,14 +115,10 @@ proc vendor_map {LibraryName RelativePathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
-    error "Map:  Creating library ${ResolvedPathToLib} since it does not exist.  "
-    echo design create -a  $LibraryName ${PathToLib}
-    design create -a  $LibraryName ${PathToLib}
+    error "LinkLibrary: ${PathAndLib} does not exist.  "
+  } else {
+    vendor_library $LibraryName $PathToLib
   }
-  echo design open -a  ${PathAndLib}
-  design open -a  ${PathAndLib}
-  
-  design activate $LibraryName
   cd $MY_START_DIR
 }
 
@@ -133,6 +131,7 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile} {
   
   set FileName [file normalize $RelativePathToFile]
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set FileBaseName [file rootname [file tail $FileName]]
   
   # Check src to see if it has been added
@@ -151,6 +150,7 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile} {
 
 proc vendor_analyze_verilog {LibraryName File_Relative_Path} {
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
   
   set FileName [file normalize $File_Relative_Path]
 
@@ -178,6 +178,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable simulator
 
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
   
   puts "vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}" 
   eval vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
