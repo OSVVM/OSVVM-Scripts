@@ -19,7 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    12/2021   2021.12    Refactored for library handling
+#    12/2021   2021.12    Refactored for library handling.  Changed to relative paths
 #    10/2021   2021.10    Added calls to Report2Html, Report2JUnit, and Simulate2Html
 #     3/2021   2021.03    Updated printing of start/finish times
 #     2/2021   2021.02    Updated initialization of libraries                 
@@ -130,29 +130,32 @@ proc include {Path_Or_File} {
   set NameToHandle [file tail [file normalize $NormName]]
   set FileExtension [file extension $NameToHandle]
   
-  # Path_Or_File is a File with extension .pro, .tcl, .do, .files, .dirs
   if {[file exists $NormName] && ![file isdirectory $NormName]} {
+    # Path_Or_File is <name>.pro, <name>.tcl, <name>.do, <name>.dirs, <name>.files
     puts "set CURRENT_WORKING_DIRECTORY ${RootDir}"
     set CURRENT_WORKING_DIRECTORY ${RootDir}
     if {$FileExtension eq ".pro" || $FileExtension eq ".tcl" || $FileExtension eq ".do"} {
+      # Path_Or_File is <name>.pro, <name>.tcl, or <name>.do
       puts "source ${NormName}"
       source ${NormName} 
     } elseif {$FileExtension eq ".dirs"} {
+      # Path_Or_File is <name>.dirs
       puts "IterateFile ${NormName} include"
       IterateFile ${NormName} "include"
     } else { 
     #  was elseif {$FileExtension eq ".files"} 
+      # Path_Or_File is <name>.files or other extension
       puts "IterateFile ${NormName} analyze"
       IterateFile ${NormName} "analyze"
     }
   } else {
-    # Path_Or_File is directory name
     if {[file isdirectory $NormName]} {
+      # Path_Or_File is directory name
       puts "set CURRENT_WORKING_DIRECTORY ${NormName}"
       set CURRENT_WORKING_DIRECTORY ${NormName}
       set FileBaseName ${NormName}/[file rootname ${NameToHandle}] 
     } else {
-    # Path_Or_File is name that specifies the rootname of the file(s)
+      # Path_Or_File is file name without an extension
       puts "set CURRENT_WORKING_DIRECTORY ${RootDir}"
       set CURRENT_WORKING_DIRECTORY ${RootDir}
       set FileBaseName ${NormName}
@@ -408,16 +411,27 @@ proc CheckSimulationDirs {} {
 #
 proc ReducePath {PathIn} {
   
-  set NoDotPath ""
+  set CharCount 0
+  set NewPath {}
   foreach item [file split $PathIn] {
-    if {$item ne "."}  {
-      lappend NoDotPath $item
+    if {$item ne ".."}  {
+      if {$item ne "."}  {
+        lappend NewPath $item
+        incr CharCount 1
+      }
+    } else {
+      if {$CharCount >= 1} { 
+        set NewPath [lreplace $NewPath end end]
+        incr CharCount -1
+      } else {
+        lappend NewPath $item
+      }
     }
   }
-  if {$NoDotPath eq ""} {
-    set NoDotPath "."
+  if {$NewPath eq ""} {
+    set NewPath "."
   }
-  return [eval file join $NoDotPath]
+  return [eval file join $NewPath]
 }
 
 # -------------------------------------------------
