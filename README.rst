@@ -526,109 +526,136 @@ and the simulation will fail to run.
 If this happens, it will be detected and recorded
 as a test failure in the build summary report.
 
-Command Summary
+Command Summary 
 ----------------
+Commands are case sensitive.  Single word names are
+all lower case.  Multiple word names are CamelCase.
 
-+-------------------------+----------------------------------------------+
-| **Command**             | **Description**                              |
-+=========================+==============================================+
-| library <library>       | Make the library the active library. If      |
-|                         | the                                          |
-|                         | library does not exist, create it and        |
-|                         | create a                                     |
-|                         | mapping to it. Libraries are created in      |
-|                         | the                                          |
-|                         | path specified by LIB_BASE_DIR in            |
-|                         | Scripts/StartUp.tcl.                         |
-+-------------------------+----------------------------------------------+
-| analyze <file>          | Compile the file. A path name specified      |
-|                         | is                                           |
-|                         | relative to the location of the current      |
-|                         | <file>.pro                                   |
-|                         | directory location. Library is the one       |
-|                         | specified in the previous library            |
-|                         | command.                                     |
-+-------------------------+----------------------------------------------+
-| simulate <design-unit>  | Start a simulation on the design unit.       |
-|                         | Library is the one specified in the          |
-|                         | previous                                     |
-|                         | library command.                             |
-+-------------------------+----------------------------------------------+
-| RunTest <file>          | RunTest combines TestCase, analyze, and      |
-|                         | simulate.                                    |
-| RunTest <file> <name>   | RunTest optionally takes two parameters.     |
-|                         | With two parameters, the first is the file   |
-|                         | name to analyze, the second is the design    |
-|                         | unit name to use for simulation and TestCase.|
-|                         | With one parameter, the first parameter is   |
-|                         | the file name.  The second parameter is      |
-|                         | the base name of the file name - any path    |
-|                         | and file extension are removed.              |
-+-------------------------+----------------------------------------------+
-| include <name>          | Include accepts an argument "name" that      |
-|                         | is                                           |
-| include <path>/<name>   | either a file or a directory. If it is       |
-|                         | a                                            |
-|                         | file and its extension is.pro, .tcl, or      |
-|                         | .do,                                         |
-|                         | it will be sourced.                          |
-+-------------------------+----------------------------------------------+
-|                         | If "name" is a directory, then files         |
-|                         | whose                                        |
-|                         | name is "name" and whose extension is        |
-|                         | .pro,                                        |
-|                         | .tcl, or .do, it will be sourced.            |
-+-------------------------+----------------------------------------------+
-|                         | Both <name> and <path>/<name> are            |
-|                         | relative to the current directory from       |
-|                         | which                                        |
-|                         | the script is running.                       |
-+-------------------------+----------------------------------------------+
-|                         | Extensions of the form ".files" or           |
-|                         | ".dirs is                                    |
-|                         | handled in a manner described                |
-|                         | in"Deprecated                                |
-|                         | Descriptor Files".                           |
-+-------------------------+----------------------------------------------+
-| build <directory>       | Re-initializes the working directory to      |
-|                         | the script directory, opens a                |
-| build <path>/<file>     | transcript                                   |
-|                         | file, and calls include. A path name         |
-|                         | specified is relative to the location        |
-|                         | of                                           |
-|                         | the current <file>.pro directory             |
-|                         | location.                                    |
-+-------------------------+----------------------------------------------+
-| SetVHDLVersion          | Set VHDL analyze version.                    |
-|                         | Valid values = (2008, 2019, 1993, 2002).     |
-|                         | OSVVM libraries require 2008 or newer        |
-+-------------------------+----------------------------------------------+
-| GetVHDLVersion          | Return the current VHDL Version              |
-+-------------------------+----------------------------------------------+
-| SetSimulatorResolution  | Set Simulator Resolution.                    |
-|                         | Any value supported by the simulator is      |
-|                         | ok.                                          |
-+-------------------------+----------------------------------------------+
-| GetSimulatorResolution  | Return the current Simulator Resolution      |
-+-------------------------+----------------------------------------------+
-| TestCase <name>         | Set the test case name.                      |
-+-------------------------+----------------------------------------------+
-| TestSuite <name>        | Set the test suite name.                     |
-+-------------------------+----------------------------------------------+
-| map <library> [<path>]  | Create a mapping to a library                |
-+-------------------------+----------------------------------------------+
-| RemoveAllLibraries      | Delete all of the working libraries.         |
-+-------------------------+----------------------------------------------+
-| LinkLibrary             | Link libraries that are in the               |
-|                         | LibraryDirectory                             |
-|                         | LibraryDirectory is the directory that       |
-|                         | contains                                     |
-|                         | an OSVVM created VHDL_LIBS directory         |
-+-------------------------+----------------------------------------------+
-| Undocumented Procedures | Any undocumented procedure is in             |
-|                         | development                                  |
-|                         | and may change in a future revision          |
-+-------------------------+----------------------------------------------+
+library <library> [<path>] 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Make the library the active library. If the 
+library does not exist, create it and create a 
+mapping to it. Libraries are created in the 
+path specified by LIB_BASE_DIR in Scripts/StartUp.tcl. 
+
+LinkLibrary <library> [<path>]  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Create a mapping to a library that was already created.
+
+LinkLibraryDirectory [LibraryDirectory]  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Map all of the libraries in the specified library directory.
+If one is not specified, one is looked for in the current 
+directory.
+
+SetLibraryDirectory [LibraryDirectory]  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set the directory in which the libraries will be created.
+The libraries will be created in this directory in a 
+directory named, "VHDL_LIBS/<tool version>/".
+
+GetLibraryDirectory  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get the Library Directory.
+
+analyze <file>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Compile the file. A path name specified is
+relative to the location of the current <file>.pro
+directory location. Library is the one 
+specified in the previous library command.
+
+simulate <design-unit>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Start a simulation on the design unit. 
+Library is the one specified in the 
+previous library command.   
+
+RunTest <file> [<name>]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+RunTest combines TestCase, analyze, and simulate. 
+RunTest optionally takes two parameters. 
+With two parameters, the first is the file 
+name to analyze, the second is the design 
+unit name to use for simulation and TestCase. 
+With one parameter, the first parameter is 
+the file name.  The second parameter is 
+the base name of the file name - any path 
+and file extension are removed. 
+
+include [<path>/]<name>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Include accepts an argument "name" that 
+is either a file or a directory. If it  
+is a file and its extension is .pro, .tcl, 
+or .do, it will be sourced. 
+
+If "name" is a directory, then files 
+whose name is "name" and whose extension is 
+.pro, .tcl, or .do, it will be sourced. 
+
+All paths and names specifed are relative are 
+relative to the current directory from 
+which the script is running. 
+
+Extensions of the form ".files" or 
+".dirs is handled in a manner described 
+in "Deprecated Descriptor Files". 
+
+build [<path>/]<name>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Re-initializes the working directory to 
+the script directory, opens a transcript 
+file, and calls include. A path name 
+specified is relative to the location of 
+the current <file>.pro directory location.
+
+SetVHDLVersion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set VHDL analyze version. 
+Valid values = (2008, 2019, 1993, 2002). 
+OSVVM libraries require 2008 or newer.
+
+GetVHDLVersion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Return the current VHDL Version.
+
+SetSimulatorResolution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set Simulator Resolution. 
+Any value supported by the simulator is ok.
+
+GetSimulatorResolution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Return the current Simulator Resolution.
+
+TestCase <name>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set the test case name.
+
+SkipTest <string>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Adds a place holder in the results file for a test case 
+that does not run in a particular tool. 
+The <string> value specifies the reason the test case 
+was skipped in this tool.
+
+TestSuite <name> 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set the test suite name. 
+
+LinkCurrentLibraries 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+EDA tools are centric to the current directory
+If you change directory, the EDA tool will loose 
+all of its library mapping information. 
+If immediately after a change directory, a LinkCurrentLibraries
+is called, then all existing libraries will be mapped in 
+the current directory.
+
+RemoveAllLibraries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Delete all of the working libraries.
 
 
 Deprecated Descriptor Files

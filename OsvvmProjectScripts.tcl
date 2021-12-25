@@ -129,7 +129,7 @@ proc include {Path_Or_File} {
   set NameToHandle [file tail [file normalize $NormName]]
   set FileExtension [file extension $NameToHandle]
   
-  if {[file exists $NormName] && ![file isdirectory $NormName]} {
+  if {[file isfile $NormName]} {
     # Path_Or_File is <name>.pro, <name>.tcl, <name>.do, <name>.dirs, <name>.files
     puts "set CURRENT_WORKING_DIRECTORY ${RootDir}"
     set CURRENT_WORKING_DIRECTORY ${RootDir}
@@ -167,29 +167,29 @@ proc include {Path_Or_File} {
     set FileDoName     ${FileBaseName}.do
 
     set FoundActivity 0
-    if {[file exists ${FileProName}]} {
+    if {[file isfile ${FileProName}]} {
       puts "source ${FileProName}"
       source ${FileProName} 
       set FoundActivity 1
     } 
     # .dirs is intended to be deprecated in favor of .pro
-    if {[file exists ${FileDirsName}]} {
+    if {[file isfile ${FileDirsName}]} {
       IterateFile ${FileDirsName} "include"
       set FoundActivity 1
     }
     # .files is intended to be deprecated in favor of .pro
-    if {[file exists ${FileFilesName}]} {
+    if {[file isfile ${FileFilesName}]} {
       IterateFile ${FileFilesName} "analyze"
       set FoundActivity 1
     }
     # .tcl intended for extended capability
-    if {[file exists ${FileTclName}]} {
+    if {[file isfile ${FileTclName}]} {
       puts "do ${FileTclName} ${CURRENT_WORKING_DIRECTORY}"
       eval do ${FileTclName} ${CURRENT_WORKING_DIRECTORY}
       set FoundActivity 1
     }
     # .do intended for extended capability
-    if {[file exists ${FileDoName}]} {
+    if {[file isfile ${FileDoName}]} {
       puts "do ${FileDoName} ${CURRENT_WORKING_DIRECTORY}"
       eval do ${FileDoName} ${CURRENT_WORKING_DIRECTORY}
       set FoundActivity 1
@@ -318,7 +318,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
 # CreateDirectory - Create directory if does not exist
 #
 proc CreateDirectory {Directory} {
-  if {![file exists $Directory]} {
+  if {![file isdirectory $Directory]} {
     puts "creating directory $Directory"
     file mkdir $Directory
   }
@@ -357,6 +357,9 @@ proc CheckWorkingDir {} {
     if {[info exists LibraryList]} { 
       unset LibraryList
       unset LibraryDirectoryList
+    }
+    if {[info exists DIR_LOGS]} { 
+      unset DIR_LOGS
     }
   } 
 }
@@ -500,11 +503,11 @@ proc FindLibraryPath {PathToLib} {
   } else {
     set FullName [file join $PathToLib VHDL_LIBS ${ToolNameVersion}]
     set LibsName [file join $PathToLib ${ToolNameVersion}]
-    if      {[file exists $FullName] && [file isdirectory $FullName]} {
+    if      {[file isdirectory $FullName]} {
       set ResolvedPathToLib $FullName
-    } elseif {[file exists $LibsName] && [file isdirectory $LibsName]} {
+    } elseif {[file isdirectory $LibsName]} {
       set ResolvedPathToLib $LibsName
-    } elseif {[file exists $PathToLib] && [file isdirectory $PathToLib]} {
+    } elseif {[file isdirectory $PathToLib]} {
       set ResolvedPathToLib $PathToLib
     } 
   }
@@ -521,9 +524,10 @@ proc AddLibraryToList {LibraryName PathToLib} {
     set LibraryList ""
     set LibraryDirectoryList ""
   }
-  set found [lsearch $LibraryList "${LibraryName} *"]
+  set LowerLibraryName [string tolower $LibraryName]
+  set found [lsearch $LibraryList "${LowerLibraryName} *"]
   if {$found < 0} {
-    lappend LibraryList "$LibraryName $PathToLib"
+    lappend LibraryList "$LowerLibraryName $PathToLib"
     if {[lsearch $LibraryDirectoryList "${PathToLib}"] < 0} {
       lappend LibraryDirectoryList "$PathToLib"
     }
@@ -554,7 +558,7 @@ proc library {LibraryName {PathToLib ""}} {
   CheckSimulationDirs
   
   set ResolvedPathToLib [FindLibraryPath $PathToLib]
-  if  {![file exists $ResolvedPathToLib] || ![file isdirectory $ResolvedPathToLib]} {
+  if  {![file isdirectory $ResolvedPathToLib]} {
     error "library $LibraryName ${PathToLib} : Library directory does not exist."
   }
   # Needs to be here to activate library (ActiveHDL)
@@ -583,7 +587,7 @@ proc LinkLibrary {LibraryName {PathToLib ""}} {
 
   puts "LinkLibrary $LibraryName $PathToLib"
   set ResolvedPathToLib [FindLibraryPath $PathToLib]
-  if  {[file exists $ResolvedPathToLib] && [file isdirectory $ResolvedPathToLib]} {
+  if  {[file isdirectory $ResolvedPathToLib]} {
     if {[AddLibraryToList $LibraryName $ResolvedPathToLib] < 0} {
       vendor_LinkLibrary $LibraryName $ResolvedPathToLib
     }
@@ -605,7 +609,7 @@ proc LinkLibraryDirectory {{LibraryDirectory ""}} {
   CheckSimulationDirs
 
   set ResolvedLibraryDirectory [file normalize [FindLibraryPath $LibraryDirectory]]
-  if  {[file exists $ResolvedLibraryDirectory] && [file isdirectory $ResolvedLibraryDirectory]} {
+  if  {[file isdirectory $ResolvedLibraryDirectory]} {
     foreach item [glob -directory $ResolvedLibraryDirectory *] {
       if {[file isdirectory $item]} {
         set LibraryName [file rootname [file tail $item]]
@@ -710,10 +714,10 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
 
   set Coverage [Simulate2Html $TestCaseName $TestSuiteName]
 
-  if {[file exists ${::osvvm::OsvvmYamlResultsFile}]} {
+  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
     puts  $RunFile "      ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
-    if {[file exists reports/${TestCaseName}_cov.yml]} {
+    if {[file isfile reports/${TestCaseName}_cov.yml]} {
 #!! This needs to be adjusted to be calculated functional coverage from the file.
 #      puts  $RunFile "      FunctionalCoverage: reports/${TestCaseName}.html#FunctionalCoverage"
       puts  $RunFile "      FunctionalCoverage: ${Coverage}"
@@ -733,7 +737,7 @@ proc TestSuite {SuiteName} {
   variable TestSuiteStartTimeMs
 
 
-  if {[file exists ${::osvvm::OsvvmYamlResultsFile}]} {
+  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
   } else {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
@@ -767,7 +771,7 @@ proc TestCase {TestName} {
   
   set TestCaseName $TestName
 
-  if {[file exists ${::osvvm::OsvvmYamlResultsFile}]} {
+  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
   } else {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
@@ -805,7 +809,7 @@ proc SkipTest {FileName Reason} {
   
   puts "SkipTest $FileName $Reason"
   
-  if {[file exists ${::osvvm::OsvvmYamlResultsFile}]} {
+  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
   } else {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
@@ -864,39 +868,21 @@ proc GetSimulatorResolution {} {
   return $SIMULATE_TIME_UNITS
 }
 
-
 # -------------------------------------------------
 # SetLibraryDirectory
 #
-proc SetLibraryDirectory {{LibraryDirectory ""}} {
-  variable CURRENT_SIMULATION_DIRECTORY
+proc SetLibraryDirectory {{LibraryDirectory "."}} {
   variable LIB_BASE_DIR
   variable DIR_LIB
-  variable VHDL_WORKING_LIBRARY
-  variable LibraryList
-  variable LibraryDirectoryList
   variable ToolNameVersion
-  
+
   if {$LibraryDirectory eq ""} {
-    if {[info exists CURRENT_SIMULATION_DIRECTORY]} {
-      set LIB_BASE_DIR $CURRENT_SIMULATION_DIRECTORY
-      set DIR_LIB      ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
-    } else {
-      # Instead, will be set by first call to build, include, analyze, simulate, or library
-      if {[info exists LIB_BASE_DIR]} {
-        unset LIB_BASE_DIR
-        unset DIR_LIB
-      }
-      if {[info exists VHDL_WORKING_LIBRARY]} {
-        unset VHDL_WORKING_LIBRARY
-        unset LibraryList
-        unset LibraryDirectoryList
-      }
-    }
+    set LIB_BASE_DIR [file normalize "."]
   } else {
-    set LIB_BASE_DIR $LibraryDirectory
-    set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
+    set LIB_BASE_DIR [file normalize $LibraryDirectory]
   }
+  CreateDirectory $LIB_BASE_DIR
+  set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
 }
 
 proc GetLibraryDirectory {} { 
@@ -910,6 +896,27 @@ proc GetLibraryDirectory {} {
   }
 }
 
+# -------------------------------------------------
+# RemoveAllLibraries
+#
+proc RemoveAllLibraries {} {
+  variable LibraryDirectoryList
+  variable LibraryList
+  variable VHDL_WORKING_LIBRARY
+  
+  if {[info exists LibraryDirectoryList]} {
+    foreach LibraryDir $LibraryDirectoryList {
+      file delete -force -- $LibraryDir
+    }
+  }
+  if {[info exists VHDL_WORKING_LIBRARY]} { 
+    unset VHDL_WORKING_LIBRARY
+  }
+  if {[info exists LibraryList]} { 
+    unset LibraryList
+    unset LibraryDirectoryList
+  }
+}
 
 # Don't export the following due to conflicts with Tcl built-ins
 # map
@@ -920,7 +927,6 @@ namespace export RemoveAllLibraries CreateDirectory OsvvmInitialize
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory 
 namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries
-namespace export CheckWorkingDir 
 
 # end namespace ::osvvm
 }
