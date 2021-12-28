@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    12/2021   2021.12    Updated to use relative paths.
 #     9/2021   2021.09    Created from VendorScripts_xxx.tcl
 #
 #

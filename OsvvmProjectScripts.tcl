@@ -225,6 +225,8 @@ proc SetLogName {Path_Or_File} {
 }
 
 # -------------------------------------------------
+# build 
+#
 proc build {{Path_Or_File "."} {LogName "."}} {
   variable CURRENT_WORKING_DIRECTORY
   variable CURRENT_SIMULATION_DIRECTORY
@@ -245,7 +247,7 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   # End simulations if started - only set by simulate
   if {[info exists vendor_simulate_started]} {
     puts "Ending Previous Simulation"
-    vendor_end_previous_simulation
+    EndSimulation
     unset vendor_simulate_started
   }  
 
@@ -358,9 +360,6 @@ proc CheckWorkingDir {} {
       unset LibraryList
       unset LibraryDirectoryList
     }
-    if {[info exists DIR_LOGS]} { 
-      unset DIR_LOGS
-    }
   } 
 }
 
@@ -446,11 +445,8 @@ proc StartTranscript {FileBaseName} {
   
   CheckWorkingDir 
 
-  if {![info exists DIR_LOGS]} {
-    set DIR_LOGS   ${CURRENT_SIMULATION_DIRECTORY}/logs/${ToolNameVersion}
-  }
-
   if {($FileBaseName ne "NONE.log") && (![info exists CurrentTranscript])} {
+    set DIR_LOGS   ${CURRENT_SIMULATION_DIRECTORY}/logs/${ToolNameVersion}
     # Create directories if they do not exist
     set FileName [file join $DIR_LOGS $FileBaseName]
     CreateDirectory [file dirname $FileName]
@@ -488,6 +484,16 @@ proc TerminateTranscript {} {
 }
 
 # -------------------------------------------------
+# TerminateTranscript 
+#   Used by build 
+#
+proc EndSimulation {} {
+
+  vendor_end_previous_simulation
+}
+
+
+# -------------------------------------------------
 # Library Commands
 #
 
@@ -504,11 +510,11 @@ proc FindLibraryPath {PathToLib} {
     set FullName [file join $PathToLib VHDL_LIBS ${ToolNameVersion}]
     set LibsName [file join $PathToLib ${ToolNameVersion}]
     if      {[file isdirectory $FullName]} {
-      set ResolvedPathToLib $FullName
+      set ResolvedPathToLib [file normalize $FullName]
     } elseif {[file isdirectory $LibsName]} {
-      set ResolvedPathToLib $LibsName
+      set ResolvedPathToLib [file normalize $LibsName]
     } elseif {[file isdirectory $PathToLib]} {
-      set ResolvedPathToLib $PathToLib
+      set ResolvedPathToLib [file normalize $PathToLib]
     } 
   }
   return $ResolvedPathToLib
@@ -558,6 +564,7 @@ proc library {LibraryName {PathToLib ""}} {
   CheckSimulationDirs
   
   set ResolvedPathToLib [FindLibraryPath $PathToLib]
+  
   if  {![file isdirectory $ResolvedPathToLib]} {
     error "library $LibraryName ${PathToLib} : Library directory does not exist."
   }
@@ -608,7 +615,7 @@ proc LinkLibraryDirectory {{LibraryDirectory ""}} {
   CheckLibraryInit
   CheckSimulationDirs
 
-  set ResolvedLibraryDirectory [file normalize [FindLibraryPath $LibraryDirectory]]
+  set ResolvedLibraryDirectory [FindLibraryPath $LibraryDirectory]
   if  {[file isdirectory $ResolvedLibraryDirectory]} {
     foreach item [glob -directory $ResolvedLibraryDirectory *] {
       if {[file isdirectory $item]} {
@@ -633,11 +640,7 @@ proc LinkCurrentLibraries {} {
  
   # If directory changed, update CURRENT_SIMULATION_DIRECTORY, LibraryList
   CheckWorkingDir
-  
-  puts "LinkCurrentLibraries 1 \r"
-  ListLibraries
-  puts "LinkCurrentLibraries 2 \r"
-  
+    
   foreach item $OldLibraryList {
     set LibraryName [lindex $item 0]
     set PathToLib   [lindex $item 1]
@@ -689,7 +692,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   }  
   
   if {[info exists vendor_simulate_started]} {
-    vendor_end_previous_simulation
+    EndSimulation
   }  
   set vendor_simulate_started 1
   
@@ -882,6 +885,7 @@ proc SetLibraryDirectory {{LibraryDirectory "."}} {
     set LIB_BASE_DIR [file normalize $LibraryDirectory]
   }
   CreateDirectory $LIB_BASE_DIR
+#  puts "set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}"
   set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
 }
 
@@ -926,7 +930,8 @@ namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
 namespace export RemoveAllLibraries CreateDirectory OsvvmInitialize
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory 
-namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries
+namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries 
+namespace export FindLibraryPath EndSimulation
 
 # end namespace ::osvvm
 }
