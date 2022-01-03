@@ -720,13 +720,11 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
     puts  $RunFile "      ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
-    if {[file isfile reports/${TestCaseName}_cov.yml]} {
-#!! This needs to be adjusted to be calculated functional coverage from the file.
-#      puts  $RunFile "      FunctionalCoverage: reports/${TestCaseName}.html#FunctionalCoverage"
-      puts  $RunFile "      FunctionalCoverage: ${Coverage}"
-    } else {
-      puts  $RunFile "      FunctionalCoverage: "
-    }
+#    if {[file isfile reports/${TestCaseName}_cov.yml]} {
+#      puts  $RunFile "      FunctionalCoverage: ${Coverage}"
+#    } else {
+#      puts  $RunFile "      FunctionalCoverage: "
+#    }
     close $RunFile
   }
   
