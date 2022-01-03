@@ -131,7 +131,13 @@ proc OsvvmCovBins2Html {ModelDict} {
     puts $ResultsFile "        <td>[dict get $BinDict Type]</td>"
     set RangeArray [dict get $BinDict Range]
     foreach RangeDict $RangeArray {
-      puts $ResultsFile "        <td>[dict get $RangeDict Min] to [dict get $RangeDict Max]</td>"
+      set MinRange [dict get $RangeDict Min]
+      set MaxRange [dict get $RangeDict Max]
+      if {${MinRange} > -2147483647 && ${MaxRange} < 2147483647} {
+        puts $ResultsFile "        <td>${MinRange} to ${MaxRange}</td>"
+      } else {
+        puts $ResultsFile "        <td>ALL</td>"
+      }
     }
     puts $ResultsFile "        <td>[dict get $BinDict Count]</td>"
     puts $ResultsFile "        <td>[dict get $BinDict AtLeast]</td>"
