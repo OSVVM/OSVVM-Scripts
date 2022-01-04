@@ -75,7 +75,7 @@ proc vendor_StopTranscript {FileName} {
 # Library
 #
 proc vendor_library {LibraryName PathToLib} {
-  set PathAndLib ${PathToLib}/${LibraryName}.lib
+  set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
     echo vlib    ${PathAndLib}
