@@ -55,7 +55,7 @@
   variable ToolVendor  "Aldec"
   variable simulator   "RivieraPRO"
   #  Could differentiate between RivieraPRO and VSimSA
-  variable ToolNameVersion ${simulator}-[asimVersion]
+  variable ToolNameVersion ${simulator}-[asimversion]
   puts $ToolNameVersion
 
 
