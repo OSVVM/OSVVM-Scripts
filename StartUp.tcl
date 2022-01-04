@@ -78,7 +78,7 @@ namespace eval ::osvvm {
     } else {
       source ${SCRIPT_DIR}/VendorScripts_ActiveHDL.tcl
     }
-  } elseif {[string match $ToolExecutableName "vish"]} {
+  } elseif {$ToolExecutableName eq "vish" || $ToolExecutableName eq "vsimk"} {
     source ${SCRIPT_DIR}/VendorScripts_Mentor.tcl
   } elseif {[string match -nocase $ToolExecutableName "vivado"]} {
     source ${SCRIPT_DIR}/VendorScripts_Vivado.tcl
