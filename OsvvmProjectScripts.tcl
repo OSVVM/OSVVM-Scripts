@@ -899,8 +899,27 @@ proc GetLibraryDirectory {} {
 }
 
 # -------------------------------------------------
-# RemoveAllLibraries
+# RemoveLocalLibraries
 #
+proc RemoveLocalLibraries {} {
+  variable LibraryDirectoryList
+  variable LibraryList
+  variable VHDL_WORKING_LIBRARY
+  variable DIR_LIB
+  
+  if {[info exists DIR_LIB]} {
+    file delete -force -- $DIR_LIB
+  }
+  if {[info exists VHDL_WORKING_LIBRARY]} { 
+    unset VHDL_WORKING_LIBRARY
+  }
+##!! TODO:  Remove libraries whose directory is DIR_LIB   
+  if {[info exists LibraryList]} { 
+    unset LibraryList
+    unset LibraryDirectoryList
+  }
+}
+
 proc RemoveAllLibraries {} {
   variable LibraryDirectoryList
   variable LibraryList
@@ -920,12 +939,13 @@ proc RemoveAllLibraries {} {
   }
 }
 
+
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
 namespace export analyze simulate build include library RunTest SkipTest TestSuite TestCase
 namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
-namespace export RemoveAllLibraries CreateDirectory OsvvmInitialize
+namespace export RemoveAllLibraries RemoveLocalLibraries CreateDirectory 
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory 
 namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries 
