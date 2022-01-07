@@ -149,7 +149,7 @@ proc get_tee {} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName} {
+proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlShortVersion
   variable ghdl 
   variable console
@@ -170,7 +170,7 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   exec        $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} |& {*}[get_tee]
 }
 
-proc vendor_analyze_verilog {LibraryName FileName} {
+proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
   variable GHDL_TRANSCRIPT_FILE
 
   puts "Analyzing verilog files not supported by GHDL" 

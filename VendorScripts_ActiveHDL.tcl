@@ -125,7 +125,7 @@ proc vendor_LinkLibrary {LibraryName RelativePathToLib} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName RelativePathToFile} {
+proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
   variable VhdlVersion
   variable DIR_LIB
   
@@ -148,7 +148,7 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile} {
   cd $MY_START_DIR
 }
 
-proc vendor_analyze_verilog {LibraryName File_Relative_Path} {
+proc vendor_analyze_verilog {LibraryName File_Relative_Path OptionalCommands} {
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
   
@@ -156,8 +156,8 @@ proc vendor_analyze_verilog {LibraryName File_Relative_Path} {
 
 #  Untested branch for Verilog - will need adjustment
 #  Untested branch for Verilog - will need adjustment
-    echo vlog -work ${LibraryName} ${FileName}
-    vlog -work ${LibraryName} ${FileName}
+    echo vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+         vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
   cd $MY_START_DIR
 }
 

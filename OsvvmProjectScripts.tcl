@@ -651,7 +651,7 @@ proc LinkCurrentLibraries {} {
 # -------------------------------------------------
 # analyze
 #
-proc analyze {FileName} {
+proc analyze {FileName {OptionalCommands ""}} {
   variable VHDL_WORKING_LIBRARY
   variable CURRENT_WORKING_DIRECTORY
   
@@ -665,9 +665,9 @@ proc analyze {FileName} {
   set FileExtension [file extension $FileName]
 
   if {$FileExtension eq ".vhd" || $FileExtension eq ".vhdl"} {
-    vendor_analyze_vhdl ${VHDL_WORKING_LIBRARY} ${NormFileName}
+    vendor_analyze_vhdl ${VHDL_WORKING_LIBRARY} ${NormFileName} ${OptionalCommands}
   } elseif {$FileExtension eq ".v"} {
-    vendor_analyze_verilog ${VHDL_WORKING_LIBRARY} ${NormFileName}
+    vendor_analyze_verilog ${VHDL_WORKING_LIBRARY} ${NormFileName} ${OptionalCommands}
   } elseif {$FileExtension eq ".lib"} {
     #  for handling older deprecated file format
     library [file rootname $FileName]

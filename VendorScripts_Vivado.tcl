@@ -84,7 +84,7 @@ proc vendor_map {LibraryName PathToLib} {}
 # analyze
 #
 
-proc vendor_analyze_vhdl {LibraryName FileName} {
+proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlVersion
   if {$VhdlVersion eq "2008"} {
     set f [read_vhdl -library $LibraryName -vhdl2008 $FileName]
@@ -104,9 +104,9 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
   }
 }
 
-proc vendor_analyze_verilog {LibraryName FileName} {
-  set f [read_verilog -library $LibraryName $FileName]
-  if {$f eq {}} {
+proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
+  set f [read_verilog -library $LibraryName  {*}${OptionalCommands} $FileName]
+  if {$f eq {}} { 
     # The file was already present in the project, so update the parameters
     set f [get_files $FileName]
     set_property LIBRARY $LibraryName $f

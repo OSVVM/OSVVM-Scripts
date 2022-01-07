@@ -103,16 +103,17 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName} {
+proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlVersion
   puts "vcom -${VhdlVersion} -work ${LibraryName} ${FileName} "
         vcom -${VhdlVersion} -work ${LibraryName} ${FileName}
 }
 
-proc vendor_analyze_verilog {LibraryName FileName} {
+proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #  Untested branch for Verilog - will need adjustment
-  puts "vlog -work ${LibraryName} ${FileName} "
-        vlog -work ${LibraryName} ${FileName}
+#  Untested branch for Verilog - will need adjustment
+  puts "vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName} "
+        vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
 }
 
 # -------------------------------------------------

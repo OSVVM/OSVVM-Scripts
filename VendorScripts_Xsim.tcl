@@ -98,7 +98,7 @@ proc vendor_map {LibraryName PathToLib} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName} {
+proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlVersion
   variable DIR_LIB
 
@@ -112,7 +112,7 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
    exec xvhdl --${VhdlVersion} --work ${LibraryName} ${FileName}
 }
 
-proc vendor_analyze_verilog {LibraryName FileName} {
+proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #  Untested branch for Verilog - will need adjustment
    puts "Verilog is not supported for now"
 #   eval vlog -work ${LibraryName} ${FileName}

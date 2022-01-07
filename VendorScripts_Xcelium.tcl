@@ -116,7 +116,7 @@ proc CreateToolSetup {} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName} {
+proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlShortVersion
   variable DIR_LIB
   variable VENDOR_TRANSCRIPT_FILE
@@ -129,7 +129,7 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
 }
 
 
-proc vendor_analyze_verilog {LibraryName FileName} {
+proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #  Untested branch for Verilog - will need adjustment
   CreateToolSetup
 

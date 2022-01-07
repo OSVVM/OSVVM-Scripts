@@ -108,7 +108,7 @@ proc CreateToolSetup {} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName} {
+proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlShortVersion
   variable DIR_LIB
   variable VENDOR_TRANSCRIPT_FILE
@@ -120,7 +120,7 @@ proc vendor_analyze_vhdl {LibraryName FileName} {
 #  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -kdb -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
 }
 
-proc vendor_analyze_verilog {LibraryName FileName} {
+proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #  Untested branch for Verilog - will need adjustment
    puts "Verilog is not supported for now"
 #        vlog -work ${LibraryName} ${FileName}
