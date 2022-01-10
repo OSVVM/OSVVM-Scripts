@@ -68,13 +68,12 @@ namespace eval ::osvvm {
   variable ToolExecutableName [file rootname [file tail $ToolExecutable]]
 
   if {[info exists aldec]} {
-    if {$ToolExecutableName eq "riviera" || $ToolExecutableName eq "vsimsa"} {
+    variable ToolFamily [lindex [split [vsim -version]] 2]
+    if {$ToolFamily eq "Riviera-PRO"} { 
       source ${SCRIPT_DIR}/VendorScripts_RivieraPro.tcl
-
-    } elseif {[string match $ToolExecutableName "VSimSA"]} {
+    } elseif {[string match -nocase $ToolExecutableName "vsimsa"]} {
       set SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
       source ${SCRIPT_DIR}/VendorScripts_VSimSA.tcl
-
     } else {
       source ${SCRIPT_DIR}/VendorScripts_ActiveHDL.tcl
     }
