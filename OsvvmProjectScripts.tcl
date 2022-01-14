@@ -530,10 +530,10 @@ proc AddLibraryToList {LibraryName PathToLib} {
     set LibraryList ""
     set LibraryDirectoryList ""
   }
-  set LowerLibraryName [string tolower $LibraryName]
-  set found [lsearch $LibraryList "${LowerLibraryName} *"]
+#  set LowerLibraryName [string tolower $LibraryName]
+  set found [lsearch $LibraryList "${LibraryName} *"]
   if {$found < 0} {
-    lappend LibraryList "$LowerLibraryName $PathToLib"
+    lappend LibraryList "$LibraryName $PathToLib"
     if {[lsearch $LibraryDirectoryList "${PathToLib}"] < 0} {
       lappend LibraryDirectoryList "$PathToLib"
     }
@@ -564,19 +564,20 @@ proc library {LibraryName {PathToLib ""}} {
   CheckSimulationDirs
   
   set ResolvedPathToLib [FindLibraryPath $PathToLib]
+  set LowerLibraryName [string tolower $LibraryName]
   
   if  {![file isdirectory $ResolvedPathToLib]} {
     error "library $LibraryName ${PathToLib} : Library directory does not exist."
   }
   # Needs to be here to activate library (ActiveHDL)
-  set found [AddLibraryToList $LibraryName $ResolvedPathToLib]
+  set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
   if {$found >= 0} {
     # Lookup Existing Library Directory
     set item [lindex $LibraryList $found]
     set ResolvedPathToLib [lindex $item 1]
   }
   puts  "library $LibraryName $ResolvedPathToLib" 
-  vendor_library $LibraryName $ResolvedPathToLib
+  vendor_library $LowerLibraryName $ResolvedPathToLib
 
   set VHDL_WORKING_LIBRARY  $LibraryName
 }
@@ -594,9 +595,11 @@ proc LinkLibrary {LibraryName {PathToLib ""}} {
 
   puts "LinkLibrary $LibraryName $PathToLib"
   set ResolvedPathToLib [FindLibraryPath $PathToLib]
+  set LowerLibraryName [string tolower $LibraryName]
+  
   if  {[file isdirectory $ResolvedPathToLib]} {
-    if {[AddLibraryToList $LibraryName $ResolvedPathToLib] < 0} {
-      vendor_LinkLibrary $LibraryName $ResolvedPathToLib
+    if {[AddLibraryToList $LowerLibraryName $ResolvedPathToLib] < 0} {
+      vendor_LinkLibrary $LowerLibraryName $ResolvedPathToLib
     }
   } else {
     error "LinkLibrary $LibraryName ${PathToLib} : Library directory does not exist."
@@ -939,6 +942,17 @@ proc RemoveAllLibraries {} {
   }
 }
 
+proc DirectoryExists {DirInQuestion} {
+  variable CURRENT_WORKING_DIRECTORY
+  
+  if {[info exists CURRENT_WORKING_DIRECTORY]} { 
+    set LocalWorkingDirectory $CURRENT_WORKING_DIRECTORY
+  } else { 
+    set LocalWorkingDirectory "."
+  }
+  return [file exists [file join ${LocalWorkingDirectory} ${DirInQuestion}]]
+}
+
 
 # Don't export the following due to conflicts with Tcl built-ins
 # map
@@ -949,7 +963,7 @@ namespace export RemoveAllLibraries RemoveLocalLibraries CreateDirectory
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory 
 namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries 
-namespace export FindLibraryPath EndSimulation
+namespace export FindLibraryPath EndSimulation DirectoryExists
 
 # end namespace ::osvvm
 }
