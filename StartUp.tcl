@@ -21,6 +21,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    01/2022   2022.01    New StartUp algorithm for detecting ActiveHDL's VSimSA.
 #    10/2021   2021.10    Loads YAML utilities when YAML library available: OsvvmYamlSupport.tcl, NoYamlPackage.tcl
 #                         Loads LocalScriptDefaults.tcl if it is in the SCRIPT_DIR.  This is a optional user settings file.
 #                         LocalScriptsDefaults.tcl is not provided by OSVVM so your local settings will not be overwritten.  

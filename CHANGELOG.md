@@ -2,6 +2,8 @@
 
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                  | 
 |---------------|--------------------|-----------------------------------------------------------------------| 
+| 2022.01       | January 2022       | Minor changes.  Lib dir lower case.  OptionalCommands for analyzing Verilog.  |
+|               |                    | Writing FC now in VHDL.  Added DirectoryExists                        |
 | 2021.12       | December 2021      | Changed Paths to Relative Paths.  Added better library support.       |
 | 2021.11       | November 2021      | Updated scripting to fine tune HTML and XML reporting.                |
 | 2021.10       | October 2021       | Added support to convert build YAML files to HTML and XML (JUnit)     |

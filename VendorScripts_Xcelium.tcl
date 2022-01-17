@@ -1,4 +1,4 @@
-#  File Name:         VendorScripts_Xsim.tcl
+#  File Name:         VendorScripts_Xcelium.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 

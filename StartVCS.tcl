@@ -1,4 +1,4 @@
-#  File Name:         StartSSim.tcl
+#  File Name:         StartVCS.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 

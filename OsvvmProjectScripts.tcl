@@ -19,6 +19,8 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    01/2022   2022.01    Library directory to lower case.  Added OptionalCommands to Verilog analyze.
+#                         Writing of FC summary now in VHDL.  Added DirectoryExists
 #    12/2021   2021.12    Refactored for library handling.  Changed to relative paths.
 #    10/2021   2021.10    Added calls to Report2Html, Report2JUnit, and Simulate2Html
 #     3/2021   2021.03    Updated printing of start/finish times
