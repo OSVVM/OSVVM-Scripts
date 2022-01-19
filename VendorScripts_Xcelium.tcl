@@ -86,9 +86,9 @@ proc vendor_library {LibraryName PathToLib} {
 proc vendor_LinkLibrary {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
 
-  if {![file exists ${PathAndLib}]} {
-    error "LinkLibrary: ${PathAndLib} does not exist."
-  }
+#  if {![file exists ${PathAndLib}]} {
+#    error "LinkLibrary: ${PathAndLib} does not exist."
+#  }
 }
 
 # -------------------------------------------------

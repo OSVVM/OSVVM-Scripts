@@ -114,10 +114,13 @@ proc vendor_LinkLibrary {LibraryName RelativePathToLib} {
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set PathAndLib ${PathToLib}/${LibraryName}
 
-  if {![file exists ${PathAndLib}]} {
-    error "LinkLibrary: ${PathAndLib} does not exist.  "
-  } else {
+  if {[file exists ${PathAndLib}]} {
+    # Library created by ActiveHDL
     vendor_library $LibraryName $PathToLib
+  } else {
+    # Library created separately
+    echo vmap    $LibraryName  ${PathToLib}
+         vmap    $LibraryName  ${PathToLib}
   }
   cd $MY_START_DIR
 }

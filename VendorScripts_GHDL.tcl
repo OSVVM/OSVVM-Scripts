@@ -115,14 +115,17 @@ proc vendor_library {LibraryName PathToLib} {
 }
 
 proc vendor_LinkLibrary {LibraryName PathToLib} {
-  set PathAndLib [GhdlLibraryPath $LibraryName $PathToLib]
+  variable VHDL_RESOURCE_LIBRARY_PATHS
 
-  if {![file exists ${PathAndLib}]} {
-    error "Map:  Creating library ${PathAndLib} since it does not exist.  "
-  } else {
-    vendor_library $LibraryName $PathToLib
+  if {![info exists VHDL_RESOURCE_LIBRARY_PATHS]} {
+    # Create Initial empty list
+    set VHDL_RESOURCE_LIBRARY_PATHS ""
+  }
+  if {[lsearch $VHDL_RESOURCE_LIBRARY_PATHS "*${PathToLib}"] < 0} {
+    lappend VHDL_RESOURCE_LIBRARY_PATHS "-P$PathToLib"
   }
 }
+
 proc CheckTranscript {} {
   variable GHDL_TRANSCRIPT_FILE
   variable CURRENT_SIMULATION_DIRECTORY
