@@ -57,6 +57,14 @@ proc Simulate2Html {TestCaseName TestSuiteName} {
     set Coverage 0.0
   }
   
+  if {[file exists reports/${TestCaseName}_sb_slv.yml]} {
+    Scoreboard2Html ${TestCaseName} ${TestSuiteName} slv
+  }
+  
+  if {[file exists reports/${TestCaseName}_sb_int.yml]} {
+    Scoreboard2Html ${TestCaseName} ${TestSuiteName} int
+  }
+  
   FinalizeSimulationReportFile ${TestCaseName} ${TestSuiteName}
   return $Coverage
 }
