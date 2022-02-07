@@ -782,6 +782,7 @@ proc TestSuite {SuiteName} {
   variable TestSuiteName
   variable TestSuiteStartTimeMs
 
+  EchoOsvvmCmd "TestSuite $SuiteName"
 
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
