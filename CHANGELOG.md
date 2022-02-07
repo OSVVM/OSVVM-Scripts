@@ -2,6 +2,7 @@
 
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                  | 
 |---------------|--------------------|-----------------------------------------------------------------------| 
+| 2022.02       | February 2022      | Added Scoreboard and Transcripts in HTML                              |
 | 2022.01       | January 2022       | Minor changes.  Lib dir lower case.  OptionalCommands for analyzing Verilog.  |
 |               |                    | Writing FC now in VHDL.  Added DirectoryExists                        |
 | 2021.12       | December 2021      | Changed Paths to Relative Paths.  Added better library support.       |
