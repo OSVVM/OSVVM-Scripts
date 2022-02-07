@@ -18,6 +18,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    02/2022   2022.02    Added call to SetTranscriptType to make HTML the default transcript
 #     2/2021   2021.02    Refactored Default Settings from StartUp.tcl
 #
 #
@@ -54,3 +55,4 @@ SetLibraryDirectory
 # Use directory C:/tools/sim_temp as the library directory
 # SetLibraryDirectory C:/tools/sim_temp
 
+SetTranscriptType html 

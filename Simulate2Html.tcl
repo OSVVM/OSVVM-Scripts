@@ -20,11 +20,12 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    02/2022   2022.02    Added Scoreboard Reports
 #    10/2021   Initial    Initial Revision
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2021 by SynthWorks Design Inc.
+#  Copyright (c) 2021-2022 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -87,7 +88,9 @@ proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
 
 proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   variable ResultsFile
-
+  variable ToolNameVersion
+  variable CurrentTranscript
+  
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName} 1
   
 #  set FileName reports/${TestCaseName}].html
@@ -111,6 +114,9 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   }
   if {[file exists reports/${TestCaseName}_cov.yml]} {
     puts $ResultsFile "  <tr><td><a href=\"#FunctionalCoverage\">Functional Coverage Report(s)</a></td></tr>"
+  }
+  if {([info exists CurrentTranscript]) && ([file extension $CurrentTranscript] eq ".html")} {
+    puts $ResultsFile "  <tr><td><a href=\"../../logs/${ToolNameVersion}/${CurrentTranscript}#${TestSuiteName}_${TestCaseName}\">Link to Simulation Results</a></td></tr>"
   }
   puts $ResultsFile "</table>"
   puts $ResultsFile "<br><br>"

@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    02/2022   2022.02    Added Scoreboard and HTML reports
 #    01/2022   2022.01    Library directory to lower case.  Added OptionalCommands to Verilog analyze.
 #                         Writing of FC summary now in VHDL.  Added DirectoryExists
 #    12/2021   2021.12    Refactored for library handling.  Changed to relative paths.
@@ -109,7 +110,7 @@ proc include {Path_Or_File} {
   variable CURRENT_WORKING_DIRECTORY
   variable VHDL_WORKING_LIBRARY
   
-  puts "include $Path_Or_File" 
+  EchoOsvvmCmd "include $Path_Or_File" 
 
 # probably remove.  Redundant with analyze and simulate  
 #  puts "set StartingPath ${CURRENT_WORKING_DIRECTORY} Starting Include"
@@ -236,8 +237,8 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   variable vendor_simulate_started
   variable TestSuiteName
   variable TestSuiteStartTimeMs
+  variable TranscriptExtension
 
-  puts "build $Path_Or_File" 
 
   # Close any previous build information
   if {[info exists TestSuiteName]} {
@@ -260,7 +261,11 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   CheckSimulationDirs
   
   set LogName [SetLogName $Path_Or_File]
-  set LogFileName ${LogName}.log
+  set LogFileName ${LogName}.${TranscriptExtension}
+
+  StartTranscript ${LogFileName}
+  
+  EchoOsvvmCmd "build $Path_Or_File" 
 
   set  BuildStartTime    [clock seconds] 
   set  BuildStartTimeMs  [clock milliseconds] 
@@ -276,7 +281,6 @@ proc build {{Path_Or_File "."} {LogName "."}} {
 #  puts  $RunFile "  Date: [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   close $RunFile
 
-  StartTranscript ${LogFileName}
   
   include ${Path_Or_File}
   
@@ -436,6 +440,29 @@ proc ReducePath {PathIn} {
 }
 
 # -------------------------------------------------
+# EchoOsvvmCmd
+#
+proc EchoOsvvmCmd {CmdInfoToPrint} {
+  variable FirstEchoCmd
+  variable TranscriptExtension
+  variable CompoundCommand
+
+  if {[info exists CompoundCommand] || ($TranscriptExtension eq "log")} {
+    puts "${CmdInfoToPrint}"
+  } elseif {[info exists FirstEchoCmd]} {
+    puts "</details><details>"
+    puts "<summary>${CmdInfoToPrint}</summary>"
+
+#    puts "</details><details><summary>${CmdInfoToPrint}</summary>"
+  } {
+    puts "<pre><details>"
+    puts "<summary>${CmdInfoToPrint}</summary>"
+#    puts "<pre><details><summary>${CmdInfoToPrint}</summary>"
+    set FirstEchoCmd TRUE
+  }
+}
+
+# -------------------------------------------------
 # StartTranscript  
 #   Used by build 
 #
@@ -444,6 +471,7 @@ proc StartTranscript {FileBaseName} {
   variable DIR_LOGS
   variable CURRENT_SIMULATION_DIRECTORY
   variable ToolNameVersion
+  variable FirstEchoCmd
   
   CheckWorkingDir 
 
@@ -454,6 +482,9 @@ proc StartTranscript {FileBaseName} {
     CreateDirectory [file dirname $FileName]
     set CurrentTranscript $FileBaseName
     vendor_StartTranscript $FileName
+    if {[info exists FirstEchoCmd]} {
+      unset FirstEchoCmd
+    }
   }
 }
 
@@ -471,6 +502,9 @@ proc StopTranscript {{FileBaseName ""}} {
     set FileName [file join $DIR_LOGS $FileBaseName]
     vendor_StopTranscript $FileName
     unset CurrentTranscript 
+    if {[info exists FirstEchoCmd]} {
+      unset FirstEchoCmd
+    }
   }
 }
 
@@ -578,7 +612,7 @@ proc library {LibraryName {PathToLib ""}} {
     set item [lindex $LibraryList $found]
     set ResolvedPathToLib [lindex $item 1]
   }
-  puts  "library $LibraryName $ResolvedPathToLib" 
+  EchoOsvvmCmd  "library $LibraryName $ResolvedPathToLib" 
   vendor_library $LowerLibraryName $ResolvedPathToLib
 
   set VHDL_WORKING_LIBRARY  $LibraryName
@@ -595,7 +629,7 @@ proc LinkLibrary {LibraryName {PathToLib ""}} {
   CheckLibraryInit
   CheckSimulationDirs
 
-  puts "LinkLibrary $LibraryName $PathToLib"
+  EchoOsvvmCmd "LinkLibrary $LibraryName $PathToLib"
   set ResolvedPathToLib [FindLibraryPath $PathToLib]
   set LowerLibraryName [string tolower $LibraryName]
   
@@ -663,7 +697,7 @@ proc analyze {FileName {OptionalCommands ""}} {
   CheckWorkingDir 
   CheckLibraryExists
     
-  puts "analyze $FileName"
+  EchoOsvvmCmd "analyze $FileName"
   
 #  set NormFileName  [file normalize ${CURRENT_WORKING_DIRECTORY}/${FileName}]
   set NormFileName  [ReducePath [file join ${CURRENT_WORKING_DIRECTORY} ${FileName}]]
@@ -687,6 +721,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   variable vendor_simulate_started
   variable TestCaseName
   variable TestSuiteName
+  variable TranscriptExtension
   
   CheckWorkingDir 
   CheckLibraryExists
@@ -707,7 +742,12 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   set SimulateStartTime   [clock seconds] 
   set SimulateStartTimeMs [clock milliseconds] 
   
-  puts "simulate $LibraryUnit $OptionalCommands"
+  EchoOsvvmCmd "simulate $LibraryUnit $OptionalCommands"
+  
+  if {$TranscriptExtension eq "html"} {
+    puts "<div id=\"${TestSuiteName}_${LibraryUnit}\" />"
+  }
+
   puts "Simulate Start time [clock format $SimulateStartTime -format %T]"
 
   vendor_simulate ${VHDL_WORKING_LIBRARY} ${LibraryUnit} ${OptionalCommands}
@@ -791,19 +831,22 @@ proc TestCase {TestName} {
 # RunTest
 #
 proc RunTest {FileName {SimName ""}} {
+  variable CompoundCommand
+
+  EchoOsvvmCmd "RunTest $FileName $SimName"
+  set CompoundCommand TRUE 
 
 	if {$SimName eq ""} {
     set SimName [file rootname [file tail $FileName]]
-    puts "RunTest $FileName"
     TestCase $SimName
   } else {
-    puts "RunTest $FileName $SimName"
     set ShortFileName [file rootname [file tail $FileName]]
     TestCase "${SimName}(${ShortFileName})"
   }
   
   analyze   ${FileName}
   simulate  ${SimName}  
+  unset CompoundCommand
 }
 
 # -------------------------------------------------
@@ -860,6 +903,29 @@ proc GetVHDLVersion {} {
   variable VhdlVersion
   return $VhdlVersion
 }
+
+# -------------------------------------------------
+# SetTranscriptType, GetTranscriptType
+#
+proc SetTranscriptType {{TranscriptType "html"}} {  
+  variable TranscriptExtension
+  
+  set lowerTranscriptType [string tolower $TranscriptType]
+  
+  if {$lowerTranscriptType eq "html"} {
+    set TranscriptExtension "html"
+  } else {
+    set TranscriptExtension "log"
+  }
+}
+
+proc GetTranscriptType {} {
+  variable TranscriptExtension
+  return $TranscriptExtension
+}
+
+
+
 
 # -------------------------------------------------
 # SetSimulatorResolution, GetSimulatorResolution
@@ -963,7 +1029,7 @@ namespace export analyze simulate build include library RunTest SkipTest TestSui
 namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
 namespace export RemoveAllLibraries RemoveLocalLibraries CreateDirectory 
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
-namespace export SetLibraryDirectory GetLibraryDirectory 
+namespace export SetLibraryDirectory GetLibraryDirectory SetTranscriptType GetTranscriptType
 namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries 
 namespace export FindLibraryPath EndSimulation DirectoryExists
 
