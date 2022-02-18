@@ -774,7 +774,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   if {[info exists CoverageSimulateEnable]} {
     set AllOptionalCommands [concat {*}$OptionalCommands {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
   } else {
-    set AllOptionalCommands [concat {*}$OptionalCommands {*}$ExtendedSimulateOptions
+    set AllOptionalCommands [concat {*}$OptionalCommands {*}$ExtendedSimulateOptions]
   }
 
   if {$TranscriptExtension eq "html"} {
