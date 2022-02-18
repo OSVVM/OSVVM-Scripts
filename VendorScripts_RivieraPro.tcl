@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     2/2022   2022.02    Added Coverage Collection
 #    12/2021   2021.12    Updated to use relative paths.
 #     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate
 #     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
@@ -32,7 +33,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2021 by SynthWorks Design Inc.  
+#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -72,6 +73,21 @@ proc vendor_StopTranscript {FileName} {
   transcript file -close $FileName
 }
 
+# -------------------------------------------------
+# SetCoverageAnalyzeOptions
+# SetCoverageCoverageOptions
+#
+proc vendor_SetCoverageAnalyzeDefaults {} {
+  variable CoverageAnalyzeOptions
+#  set CoverageAnalyzeOptions "-coverage sbmec"
+  set CoverageAnalyzeOptions "-coverage sbm"
+}
+
+proc vendor_SetCoverageSimulateDefaults {} {
+  variable CoverageSimulateOptions
+#  set CoverageSimulateOptions "-acdb -acdb_cov sbmec -cc_all"
+  set CoverageSimulateOptions "-acdb -acdb_cov sbm -cc_all"
+}
 
 # -------------------------------------------------
 # Library
@@ -107,8 +123,17 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
 #
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlVersion
-  echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName}
-       vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName}
+  variable CoverageAnalyzeEnable
+  variable CoverageSimulateEnable
+  
+  # For now, do not use -dbg flag with coverage.   
+  if {[info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
+    echo vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+         vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+  } else {
+    echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+         vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+  }
 }
 
 proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
@@ -134,9 +159,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SIMULATE_TIME_UNITS
   variable ToolVendor
   variable simulator
+  variable CoverageSimulateEnable
+  variable TestSuiteName
 
-  puts "vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}"
-  eval vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
+  puts "vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} "
+        vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}  
   
   ### Project level settings - in OsvvmLibraries/Scripts
   # Project Vendor script
@@ -172,4 +199,20 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 
   log -rec [env]/*
   run -all 
+  
+  # Save Coverage Information 
+  if {[info exists CoverageSimulateEnable]} {
+    acdb save -o ./reports/${TestSuiteName}/${LibraryUnit}.acdb -testname ${LibraryUnit}
+  }
+}
+
+# -------------------------------------------------
+# Merge Coverage
+#
+proc vendor_MergeCodeCoverage {TestSuiteName ResultsDirectory} { 
+  acdb merge        -o ${ResultsDirectory}/${TestSuiteName}.acdb -i {*}[join [glob reports/${TestSuiteName}/*.acdb] " -i "]
+}
+
+proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
+  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
 }

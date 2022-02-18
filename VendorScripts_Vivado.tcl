@@ -13,12 +13,13 @@
 #    
 #  Revision History:
 #    Date      Version    Description
+#     2/2022   2022.02    Added template of procedures needed for coverage support
 #     4/2021   2021.02    Initial revision, tested under Vivado 2020.1
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2021 by SynthWorks Design Inc.  
+#  Copyright (c) 2021-2022 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -70,6 +71,19 @@ proc vendor_StopTranscript {FileName} {
   reset_msg_config -id {filemgmt 56-12} -default_severity -quiet
 }
 
+# -------------------------------------------------
+# SetCoverageAnalyzeOptions
+# SetCoverageCoverageOptions
+#
+proc vendor_SetCoverageAnalyzeDefaults {} {
+  variable CoverageAnalyzeOptions
+#    set defaults here
+}
+
+proc vendor_SetCoverageSimulateDefaults {} {
+  variable CoverageSimulateOptions
+#    set defaults here
+}
 
 # -------------------------------------------------
 # Library
@@ -113,7 +127,6 @@ proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
   }
 }
 
-
 # -------------------------------------------------
 # End Previous Simulation
 #
@@ -126,3 +139,14 @@ proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 
 proc vendor_end_previous_simulation {} {}
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {}
+
+# -------------------------------------------------
+# Merge Coverage
+#
+proc vendor_MergeCodeCoverage {TestSuiteName ResultsDirectory} { 
+#  acdb merge        -o ${ResultsDirectory}/${TestSuiteName}.acdb -i {*}[join [glob reports/${TestSuiteName}/*.acdb] " -i "]
+}
+
+proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
+#  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
+}

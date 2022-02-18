@@ -1,56 +1,57 @@
 #  File Name:         OsvvmProjectScripts.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
-# 
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
-#  Contributor(s):            
-#     Jim Lewis      email:  jim@synthworks.com   
-# 
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Jim Lewis      email:  jim@synthworks.com
+#
 #  Description
-#    Tcl procedures with the intent of making running 
+#    Tcl procedures with the intent of making running
 #    compiling and simulations tool independent
-#    
-#  Developed by: 
-#        SynthWorks Design Inc. 
+#
+#  Developed by:
+#        SynthWorks Design Inc.
 #        VHDL Training Classes
 #        OSVVM Methodology and Model Library
 #        11898 SW 128th Ave.  Tigard, Or  97223
 #        http://www.SynthWorks.com
-# 
+#
 #  Revision History:
 #    Date      Version    Description
-#    02/2022   2022.02    Added Scoreboard and HTML reports
+#    02/2022   2022.02    Added Analyze and Simulate Coverage and Extended Options
+#                         Added support to run code coverage
 #    01/2022   2022.01    Library directory to lower case.  Added OptionalCommands to Verilog analyze.
 #                         Writing of FC summary now in VHDL.  Added DirectoryExists
 #    12/2021   2021.12    Refactored for library handling.  Changed to relative paths.
 #    10/2021   2021.10    Added calls to Report2Html, Report2JUnit, and Simulate2Html
 #     3/2021   2021.03    Updated printing of start/finish times
-#     2/2021   2021.02    Updated initialization of libraries                 
-#                         Analyze allows ".vhdl" extensions as well as ".vhd" 
-#                         Include/Build signal error if nothing to run                         
-#                         Added SetVHDLVersion / GetVHDLVersion to support 2019 work           
+#     2/2021   2021.02    Updated initialization of libraries
+#                         Analyze allows ".vhdl" extensions as well as ".vhd"
+#                         Include/Build signal error if nothing to run
+#                         Added SetVHDLVersion / GetVHDLVersion to support 2019 work
 #                         Added SetSimulatorResolution / GetSimulatorResolution to support GHDL
-#                         Added beta of LinkLibrary to support linking in project libraries    
-#                         Added beta of SetLibraryDirectory / GetLibraryDirectory              
-#                         Added beta of ResetRunLibrary                                        
+#                         Added beta of LinkLibrary to support linking in project libraries
+#                         Added beta of SetLibraryDirectory / GetLibraryDirectory
+#                         Added beta of ResetRunLibrary
 #     7/2020   2020.07    Refactored tool execution for simpler vendor customization
 #     1/2020   2020.01    Updated Licenses to Apache
-#     2/2019   Beta       Project descriptors in .pro which execute 
-#                         as TCL scripts in conjunction with the library 
+#     2/2019   Beta       Project descriptors in .pro which execute
+#                         as TCL scripts in conjunction with the library
 #                         procedures
 #    11/2018   Alpha      Project descriptors in .files and .dirs files
 #
 #
 #  This file is part of OSVVM.
-#  
-#  Copyright (c) 2018 - 2021 by SynthWorks Design Inc.  
-#  
+#
+#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#  
+#
 #      https://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -62,7 +63,7 @@
 # StartUp
 #   re-run the startup scripts, this program included
 #
-proc StartUp {} { 
+proc StartUp {} {
   puts "source $::osvvm::SCRIPT_DIR/StartUp.tcl"
   eval "source $::osvvm::SCRIPT_DIR/StartUp.tcl"
 }
@@ -70,7 +71,15 @@ proc StartUp {} {
 
 namespace eval ::osvvm {
 
-variable OsvvmYamlResultsFile "./reports/OsvvmRun.yml"
+variable OsvvmYamlResultsFile    "./OsvvmRun.yml"
+variable ExtendedAnalyzeOptions  ""
+variable ExtendedSimulateOptions ""
+variable CoverageAnalyzeOptions  [vendor_SetCoverageAnalyzeDefaults]
+variable CoverageSimulateOptions [vendor_SetCoverageSimulateDefaults]
+variable VhdlAnalyzeOptions       ""
+variable VerilogAnalyzeOptions    ""
+variable CoverageEnable           "true"
+
 
 # -------------------------------------------------
 # IterateFile
@@ -89,7 +98,7 @@ proc IterateFile {FileWithNames ActionForName} {
       if {[string index $OneName 0] ne "#"} {
         puts "$ActionForName ${OneName}"
         # will break $OneName into individual pieces for handling
-        eval $ActionForName ${OneName}  
+        eval $ActionForName ${OneName}
         # leaves $OneName as a single string
 #        $ActionForName ${OneName}
       } else {
@@ -103,23 +112,23 @@ proc IterateFile {FileWithNames ActionForName} {
 }
 
 # -------------------------------------------------
-# include 
+# include
 #   finds and sources a project file
 #
 proc include {Path_Or_File} {
   variable CURRENT_WORKING_DIRECTORY
   variable VHDL_WORKING_LIBRARY
-  
-  EchoOsvvmCmd "include $Path_Or_File" 
 
-# probably remove.  Redundant with analyze and simulate  
+  EchoOsvvmCmd "include $Path_Or_File"
+
+# probably remove.  Redundant with analyze and simulate
 #  puts "set StartingPath ${CURRENT_WORKING_DIRECTORY} Starting Include"
   # If a library does not exist, then create the default
   if {![info exists VHDL_WORKING_LIBRARY]} {
     library default
   }
   set StartingPath ${CURRENT_WORKING_DIRECTORY}
-  
+
 #  if {[file pathtype $Path_Or_File] eq "absolute"} {
 #    set NormName [file normalize $Path_Or_File]
 #  } else {
@@ -131,7 +140,7 @@ proc include {Path_Or_File} {
   # Normalize to handle ".." and "."
   set NameToHandle [file tail [file normalize $NormName]]
   set FileExtension [file extension $NameToHandle]
-  
+
   if {[file isfile $NormName]} {
     # Path_Or_File is <name>.pro, <name>.tcl, <name>.do, <name>.dirs, <name>.files
     puts "set CURRENT_WORKING_DIRECTORY ${RootDir}"
@@ -139,13 +148,13 @@ proc include {Path_Or_File} {
     if {$FileExtension eq ".pro" || $FileExtension eq ".tcl" || $FileExtension eq ".do"} {
       # Path_Or_File is <name>.pro, <name>.tcl, or <name>.do
       puts "source ${NormName}"
-      source ${NormName} 
+      source ${NormName}
     } elseif {$FileExtension eq ".dirs"} {
       # Path_Or_File is <name>.dirs
       puts "IterateFile ${NormName} include"
       IterateFile ${NormName} "include"
-    } else { 
-    #  was elseif {$FileExtension eq ".files"} 
+    } else {
+    #  was elseif {$FileExtension eq ".files"}
       # Path_Or_File is <name>.files or other extension
       puts "IterateFile ${NormName} analyze"
       IterateFile ${NormName} "analyze"
@@ -155,13 +164,13 @@ proc include {Path_Or_File} {
       # Path_Or_File is directory name
       puts "set CURRENT_WORKING_DIRECTORY ${NormName}"
       set CURRENT_WORKING_DIRECTORY ${NormName}
-      set FileBaseName ${NormName}/[file rootname ${NameToHandle}] 
+      set FileBaseName ${NormName}/[file rootname ${NameToHandle}]
     } else {
       # Path_Or_File is file name without an extension
       puts "set CURRENT_WORKING_DIRECTORY ${RootDir}"
       set CURRENT_WORKING_DIRECTORY ${RootDir}
       set FileBaseName ${NormName}
-    } 
+    }
     # Determine which if any project files exist
     set FileProName    ${FileBaseName}.pro
     set FileDirsName   ${FileBaseName}.dirs
@@ -172,9 +181,9 @@ proc include {Path_Or_File} {
     set FoundActivity 0
     if {[file isfile ${FileProName}]} {
       puts "source ${FileProName}"
-      source ${FileProName} 
+      source ${FileProName}
       set FoundActivity 1
-    } 
+    }
     # .dirs is intended to be deprecated in favor of .pro
     if {[file isfile ${FileDirsName}]} {
       IterateFile ${FileDirsName} "include"
@@ -200,7 +209,7 @@ proc include {Path_Or_File} {
     if {$FoundActivity == 0} {
       error "Build / Include did not find anything to execute for ${Path_Or_File}"
     }
-  } 
+  }
 #  puts "set CURRENT_WORKING_DIRECTORY ${StartingPath} Ending Include"
   set CURRENT_WORKING_DIRECTORY ${StartingPath}
 }
@@ -214,7 +223,7 @@ proc SetLogName {Path_Or_File} {
   set NormDirName    [file tail $NormDir]
   set NormTail       [file tail $NormPathOrFile]
   set NormTailRoot   [file rootname $NormTail]
-  
+
   if {$NormDirName eq $NormTailRoot} {
     # <Parent Dir>_<Script Name>.log
 #    set LogName [file tail [file dirname $NormDir]]_${NormTailRoot}
@@ -228,7 +237,7 @@ proc SetLogName {Path_Or_File} {
 }
 
 # -------------------------------------------------
-# build 
+# build
 #
 proc build {{Path_Or_File "."} {LogName "."}} {
   variable CURRENT_WORKING_DIRECTORY
@@ -238,39 +247,40 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   variable TestSuiteName
   variable TestSuiteStartTimeMs
   variable TranscriptExtension
+  variable CoverageSimulateEnable
 
 
   # Close any previous build information
   if {[info exists TestSuiteName]} {
     unset TestSuiteName
-  }  
+  }
   # If Transcript Open, then Close it
   TerminateTranscript
-  
+
   # End simulations if started - only set by simulate
   if {[info exists vendor_simulate_started]} {
     puts "Ending Previous Simulation"
     EndSimulation
     unset vendor_simulate_started
-  }  
+  }
 
   # Current Build Setup
-#  set CURRENT_WORKING_DIRECTORY [pwd]  
+#  set CURRENT_WORKING_DIRECTORY [pwd]
   set CURRENT_WORKING_DIRECTORY ""
   CheckWorkingDir
   CheckSimulationDirs
-  
+
   set LogName [SetLogName $Path_Or_File]
   set LogFileName ${LogName}.${TranscriptExtension}
 
   StartTranscript ${LogFileName}
-  
-  EchoOsvvmCmd "build $Path_Or_File" 
 
-  set  BuildStartTime    [clock seconds] 
-  set  BuildStartTimeMs  [clock milliseconds] 
+  EchoOsvvmCmd "build $Path_Or_File"
+
+  set  BuildStartTime    [clock seconds]
+  set  BuildStartTimeMs  [clock milliseconds]
   puts "Build Start time [clock format $BuildStartTime -format %T]"
-  
+
   set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} w]
   puts  $RunFile "Version: 1.0"
   puts  $RunFile "Build:"
@@ -281,44 +291,41 @@ proc build {{Path_Or_File "."} {LogName "."}} {
 #  puts  $RunFile "  Date: [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   close $RunFile
 
-  
+
   include ${Path_Or_File}
-  
+
 
   # Print Elapsed time for last TestSuite (if any ran) and the entire build
   set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} a]
 
   if {[info exists TestSuiteName]} {
-    # Test Suite does not exist if only doing library and analyze
-    # Ending a Test Suite here
-    set   TestSuiteFinishTimeMs  [clock milliseconds] 
-    set   TestSuiteElapsedTimeMs [expr ($TestSuiteFinishTimeMs - $TestSuiteStartTimeMs)]
-    puts  $RunFile "    ElapsedTime: [format %.3f [expr ${TestSuiteElapsedTimeMs}/1000.0]]"
+    puts  $RunFile "    ElapsedTime: [ElapsedTimeMs $TestSuiteStartTimeMs]"
+    FinalizeTestSuite $TestSuiteName
+    unset TestSuiteName
   }
-  
-  set   BuildFinishTime     [clock seconds] 
-  set   BuildFinishTimeMs   [clock milliseconds] 
-  set   BuildElapsedTime    [expr ($BuildFinishTime   - $BuildStartTime)]
-  set   BuildElapsedTimeMs  [expr ($BuildFinishTimeMs - $BuildStartTimeMs)]
+
+  if {[info exists CoverageSimulateEnable]} {
+    vendor_MergeCodeCoverage  $LogName "."
+    vendor_ReportCodeCoverage $LogName "."
+  }
+
+  set   BuildFinishTime     [clock seconds]
+  set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
   puts  $RunFile "Run:"
   puts  $RunFile "  Start:    [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
   puts  $RunFile "  Finish:   [clock format $BuildFinishTime -format {%Y-%m-%dT%H:%M%z}]"
-  puts  $RunFile "  Elapsed:  [format %.3f [expr ${BuildElapsedTimeMs}/1000.0]]"
+  puts  $RunFile "  Elapsed:  [ElapsedTimeMs $BuildStartTimeMs]"
   close $RunFile
-  
+
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   puts "Build Finish time [clock format $BuildFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
   StopTranscript ${LogFileName}
-  
+
   # short sleep to allow the file to close
   after 1000
   file rename -force ${::osvvm::OsvvmYamlResultsFile} ${LogName}.yml
   Report2Html  ${LogName}.yml
   Report2Junit ${LogName}.yml
-  
-  if {[info exists TestSuiteName]} {
-    unset TestSuiteName
-  }  
 }
 
 
@@ -337,7 +344,7 @@ proc CreateDirectory {Directory} {
 #   Used by library, analyze, and simulate
 #
 proc CheckWorkingDir {} {
-  variable CURRENT_WORKING_DIRECTORY 
+  variable CURRENT_WORKING_DIRECTORY
   variable CURRENT_SIMULATION_DIRECTORY
   variable VHDL_WORKING_LIBRARY
   variable LibraryList
@@ -354,23 +361,23 @@ proc CheckWorkingDir {} {
   if {![info exists CURRENT_SIMULATION_DIRECTORY] || $CURRENT_SIMULATION_DIRECTORY ne [file normalize $CurrentDir] } {
     # Simulation Directory Moved, Libraries are invalid
     puts "set CURRENT_SIMULATION_DIRECTORY $CurrentDir"
-    set CURRENT_SIMULATION_DIRECTORY $CurrentDir   
+    set CURRENT_SIMULATION_DIRECTORY $CurrentDir
     if {[info exists LIB_BASE_DIR]} {
       unset LIB_BASE_DIR
       unset DIR_LIB
     }
-    if {[info exists VHDL_WORKING_LIBRARY]} { 
+    if {[info exists VHDL_WORKING_LIBRARY]} {
       unset VHDL_WORKING_LIBRARY
     }
-    if {[info exists LibraryList]} { 
+    if {[info exists LibraryList]} {
       unset LibraryList
       unset LibraryDirectoryList
     }
-  } 
+  }
 }
 
 # -------------------------------------------------
-# CheckLibraryInit 
+# CheckLibraryInit
 #   Used by library
 #
 proc CheckLibraryInit {} {
@@ -383,13 +390,13 @@ proc CheckLibraryInit {} {
     set LIB_BASE_DIR $CURRENT_SIMULATION_DIRECTORY
     set DIR_LIB ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
   }
-  
+
   # Create LIB and Results directories
   CreateDirectory $DIR_LIB
 }
 
 # -------------------------------------------------
-# CheckLibraryExists 
+# CheckLibraryExists
 #   Used by analyze, and simulate
 #
 proc CheckLibraryExists {} {
@@ -401,7 +408,7 @@ proc CheckLibraryExists {} {
 }
 
 # -------------------------------------------------
-# CheckSimulationDirs 
+# CheckSimulationDirs
 #   Used by simulate
 #
 proc CheckSimulationDirs {} {
@@ -411,11 +418,11 @@ proc CheckSimulationDirs {} {
 }
 
 # -------------------------------------------------
-# ReducePath 
+# ReducePath
 #   Remove "." and ".." from path
 #
 proc ReducePath {PathIn} {
-  
+
   set CharCount 0
   set NewPath {}
   foreach item [file split $PathIn] {
@@ -425,7 +432,7 @@ proc ReducePath {PathIn} {
         incr CharCount 1
       }
     } else {
-      if {$CharCount >= 1} { 
+      if {$CharCount >= 1} {
         set NewPath [lreplace $NewPath end end]
         incr CharCount -1
       } else {
@@ -463,8 +470,8 @@ proc EchoOsvvmCmd {CmdInfoToPrint} {
 }
 
 # -------------------------------------------------
-# StartTranscript  
-#   Used by build 
+# StartTranscript
+#   Used by build
 #
 proc StartTranscript {FileBaseName} {
   variable CurrentTranscript
@@ -472,8 +479,8 @@ proc StartTranscript {FileBaseName} {
   variable CURRENT_SIMULATION_DIRECTORY
   variable ToolNameVersion
   variable FirstEchoCmd
-  
-  CheckWorkingDir 
+
+  CheckWorkingDir
 
   if {($FileBaseName ne "NONE.log") && (![info exists CurrentTranscript])} {
     set DIR_LOGS   ${CURRENT_SIMULATION_DIRECTORY}/logs/${ToolNameVersion}
@@ -483,25 +490,26 @@ proc StartTranscript {FileBaseName} {
     set CurrentTranscript $FileBaseName
     vendor_StartTranscript $FileName
     if {[info exists FirstEchoCmd]} {
+      # nothing in transcript yet.
       unset FirstEchoCmd
     }
   }
 }
 
 # -------------------------------------------------
-# StopTranscript 
-#   Used by build 
+# StopTranscript
+#   Used by build
 #
 proc StopTranscript {{FileBaseName ""}} {
   variable CurrentTranscript
   variable DIR_LOGS
-  
+
   # Stop only if it is the transcript that is open
   if {($FileBaseName eq $CurrentTranscript)} {
     # FileName used within the STOP_TRANSCRIPT variable if required
     set FileName [file join $DIR_LOGS $FileBaseName]
     vendor_StopTranscript $FileName
-    unset CurrentTranscript 
+    unset CurrentTranscript
     if {[info exists FirstEchoCmd]} {
       unset FirstEchoCmd
     }
@@ -509,19 +517,19 @@ proc StopTranscript {{FileBaseName ""}} {
 }
 
 # -------------------------------------------------
-# TerminateTranscript 
-#   Used by build 
+# TerminateTranscript
+#   Used by build
 #
 proc TerminateTranscript {} {
   variable CurrentTranscript
   if {[info exists CurrentTranscript]} {
-    unset CurrentTranscript 
+    unset CurrentTranscript
   }
 }
 
 # -------------------------------------------------
-# TerminateTranscript 
-#   Used by build 
+# TerminateTranscript
+#   Used by build
 #
 proc EndSimulation {} {
 
@@ -551,7 +559,7 @@ proc FindLibraryPath {PathToLib} {
       set ResolvedPathToLib [file normalize $LibsName]
     } elseif {[file isdirectory $PathToLib]} {
       set ResolvedPathToLib [file normalize $PathToLib]
-    } 
+    }
   }
   return $ResolvedPathToLib
 }
@@ -560,7 +568,7 @@ proc FindLibraryPath {PathToLib} {
 proc AddLibraryToList {LibraryName PathToLib} {
   variable LibraryList
   variable LibraryDirectoryList
-  
+
   if {![info exists LibraryList]} {
     # Create Initial empty list
     set LibraryList ""
@@ -580,28 +588,28 @@ proc AddLibraryToList {LibraryName PathToLib} {
 # -------------------------------------------------
 proc ListLibraries {} {
   variable LibraryList
-  
+
   if {[info exists LibraryList]} {
     foreach LibraryName $LibraryList {
       puts $LibraryName
     }
-  } 
+  }
 }
 
 # -------------------------------------------------
-# Library 
+# Library
 #
 proc library {LibraryName {PathToLib ""}} {
   variable VHDL_WORKING_LIBRARY
   variable LibraryList
 
-  CheckWorkingDir 
+  CheckWorkingDir
   CheckLibraryInit
   CheckSimulationDirs
-  
+
   set ResolvedPathToLib [FindLibraryPath $PathToLib]
   set LowerLibraryName [string tolower $LibraryName]
-  
+
   if  {![file isdirectory $ResolvedPathToLib]} {
     error "library $LibraryName ${PathToLib} : Library directory does not exist."
   }
@@ -612,7 +620,7 @@ proc library {LibraryName {PathToLib ""}} {
     set item [lindex $LibraryList $found]
     set ResolvedPathToLib [lindex $item 1]
   }
-  EchoOsvvmCmd  "library $LibraryName $ResolvedPathToLib" 
+  EchoOsvvmCmd  "library $LibraryName $ResolvedPathToLib"
   vendor_library $LowerLibraryName $ResolvedPathToLib
 
   set VHDL_WORKING_LIBRARY  $LibraryName
@@ -624,15 +632,15 @@ proc library {LibraryName {PathToLib ""}} {
 proc LinkLibrary {LibraryName {PathToLib ""}} {
   variable VHDL_WORKING_LIBRARY
   variable DIR_LIB
-  
-  CheckWorkingDir 
+
+  CheckWorkingDir
   CheckLibraryInit
   CheckSimulationDirs
 
   EchoOsvvmCmd "LinkLibrary $LibraryName $PathToLib"
   set ResolvedPathToLib [FindLibraryPath $PathToLib]
   set LowerLibraryName [string tolower $LibraryName]
-  
+
   if  {[file isdirectory $ResolvedPathToLib]} {
     if {[AddLibraryToList $LowerLibraryName $ResolvedPathToLib] < 0} {
       vendor_LinkLibrary $LowerLibraryName $ResolvedPathToLib
@@ -649,8 +657,8 @@ proc LinkLibraryDirectory {{LibraryDirectory ""}} {
   variable DIR_LIB
   variable CURRENT_SIMULATION_DIRECTORY
   variable ToolNameVersion
-  
-  CheckWorkingDir 
+
+  CheckWorkingDir
   CheckLibraryInit
   CheckSimulationDirs
 
@@ -661,7 +669,7 @@ proc LinkLibraryDirectory {{LibraryDirectory ""}} {
         set LibraryName [file rootname [file tail $item]]
         LinkLibrary $LibraryName $ResolvedLibraryDirectory
       }
-    }  
+    }
   } else {
     puts "LinkLibraryDirectory $LibraryDirectory : $ResolvedLibraryDirectory does not exist"
   }
@@ -676,10 +684,10 @@ proc LinkLibraryDirectory {{LibraryDirectory ""}} {
 proc LinkCurrentLibraries {} {
   variable LibraryList
   set OldLibraryList $LibraryList
- 
+
   # If directory changed, update CURRENT_SIMULATION_DIRECTORY, LibraryList
   CheckWorkingDir
-    
+
   foreach item $OldLibraryList {
     set LibraryName [lindex $item 0]
     set PathToLib   [lindex $item 1]
@@ -693,20 +701,35 @@ proc LinkCurrentLibraries {} {
 proc analyze {FileName {OptionalCommands ""}} {
   variable VHDL_WORKING_LIBRARY
   variable CURRENT_WORKING_DIRECTORY
-  
-  CheckWorkingDir 
+  variable CoverageAnalyzeEnable
+  variable VhdlAnalyzeOptions
+  variable VerilogAnalyzeOptions
+  variable CoverageAnalyzeOptions
+  variable ExtendedAnalyzeOptions
+
+  CheckWorkingDir
   CheckLibraryExists
-    
+
   EchoOsvvmCmd "analyze $FileName"
-  
+
 #  set NormFileName  [file normalize ${CURRENT_WORKING_DIRECTORY}/${FileName}]
   set NormFileName  [ReducePath [file join ${CURRENT_WORKING_DIRECTORY} ${FileName}]]
   set FileExtension [file extension $FileName]
 
   if {$FileExtension eq ".vhd" || $FileExtension eq ".vhdl"} {
-    vendor_analyze_vhdl ${VHDL_WORKING_LIBRARY} ${NormFileName} ${OptionalCommands}
-  } elseif {$FileExtension eq ".v"} {
-    vendor_analyze_verilog ${VHDL_WORKING_LIBRARY} ${NormFileName} ${OptionalCommands}
+    if {[info exists CoverageAnalyzeEnable]} {
+      set AllOptionalCommands [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$OptionalCommands]
+    } else {
+      set AllOptionalCommands [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$OptionalCommands]
+    }
+    vendor_analyze_vhdl ${VHDL_WORKING_LIBRARY} ${NormFileName} ${AllOptionalCommands}
+  } elseif {$FileExtension eq ".v" || $FileExtension eq ".sv"} {
+    if {[info exists CoverageAnalyzeEnable]} {
+      set AllOptionalCommands [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$OptionalCommands]
+    } else {
+      set AllOptionalCommands [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$OptionalCommands]
+    }
+    vendor_analyze_verilog ${VHDL_WORKING_LIBRARY} ${NormFileName} ${AllOptionalCommands}
   } elseif {$FileExtension eq ".lib"} {
     #  for handling older deprecated file format
     library [file rootname $FileName]
@@ -722,40 +745,50 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   variable TestCaseName
   variable TestSuiteName
   variable TranscriptExtension
-  
-  CheckWorkingDir 
+  variable CoverageSimulateEnable
+  variable CoverageSimulateOptions
+  variable ExtendedSimulateOptions
+
+  CheckWorkingDir
   CheckLibraryExists
   CheckSimulationDirs
 
   if {![info exists TestCaseName]} {
     TestCase $LibraryUnit
-  }  
-  
+  }
+
   if {[info exists vendor_simulate_started]} {
     EndSimulation
-  }  
+  }
   set vendor_simulate_started 1
-  
-#  StartTranscript ${LibraryUnit}.log
-  
 
-  set SimulateStartTime   [clock seconds] 
-  set SimulateStartTimeMs [clock milliseconds] 
-  
+#  StartTranscript ${LibraryUnit}.log
+
+
+  set SimulateStartTime   [clock seconds]
+  set SimulateStartTimeMs [clock milliseconds]
+
   EchoOsvvmCmd "simulate $LibraryUnit $OptionalCommands"
-  
+
+
+  if {[info exists CoverageSimulateEnable]} {
+    set AllOptionalCommands [concat {*}$OptionalCommands {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
+  } else {
+    set AllOptionalCommands [concat {*}$OptionalCommands {*}$ExtendedSimulateOptions
+  }
+
   if {$TranscriptExtension eq "html"} {
     puts "<div id=\"${TestSuiteName}_${LibraryUnit}\" />"
   }
 
   puts "Simulate Start time [clock format $SimulateStartTime -format %T]"
 
-  vendor_simulate ${VHDL_WORKING_LIBRARY} ${LibraryUnit} ${OptionalCommands}
+  vendor_simulate ${VHDL_WORKING_LIBRARY} ${LibraryUnit} ${AllOptionalCommands}
 
   #puts "Start time  [clock format $SimulateStartTime -format %T]"
-  set  SimulateFinishTime    [clock seconds] 
+  set  SimulateFinishTime    [clock seconds]
   set  SimulateElapsedTime   [expr ($SimulateFinishTime - $SimulateStartTime)]
-  set  SimulateFinishTimeMs  [clock milliseconds] 
+  set  SimulateFinishTimeMs  [clock milliseconds]
   set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
 
   puts "Simulate Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
@@ -772,10 +805,35 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
 #    }
     close $RunFile
   }
-  
+
   unset TestCaseName
 }
 
+# -------------------------------------------------
+proc MergeCoverage {SuiteName ResultsDirectory} {
+  vendor_MergeCodeCoverage $SuiteName $ResultsDirectory
+}
+
+# -------------------------------------------------
+proc  ElapsedTimeMs {StartTimeMs} {
+  set   FinishTimeMs  [clock milliseconds]
+  set   ElapsedTimeMs [expr ($FinishTimeMs - $StartTimeMs)]
+  return [format %.3f [expr ${ElapsedTimeMs}/1000.0]]
+}
+
+# -------------------------------------------------
+proc FinalizeTestSuite {SuiteName} {
+  variable CoverageSimulateEnable
+  variable CoverageExtension 
+  variable CurrentTranscript
+  set LogName [file rootname $CurrentTranscript]
+
+  file rename -force {*}[glob ./reports/*.yml]  ./reports/${SuiteName}
+  if {[info exists CoverageSimulateEnable]} {
+    CreateDirectory ./reports/${LogName}
+    vendor_MergeCodeCoverage $SuiteName reports/${LogName}
+  }
+}
 
 # -------------------------------------------------
 proc TestSuite {SuiteName} {
@@ -792,18 +850,17 @@ proc TestSuite {SuiteName} {
   if {![info exists TestSuiteName]} {
     puts  $RunFile "TestSuites: "
   } else {
-    # Ending a Test Suite here
-    set   TestSuiteFinishTimeMs  [clock milliseconds] 
-    set   TestSuiteElapsedTimeMs [expr ($TestSuiteFinishTimeMs - $TestSuiteStartTimeMs)]
-    puts  $RunFile "    ElapsedTime: [format %.3f [expr ${TestSuiteElapsedTimeMs}/1000.0]]"
+    puts  $RunFile "    ElapsedTime: [ElapsedTimeMs $TestSuiteStartTimeMs]"
+    FinalizeTestSuite $TestSuiteName
   }
   set   TestSuiteName $SuiteName
   puts  $RunFile "  - Name: $SuiteName"
   puts  $RunFile "    TestCases:"
   close $RunFile
-  
+
+  CreateDirectory reports/${TestSuiteName}
   # Starting a Test Suite here
-  set TestSuiteStartTimeMs   [clock milliseconds] 
+  set TestSuiteStartTimeMs   [clock milliseconds]
 }
 
 
@@ -814,8 +871,8 @@ proc TestCase {TestName} {
 
   if {![info exists TestSuiteName]} {
     TestSuite Default
-  }  
-  
+  }
+
   set TestCaseName $TestName
 
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
@@ -835,7 +892,7 @@ proc RunTest {FileName {SimName ""}} {
   variable CompoundCommand
 
   EchoOsvvmCmd "RunTest $FileName $SimName"
-  set CompoundCommand TRUE 
+  set CompoundCommand TRUE
 
 	if {$SimName eq ""} {
     set SimName [file rootname [file tail $FileName]]
@@ -844,9 +901,9 @@ proc RunTest {FileName {SimName ""}} {
     set ShortFileName [file rootname [file tail $FileName]]
     TestCase "${SimName}(${ShortFileName})"
   }
-  
+
   analyze   ${FileName}
-  simulate  ${SimName}  
+  simulate  ${SimName}
   unset CompoundCommand
 }
 
@@ -856,9 +913,9 @@ proc RunTest {FileName {SimName ""}} {
 proc SkipTest {FileName Reason} {
 
   set SimName [file rootname [file tail $FileName]]
-  
+
   puts "SkipTest $FileName $Reason"
-  
+
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
   } else {
@@ -868,17 +925,17 @@ proc SkipTest {FileName Reason} {
   puts  $RunFile "      Name: $SimName"
   puts  $RunFile "      Status: SKIPPED"
   puts  $RunFile "      Results: {Reason: \"$Reason\"}"
-  close $RunFile  
+  close $RunFile
 }
 
 
 # -------------------------------------------------
 # SetVHDLVersion, GetVHDLVersion
 #
-proc SetVHDLVersion {Version} {  
+proc SetVHDLVersion {Version} {
   variable VhdlVersion
   variable VhdlShortVersion
-  
+
   if {$Version eq "2008" || $Version eq "08"} {
     set VhdlVersion 2008
     set VhdlShortVersion 08
@@ -908,11 +965,11 @@ proc GetVHDLVersion {} {
 # -------------------------------------------------
 # SetTranscriptType, GetTranscriptType
 #
-proc SetTranscriptType {{TranscriptType "html"}} {  
+proc SetTranscriptType {{TranscriptType "html"}} {
   variable TranscriptExtension
-  
+
   set lowerTranscriptType [string tolower $TranscriptType]
-  
+
   if {$lowerTranscriptType eq "html"} {
     set TranscriptExtension "html"
   } else {
@@ -925,8 +982,131 @@ proc GetTranscriptType {} {
   return $TranscriptExtension
 }
 
+# -------------------------------------------------
+# SetExtendedAnalyzeOptions, SetExtendedSimulateOptions
+#
+proc SetVhdlAnalyzeOptions {{Options ""}} {
+  variable VhdlAnalyzeOptions
+  set      VhdlAnalyzeOptions $Options ;
+}
+proc GetVhdlAnalyzeOptions {} {
+  variable VhdlAnalyzeOptions
+  return  $VhdlAnalyzeOptions
+}
 
+proc SetVerilogAnalyzeOptions {{Options ""}} {
+  variable VerilogAnalyzeOptions
+  set      VerilogAnalyzeOptions $Options ;
+}
+proc GetVerilogAnalyzeOptions {} {
+  variable VerilogAnalyzeOptions
+  return  $VerilogAnalyzeOptions
+}
 
+# -------------------------------------------------
+# SetExtendedAnalyzeOptions, SetExtendedSimulateOptions
+#
+proc SetExtendedAnalyzeOptions {{Options ""}} {
+  variable ExtendedAnalyzeOptions
+  set ExtendedAnalyzeOptions $Options ;
+}
+proc GetExtendedAnalyzeOptions {} {
+  variable ExtendedAnalyzeOptions
+  return $ExtendedAnalyzeOptions
+}
+
+proc SetExtendedSimulateOptions {{Options ""}} {
+  variable ExtendedSimulateOptions
+  set ExtendedSimulateOptions $Options ;
+}
+proc GetExtendedSimulateOptions {} {
+  variable ExtendedSimulateOptions
+  return $ExtendedSimulateOptions
+}
+
+# -------------------------------------------------
+# SetCoverageEnable, GetCoverageEnable
+#
+proc SetCoverageEnable {{Enable "true"}} {
+  variable CoverageEnable
+  if {[string tolower $Enable] eq "true"} {
+    set CoverageEnable "true" ;
+  } else {
+    set CoverageEnable "false" ;
+  }
+}
+proc GetCoverageEnable {} {
+  variable CoverageEnable
+  return $CoverageEnable
+}
+
+# -------------------------------------------------
+# SetCoverageAnalyzeOptions, SetCoverageAnalyzeEnable
+#
+proc SetCoverageAnalyzeOptions {{Options ""}} {
+  variable CoverageAnalyzeOptions
+  set CoverageAnalyzeOptions $Options ;
+}
+proc GetCoverageAnalyzeOptions {} {
+  variable CoverageAnalyzeOptions
+  return $CoverageAnalyzeOptions
+}
+
+proc SetCoverageAnalyzeEnable {{Enable ""}} {
+  variable CoverageAnalyzeEnable
+  variable CoverageEnable
+#  if {[llength [info level 0]] < 3} { } ; # does not detect input ""
+  if {$Enable eq ""} {
+    set Enable $CoverageEnable
+  }
+  if {[string tolower $Enable] eq "true"} {
+    set CoverageAnalyzeEnable "true" ;
+  } elseif {[info exists CoverageAnalyzeEnable]} {
+    unset CoverageAnalyzeEnable
+  }
+}
+proc GetCoverageAnalyzeEnable {} {
+  variable CoverageAnalyzeEnable
+  if {[info exists CoverageAnalyzeEnable]} {
+    return $CoverageAnalyzeEnable
+  } else {
+    return "false"
+  }
+}
+
+# -------------------------------------------------
+# SetCoverageSimulateOptions, SetCoverageSimulateEnable
+#
+proc SetCoverageSimulateOptions {{Options ""}} {
+  variable CoverageSimulateOptions
+  set CoverageSimulateOptions $Options ;
+}
+proc GetCoverageSimulateOptions {} {
+  variable CoverageSimulateOptions
+  return $CoverageSimulateOptions
+}
+
+proc SetCoverageSimulateEnable {{Enable ""}} {
+  variable CoverageSimulateEnable
+  variable CoverageEnable
+#  if {[llength [info level 0]] < 3} { } ; # does not detect input ""
+  if {$Enable eq ""} {
+    set Enable $CoverageEnable
+  }
+  if {[string tolower $Enable] eq "true"} {
+    set CoverageSimulateEnable "true" ;
+  } elseif {[info exists CoverageSimulateEnable]} {
+    unset CoverageSimulateEnable
+  }
+}
+proc GetCoverageSimulateEnable {} {
+  variable CoverageSimulateEnable
+  if {[info exists CoverageSimulateEnable]} {
+    return $CoverageSimulateEnable
+  } else {
+    return "false"
+  }
+}
 
 # -------------------------------------------------
 # SetSimulatorResolution, GetSimulatorResolution
@@ -959,9 +1139,9 @@ proc SetLibraryDirectory {{LibraryDirectory "."}} {
   set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
 }
 
-proc GetLibraryDirectory {} { 
+proc GetLibraryDirectory {} {
   variable LIB_BASE_DIR
-  
+
   if {[info exists LIB_BASE_DIR]} {
     return "${LIB_BASE_DIR}"
   } else {
@@ -978,15 +1158,15 @@ proc RemoveLocalLibraries {} {
   variable LibraryList
   variable VHDL_WORKING_LIBRARY
   variable DIR_LIB
-  
+
   if {[info exists DIR_LIB]} {
     file delete -force -- $DIR_LIB
   }
-  if {[info exists VHDL_WORKING_LIBRARY]} { 
+  if {[info exists VHDL_WORKING_LIBRARY]} {
     unset VHDL_WORKING_LIBRARY
   }
-##!! TODO:  Remove libraries whose directory is DIR_LIB   
-  if {[info exists LibraryList]} { 
+##!! TODO:  Remove libraries whose directory is DIR_LIB
+  if {[info exists LibraryList]} {
     unset LibraryList
     unset LibraryDirectoryList
   }
@@ -996,16 +1176,16 @@ proc RemoveAllLibraries {} {
   variable LibraryDirectoryList
   variable LibraryList
   variable VHDL_WORKING_LIBRARY
-  
+
   if {[info exists LibraryDirectoryList]} {
     foreach LibraryDir $LibraryDirectoryList {
       file delete -force -- $LibraryDir
     }
   }
-  if {[info exists VHDL_WORKING_LIBRARY]} { 
+  if {[info exists VHDL_WORKING_LIBRARY]} {
     unset VHDL_WORKING_LIBRARY
   }
-  if {[info exists LibraryList]} { 
+  if {[info exists LibraryList]} {
     unset LibraryList
     unset LibraryDirectoryList
   }
@@ -1013,10 +1193,10 @@ proc RemoveAllLibraries {} {
 
 proc DirectoryExists {DirInQuestion} {
   variable CURRENT_WORKING_DIRECTORY
-  
-  if {[info exists CURRENT_WORKING_DIRECTORY]} { 
+
+  if {[info exists CURRENT_WORKING_DIRECTORY]} {
     set LocalWorkingDirectory $CURRENT_WORKING_DIRECTORY
-  } else { 
+  } else {
     set LocalWorkingDirectory "."
   }
   return [file exists [file join ${LocalWorkingDirectory} ${DirInQuestion}]]
@@ -1028,11 +1208,19 @@ proc DirectoryExists {DirInQuestion} {
 
 namespace export analyze simulate build include library RunTest SkipTest TestSuite TestCase
 namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
-namespace export RemoveAllLibraries RemoveLocalLibraries CreateDirectory 
+namespace export RemoveAllLibraries RemoveLocalLibraries CreateDirectory
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory SetTranscriptType GetTranscriptType
-namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries 
+namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries
 namespace export FindLibraryPath EndSimulation DirectoryExists
+namespace export SetExtendedAnalyzeOptions GetExtendedAnalyzeOptions
+namespace export SetExtendedSimulateOptions GetExtendedSimulateOptions
+namespace export SetCoverageAnalyzeOptions GetCoverageAnalyzeOptions
+namespace export SetCoverageAnalyzeEnable GetCoverageAnalyzeEnable
+namespace export SetCoverageSimulateOptions GetCoverageSimulateOptions
+namespace export SetCoverageSimulateEnable GetCoverageSimulateEnable
+namespace export MergeCoverage
+
 
 # end namespace ::osvvm
 }

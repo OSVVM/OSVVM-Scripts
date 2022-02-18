@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     2/2022   2022.02    Added template of procedures needed for coverage support
 #    12/2021   2021.12    Updated to use relative paths.
 #     6/2021   2021.06    Updated to better handle return values from GHDL
 #     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
@@ -27,7 +28,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2020 - 2021 by SynthWorks Design Inc.  
+#  Copyright (c) 2020 - 2022 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -90,6 +91,20 @@ proc vendor_StopTranscript {FileName} {
 proc GhdlLibraryPath {LibraryName PathToLib} {
   set PathAndLib "${PathToLib}/[string tolower ${LibraryName}]/v08"
   return $PathAndLib
+}
+
+# -------------------------------------------------
+# SetCoverageAnalyzeOptions
+# SetCoverageCoverageOptions
+#
+proc vendor_SetCoverageAnalyzeDefaults {} {
+  variable CoverageAnalyzeOptions
+#    set defaults here
+}
+
+proc vendor_SetCoverageSimulateDefaults {} {
+  variable CoverageSimulateOptions
+#    set defaults here
 }
 
 # -------------------------------------------------
@@ -160,6 +175,7 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable GHDL_TRANSCRIPT_FILE
   variable DIR_LIB
   variable GHDL_WORKING_LIBRARY_PATH
+  variable CoverageSimulateEnable
 
   CheckTranscript
 #  set GHDL_WORKING_LIBRARY_PATH   [GhdlLibraryPath $LibraryName $DIR_LIB] 
@@ -168,9 +184,9 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
 #  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} | tee -a $GHDL_TRANSCRIPT_FILE $console
 #  exec echo "$ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName}" | {*}[get_tee]
 #  eval exec  $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName} |& {*}[get_tee]
-  exec echo "$ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}" | {*}[get_tee]
+  exec echo "$ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}" | {*}[get_tee]
 #  eval exec  $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} |& {*}[get_tee]
-  exec        $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} |& {*}[get_tee]
+  exec        $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName} |& {*}[get_tee]
 }
 
 proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
@@ -205,12 +221,29 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 #  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} | tee -a $GHDL_TRANSCRIPT_FILE $console
 #  exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit}" | {*}[get_tee]
 #  eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit} |& {*}[get_tee]
-  exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}" | {*}[get_tee]
+  exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${LibraryUnit}" | {*}[get_tee]
 #  eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} |& {*}[get_tee]
 #  if { [catch {eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} |& {*}[get_tee]} SimErr]} { 
 #    puts "ghdl --elab-run ended with error $SimErr"
 #  }
-  if { [catch {exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} |& {*}[get_tee]} SimErr]} { 
+  if { [catch {exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${LibraryUnit} |& {*}[get_tee]} SimErr]} { 
     puts "ghdl --elab-run ended with error $SimErr"
   }
+  
+  # Save Coverage Information
+  if {[info exists CoverageSimulateEnable]} {
+#    acdb save -o ${LibraryUnit}.acdb -testname ${LibraryUnit}
+  }
+}
+
+
+# -------------------------------------------------
+# Merge Coverage
+#
+proc vendor_MergeCodeCoverage {TestSuiteName ResultsDirectory} { 
+#  acdb merge        -o ${ResultsDirectory}/${TestSuiteName}.acdb -i {*}[join [glob reports/${TestSuiteName}/*.acdb] " -i "]
+}
+
+proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
+#  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
 }

@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     2/2022   2022.02    Added Coverage Collection
 #    12/2021   2021.12    Updated since OsvvmProjectScripts uses relative paths.
 #     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate
 #     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
@@ -32,7 +33,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2021 by SynthWorks Design Inc.  
+#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -73,6 +74,21 @@ proc vendor_StopTranscript {FileName} {
   transcript off
 }
 
+# -------------------------------------------------
+# SetCoverageAnalyzeOptions
+# SetCoverageCoverageOptions
+#
+proc vendor_SetCoverageAnalyzeDefaults {} {
+  variable CoverageAnalyzeOptions
+#  set CoverageAnalyzeOptions "-coverage sbmec"
+  set CoverageAnalyzeOptions "-coverage sbm"
+}
+
+proc vendor_SetCoverageSimulateDefaults {} {
+  variable CoverageSimulateOptions
+#  set CoverageSimulateOptions "-acdb -acdb_cov sbmec -cc_all"
+  set CoverageSimulateOptions "-acdb -acdb_cov sbm -cc_all"
+}
 
 # -------------------------------------------------
 # Library
@@ -131,6 +147,8 @@ proc vendor_LinkLibrary {LibraryName RelativePathToLib} {
 proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
   variable VhdlVersion
   variable DIR_LIB
+  variable CoverageAnalyzeEnable
+  variable CoverageSimulateEnable
   
   set FileName [file normalize $RelativePathToFile]
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
@@ -144,10 +162,15 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
     filevhdloptions -${VhdlVersion} ${FileName}
   }
   # Compile it.
-  echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName} 
-  echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName} > ${DIR_LIB}/$LibraryName/src/${FileBaseName}.vcom
-  vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} ${FileName}
-  
+  echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName} > ${DIR_LIB}/$LibraryName/src/${FileBaseName}.vcom
+  if {[info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
+    puts "vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}"
+         vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+  } else {
+    puts "vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}"
+         vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+  }
+
   cd $MY_START_DIR
 }
 
@@ -179,12 +202,15 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SIMULATE_TIME_UNITS
   variable ToolVendor
   variable simulator
+  variable CoverageSimulateEnable
+  variable TestSuiteName
 
-  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  # With sim_working_folder setting should no longer need MY_START_DIR
   set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   
-  puts "vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands}" 
-  eval vsim -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} 
+  puts "vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}" 
+        vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}  
   
   # ActiveHDL changes the directory, so change it back to the OSVVM run directory
   cd $MY_START_DIR
@@ -232,4 +258,20 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   cd $MY_START_DIR
   run -all 
   cd $MY_START_DIR
+  
+  # Save Coverage Information 
+  if {[info exists CoverageSimulateEnable]} {
+    acdb save -o ./reports/${TestSuiteName}/${LibraryUnit}.acdb -testname ${LibraryUnit}
+  }
+}
+
+# -------------------------------------------------
+# Merge Coverage
+#
+proc vendor_MergeCodeCoverage {TestSuiteName ResultsDirectory} { 
+  acdb merge        -o ${ResultsDirectory}/${TestSuiteName}.acdb -i {*}[join [glob reports/${TestSuiteName}/*.acdb] " -i "]
+}
+
+proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
+  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
 }

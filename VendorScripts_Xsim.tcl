@@ -19,12 +19,13 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     2/2022   2022.02    Added template of procedures needed for coverage support
 #     9/2021   2021.09    Created from VendorScripts_xxx.tcl
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2021 by SynthWorks Design Inc.  
+#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -61,6 +62,20 @@ proc vendor_StartTranscript {FileName} {
 
 proc vendor_StopTranscript {FileName} {
 #  transcript file -close $FileName
+}
+
+# -------------------------------------------------
+# SetCoverageAnalyzeOptions
+# SetCoverageCoverageOptions
+#
+proc vendor_SetCoverageAnalyzeDefaults {} {
+  variable CoverageAnalyzeOptions
+#    set defaults here
+}
+
+proc vendor_SetCoverageSimulateDefaults {} {
+  variable CoverageSimulateOptions
+#    set defaults here
 }
 
 
@@ -134,6 +149,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SIMULATE_TIME_UNITS
   variable ToolVendor
   variable simulator
+  variable CoverageSimulateEnable
 
   # removed $OptionalCommands
 #  puts "xelab --timeprecision_vhdl 1${SIMULATE_TIME_UNITS} --mt off  ${LibraryName}.${LibraryUnit} --runall"
@@ -177,4 +193,16 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 #
 #  log -rec [env]/*
 #  run -all 
+}
+
+
+# -------------------------------------------------
+# Merge Coverage
+#
+proc vendor_MergeCodeCoverage {TestSuiteName ResultsDirectory} { 
+#  acdb merge        -o ${ResultsDirectory}/${TestSuiteName}.acdb -i {*}[join [glob reports/${TestSuiteName}/*.acdb] " -i "]
+}
+
+proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
+#  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
 }

@@ -328,7 +328,11 @@ proc ReportTestSuites {TestDict} {
           puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestResults PassedCount] /  [dict get $TestResults AffirmCount]</td>"
           puts $ResultsFile "      <td style=color:${FailedColor}>[dict get $TestResults TotalErrors] </td>"
           puts $ResultsFile "      <td>[dict get $TestResults RequirementsPassed] /  [dict get $TestResults RequirementsGoal]</td>"
-          set FunctionalCov [dict get $TestCase FunctionalCoverage]
+          if { [dict exists $TestCase FunctionalCoverage] } { 
+            set FunctionalCov [dict get $TestCase FunctionalCoverage]
+          } else {
+            set FunctionalCov ""
+          }
           if { ${FunctionalCov} ne "" } {
             puts $ResultsFile "      <td><a href=\"reports/${SuiteName}/${TestName}.html#FunctionalCoverage\">${FunctionalCov}</a></td>"
           } else {

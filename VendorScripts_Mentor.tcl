@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     2/2022   2022.02    Added Coverage Collection
 #    12/2021   2021.12    Updated to use relative paths.
 #     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate
 #     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
@@ -32,7 +33,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2021 by SynthWorks Design Inc.    
+#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.    
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -75,6 +76,20 @@ proc vendor_StopTranscript {FileName} {
   transcript file ""
 }
 
+# -------------------------------------------------
+# SetCoverageAnalyzeOptions
+# SetCoverageCoverageOptions
+#
+proc vendor_SetCoverageAnalyzeDefaults {} {
+  variable CoverageAnalyzeOptions
+#  set CoverageAnalyzeOptions "+cover=bcesft"
+  set CoverageAnalyzeOptions "+cover=bsf"
+}
+
+proc vendor_SetCoverageSimulateDefaults {} {
+  variable CoverageSimulateOptions
+  set CoverageSimulateOptions "-coverage"
+}
 
 # -------------------------------------------------
 # Library
@@ -107,8 +122,8 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
 #
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlVersion
-  puts "vcom -${VhdlVersion} -work ${LibraryName} ${FileName} "
-        vcom -${VhdlVersion} -work ${LibraryName} ${FileName}
+  puts "vcom -${VhdlVersion} -work ${LibraryName} {*}${OptionalCommands} ${FileName} "
+        vcom -${VhdlVersion} -work ${LibraryName} {*}${OptionalCommands} ${FileName}
 }
 
 proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
@@ -197,6 +212,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SIMULATE_TIME_UNITS
   variable ToolVendor
   variable simulator
+  variable CoverageSimulateEnable
+  variable TestSuiteName
 
   puts "vsim -voptargs='+acc' -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
 #  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 
@@ -242,4 +259,18 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   # Removed.  Desirable, but causes crashes if no signals in testbench.
 #  add log -r [env]/*
   run -all 
+  
+  if {[info exists CoverageSimulateEnable]} {
+    coverage save ./reports/${TestSuiteName}/${LibraryUnit}.ucdb 
+  }
+}
+
+# -------------------------------------------------
+# Merge Coverage
+#
+proc vendor_MergeCodeCoverage {TestSuiteName ResultsDirectory} { 
+  vcover merge         ${ResultsDirectory}/${TestSuiteName}.ucdb {*}[glob reports/${TestSuiteName}/*.ucdb]
+}
+proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
+  vcover report -html -annotate -details -verbose -output ${ResultsDirectory}/${TestSuiteName}_code_cov ${ResultsDirectory}/${TestSuiteName}.ucdb 
 }
