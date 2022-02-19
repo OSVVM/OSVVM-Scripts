@@ -793,7 +793,8 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
 
   puts "Simulate Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
 
-  set Coverage [Simulate2Html $TestCaseName $TestSuiteName]
+#  set Coverage [Simulate2Html $TestCaseName $TestSuiteName]
+  Simulate2Html $TestCaseName $TestSuiteName
 
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]

@@ -53,9 +53,9 @@ proc Simulate2Html {TestCaseName TestSuiteName} {
   
   if {[file exists reports/${TestCaseName}_cov.yml]} {
     Cov2Html ${TestCaseName} ${TestSuiteName}
-    set Coverage [GetCov ${TestCaseName}]
-  } else {
-    set Coverage 0.0
+#    set Coverage [GetCov ${TestCaseName}]
+#  } else {
+#    set Coverage 0.0
   }
   
   if {[file exists reports/${TestCaseName}_sb_slv.yml]} {
@@ -67,7 +67,7 @@ proc Simulate2Html {TestCaseName TestSuiteName} {
   }
   
   FinalizeSimulationReportFile ${TestCaseName} ${TestSuiteName}
-  return $Coverage
+#  return $Coverage
 }
 
 proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
