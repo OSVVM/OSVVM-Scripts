@@ -49,7 +49,7 @@ proc Scoreboard2Html {TestCaseName TestSuiteName ExtensionName} {
 #  set ResultsFile [open ${FileName} a]
   
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
-  set ScoreboardFile reports/${TestCaseName}_sb_${ExtensionName}.yml
+  set ScoreboardFile ${::osvvm::ReportsDirectory}/${TestCaseName}_sb_${ExtensionName}.yml
 
   puts $ResultsFile "<hr>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"

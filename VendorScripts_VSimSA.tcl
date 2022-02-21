@@ -195,15 +195,16 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   
   # Save Coverage Information 
   if {[info exists CoverageSimulateEnable]} {
-    acdb save -o ./reports/${TestSuiteName}/${LibraryUnit}.acdb -testname ${LibraryUnit}
+    acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${LibraryUnit}.acdb -testname ${LibraryUnit}
   }
 }
 
 # -------------------------------------------------
 # Merge Coverage
 #
-proc vendor_MergeCodeCoverage {TestSuiteName ResultsDirectory} { 
-  acdb merge        -o ${ResultsDirectory}/${TestSuiteName}.acdb -i {*}[join [glob reports/${TestSuiteName}/*.acdb] " -i "]
+proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
+  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
+  acdb merge        -o ${CoverageFileBaseName}.acdb -i {*}[join [glob ${CoverageDirectory}/${TestSuiteName}/*.acdb] " -i "]
 }
 
 proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 

@@ -71,7 +71,7 @@ proc StartUp {} {
 
 namespace eval ::osvvm {
 
-variable OsvvmYamlResultsFile    "./OsvvmRun.yml"
+variable OsvvmYamlResultsFile    "./OsvvmRun.yml"  ; # WARNING:  OSVVM VHDL code also uses this name
 variable ExtendedAnalyzeOptions  ""
 variable ExtendedSimulateOptions ""
 variable CoverageAnalyzeOptions  [vendor_SetCoverageAnalyzeDefaults]
@@ -79,6 +79,15 @@ variable CoverageSimulateOptions [vendor_SetCoverageSimulateDefaults]
 variable VhdlAnalyzeOptions       ""
 variable VerilogAnalyzeOptions    ""
 variable CoverageEnable           "true"
+
+variable LogDirectory             "logs/${ToolNameVersion}"
+variable ReportsDirectory         "reports"  ; # WARNING: OSVVM reporting requires this directory to be named reports
+variable OsvvmResultsDirectory    "results"  ; # WARNING: OSVVM regression tests expects this directory to be named results
+variable ResultsDirectory         "results"  ; # A place for user code to write if "." or $OsvvmResultsDirectory not ok
+variable CoverageDirectory        "CodeCoverage"
+# variable LIB_BASE_DIR           ; # Default: $CURRENT_SIMULATION_DIRECTORY.  set by SetLibraryDirectoy
+variable VhdlLibraryDirectory     "VHDL_LIBS"
+variable VhdlLibrarySubdirectory  "${ToolNameVersion}"
 
 
 # -------------------------------------------------
@@ -215,7 +224,7 @@ proc include {Path_Or_File} {
 }
 
 # -------------------------------------------------
-proc SetLogName {Path_Or_File} {
+proc SetBuildName {Path_Or_File} {
   # Create the Log File Name
   # Normalize to elaborate names, especially when Path_Or_File is "."
   set NormPathOrFile [file normalize ${Path_Or_File}]
@@ -226,20 +235,20 @@ proc SetLogName {Path_Or_File} {
 
   if {$NormDirName eq $NormTailRoot} {
     # <Parent Dir>_<Script Name>.log
-#    set LogName [file tail [file dirname $NormDir]]_${NormTailRoot}
+#    set BuildName [file tail [file dirname $NormDir]]_${NormTailRoot}
     # <Script Name>.log
-    set LogName ${NormTailRoot}
+    set BuildName ${NormTailRoot}
   } else {
     # <Dir Name>_<Script Name>.log
-    set LogName ${NormDirName}_${NormTailRoot}
+    set BuildName ${NormDirName}_${NormTailRoot}
   }
-  return $LogName
+  return $BuildName
 }
 
 # -------------------------------------------------
 # build
 #
-proc build {{Path_Or_File "."} {LogName "."}} {
+proc build {{Path_Or_File "."}} {
   variable CURRENT_WORKING_DIRECTORY
   variable CURRENT_SIMULATION_DIRECTORY
   variable VHDL_WORKING_LIBRARY
@@ -270,8 +279,8 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   CheckWorkingDir
   CheckSimulationDirs
 
-  set LogName [SetLogName $Path_Or_File]
-  set LogFileName ${LogName}.${TranscriptExtension}
+  set BuildName [SetBuildName $Path_Or_File]
+  set LogFileName ${BuildName}.${TranscriptExtension}
 
   StartTranscript ${LogFileName}
 
@@ -284,16 +293,14 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} w]
   puts  $RunFile "Version: 1.0"
   puts  $RunFile "Build:"
-  puts  $RunFile "  Name: $LogName"
+  puts  $RunFile "  Name: $BuildName"
   puts  $RunFile "  Date: [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
   puts  $RunFile "  Simulator: $::osvvm::simulator"
   puts  $RunFile "  Version: $::osvvm::ToolNameVersion"
 #  puts  $RunFile "  Date: [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   close $RunFile
 
-
   include ${Path_Or_File}
-
 
   # Print Elapsed time for last TestSuite (if any ran) and the entire build
   set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} a]
@@ -305,8 +312,8 @@ proc build {{Path_Or_File "."} {LogName "."}} {
   }
 
   if {[info exists CoverageSimulateEnable]} {
-    vendor_MergeCodeCoverage  $LogName "."
-    vendor_ReportCodeCoverage $LogName "."
+    vendor_MergeCodeCoverage  $BuildName $::osvvm::CoverageDirectory ""
+    vendor_ReportCodeCoverage $BuildName $::osvvm::CoverageDirectory
   }
 
   set   BuildFinishTime     [clock seconds]
@@ -323,9 +330,9 @@ proc build {{Path_Or_File "."} {LogName "."}} {
 
   # short sleep to allow the file to close
   after 1000
-  file rename -force ${::osvvm::OsvvmYamlResultsFile} ${LogName}.yml
-  Report2Html  ${LogName}.yml
-  Report2Junit ${LogName}.yml
+  file rename -force ${::osvvm::OsvvmYamlResultsFile} ${BuildName}.yml
+  Report2Html  ${BuildName}.yml
+  Report2Junit ${BuildName}.yml
 }
 
 
@@ -384,11 +391,10 @@ proc CheckLibraryInit {} {
   variable LIB_BASE_DIR
   variable DIR_LIB
   variable CURRENT_SIMULATION_DIRECTORY
-  variable ToolNameVersion
 
   if {![info exists LIB_BASE_DIR]} {
     set LIB_BASE_DIR $CURRENT_SIMULATION_DIRECTORY
-    set DIR_LIB ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
+    set DIR_LIB [file join ${LIB_BASE_DIR} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
   }
 
   # Create LIB and Results directories
@@ -413,8 +419,9 @@ proc CheckLibraryExists {} {
 #
 proc CheckSimulationDirs {} {
   variable CURRENT_SIMULATION_DIRECTORY
-  CreateDirectory ${CURRENT_SIMULATION_DIRECTORY}/results
-  CreateDirectory ${CURRENT_SIMULATION_DIRECTORY}/reports
+  CreateDirectory [file join ${CURRENT_SIMULATION_DIRECTORY} ${::osvvm::OsvvmResultsDirectory}]
+  CreateDirectory [file join ${CURRENT_SIMULATION_DIRECTORY} ${::osvvm::ResultsDirectory}]
+  CreateDirectory [file join ${CURRENT_SIMULATION_DIRECTORY} ${::osvvm::ReportsDirectory}]
 }
 
 # -------------------------------------------------
@@ -477,13 +484,12 @@ proc StartTranscript {FileBaseName} {
   variable CurrentTranscript
   variable DIR_LOGS
   variable CURRENT_SIMULATION_DIRECTORY
-  variable ToolNameVersion
   variable FirstEchoCmd
 
   CheckWorkingDir
 
   if {($FileBaseName ne "NONE.log") && (![info exists CurrentTranscript])} {
-    set DIR_LOGS   ${CURRENT_SIMULATION_DIRECTORY}/logs/${ToolNameVersion}
+    set DIR_LOGS   [file join ${CURRENT_SIMULATION_DIRECTORY} ${::osvvm::LogDirectory}]
     # Create directories if they do not exist
     set FileName [file join $DIR_LOGS $FileBaseName]
     CreateDirectory [file dirname $FileName]
@@ -544,15 +550,14 @@ proc EndSimulation {} {
 # -------------------------------------------------
 proc FindLibraryPath {PathToLib} {
   variable DIR_LIB
-  variable ToolNameVersion
 
   set ResolvedPathToLib ""
   if {$PathToLib eq ""} {
     # Use existing library directory
     set ResolvedPathToLib ${DIR_LIB}
   } else {
-    set FullName [file join $PathToLib VHDL_LIBS ${ToolNameVersion}]
-    set LibsName [file join $PathToLib ${ToolNameVersion}]
+    set FullName [file join $PathToLib ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
+    set LibsName [file join $PathToLib ${::osvvm::VhdlLibrarySubdirectory}]
     if      {[file isdirectory $FullName]} {
       set ResolvedPathToLib [file normalize $FullName]
     } elseif {[file isdirectory $LibsName]} {
@@ -793,17 +798,11 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
 
   puts "Simulate Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
 
-#  set Coverage [Simulate2Html $TestCaseName $TestSuiteName]
   Simulate2Html $TestCaseName $TestSuiteName
 
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
     puts  $RunFile "      ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
-#    if {[file isfile reports/${TestCaseName}_cov.yml]} {
-#      puts  $RunFile "      FunctionalCoverage: ${Coverage}"
-#    } else {
-#      puts  $RunFile "      FunctionalCoverage: "
-#    }
     close $RunFile
   }
 
@@ -811,8 +810,9 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
 }
 
 # -------------------------------------------------
-proc MergeCoverage {SuiteName ResultsDirectory} {
-  vendor_MergeCodeCoverage $SuiteName $ResultsDirectory
+proc MergeCoverage {SuiteName MergeName} {
+  CreateDirectory ${::osvvm::CoverageDirectory}/${MergeName}
+  vendor_MergeCodeCoverage $SuiteName ${::osvvm::CoverageDirectory} ${MergeName}
 }
 
 # -------------------------------------------------
@@ -825,14 +825,15 @@ proc  ElapsedTimeMs {StartTimeMs} {
 # -------------------------------------------------
 proc FinalizeTestSuite {SuiteName} {
   variable CoverageSimulateEnable
-  variable CoverageExtension 
-  variable CurrentTranscript
-  set LogName [file rootname $CurrentTranscript]
 
-  file rename -force {*}[glob ./reports/*.yml]  ./reports/${SuiteName}
+  # Move Alert and Functional Coverage YAML files to the TestSuite Directory
+  file rename -force {*}[glob ${::osvvm::ReportsDirectory}/*.yml]  ${::osvvm::ReportsDirectory}/${SuiteName}
+  
+  # Merge Code Coverage for the Test Suite if it exists
   if {[info exists CoverageSimulateEnable]} {
-    CreateDirectory ./reports/${LogName}
-    vendor_MergeCodeCoverage $SuiteName reports/${LogName}
+    set BuildName [file rootname ${::osvvm::CurrentTranscript}]
+    CreateDirectory ${::osvvm::CoverageDirectory}/${BuildName}
+    vendor_MergeCodeCoverage $SuiteName ${::osvvm::CoverageDirectory} ${BuildName}
   }
 }
 
@@ -859,7 +860,7 @@ proc TestSuite {SuiteName} {
   puts  $RunFile "    TestCases:"
   close $RunFile
 
-  CreateDirectory reports/${TestSuiteName}
+  CreateDirectory ${::osvvm::ReportsDirectory}/${TestSuiteName}
   # Starting a Test Suite here
   set TestSuiteStartTimeMs   [clock milliseconds]
 }
@@ -1128,7 +1129,6 @@ proc GetSimulatorResolution {} {
 proc SetLibraryDirectory {{LibraryDirectory "."}} {
   variable LIB_BASE_DIR
   variable DIR_LIB
-  variable ToolNameVersion
 
   if {$LibraryDirectory eq ""} {
     set LIB_BASE_DIR [file normalize "."]
@@ -1136,8 +1136,7 @@ proc SetLibraryDirectory {{LibraryDirectory "."}} {
     set LIB_BASE_DIR [file normalize $LibraryDirectory]
   }
   CreateDirectory $LIB_BASE_DIR
-#  puts "set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}"
-  set DIR_LIB    ${LIB_BASE_DIR}/VHDL_LIBS/${ToolNameVersion}
+  set DIR_LIB [file join ${LIB_BASE_DIR} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
 }
 
 proc GetLibraryDirectory {} {

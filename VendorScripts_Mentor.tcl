@@ -261,16 +261,18 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   run -all 
   
   if {[info exists CoverageSimulateEnable]} {
-    coverage save ./reports/${TestSuiteName}/${LibraryUnit}.ucdb 
+    coverage save ${::osvvm::CoverageDirectory}/${TestSuiteName}/${LibraryUnit}.ucdb 
   }
 }
 
 # -------------------------------------------------
 # Merge Coverage
 #
-proc vendor_MergeCodeCoverage {TestSuiteName ResultsDirectory} { 
-  vcover merge         ${ResultsDirectory}/${TestSuiteName}.ucdb {*}[glob reports/${TestSuiteName}/*.ucdb]
+proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
+  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
+  vcover merge ${CoverageFileBaseName}.ucdb {*}[glob ${CoverageDirectory}/${TestSuiteName}/*.ucdb]
 }
+
 proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
   vcover report -html -annotate -details -verbose -output ${ResultsDirectory}/${TestSuiteName}_code_cov ${ResultsDirectory}/${TestSuiteName}.ucdb 
 }

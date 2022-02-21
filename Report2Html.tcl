@@ -198,6 +198,12 @@ proc ReportElaborateStatus {TestDict} {
   puts $ResultsFile "  <tr><td>Simulator</td>                         <td>[dict get $BuildInfo Simulator]</td></tr>"
   puts $ResultsFile "  <tr><td>Version</td>                           <td>[dict get $BuildInfo Version]</td></tr>"
   puts $ResultsFile "  <tr><td>OSVVM YAML Version</td>                <td>[dict get $TestDict Version]</td></tr>"
+
+  set resolvedCoverageDirectory [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::CoverageDirectory}]
+  if {[file exists ${resolvedCoverageDirectory}/${BuildName}_code_cov.html]} {
+    puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${resolvedCoverageDirectory}/${BuildName}_code_cov.html\">Link to Simulation Results</a></td></tr>"
+  }
+
   puts $ResultsFile "</table>"
   puts $ResultsFile "<DIV STYLE=\"font-size:25px\"><BR></DIV>"
   
@@ -322,7 +328,7 @@ proc ReportTestSuites {TestDict} {
           }
         }
         puts $ResultsFile "  <tr>"
-        puts $ResultsFile "      <td><a href=\"reports/${SuiteName}/${TestName}.html#AlertSummary\">${TestName}</a></td>"
+        puts $ResultsFile "      <td><a href=\"${::osvvm::ReportsDirectory}/${SuiteName}/${TestName}.html#AlertSummary\">${TestName}</a></td>"
         puts $ResultsFile "      <td style=color:${StatusColor}>$TestStatus</td>"
         if { $TestReport eq "REPORT" } {
           puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestResults PassedCount] /  [dict get $TestResults AffirmCount]</td>"
@@ -334,7 +340,7 @@ proc ReportTestSuites {TestDict} {
             set FunctionalCov ""
           }
           if { ${FunctionalCov} ne "" } {
-            puts $ResultsFile "      <td><a href=\"reports/${SuiteName}/${TestName}.html#FunctionalCoverage\">${FunctionalCov}</a></td>"
+            puts $ResultsFile "      <td><a href=\"${::osvvm::ReportsDirectory}/${SuiteName}/${TestName}.html#FunctionalCoverage\">${FunctionalCov}</a></td>"
           } else {
             puts $ResultsFile "      <td>-</td>"
           }

@@ -98,9 +98,9 @@ proc vendor_library {LibraryName RelativePathToLib} {
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
-  set PathToLib [file normalize $RelativePathToLib]
-  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set PathToLib [file normalize $RelativePathToLib]
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
@@ -111,13 +111,19 @@ proc vendor_library {LibraryName RelativePathToLib} {
   design open -a  ${PathAndLib}
   puts "design activate $LibraryName"
   design activate $LibraryName
+  
+  # This was a work around before adding variable sim_working_folder
+  # It should not be needed any longer.   
   cd ${PathAndLib}
-  if {![file exists results]} {
-    file link -symbolic results ${MY_START_DIR}/results  
+  set ResultsBaseName [file tail ${::osvvm::ResultsDirectory}] 
+  if {![file exists $ResultsBaseName]} {
+    file link -symbolic $ResultsBaseName [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::ResultsDirectory}]
   }
-  if {![file exists reports]} {
-    file link -symbolic reports ${MY_START_DIR}/reports  
+  set ReportsBaseName [file tail ${::osvvm::ReportsDirectory}] 
+  if {![file exists $ReportsBaseName]} {
+    file link -symbolic $ReportsBaseName [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::ReportsDirectory}]
   }
+  
   cd $MY_START_DIR
 }
 
@@ -126,8 +132,9 @@ proc vendor_LinkLibrary {LibraryName RelativePathToLib} {
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
-  set PathToLib [file normalize $RelativePathToLib]
+  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set PathToLib [file normalize $RelativePathToLib]
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {[file exists ${PathAndLib}]} {
@@ -150,9 +157,9 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
   variable CoverageAnalyzeEnable
   variable CoverageSimulateEnable
   
+  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set FileName [file normalize $RelativePathToFile]
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
-  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set FileBaseName [file rootname [file tail $FileName]]
   
   # Check src to see if it has been added
@@ -175,8 +182,8 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
 }
 
 proc vendor_analyze_verilog {LibraryName File_Relative_Path OptionalCommands} {
-  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   
   set FileName [file normalize $File_Relative_Path]
 
@@ -261,15 +268,16 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   
   # Save Coverage Information 
   if {[info exists CoverageSimulateEnable]} {
-    acdb save -o ./reports/${TestSuiteName}/${LibraryUnit}.acdb -testname ${LibraryUnit}
+    acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${LibraryUnit}.acdb -testname ${LibraryUnit}
   }
 }
 
 # -------------------------------------------------
 # Merge Coverage
 #
-proc vendor_MergeCodeCoverage {TestSuiteName ResultsDirectory} { 
-  acdb merge        -o ${ResultsDirectory}/${TestSuiteName}.acdb -i {*}[join [glob reports/${TestSuiteName}/*.acdb] " -i "]
+proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
+  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
+  acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join [glob ${CoverageDirectory}/${TestSuiteName}/*.acdb] " -i "]
 }
 
 proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 

@@ -44,25 +44,26 @@ package require yaml
 
 proc Simulate2Html {TestCaseName TestSuiteName} {
   variable ResultsFile
+  variable ReportsDirectory
 
   CreateSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
-  if {[file exists reports/${TestCaseName}_alerts.yml]} {
+  if {[file exists ${ReportsDirectory}/${TestCaseName}_alerts.yml]} {
     Alert2Html ${TestCaseName} ${TestSuiteName}
   }
   
-  if {[file exists reports/${TestCaseName}_cov.yml]} {
+  if {[file exists ${ReportsDirectory}/${TestCaseName}_cov.yml]} {
     Cov2Html ${TestCaseName} ${TestSuiteName}
 #    set Coverage [GetCov ${TestCaseName}]
 #  } else {
 #    set Coverage 0.0
   }
   
-  if {[file exists reports/${TestCaseName}_sb_slv.yml]} {
+  if {[file exists ${ReportsDirectory}/${TestCaseName}_sb_slv.yml]} {
     Scoreboard2Html ${TestCaseName} ${TestSuiteName} slv
   }
   
-  if {[file exists reports/${TestCaseName}_sb_int.yml]} {
+  if {[file exists ${ReportsDirectory}/${TestCaseName}_sb_int.yml]} {
     Scoreboard2Html ${TestCaseName} ${TestSuiteName} int
   }
   
@@ -73,7 +74,7 @@ proc Simulate2Html {TestCaseName TestSuiteName} {
 proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
   variable ResultsFile
 
-  set ReportDir reports/${TestSuiteName}
+  set ReportDir ${::osvvm::ReportsDirectory}/${TestSuiteName}
 	if {![file exists ${ReportDir}]} {
     puts "Creating Reports directory for $TestSuiteName"
     file mkdir ${ReportDir}
@@ -88,12 +89,12 @@ proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
 
 proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   variable ResultsFile
-  variable ToolNameVersion
   variable CurrentTranscript
+  variable ReportsDirectory
   
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName} 1
   
-#  set FileName reports/${TestCaseName}].html
+#  set FileName ${ReportsDirectory}/${TestCaseName}].html
 #  file copy -force ${::osvvm::SCRIPT_DIR}/header_report.html ${FileName}
 #  set ResultsFile [open ${FileName} a]
 
@@ -109,14 +110,15 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   puts $ResultsFile "<table>"
   puts $ResultsFile "  <tr style=\"height:40px\"><th>Available Reports</th></tr>"
 
-  if {[file exists reports/${TestCaseName}_alerts.yml]} {
+  if {[file exists ${ReportsDirectory}/${TestCaseName}_alerts.yml]} {
     puts $ResultsFile "  <tr><td><a href=\"#AlertSummary\">Alert Report</a></td></tr>"
   }
-  if {[file exists reports/${TestCaseName}_cov.yml]} {
+  if {[file exists ${ReportsDirectory}/${TestCaseName}_cov.yml]} {
     puts $ResultsFile "  <tr><td><a href=\"#FunctionalCoverage\">Functional Coverage Report(s)</a></td></tr>"
   }
   if {([info exists CurrentTranscript]) && ([file extension $CurrentTranscript] eq ".html")} {
-    puts $ResultsFile "  <tr><td><a href=\"../../logs/${ToolNameVersion}/${CurrentTranscript}#${TestSuiteName}_${TestCaseName}\">Link to Simulation Results</a></td></tr>"
+    set resolvedLogDirectory [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::LogDirectory}]
+    puts $ResultsFile "  <tr><td><a href=\"${resolvedLogDirectory}/${CurrentTranscript}#${TestSuiteName}_${TestCaseName}\">Link to Simulation Results</a></td></tr>"
   }
   puts $ResultsFile "</table>"
   puts $ResultsFile "<br><br>"

@@ -50,7 +50,7 @@ proc Alert2Html {TestCaseName TestSuiteName} {
 
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
-  set AlertFile reports/${TestCaseName}_alerts.yml
+  set AlertFile ${::osvvm::ReportsDirectory}/${TestCaseName}_alerts.yml
   
   set Alert2HtmlDict [::yaml::yaml2dict -file ${AlertFile}]
   

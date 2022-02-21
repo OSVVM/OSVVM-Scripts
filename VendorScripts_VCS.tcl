@@ -218,8 +218,9 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 # -------------------------------------------------
 # Merge Coverage
 #
-proc vendor_MergeCodeCoverage {TestSuiteName ResultsDirectory} { 
-#  acdb merge        -o ${ResultsDirectory}/${TestSuiteName}.acdb -i {*}[join [glob reports/${TestSuiteName}/*.acdb] " -i "]
+proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
+#  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
+#  acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join [glob ${CoverageDirectory}/${TestSuiteName}/*.acdb] " -i "]
 }
 
 proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 

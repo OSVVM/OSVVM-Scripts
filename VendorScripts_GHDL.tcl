@@ -147,7 +147,7 @@ proc CheckTranscript {} {
   variable ToolNameVersion
 
   if {![info exists GHDL_TRANSCRIPT_FILE]} {
-    set GHDL_TRANSCRIPT_FILE [file join ${CURRENT_SIMULATION_DIRECTORY} logs ${ToolNameVersion} default.log]
+    set GHDL_TRANSCRIPT_FILE [file join ${CURRENT_SIMULATION_DIRECTORY} ${::osvvm::LogDirectory} default.log]
     CreateDirectory [file dirname $GHDL_TRANSCRIPT_FILE]
     exec echo "Start Time [clock format [clock seconds] -format %T]" > $GHDL_TRANSCRIPT_FILE
   }
@@ -240,8 +240,9 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 # -------------------------------------------------
 # Merge Coverage
 #
-proc vendor_MergeCodeCoverage {TestSuiteName ResultsDirectory} { 
-#  acdb merge        -o ${ResultsDirectory}/${TestSuiteName}.acdb -i {*}[join [glob reports/${TestSuiteName}/*.acdb] " -i "]
+proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
+#  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
+#  acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join [glob ${CoverageDirectory}/${TestSuiteName}/*.acdb] " -i "]
 }
 
 proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
