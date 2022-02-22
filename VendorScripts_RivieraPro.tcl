@@ -214,6 +214,13 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
   acdb merge        -o ${CoverageFileBaseName}.acdb -i {*}[join [glob ${CoverageDirectory}/${TestSuiteName}/*.acdb] " -i "]
 }
 
-proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
-  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
+proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} { 
+  set CodeCovResultsDir ${CodeCoverageDirectory}/${TestSuiteName}_code_cov
+  if {[file exists ${CodeCovResultsDir}.html]} {
+    file delete -force -- ${CodeCovResultsDir}.html
+  }
+  if {[file exists ${CodeCovResultsDir}_files]} {
+    file delete -force -- ${CodeCovResultsDir}_files
+  }
+  acdb report -html -i ${CodeCoverageDirectory}/${TestSuiteName}.acdb -o ${CodeCovResultsDir}.html
 }

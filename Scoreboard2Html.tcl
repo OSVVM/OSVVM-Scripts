@@ -41,21 +41,16 @@
 
 package require yaml
 
-proc Scoreboard2Html {TestCaseName TestSuiteName ExtensionName} {
+proc Scoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
   variable ResultsFile
   
-#  set FileName  [file rootname ${ScoreboardFile}].html
-#  file copy -force ${::osvvm::SCRIPT_DIR}/header_cov.html ${FileName}
-#  set ResultsFile [open ${FileName} a]
-  
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
-  set ScoreboardFile ${::osvvm::ReportsDirectory}/${TestCaseName}_sb_${ExtensionName}.yml
 
   puts $ResultsFile "<hr>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
-  puts $ResultsFile "<h2 id=\"Scoreboard\">$TestCaseName Scoreboard Report</h2>"
+  puts $ResultsFile "<h2 id=\"${SbName}\">$TestCaseName Scoreboard Report</h2>"
 
-  set TestDict [::yaml::yaml2dict -file ${ScoreboardFile}]
+  set TestDict [::yaml::yaml2dict -file ${SbYamlFile}]
   set VersionNum  [dict get $TestDict Version]
   puts $ResultsFile "<br><br>"
   

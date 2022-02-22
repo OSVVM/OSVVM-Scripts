@@ -41,18 +41,12 @@
 
 package require yaml
 
-proc Alert2Html {TestCaseName TestSuiteName} {
+proc Alert2Html {TestCaseName TestSuiteName AlertYamlFile} {
   variable ResultsFile
-
-#  set FileName  [file rootname ${AlertFile}].html
-#  file copy -force ${::osvvm::SCRIPT_DIR}/header_report.html ${FileName}
-#  set ResultsFile [open ${FileName} a]
 
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
-  set AlertFile ${::osvvm::ReportsDirectory}/${TestCaseName}_alerts.yml
-  
-  set Alert2HtmlDict [::yaml::yaml2dict -file ${AlertFile}]
+  set Alert2HtmlDict [::yaml::yaml2dict -file ${AlertYamlFile}]
   
   AlertSettings $Alert2HtmlDict
 

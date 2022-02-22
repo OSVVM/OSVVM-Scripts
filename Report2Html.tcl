@@ -201,7 +201,7 @@ proc ReportElaborateStatus {TestDict} {
 
   set resolvedCoverageDirectory [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::CoverageDirectory}]
   if {[file exists ${resolvedCoverageDirectory}/${BuildName}_code_cov.html]} {
-    puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${resolvedCoverageDirectory}/${BuildName}_code_cov.html\">Link to Simulation Results</a></td></tr>"
+    puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${resolvedCoverageDirectory}/${BuildName}_code_cov.html\">Code Coverage Results</a></td></tr>"
   }
 
   puts $ResultsFile "</table>"

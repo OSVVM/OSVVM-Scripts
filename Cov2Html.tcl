@@ -50,21 +50,17 @@ proc GetCov {TestCaseName} {
   return $Coverage
 }
 
-proc Cov2Html {TestCaseName TestSuiteName} {
+proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
   variable ResultsFile
-  
-#  set FileName  [file rootname ${CovFile}].html
-#  file copy -force ${::osvvm::SCRIPT_DIR}/header_cov.html ${FileName}
-#  set ResultsFile [open ${FileName} a]
-  
+    
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
-  set CovFile ${::osvvm::ReportsDirectory}/${TestCaseName}_cov.yml
+#  set CovFile ${::osvvm::ReportsDirectory}/${TestCaseName}_cov.yml
 
   puts $ResultsFile "<hr>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
   puts $ResultsFile "<h2 id=\"FunctionalCoverage\">$TestCaseName Coverage Report</h2>"
 
-  set TestDict [::yaml::yaml2dict -file ${CovFile}]
+  set TestDict [::yaml::yaml2dict -file ${CovYamlFile}]
   set VersionNum  [dict get $TestDict Version]
   set Coverage    [dict get $TestDict Coverage]
   puts $ResultsFile "<strong>Total Coverage: $Coverage</strong>"

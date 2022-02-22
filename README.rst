@@ -308,8 +308,8 @@ AXI4 verification component libraries using include.
 Building the OSVVM Libraries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Build is a layer on top of include (it calls include) that creates a logging point. 
-For each build, OSVVM creates collects all tool output into 
-a log file for the entire build in ./logs/<tool_name>-<version>/<build>.log.
+By default, OSVVM creates collects all tool output for a build into 
+an html based log file in ./logs/<tool_name>-<version>/<build>.html.
 
 In addition, when a test is started with build, run with simulate,
 and includes a call to "EndOfTestReports" at the end of the VHDL testbench,
@@ -369,7 +369,7 @@ alerts and coverage models.
 The best way to see the reports is run one of the OSVVM 
 regression suites.   
 After running one of the regressions, open one of the HTML files 
-in the directory ./reports.   
+in the directory ./reports (default directory).   
 
 The first half of the report is a summary of the alerts encountered
 for each AlertLogID during the test.   

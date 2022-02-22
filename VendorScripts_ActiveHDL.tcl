@@ -95,6 +95,8 @@ proc vendor_SetCoverageSimulateDefaults {} {
 #
 proc vendor_library {LibraryName RelativePathToLib} {
   variable vendor_simulate_started
+  global sim_working_folder
+
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
@@ -112,23 +114,25 @@ proc vendor_library {LibraryName RelativePathToLib} {
   puts "design activate $LibraryName"
   design activate $LibraryName
   
-  # This was a work around before adding variable sim_working_folder
-  # It should not be needed any longer.   
-  cd ${PathAndLib}
-  set ResultsBaseName [file tail ${::osvvm::ResultsDirectory}] 
-  if {![file exists $ResultsBaseName]} {
-    file link -symbolic $ResultsBaseName [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::ResultsDirectory}]
-  }
-  set ReportsBaseName [file tail ${::osvvm::ReportsDirectory}] 
-  if {![file exists $ReportsBaseName]} {
-    file link -symbolic $ReportsBaseName [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::ReportsDirectory}]
-  }
-  
+#  # This was a work around before adding variable sim_working_folder
+#  # It should not be needed any longer.   
+#  cd ${PathAndLib}
+#  set ResultsBaseName [file tail ${::osvvm::ResultsDirectory}] 
+#  if {![file exists $ResultsBaseName]} {
+#    file link -symbolic $ResultsBaseName [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::ResultsDirectory}]
+#  }
+#  set ReportsBaseName [file tail ${::osvvm::ReportsDirectory}] 
+#  if {![file exists $ReportsBaseName]} {
+#    file link -symbolic $ReportsBaseName [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::ReportsDirectory}]
+#  }
+#  
   cd $MY_START_DIR
 }
 
 proc vendor_LinkLibrary {LibraryName RelativePathToLib} {
   variable vendor_simulate_started
+  global sim_working_folder
+
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
@@ -156,7 +160,8 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
   variable DIR_LIB
   variable CoverageAnalyzeEnable
   variable CoverageSimulateEnable
-  
+  global sim_working_folder
+
   set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set FileName [file normalize $RelativePathToFile]
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
@@ -182,6 +187,8 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
 }
 
 proc vendor_analyze_verilog {LibraryName File_Relative_Path OptionalCommands} {
+  global sim_working_folder
+
   set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   
@@ -211,13 +218,15 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable simulator
   variable CoverageSimulateEnable
   variable TestSuiteName
+  global sim_working_folder
+
+  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
 
   # With sim_working_folder setting should no longer need MY_START_DIR
-  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
   set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
   
-  puts "vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}" 
-        vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}  
+  puts "asim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}" 
+        asim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}  
   
   # ActiveHDL changes the directory, so change it back to the OSVVM run directory
   cd $MY_START_DIR
@@ -280,6 +289,13 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
   acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join [glob ${CoverageDirectory}/${TestSuiteName}/*.acdb] " -i "]
 }
 
-proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
-  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
+proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} { 
+  set CodeCovResultsDir ${CodeCoverageDirectory}/${TestSuiteName}_code_cov
+  if {[file exists ${CodeCovResultsDir}.html]} {
+    file delete -force -- ${CodeCovResultsDir}.html
+  }
+  if {[file exists ${CodeCovResultsDir}_files]} {
+    file delete -force -- ${CodeCovResultsDir}_files
+  }
+  acdb report -html -i ${CodeCoverageDirectory}/${TestSuiteName}.acdb -o ${CodeCovResultsDir}.html
 }

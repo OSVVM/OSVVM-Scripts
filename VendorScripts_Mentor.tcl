@@ -273,6 +273,10 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
   vcover merge ${CoverageFileBaseName}.ucdb {*}[glob ${CoverageDirectory}/${TestSuiteName}/*.ucdb]
 }
 
-proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
-  vcover report -html -annotate -details -verbose -output ${ResultsDirectory}/${TestSuiteName}_code_cov ${ResultsDirectory}/${TestSuiteName}.ucdb 
+proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} { 
+  set CodeCovResultsDir ${CodeCoverageDirectory}/${TestSuiteName}_code_cov
+  if {[file exists $CodeCovResultsDir]} {
+    file delete -force -- $CodeCovResultsDir
+  }
+  vcover report -html -annotate -details -verbose -output ${CodeCovResultsDir} ${CodeCoverageDirectory}/${TestSuiteName}.ucdb 
 }

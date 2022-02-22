@@ -44,43 +44,45 @@ package require yaml
 
 proc Simulate2Html {TestCaseName TestSuiteName} {
   variable ResultsFile
-  variable ReportsDirectory
+  variable VhdlReportsDirectory
+  variable AlertYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_alerts.yml]
+  variable CovYamlFile   [file join $VhdlReportsDirectory ${TestCaseName}_cov.yml]
+  variable SbSlvYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_sb_slv.yml]
+  variable SbIntYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_sb_int.yml]
+
 
   CreateSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
-  if {[file exists ${ReportsDirectory}/${TestCaseName}_alerts.yml]} {
-    Alert2Html ${TestCaseName} ${TestSuiteName}
+  if {[file exists ${AlertYamlFile}]} {
+    Alert2Html ${TestCaseName} ${TestSuiteName} ${AlertYamlFile}
+    file rename -force ${AlertYamlFile}  ${::osvvm::ReportsDirectory}/${TestSuiteName}
   }
   
-  if {[file exists ${ReportsDirectory}/${TestCaseName}_cov.yml]} {
-    Cov2Html ${TestCaseName} ${TestSuiteName}
-#    set Coverage [GetCov ${TestCaseName}]
-#  } else {
-#    set Coverage 0.0
+  if {[file exists ${CovYamlFile}]} {
+    Cov2Html ${TestCaseName} ${TestSuiteName} ${CovYamlFile}
+    file rename -force ${CovYamlFile}  ${::osvvm::ReportsDirectory}/${TestSuiteName}
   }
   
-  if {[file exists ${ReportsDirectory}/${TestCaseName}_sb_slv.yml]} {
-    Scoreboard2Html ${TestCaseName} ${TestSuiteName} slv
+  if {[file exists ${SbSlvYamlFile}]} {
+    Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbSlvYamlFile} Scoreboard_slv
+    file rename -force ${SbSlvYamlFile}  ${::osvvm::ReportsDirectory}/${TestSuiteName}
   }
   
-  if {[file exists ${ReportsDirectory}/${TestCaseName}_sb_int.yml]} {
-    Scoreboard2Html ${TestCaseName} ${TestSuiteName} int
+  if {[file exists ${SbIntYamlFile}]} {
+    Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbIntYamlFile} Scoreboard_int
+    file rename -force ${SbIntYamlFile}  ${::osvvm::ReportsDirectory}/${TestSuiteName}
   }
   
   FinalizeSimulationReportFile ${TestCaseName} ${TestSuiteName}
-#  return $Coverage
 }
 
 proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
   variable ResultsFile
 
-  set ReportDir ${::osvvm::ReportsDirectory}/${TestSuiteName}
-	if {![file exists ${ReportDir}]} {
-    puts "Creating Reports directory for $TestSuiteName"
-    file mkdir ${ReportDir}
-  }
+  set ReportDir [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
+  CreateDirectory $ReportDir 
 
-  set FileName ${ReportDir}/${TestCaseName}.html
+  set FileName [file join ${ReportDir} ${TestCaseName}.html]
   if { $initialize } {
     file copy -force ${::osvvm::SCRIPT_DIR}/header_report.html ${FileName}
   }
@@ -90,14 +92,13 @@ proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
 proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   variable ResultsFile
   variable CurrentTranscript
-  variable ReportsDirectory
+  variable AlertYamlFile 
+  variable CovYamlFile   
+  variable SbSlvYamlFile 
+  variable SbIntYamlFile 
   
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName} 1
   
-#  set FileName ${ReportsDirectory}/${TestCaseName}].html
-#  file copy -force ${::osvvm::SCRIPT_DIR}/header_report.html ${FileName}
-#  set ResultsFile [open ${FileName} a]
-
   puts $ResultsFile "<title>$TestCaseName Test Case Detailed Report</title>"
   puts $ResultsFile "</head>"
   puts $ResultsFile "<body>"
@@ -110,11 +111,17 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   puts $ResultsFile "<table>"
   puts $ResultsFile "  <tr style=\"height:40px\"><th>Available Reports</th></tr>"
 
-  if {[file exists ${ReportsDirectory}/${TestCaseName}_alerts.yml]} {
+  if {[file exists ${AlertYamlFile}]} {
     puts $ResultsFile "  <tr><td><a href=\"#AlertSummary\">Alert Report</a></td></tr>"
   }
-  if {[file exists ${ReportsDirectory}/${TestCaseName}_cov.yml]} {
+  if {[file exists ${CovYamlFile}]} {
     puts $ResultsFile "  <tr><td><a href=\"#FunctionalCoverage\">Functional Coverage Report(s)</a></td></tr>"
+  }
+  if {[file exists ${SbSlvYamlFile}]} {
+    puts $ResultsFile "  <tr><td><a href=\"#Scoreboard_slv\">ScoreboardPkg_slv Report(s)</a></td></tr>"
+  }
+  if {[file exists ${SbIntYamlFile}]} {
+    puts $ResultsFile "  <tr><td><a href=\"#Scoreboard_int\">ScoreboardPkg_int Report(s)</a></td></tr>"
   }
   if {([info exists CurrentTranscript]) && ([file extension $CurrentTranscript] eq ".html")} {
     set resolvedLogDirectory [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::LogDirectory}]
