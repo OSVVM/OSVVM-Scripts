@@ -200,7 +200,7 @@ proc ReportElaborateStatus {TestDict} {
   puts $ResultsFile "  <tr><td>OSVVM YAML Version</td>                <td>[dict get $TestDict Version]</td></tr>"
 
   set resolvedCoverageDirectory [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::CoverageDirectory}]
-  if {[file exists ${resolvedCoverageDirectory}/${BuildName}_code_cov.html]} {
+  if {[file exists ${resolvedCoverageDirectory}/${BuildName}_code_cov.html] && $::osvvm::RanSimulationWithCoverage eq "true"} {
     puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${resolvedCoverageDirectory}/${BuildName}_code_cov.html\">Code Coverage Results</a></td></tr>"
   }
 
