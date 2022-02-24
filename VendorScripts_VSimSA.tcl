@@ -217,3 +217,8 @@ proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
   }
   acdb report -html -i ${CodeCoverageDirectory}/${TestSuiteName}.acdb -o ${CodeCovResultsDir}.html
 }
+
+proc vendor_GetCoverageFileName {TestName} { 
+  set CoverageFileName ${TestName}_code_cov.html
+  return $CoverageFileName
+}

@@ -248,3 +248,8 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
 proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
 #  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
 }
+
+proc vendor_GetCoverageFileName {TestName} { 
+  set CoverageFileName ${TestName}_code_cov.html
+  return $CoverageFileName
+}

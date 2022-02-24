@@ -280,3 +280,8 @@ proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
   }
   vcover report -html -annotate -details -verbose -output ${CodeCovResultsDir} ${CodeCoverageDirectory}/${TestSuiteName}.ucdb 
 }
+
+proc vendor_GetCoverageFileName {TestName} { 
+  set CoverageFileName ${TestName}_code_cov/index.html
+  return $CoverageFileName
+}
