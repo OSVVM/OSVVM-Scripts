@@ -20,7 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#    02/2022   2022.02    Added Scoreboard Reports
+#    02/2022   2022.02    Added Scoreboard Reports. Updated YAML file handling.
 #    10/2021   Initial    Initial Revision
 #
 #  This file is part of OSVVM.
