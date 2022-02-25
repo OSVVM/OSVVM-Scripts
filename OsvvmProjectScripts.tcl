@@ -80,6 +80,8 @@ variable VhdlAnalyzeOptions       ""
 variable VerilogAnalyzeOptions    ""
 variable CoverageEnable           "true"
 
+variable TranscriptExtension      "html"     ; # Set Transcripts to be html by default
+
 variable LogDirectory             "logs/${ToolNameVersion}"
 variable VhdlReportsDirectory     ""         ; # WARNING: OSVVM reporting requires this directory to be named reports
 variable ReportsDirectory         "reports"  ; # Directory scripts put reports into.
@@ -995,7 +997,7 @@ proc GetTranscriptType {} {
 }
 
 # -------------------------------------------------
-# SetExtendedAnalyzeOptions, SetExtendedSimulateOptions
+# SetVhdlAnalyzeOptions, SetVerilogAnalyzeOptions
 #
 proc SetVhdlAnalyzeOptions {{Options ""}} {
   variable VhdlAnalyzeOptions

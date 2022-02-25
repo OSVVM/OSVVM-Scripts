@@ -2,7 +2,7 @@
 
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                  | 
 |---------------|--------------------|-----------------------------------------------------------------------| 
-| 2022.02       | February 2022      | Added Scoreboard and Transcripts in HTML                              |
+| 2022.02       | February 2022      | Added Transcripts in HTML, Scoreboard Reports, and Code Coverage Integration  |
 | 2022.01       | January 2022       | Minor changes.  Lib dir lower case.  OptionalCommands for analyzing Verilog.  |
 |               |                    | Writing FC now in VHDL.  Added DirectoryExists                        |
 | 2021.12       | December 2021      | Changed Paths to Relative Paths.  Added better library support.       |
@@ -43,8 +43,8 @@
 
  
 ## Copyright and License
-Copyright (C) 2006-2021 by [SynthWorks Design Inc.](http://www.synthworks.com/)   
-Copyright (C) 2021 by [OSVVM contributors](CONTRIBUTOR.md)   
+Copyright (C) 2006-2022 by [SynthWorks Design Inc.](http://www.synthworks.com/)   
+Copyright (C) 2022 by [OSVVM contributors](CONTRIBUTOR.md)   
 
 This file is part of OSVVM.
 

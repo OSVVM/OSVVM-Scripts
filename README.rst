@@ -526,6 +526,38 @@ and the simulation will fail to run.
 If this happens, it will be detected and recorded
 as a test failure in the build summary report.
 
+Turning on Code Coverage 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Code coverage is a metric that tells us if certain parts of our design
+have been exercised or not.  Turning on code coverage with OSVVM is simple.
+In the following example, we enable coverage options during analysis and 
+simulation separately.   
+
+.. code:: tcl
+
+   # File name:  Dut.pro
+   SetCoverageAnalyzeEnable true
+   analyze   Dut.vhd
+   SetCoverageAnalyzeEnable false
+   SetCoverageSimulateEnable true
+   analyze   TbDut.vhd
+   simulate  TbDut
+   SetCoverageSimulateEnable false
+   
+Note that CoverageAnalyzeEnable is specifically turned off
+before compiling the testbench so that the testbench is not 
+included in the coverage metrics.
+
+You can also set specific options by using SetCoverageAnalyzeOptions 
+and SetCoverageSimulateOptions.  By default, OSVVM sets these options
+so that statement, branch, and statemachine coverage is collected. 
+
+When coverage is turned on for a build, coverage is collected for each test.  
+If there are multiple test suites in the build, then 
+the coverage for each test in the test suite is merged.  
+When a build completes the coverage from each test suite 
+is merged and an html coverage report is produced.
+
 Command Summary 
 ----------------
 Commands are case sensitive.  Single word names are
@@ -643,6 +675,91 @@ was skipped in this tool.
 TestSuite <name> 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Set the test suite name. 
+
+SetTranscriptType 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Select the Transcript file to be either html or log.
+The default is html.
+
+GetTranscriptType
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get the Transcript file type (either html or log).
+
+SetCoverageAnalyzeEnable ""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Value true selects use coverage options during analyze.
+Value "" sets the enable to the specified by SetCoverageEnable.
+
+GetCoverageAnalyzeEnable
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Returns the current enable setting.
+
+SetCoverageAnalyzeOptions "value"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set the coverage options.
+
+GetCoverageAnalyzeOptions 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set the coverage options for analyze to the string value.
+
+SetCoverageSimulateEnable ""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Value true selects use coverage options during simulation.
+Value "" sets the enable to the specified by SetCoverageEnable.
+
+GetCoverageSimulateEnable
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Returns the current enable setting.
+
+SetCoverageSimulateOptions "value"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set the coverage options for simulate to the string value.
+
+GetCoverageSimulateOptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get the coverage options to the string value.
+
+SetCoverageEnable "value"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set CoverageEnable to value. 
+If no value is specified, then the value is "true".  
+The default value is "true"
+
+GetCoverageEnable
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get the CoverageEnable value. 
+
+SetVhdlAnalyzeOptions "value"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set the VHDL options for analyze to the string value.
+
+GetVhdlAnalyzeOptions 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get the VHDL options for analyze.
+
+SetVerilogAnalyzeOptions "value"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set the Verilog options for analyze to the string value.
+
+GetVerilogAnalyzeOptions 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get the Verilog options for analyze.
+
+SetExtendedAnalyzeOptions "value" 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set extended (additional) options for analyze to the string value.
+
+GetExtendedAnalyzeOptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get extended (additional) options for analyze.
+
+SetExtendedSimulateOptions "value"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set extended (additional) options for simulate to the string value.
+
+GetExtendedSimulateOptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Get extended (additional) options for simulate.
 
 LinkCurrentLibraries 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
