@@ -163,7 +163,12 @@ proc ReportElaborateStatus {TestDict} {
 #  puts  "TestCasesRun: $TestCasesRun"
 
   set BuildInfo [dict get $TestDict Build]
-  set RunInfo   [dict get $TestDict Run] 
+  if { [dict exists $TestDict Run] } {
+    set RunInfo   [dict get $TestDict Run] 
+  } else {
+#    set RunInfo   [dict create Start 2010-01-01T00:01-0800 Finish 2010-01-01T00:01-0800 Elapsed 0.0]
+    set RunInfo   [dict create Start NONE Finish NONE Elapsed 0.0]
+  }
   set BuildName [dict get $BuildInfo Name]
   puts $ResultsFile "<title>$BuildName Build Report</title>"
   puts $ResultsFile "</head>"
