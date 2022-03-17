@@ -124,8 +124,9 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
     puts $ResultsFile "  <tr><td><a href=\"#Scoreboard_int\">ScoreboardPkg_int Report(s)</a></td></tr>"
   }
   if {([info exists CurrentTranscript]) && ([file extension $CurrentTranscript] eq ".html")} {
-    set resolvedLogDirectory [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::LogDirectory}]
-    puts $ResultsFile "  <tr><td><a href=\"${resolvedLogDirectory}/${CurrentTranscript}#${TestSuiteName}_${TestCaseName}\">Link to Simulation Results</a></td></tr>"
+#    set resolvedLogDirectory [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::LogDirectory}]
+#    puts $ResultsFile "  <tr><td><a href=\"${resolvedLogDirectory}/${CurrentTranscript}#${TestSuiteName}_${TestCaseName}\">Link to Simulation Results</a></td></tr>"
+    puts $ResultsFile "  <tr><td><a href=\"../../${::osvvm::LogDirectory}/${CurrentTranscript}#${TestSuiteName}_${TestCaseName}\">Link to Simulation Results</a></td></tr>"
   }
   puts $ResultsFile "</table>"
   puts $ResultsFile "<br><br>"
