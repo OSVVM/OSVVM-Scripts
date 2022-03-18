@@ -474,7 +474,7 @@ proc EchoOsvvmCmd {CmdInfoToPrint} {
     puts "<summary>${CmdInfoToPrint}</summary>"
 
 #    puts "</details><details><summary>${CmdInfoToPrint}</summary>"
-  } {
+  } else {
     puts "<pre><details>"
     puts "<summary>${CmdInfoToPrint}</summary>"
 #    puts "<pre><details><summary>${CmdInfoToPrint}</summary>"
