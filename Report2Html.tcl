@@ -208,7 +208,8 @@ proc ReportElaborateStatus {TestDict} {
   set resolvedCoverageDirectory [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::CoverageDirectory}]
   set CodeCoverageFile [vendor_GetCoverageFileName ${BuildName}]
   if {[file exists ${resolvedCoverageDirectory}/${CodeCoverageFile}] && $::osvvm::RanSimulationWithCoverage eq "true"} {
-    puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${resolvedCoverageDirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
+#    puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${resolvedCoverageDirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
+    puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${::osvvm::CoverageDirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
   }
 
   puts $ResultsFile "</table>"
