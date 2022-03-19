@@ -832,14 +832,13 @@ proc  ElapsedTimeMs {StartTimeMs} {
 
 # -------------------------------------------------
 proc FinalizeTestSuite {SuiteName} {
-  variable CoverageSimulateEnable
 
 # Now done in Simulate2Html
 #  # Move Alert and Functional Coverage YAML files to the TestSuite Directory
 #  file rename -force {*}[glob ${::osvvm::ReportsDirectory}/*.yml]  ${::osvvm::ReportsDirectory}/${SuiteName}
   
   # Merge Code Coverage for the Test Suite if it exists
-  if {[info exists CoverageSimulateEnable]} {
+  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
     set BuildName [file rootname ${::osvvm::CurrentTranscript}]
     CreateDirectory ${::osvvm::CoverageDirectory}/${BuildName}
     CreateDirectory ${::osvvm::CoverageDirectory}/${SuiteName}
