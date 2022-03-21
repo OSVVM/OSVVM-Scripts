@@ -131,14 +131,14 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
     echo vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
 #        vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
     if { [catch {vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
-      error "analyze $FileName $OptionalCommands"
+      error $Msg "analyze $FileName $OptionalCommands" 1
     } 
   } else {
     echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
 #         vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
 # Catch does not remove stdout.  exec hides stdout
     if { [catch {vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
-      error "analyze $FileName $OptionalCommands"
+      error $Msg "analyze $FileName $OptionalCommands" 1
     } 
   }
 }
@@ -149,7 +149,7 @@ proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
   echo vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
 #       vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
   if { [catch {vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
-    error "analyze $FileName $OptionalCommands"
+    error $Msg "analyze $FileName $OptionalCommands" 1
   } 
 }
 
@@ -175,7 +175,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   puts "vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} "
 #        vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}  
     if { [catch {vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}} Msg]} {
-      error "simulate $LibraryUnit $OptionalCommands"
+      error $Msg "simulate $LibraryUnit $OptionalCommands" 1
     } 
   ### Project level settings - in OsvvmLibraries/Scripts
   # Project Vendor script
