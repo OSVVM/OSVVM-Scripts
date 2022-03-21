@@ -129,10 +129,17 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   # For now, do not use -dbg flag with coverage.   
   if {[info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
     echo vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-         vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+#        vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+    if { [catch {vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
+      error "analyze $FileName $OptionalCommands"
+    } 
   } else {
     echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-         vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+#         vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+# Catch does not remove stdout.  exec hides stdout
+    if { [catch {vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
+      error "analyze $FileName $OptionalCommands"
+    } 
   }
 }
 
@@ -140,7 +147,10 @@ proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #  Untested branch for Verilog - will need adjustment
 #  Untested branch for Verilog - will need adjustment
   echo vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-       vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+#       vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+  if { [catch {vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
+    error "analyze $FileName $OptionalCommands"
+  } 
 }
 
 # -------------------------------------------------
@@ -163,8 +173,10 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable TestSuiteName
 
   puts "vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} "
-        vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}  
-  
+#        vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}  
+    if { [catch {vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}} Msg]} {
+      error "simulate $LibraryUnit $OptionalCommands"
+    } 
   ### Project level settings - in OsvvmLibraries/Scripts
   # Project Vendor script
   if {[file exists ${SCRIPT_DIR}/${ToolVendor}.tcl]} {
