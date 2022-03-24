@@ -92,6 +92,8 @@ variable CoverageDirectory        "CodeCoverage"
 variable VhdlLibraryDirectory     "VHDL_LIBS"
 variable VhdlLibrarySubdirectory  "${ToolNameVersion}"
 
+variable TranscriptYamlFile OSVVM_transcript.yml
+
 
 # -------------------------------------------------
 # IterateFile
@@ -253,27 +255,12 @@ proc SetBuildName {Path_Or_File} {
 #
 proc build {{Path_Or_File "."}} {
   variable CURRENT_WORKING_DIRECTORY
-  variable vendor_simulate_started
-  variable TestSuiteName
   variable TestSuiteStartTimeMs
   variable TranscriptExtension
-  variable CoverageSimulateEnable
-  variable RanSimulationWithCoverage "false"
+  variable RanSimulationWithCoverage 
+  variable TestSuiteName
 
-  # Close any previous build information
-  if {[info exists TestSuiteName]} {
-    unset TestSuiteName
-  }
-  # If Transcript Open, then Close it
-  TerminateTranscript
-
-  # End simulations if started - only set by simulate
-  if {[info exists vendor_simulate_started]} {
-    puts "Ending Previous Simulation"
-    EndSimulation
-    unset vendor_simulate_started
-  }
-  
+  BeforeBuildCleanUp   
 
   # Current Build Setup
 #  set CURRENT_WORKING_DIRECTORY [pwd]
@@ -337,6 +324,35 @@ proc build {{Path_Or_File "."}} {
   Report2Junit ${BuildName}.yml
 }
 
+
+# -------------------------------------------------
+# CreateDirectory - Create directory if does not exist
+#
+proc BeforeBuildCleanUp {} {
+  variable RanSimulationWithCoverage "false"
+  variable vendor_simulate_started
+  variable TestSuiteName
+  variable TranscriptYamlFile 
+  
+  # Close any previous build information
+  if {[info exists TestSuiteName]} {
+    unset TestSuiteName
+  }
+  # If Transcript Open, then Close it
+  TerminateTranscript
+
+  # End simulations if started - only set by simulate
+  if {[info exists vendor_simulate_started]} {
+    puts "Ending Previous Simulation"
+    EndSimulation
+    unset vendor_simulate_started
+  }
+  
+  # Remove old files if they were left lying around
+  if {[file exists ${TranscriptYamlFile}]} {
+    file delete -force -- ${TranscriptYamlFile}
+  }
+}
 
 # -------------------------------------------------
 # CreateDirectory - Create directory if does not exist

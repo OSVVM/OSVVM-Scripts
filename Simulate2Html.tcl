@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    03/2022   2022.03    Added Transcript File reporting.
 #    02/2022   2022.02    Added Scoreboard Reports. Updated YAML file handling.
 #    10/2021   Initial    Initial Revision
 #
@@ -96,6 +97,7 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   variable CovYamlFile   
   variable SbSlvYamlFile 
   variable SbIntYamlFile 
+  variable TranscriptYamlFile
   
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName} 1
   
@@ -128,6 +130,15 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
 #    puts $ResultsFile "  <tr><td><a href=\"${resolvedLogDirectory}/${CurrentTranscript}#${TestSuiteName}_${TestCaseName}\">Link to Simulation Results</a></td></tr>"
     puts $ResultsFile "  <tr><td><a href=\"../../${::osvvm::LogDirectory}/${CurrentTranscript}#${TestSuiteName}_${TestCaseName}\">Link to Simulation Results</a></td></tr>"
   }
+  if {[file exists ${TranscriptYamlFile}]} {
+    set TranscriptFileArray [::yaml::yaml2dict -file ${TranscriptYamlFile}]
+    foreach TranscriptFile $TranscriptFileArray {
+      puts $ResultsFile "  <tr><td><a href=\"../../${TranscriptFile}\">${TranscriptFile}</a></td></tr>"
+    }
+    # Remove file so it does not impact any following simulation
+    file delete -force -- ${TranscriptYamlFile}
+  }
+  
   puts $ResultsFile "</table>"
   puts $ResultsFile "<br><br>"
   close $ResultsFile
