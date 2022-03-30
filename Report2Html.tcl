@@ -336,7 +336,7 @@ proc ReportTestSuites {TestDict} {
           }
         }
         puts $ResultsFile "  <tr>"
-        puts $ResultsFile "      <td><a href=\"${::osvvm::ReportsDirectory}/${SuiteName}/${TestName}.html#AlertSummary\">${TestName}</a></td>"
+        puts $ResultsFile "      <td><a href=\"${::osvvm::ReportsDirectory}/${SuiteName}/${TestName}.html\">${TestName}</a></td>"
         puts $ResultsFile "      <td style=color:${StatusColor}>$TestStatus</td>"
         if { $TestReport eq "REPORT" } {
           puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestResults PassedCount] /  [dict get $TestResults AffirmCount]</td>"
