@@ -2,6 +2,8 @@
 
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                  | 
 |---------------|--------------------|-----------------------------------------------------------------------| 
+| 2022.03       | March 2022         | Added link to test transcript files (TranscriptOpen)                  |
+|               |                    | Report links to Code Coverage and Transcripts now use relative paths  |
 | 2022.02       | February 2022      | Added Transcripts in HTML, Scoreboard Reports, and Code Coverage Integration  |
 | 2022.01       | January 2022       | Minor changes.  Lib dir lower case.  OptionalCommands for analyzing Verilog.  |
 |               |                    | Writing FC now in VHDL.  Added DirectoryExists                        |
