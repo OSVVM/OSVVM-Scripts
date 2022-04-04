@@ -50,9 +50,8 @@ SetVHDLVersion [expr {[info exists ::osvvm::DefaultVHDLVersion] ? $::osvvm::Defa
 SetSimulatorResolution  ps
 
 # Setup the Library Directory.  Use one of the following.
-# Use run directory as library directory
-SetLibraryDirectory
-# Use directory C:/tools/sim_temp as the library directory
-# SetLibraryDirectory C:/tools/sim_temp
+# SetLibraryDirectory C:/tools/sim_temp    ; # Create library directory in C:/tools/sim_temp
+SetLibraryDirectory                      ; # Create library directory in current run directory
+# LinkLibraryDirectory                     ; # Make libraries visible
 
 SetTranscriptType html 

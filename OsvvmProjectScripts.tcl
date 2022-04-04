@@ -415,8 +415,7 @@ proc CheckLibraryInit {} {
     set DIR_LIB [file join ${LIB_BASE_DIR} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
   }
 
-  # Create LIB and Results directories
-  CreateDirectory $DIR_LIB
+#  CreateDirectory $DIR_LIB          ; # Make Library Directory
 }
 
 # -------------------------------------------------
@@ -629,10 +628,11 @@ proc ListLibraries {} {
 proc library {LibraryName {PathToLib ""}} {
   variable VHDL_WORKING_LIBRARY
   variable LibraryList
+  variable DIR_LIB
 
   CheckWorkingDir
   CheckLibraryInit
-#  CheckSimulationDirs
+  CreateDirectory $DIR_LIB    ; # Make library directory if it does not exist
 
   set ResolvedPathToLib [FindLibraryPath $PathToLib]
   set LowerLibraryName [string tolower $LibraryName]
@@ -656,15 +656,14 @@ proc library {LibraryName {PathToLib ""}} {
 # -------------------------------------------------
 # LinkLibrary - aka map in some vendor tools
 #
-proc LinkLibrary {LibraryName {PathToLib ""}} {
+proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
   variable VHDL_WORKING_LIBRARY
   variable DIR_LIB
 
   CheckWorkingDir
   CheckLibraryInit
-#  CheckSimulationDirs
+  CreateDirectory $DIR_LIB    ; # Make library directory if it does not exist
 
-  EchoOsvvmCmd "LinkLibrary $LibraryName $PathToLib"
   set ResolvedPathToLib [FindLibraryPath $PathToLib]
   set LowerLibraryName [string tolower $LibraryName]
 
@@ -677,6 +676,12 @@ proc LinkLibrary {LibraryName {PathToLib ""}} {
   }
 }
 
+proc LinkLibrary {LibraryName {PathToLib ""}} {
+
+  EchoOsvvmCmd "LinkLibrary $LibraryName $PathToLib"
+  LocalLInkLibrary $LibraryName $PathToLib 
+}
+
 # -------------------------------------------------
 #  LinkLibraryDirectory
 #
@@ -687,18 +692,21 @@ proc LinkLibraryDirectory {{LibraryDirectory ""}} {
 
   CheckWorkingDir
   CheckLibraryInit
-#  CheckSimulationDirs
 
   set ResolvedLibraryDirectory [FindLibraryPath $LibraryDirectory]
   if  {[file isdirectory $ResolvedLibraryDirectory]} {
-    foreach item [glob -directory $ResolvedLibraryDirectory *] {
-      if {[file isdirectory $item]} {
-        set LibraryName [file rootname [file tail $item]]
-        LinkLibrary $LibraryName $ResolvedLibraryDirectory
+    if {![catch {glob -directory $ResolvedLibraryDirectory *} ErrNum]} {
+      foreach item [glob -directory $ResolvedLibraryDirectory *] {
+        if {[file isdirectory $item]} {
+          set LibraryName [file rootname [file tail $item]]
+          LocalLinkLibrary $LibraryName $ResolvedLibraryDirectory
+        }
       }
     }
   } else {
-    puts "LinkLibraryDirectory $LibraryDirectory : $ResolvedLibraryDirectory does not exist"
+    if {[string tolower $::osvvm::OsvvmInitialized] eq "true"} {
+      puts "LinkLibraryDirectory $LibraryDirectory : $ResolvedLibraryDirectory does not exist"
+    }
   }
 }
 

@@ -61,6 +61,7 @@
 namespace eval ::osvvm {
   # Initial SCRIPT_DIR setup - revised by ActiveHDL VSimSA
   variable SCRIPT_DIR  [file dirname [file normalize [info script]]]
+  variable OsvvmInitialized  "false"
   
   # 
   # Find the simulator
@@ -101,4 +102,8 @@ source ${::osvvm::SCRIPT_DIR}/OsvvmScriptDefaults.tcl
 
 if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl]} {
   source ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl
+}
+
+namespace eval ::osvvm {
+  variable OsvvmInitialized  "true"
 }
