@@ -183,7 +183,7 @@ Basic Commands
 --------------------------
 
 .. list-table:: 
-    :widths: 25 40 
+    :widths: 30 40 
     :header-rows: 1
     
     * - Command
@@ -236,7 +236,7 @@ It can be run by specifying:
    build ../OsvvmLibraries/AXI4/Axi4/testbench_MultipleMemory/testbench_MultipleMemory.pro
 
 If you were to open testbench_MultipleMemory.pro, you would find
-that `RunTest` is used instead as it is an abbreviation for the
+that RunTest is used instead as it is an abbreviation for the
 analyze, TestCase and simulate when the names are the same.
 
 Adding Scripts to Simulate
@@ -250,12 +250,12 @@ As a result, when simulate runs, it will also include the
 following files in order, if they exist:
 
 -  OsvvmLibraries/Scripts/<ToolVendor>.tcl
--  OsvvmLibraries/Scripts/\<simulator\>.tcl
--  "sim-run-dir"/'<ToolVendor>'.tcl
--  "sim-run-dir"/"simulator".tcl
--  "sim-run-dir"/"LibraryUnit".tcl
--  "sim-run-dir"/"LibraryUnit"_"simulator".tcl
--  "sim-run-dir"/wave.do
+-  OsvvmLibraries/Scripts/<simulator>.tcl
+-  <sim-run-dir>/<ToolVendor>.tcl
+-  <sim-run-dir>/<simulator>.tcl
+-  <sim-run-dir>/<LibraryUnit>.tcl
+-  <sim-run-dir>/<LibraryUnit>_<simulator>.tcl
+-  <sim-run-dir>/wave.do
 
 ToolVendor is either {Aldec, Siemens, Cadence, Synopsys}. 
 Simulator is one of {QuestaSim, ModelSim, RivieraPRO, ActiveHDL, VCS, Xcelium}. 
