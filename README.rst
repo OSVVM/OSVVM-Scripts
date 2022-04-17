@@ -183,7 +183,7 @@ Basic Commands
 --------------------------
 
 .. list-table:: 
-    :widths: 10 40 
+    :widths: 25 40 
     :header-rows: 1
     
     * - Command
