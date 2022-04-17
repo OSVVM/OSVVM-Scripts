@@ -191,40 +191,23 @@ Basic Commands
     * - library <library-name>
       - Make this library the active library. Create it if it does not exist. 
     * - analyze <VHDL-file>.vhdl
-      - Compile the design into the active library.
+      - Compile (aka analyze) the design into the active library.
     * - simulate <test-name>
-      - Simulate the design using the active library.
-    * - RunTest
-      - compile and simulate in one step when <VHDL-file> = <test-name>
-    * - Command
-      - Description
-    * - Command
-      - Description
-    * - Command
-      - Description
-    * - Command
-      - Description
+      - Simulate (aka elaborate + run) the design using the active library.
+    * - RunTest <test-name>.vhdl
+      - Compile and simulate in one step when <VHDL-file> = <test-name>
+    * - include <script-name>.pro
+      - Include another project script
+    * - build <script-name>.pro
+      - Start a script from the simulator.  It is include + start a new log file for this script.
+    * - TestSuite <test-suite-name>
+      - Identify the current TestSuite.  If not specified the name is `default`.
+    * - TestCase <test-name>
+      - Identify the TestCase that is active. Must match name in the testbench call to SetAlertLogName.
 
-A project file is a TCL script that allows the specification of basic tasks
-to run a simulation:
-
--  library - Make this library the active library. Create it if it does
-   not exist.
--  analyze - Compile the design into the active library.
--  simulate - Simulate the design using the active library.
--  RunTest - compile and simulate in one step
--  include – include another project script
--  build – include + start a new log file for this task
--  TestSuite - identifies the TestSuite that is active
--  TestCase - identify the TestCase that is active
-
-The above tasks are TCL procedures. Hence, a project file is actually a
-TCL file, and when necessary, TCL can be used, however, the intent is to
-keep it simple. The naming of the project file is of the form
-<Name>.pro.
 
 Running a Simple Test
-~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 At the heart of running a simulation is setting the library, 
 compiling files, and starting the simulation. 
 To do this, we use library, analyze, and simulate. 
@@ -238,17 +221,27 @@ run OSVVM verification component library regressions.
    analyze  TestCtrl_e.vhd
    analyze  TbAxi4_MultipleMemory.vhd
    analyze  TbAxi4_Shared1.vhd
+   TestCase TbAxi4_Shared1
    simulate TbAxi4_Shared1
 
 In OSVVM scripting, calling library activates the library. 
-Hence, there is no need to specify the library in analyze 
-and simulate. 
+An analyze or simulate that follows library uses the specified library. 
 This is consistent with VHDL’s sense of the "working library".
 
+The above script is in the file, testbench_MultipleMemory.pro.
+It can be run by specifying:
+
+.. code:: tcl
+
+   build ../OsvvmLibraries/AXI4/Axi4/testbench_MultipleMemory/testbench_MultipleMemory.pro
+
+If you were to open testbench_MultipleMemory.pro, you would find
+that `RunTest` is used instead as it is an abbreviation for the
+analyze, TestCase and simulate when the names are the same.
+
 Adding Scripts to Simulate
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Often with simulations, we want to add a custom waveform
-file.  
+--------------------------
+Often with simulations, we want to add a custom waveform file. 
 This may be for all designs or just one particular design.
 We may also need specific actions to be done when running
 on a particular simulator.
@@ -256,9 +249,9 @@ on a particular simulator.
 As a result, when simulate runs, it will also include the
 following files in order, if they exist:
 
--  OsvvmLibraries/Scripts/"ToolVendor".tcl
--  OsvvmLibraries/Scripts/"simulator".tcl
--  "sim-run-dir"/"ToolVendor".tcl
+-  OsvvmLibraries/Scripts/<ToolVendor>.tcl
+-  OsvvmLibraries/Scripts/\<simulator\>.tcl
+-  "sim-run-dir"/'<ToolVendor>'.tcl
 -  "sim-run-dir"/"simulator".tcl
 -  "sim-run-dir"/"LibraryUnit".tcl
 -  "sim-run-dir"/"LibraryUnit"_"simulator".tcl
