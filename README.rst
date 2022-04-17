@@ -1,5 +1,5 @@
 The OSVVM Simulator Script Library
-==================================
+##################################
 
 The OSVVM Simulator Script Library provides a simple way to create and
 activate libraries, compile designs, and run simulations.
@@ -10,68 +10,26 @@ The intent of this scripting approach is to:
 -  Be as easy to read as a compile order list.
 -  Know the directory the script is in, the script only manages relative 
    paths to itself.  No Awkward path management in the scripts.
--  Simplify integration of other libraries that use the same approach
+-  Simplify integration of other libraries
 
 This is an evolving approach. So it may change in the future. Input is
 welcome.
 
-Clone the OSVVM-Libraries directory
+Start by Running the Demo
+==================================
+
+Download OSVVM Libraries 
 -----------------------------------
 
-Lets start by doing. The library
-`OSVVM-Libraries <https://github.com/osvvm/OsvvmLibraries>`__ contains
-all of the OSVVM libraries as submodules. Download the entire OSVVM
-model library using git clone with the ``--recursive`` flag:
+OSVVM is available as either a git repository 
+`OSVVM Libraries <https://github.com/osvvm/OsvvmLibraries>`__ 
+or a zip file from `osvvm.org Downloads Page <https://osvvm.org/downloads>`__.
+
+On GitHub, all OSVVM libraries are a submodule of the repository OsvvmLibraries. Download all OSVVM libraries using git clone with the “–recursive” flag:
 
 .. code:: bash
 
    $ git clone --recursive https://github.com/osvvm/OsvvmLibraries
-
-The Script Files
-----------------
-
--  StartUp.tcl
-
-   -  StartUp script for ActiveHDL, GHDL, Mentor, RivieraPro, and VSimSA (ActiveHDL)
-   -  Detects the simulator running and calls the VendorScript_vendor-name.tcl.
-      Also calls OsvvmProjectScripts.tcl and OsvvmScriptDefaults.tcl
-
--  StartVCS.tcl
-
-   -  StartUp script for Synopsys VCS.  Does what StartUp.tcl does except is specific to VCS
-      
--  StartXcelium.tcl
-
-   -  StartUp script for Cadence Xcelium.  Does what StartUp.tcl does except is specific to Xcelium
-      
--  StartXSIM.tcl
-
-   -  StartUp script for Xilinx XSIM.  Does what StartUp.tcl does except is specific to Xsim
-   -  Note, XSIM is currently a alpha level, experimental release.
-      
--  VendorScript_tool-name.tcl
-
-   -  TCL procedures that do simulator specific actions.
-   -  "tool-name" = one of (ActiveHDL, GHDL, Mentor, RivieraPro, VSimSA, VCS, Xcelium, Xsim)
-   -  VSimSA is the one associated with ActiveHDL.
-   -  Called by StartUp.tcl 
-
--  OsvvmProjectScripts.tcl
-
-   -  TCL procedures that do common simulator and project build tasks.
-   -  Called by StartUp.tcl
-
--  OsvvmScriptDefaults.tcl
-
-   -  Default settings for the OSVVM Script environment.
-   -  Called by StartUp.tcl
-   
--  LocalScriptDefaults.tcl
-
-   -  User default settings for the OSVVM Script environment.
-   -  Not in OSVVM repository so it will not be replaced on OSVVM updates
-   -  If it exists, called by StartUp.tcl
-
 
 Create a Sim directory
 ----------------------
@@ -88,8 +46,10 @@ Alternately, you can run simulations out of the Scripts, but cleanup is
 a mess as a simulator tends to create numerous temporaries.
 
 
-Initialization
---------------
+Start the Script environment in the Simulator
+--------------------------------------------------------
+
+Do the actions appropriate for your simulator.
 
 Aldec RivieraPRO, Siemens QuestaSim and ModelSim
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -109,8 +69,7 @@ information).
 Aldec ActiveHDL
 ~~~~~~~~~~~~~~~
 
-Before doing this in ActiveHDL and VSimSA (ActiveHDL’s command window)
-instead do:
+Initialize the OSVVM Script environment by doing:
 
 .. code:: tcl
 
@@ -123,62 +82,63 @@ Want to avoid doing this every time? For ActiveHDL, edit
 longer need to set the "Start In" directory to the OSVVM Scripts
 directory.
 
-GHDL
-~~~~
+GHDL in Windows
+~~~~~~~~~~~~~~~~
 
-I currently run GHDL using MSYS2 64 bit under windows. The scripts must
-run under tcl (tclsh). As a result, to start the OSVVM scripting
-environment, in a shell window do:
+Initialize the OSVVM Script environment by doing:
 
 .. code:: tcl
 
    winpty tclsh
    source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
+   
+To simplify this, put ``source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl`` 
+in the ``.tclshrc`` file.
+You can also add a windows short cut that includes 
+``C:\tools\msys64\mingw64.exe winpty tclsh``. 
 
-To simplify this, I put the ``source .../StartUp.tcl`` in my
-``.tclshrc`` file and as a result I do not have to do the source
-command. I have added a short cut that includes
-``C:\tools\msys64\mingw64.exe winpty rlwrap tclsh``. I added the short
-cut to my start menu. With these two, one click and you are running in
-the OSVVM tcl execution environment.
+GHDL in Linux
+~~~~~~~~~~~~~~~~
 
-Alternately, if you are not running in windows, create the ``.tclshrc``
-as above and then in your ``.bashrc`` create the alias
-``alias gsim='winpty rlwrap tclsh'`` to simplify starting tclsh. From
-there, at the command line type gsim and you are running ghdl in the
-OSVVM environment.
+Initialize the OSVVM Script environment by doing:
+
+.. code:: tcl
+
+   rlwrap tclsh
+   source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
+
+To simplify this, put ``source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl`` 
+in the ``.tclshrc`` file.
+In bash, add ``alias gsim='rlwrap tclsh'`` to your ``.bashrc``.
 
 Synopsys VCS
 ~~~~~~~~~~~~
 
-Synopsys scripts are beta level quality.  VCS runs
-under Unix/Linux.    The scripts must run under tcl (tclsh). As a 
-result, to start the OSVVM scripting environment, in a shell window do:
+Initialize the OSVVM Script environment by doing:
 
 .. code:: tcl
 
    rlwrap tclsh
    source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartVCS.tcl
 
-To simplify this, I put the ``source .../StartVCS.tcl`` in my
-``.tclshrc`` file and as a result I do not have to do the source
-command. 
+To simplify this, put ``source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartVCS.tcl`` 
+in the ``.tclshrc`` file.
+In bash, add ``alias ssim='rlwrap tclsh'`` to your ``.bashrc``.
+
 
 Cadence Xcelium
 ~~~~~~~~~~~~~~~
 
-Cadence Xcelium scripts are alpha level quality.  Xcelium runs
-under Unix/Linux.    The scripts must run under tcl (tclsh). As a 
-result, to start the OSVVM scripting environment, in a shell window do:
+Initialize the OSVVM Script environment by doing:
 
 .. code:: tcl
 
    rlwrap tclsh
    source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartXcelium.tcl
 
-To simplify this, I put the ``source .../StartXcelium.tcl`` in my
-``.tclshrc`` file and as a result I do not have to do the source
-command. 
+To simplify this, put ``source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartXcelium.tcl`` 
+in the ``.tclshrc`` file.
+In bash, add ``alias ssim='rlwrap tclsh'`` to your ``.bashrc``.
 
 Xilinx XSIM
 ~~~~~~~~~~~
@@ -197,9 +157,44 @@ script shown below:
 If someone from XILINX is interested, the internal OSVVM utility library
 testbenches can be provided under an NDA.
 
+Run the Demos
+--------------
 
-Project Files
--------------
+Do the following in your simulator command line:  
+
+.. code-block::
+
+  build  ../OsvvmLibraries
+  build  ../OsvvmLibraries/RunDemoTests.pro
+  
+These will produce some reports, such as OsvvmLibraries_RunDemoTests.html.
+We will discuss these in the next section, OSVVM Reports.
+
+
+Writing Scripts by Example
+==================================
+
+OSVVM Scripts are an API layer that is build on top of TCL.
+The API layer simplifies the steps of running simulations.
+For most applications you will not need any TCL, however,
+it is there if you need more capability.
+
+Basic Commands
+--------------------------
+
+.. list-table:: 
+    :widths: 10 40 
+    :header-rows: 1
+    
+    * - Command
+      - Description
+    * - library
+      - Make this library the active library. Create it if it does
+   not exist.
+    * - analyze
+      - Compile the design into the active library.
+    * - simulate
+      - Simulate the design using the active library.
 
 A project file is a TCL script that allows the specification of basic tasks
 to run a simulation:
@@ -207,7 +202,7 @@ to run a simulation:
 -  library - Make this library the active library. Create it if it does
    not exist.
 -  analyze - Compile the design into the active library.
--  Simulate - Simulate the design using the active library.
+-  simulate - Simulate the design using the active library.
 -  RunTest - compile and simulate in one step
 -  include – include another project script
 -  build – include + start a new log file for this task
@@ -779,6 +774,53 @@ Undocumented Items
 Anything undocumented is experimental and may change or be removed in a future revision.
 
 
+The Script Files
+----------------
+
+-  StartUp.tcl
+
+   -  StartUp script for ActiveHDL, GHDL, Mentor, RivieraPro, and VSimSA (ActiveHDL)
+   -  Detects the simulator running and calls the VendorScript_vendor-name.tcl.
+      Also calls OsvvmProjectScripts.tcl and OsvvmScriptDefaults.tcl
+
+-  StartVCS.tcl
+
+   -  StartUp script for Synopsys VCS.  Does what StartUp.tcl does except is specific to VCS
+      
+-  StartXcelium.tcl
+
+   -  StartUp script for Cadence Xcelium.  Does what StartUp.tcl does except is specific to Xcelium
+      
+-  StartXSIM.tcl
+
+   -  StartUp script for Xilinx XSIM.  Does what StartUp.tcl does except is specific to Xsim
+   -  Note, XSIM is currently a alpha level, experimental release.
+      
+-  VendorScript_tool-name.tcl
+
+   -  TCL procedures that do simulator specific actions.
+   -  "tool-name" = one of (ActiveHDL, GHDL, Mentor, RivieraPro, VSimSA, VCS, Xcelium, Xsim)
+   -  VSimSA is the one associated with ActiveHDL.
+   -  Called by StartUp.tcl 
+
+-  OsvvmProjectScripts.tcl
+
+   -  TCL procedures that do common simulator and project build tasks.
+   -  Called by StartUp.tcl
+
+-  OsvvmScriptDefaults.tcl
+
+   -  Default settings for the OSVVM Script environment.
+   -  Called by StartUp.tcl
+   
+-  LocalScriptDefaults.tcl
+
+   -  User default settings for the OSVVM Script environment.
+   -  Not in OSVVM repository so it will not be replaced on OSVVM updates
+   -  If it exists, called by StartUp.tcl
+
+
+
 Deprecated Descriptor Files
 ---------------------------
 
@@ -794,6 +836,8 @@ name is ".vhd" or ".vhdl" the file will be compiled as VHDL source. If
 the extension of the name is ".v" the file will be compiled as verilog
 source. If the extension of the name is ".lib", it is handled by calling
 "library <name>".
+
+
 
 Release History
 ---------------
