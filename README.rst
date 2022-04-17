@@ -188,12 +188,22 @@ Basic Commands
     
     * - Command
       - Description
-    * - library
+    * - library '<library-name>'
       - Make this library the active library. Create it if it does not exist. 
     * - analyze
       - Compile the design into the active library.
     * - simulate
       - Simulate the design using the active library.
+    * - RunTest
+      - compile and simulate in one step when VHDL name = test name
+    * - Command
+      - Description
+    * - Command
+      - Description
+    * - Command
+      - Description
+    * - Command
+      - Description
 
 A project file is a TCL script that allows the specification of basic tasks
 to run a simulation:
