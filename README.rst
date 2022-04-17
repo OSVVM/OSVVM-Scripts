@@ -189,8 +189,7 @@ Basic Commands
     * - Command
       - Description
     * - library
-      - Make this library the active library. Create it if it does
-   not exist.
+      - Make this library the active library. Create it if it does not exist. 
     * - analyze
       - Compile the design into the active library.
     * - simulate
