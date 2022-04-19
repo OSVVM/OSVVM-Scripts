@@ -194,17 +194,10 @@ Basic Commands
       - Compile (aka analyze) the design into the active library.
     * - simulate <test-name>
       - Simulate (aka elaborate + run) the design using the active library.
-    * - RunTest <test-name>.vhdl
-      - Compile and simulate in one step when <VHDL-file> = <test-name>
     * - include <script-name>.pro
       - Include another project script
     * - build <script-name>.pro
       - Start a script from the simulator.  It is include + start a new log file for this script.
-    * - TestSuite <test-suite-name>
-      - Identify the current TestSuite.  If not specified the name is `default`.
-    * - TestCase <test-name>
-      - Identify the TestCase that is active. Must match name in the testbench call to SetAlertLogName.
-
 
 Running a Simple Test
 --------------------------
@@ -227,6 +220,11 @@ run OSVVM verification component library regressions.
 In OSVVM scripting, calling library activates the library. 
 An analyze or simulate that follows library uses the specified library. 
 This is consistent with VHDL’s sense of the "working library".
+
+Note that there are no paths to the files.
+For OSVVM commands that use paths, the path is
+always relative to the directory the script is located in
+unless an absolute path is specified.
 
 The above script is in the file, testbench_MultipleMemory.pro.
 It can be run by specifying:
@@ -253,126 +251,249 @@ following files in order, if they exist:
 -  OsvvmLibraries/Scripts/<simulator>.tcl
 -  <sim-run-dir>/<ToolVendor>.tcl
 -  <sim-run-dir>/<simulator>.tcl
--  <sim-run-dir>/<LibraryUnit>.tcl
--  <sim-run-dir>/<LibraryUnit>_<simulator>.tcl
+-  <sim-run-dir>/<test-name>.tcl
+-  <sim-run-dir>/<test-name>_<simulator>.tcl
 -  <sim-run-dir>/wave.do
 
 ToolVendor is either {Aldec, Siemens, Cadence, Synopsys}. 
 Simulator is one of {QuestaSim, ModelSim, RivieraPRO, ActiveHDL, VCS, Xcelium}. 
-LibraryUnit is the name of the design being simulated. 
-"Sim run dir" is the directory from which you run the simulator.
+"test-name" is the name of the design being simulated. 
+"sim-run-dir" is the directory from which you run the simulator.
 
 Currently GHDL does not run any extra scripts since it is a batch
 simulator.
 
 Including Scripts
-~~~~~~~~~~~~~~~~~
+--------------------------
 We build our designs hierarchically.
 Therefore our scripts need to be build hierarchically.
-
-In TCL, source (or with EDA tools do) is used to run lower level scripts. 
-For an EDA tool, there are two directories of interest, 
-the directory the tool is running in and the script directory. 
-EDA tool settings are directory dependent, 
-so the script cannot change directories. 
-This forces the script to manage the location 
-of the files referenced in the script and 
-makes scripting awkward.
-
-To address this situation, OSVVM adds include. 
-Include manages both the run directory and the script directory. 
-All calls to the OSVVM script API that reference a file, 
-reference the file relative to the current script directory – 
-rather than the run directory. 
-Hence, a script only needs to reference files relative to 
-its location, making path references simple. 
-It also simplifies making directory structure changes to a project.
-
-The script, OsvvmLibraries.pro shown below, 
-is the starting point for compiling all of OSVVM. 
-It simply calls the scripts from the OSVVM Utility library, 
-Verification Component Common library, 
-UART verification component library, and 
-AXI4 verification component libraries using include.
+When one script calls another script, such as OsvvmLibraries.pro does, we use include.
+The code for OsvvmLibraries.pro is as follows. 
+The ``if`` is TCL and is only building the UART, AXI4, and DpRam if 
+their corresponding directories exist.
 
 .. code:: tcl
 
    include ./osvvm/osvvm.pro
    include ./Common/Common.pro
-   include ./UART/UART.pro
-   include ./AXI4/AXI4.pro
+ 
+   if {[DirectoryExists UART]} { 
+     include ./UART/UART.pro
+   }
+   if {[DirectoryExists AXI4]} { 
+     include ./AXI4/AXI4.pro
+   }
+   if {[DirectoryExists DpRam]} { 
+     include ./DpRam/DpRam.pro
+   }
+
+Note the paths specified to include are relative to OsvvmLibriaries 
+directory since that is where OsvvmLibraries.pro is located.
 
 Building the OSVVM Libraries
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Build is a layer on top of include (it calls include) that creates a logging point. 
-By default, OSVVM creates collects all tool output for a build into 
-an html based log file in ./logs/<tool_name>-<version>/<build>.html.
-
-In addition, when a test is started with build, run with simulate,
-and includes a call to "EndOfTestReports" at the end of the VHDL testbench,
-a build report with the formats YAML, HTML, and JUnit XML reporting. 
-In addition, a detailed test report (in YAML and HTML) will be created that 
-lists out all AlertLogIDs and their state (PASSED, FAILED, Errors, ...)
-as well as reports of coverage models (if the test has any).
-
+-------------------------------------------
+Build is a layer on top of include (it calls include) that creates a logging point.
 In general, build is called from the simulator API (when we run something) 
 and include is called from scripts.
+ 
+By default, OSVVM creates collects all tool output for a build into 
+an html based log file in ./logs/<tool_name>-<version>/<script-name>.html.
 
 To compile all of the OSVVM libraries, use build as shown below. 
 
 .. code:: tcl
 
-   build <path_to_OsvvmLibraries>/OsvvmLibraries.pro
+   build ../OsvvmLibraries/OsvvmLibraries.pro
 
-Running OSVVM Libraries
-~~~~~~~~~~~~~~~~~~~~~~~
-To run the full OSVVM verification component regression suite use the build shown below.
+Running OSVVM Test Cases
+--------------------------------
+All OSVVM verification components are delivered with their
+regression test suite. 
+There is also a script, named RunAllTests.pro, that runs
+all of the tests for that specific VC.
+
+To run the AXI4 Full verification component regression suite, 
+use the build shown below. 
 
 .. code:: tcl
 
-   build <path_to_OsvvmLibraries>/RunAllTests.pro
+   build ../OsvvmLibraries/AXI4/Axi4/RunAllTests.pro
 
 Everything in OSVVM is composed hierarchically. 
-So if you want to run a regression on a particular verification
-component, you simply run its build.  These are shown below.
+If you want to run all AXI4 (Axi4 Full, Axi4Lite, and AxiStream),
+use the build shown below.
 
 .. code:: tcl
 
-   build ../AXI4/Axi4/RunAllTests.pro
-   build ../AXI4/Axi4Lite/RunAllTests.pro
-   build ../AXI4/AxiStream/RunAllTests.pro
-   build ../UART/RunAllTests.pro
+   build ../OsvvmLibraries/AXI4/RunAllTests.pro
+
+Similarly to run the tests for all VC in OsvvmLibraries use the build
+shown below.  
+
+.. code:: tcl
+
+   build ../OsvvmLibraries/AXI4/RunAllTests.pro
    
-Build Summary Report
-~~~~~~~~~~~~~~~~~~~~~~~
-The build summary report is a summary of all tests run 
-during that build in YAML, HTML, and JUnit XML.
-This report allows us to confirm that all tests finished successfully.
 
-The best way to see the reports is run one of the OSVVM regressions.   
-Run build OsvvmLibraries/RunAllTests.pro, then open the file 
-OsvvmLibraries_RunAllTests.html.   
+For most VC and OsvvmLibraries, there is a RunDemoTests.pro that runs
+a small selection of the VC test cases.
 
-The following is an excerpt of OsvvmLibraries_RunAllTests.html.  
-Failures are shown in red (none here).  Passing tests are shown in green.
+Do not use TCL's source or EDA tool's do
+--------------------------------------------------
+OSVVM uses include since it helps manage the path of where the
+script files are located.
+Include uses TCL's ``source`` internally.
+However, if you use TCL's ``source`` (or EDA tool's ``do``) instead, 
+you will not get include's directory management features and
+your scripts will need to manage the directory paths themselves.
 
-.. image:: images/BuildReport.png
+Do not use TCL's cd
+--------------------------------------------------
+Simulators create files containing library mappings and
+other information in the simulation directory.
+As a result, when running scripts, you do not want to use ``cd``
+as simulator will be lost as the information it needs is 
+spread across several directories.   
+
+OSVVM's Reports
+==================================
+Good reports simplify debug and help find problems quickly. 
+This is important as according to the 
+`2020 Wilson Verification Survey FPGA  <https://blogs.sw.siemens.com/verificationhorizons/2020/12/02/part-4-the-2020-wilson-research-group-functional-verification-study/>`__
+verification engineers spend 46% of their time debugging.
+
+OSVVM produces the following reports:   
+* HTML Build Summary Report for human inspection that provides test completion status.
+* JUnit XML Build Summary Report for use with continuous integration (CI/CD) tools.  
+* HTML Test Case Detailed report for each test case with Alert, Functional Coverage, and Scoreboard reports.
+* HTML based simulator transcript/log files (simulator output)
+* Text based test case transcript file (from TranscriptOpen)
+
+
+/*
+
+Facilitate debug with HTML based test suite and test case reporting.
+Facilitate continuous integration (CI/CD) with JUnit XML test suite reporting.
+
+
+OSVVM produces two levels of reporting
+Tthe 
+
+When we run a set of tests, we need to be able to assess 
+whether all test cases passed or quickly identify which 
+test cases failed.  
+This is the purpose of Build Summary Reports.
+
+If a test fails, we need to have detailed information that helps 
+reveal the source of the issue. 
+This is the purpose of Detailed Test Case Reports.
+
+To facilitate this, OSVVM produces a Build Summary Report 
+that summarizes the results for an entire build (potentially
+more than one test suite) and a Detailed Test Case Report 
+for each test run.   
+
+
+
+Simulation Reports
+-------------------------------------------
+A test case that ends with a call to ``EndOfTestReports`` and 
+whose test script is started with build will produce
+a build summary report with the formats YAML, HTML, and JUnit XML.
+
+A test case that ends with a call to ``EndOfTestReports`` and
+is started by OSVVM command simulate or RunTest will produce
+a detailed test case report (in YAML and HTML) that contains
+an Alert Report, a Functional Coverage Report (if functional coverage
+is used), a Scoreboard Report (if scoreboards are used), 
+links to any log files (created with TranscriptOpen), and 
+a link to the simulator output for this test in the HTML based log file.
+
+*/
+
+
+HTML Build Summary Report
+-------------------------------------------
+The Build Summary Report allows us to quickly confirm if a 
+build passed or quickly identify which test cases did not PASS. 
+
+The Build Summary Report has three distinct pieces:
+* Build PASS/FAIL status 
+* Test Suite PASS/FAIL status for each test suite in the build
+* Test Case PASS/FAIL status for each test case in a test suite
+
+For each Test Suite and Test Case, there is additional information,
+such as Functional Coverage, Disabled Alert Count
+
+The best way to see the reports to look at the ones from the demo. 
+If you have not already done ``build OsvvmLibraries/RunDemoTests.pro``, 
+then do so now.
+Once you have, open the file OsvvmLibraries_RunDemoTests.html.   
+
+The following is an excerpt of OsvvmLibraries_RunDemoTests.html.  
+Passing tests are shown in green.
+Failures are shown in red (none here).  
+
+.. image:: images/DemoBuildSummaryReport.png
+
+Build PASS/FAIL Status
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Link to Code Coverage
+
+
+Test Suite PASS/FAIL status
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Test Case PASS/FAIL status
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
  
+JUnit XML Build Summary Report
+-------------------------------------------
+The JUnit XML Build Summary Report works with 
+continuous integration (CI/CD).   
+The CI/CD tools use this to understand if the test
+is passing or not.
+They also have facilities for displaying the 
+report - however, the OSVVM HTML format provides
+a superset of information.
 
-Detailed Test Report
-~~~~~~~~~~~~~~~~~~~~~~~
-The detailed test report is a detailed report of 
-alerts and coverage models.   
-The best way to see the reports is run one of the OSVVM 
-regression suites.   
+
+HTML Test Case Detailed Report
+------------------------------------------
+For each test case that is run (simulated), 
+a Test Case Detailed Report is produced that
+contains detailed information about Alerts, 
+Functional Coverage, and Scoreboards.
+
+The Test Case Detailed Report consists of the following information:
+* Test Information Link Table 
+* Alert Report
+* Functional Coverage Report(s)
+* Scoreboard Report(s)
+* Link to Test Case Transcript (opened with Transcript Open)
+* Link to this test case in HTML based simulator transcript
+
 After running one of the regressions, open one of the HTML files 
-in the directory ./reports (default directory).   
+in the directory ./reports/<test-suite-name>. 
+
+Test Information Link Table
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Alert Report
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 The first half of the report is a summary of the alerts encountered
 for each AlertLogID during the test.   
 This is shown in the following figure.
 
 .. image:: images/AlertReport.png
+
+Functional Coverage Report(s)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The second half of the report is the coverage report for each coverage 
 model defined in the test environment. 
@@ -383,6 +504,16 @@ utility library regression suite.   Note that coverage model
 "Test 3" is closed for more compact viewing.
 
 .. image:: images/CoverageReport.png
+
+Scoreboard Report(s)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Link to Test Case Transcript
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Link to HTML based simulator transcript
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 VHDL Aspects of Generating Reports
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -524,7 +655,7 @@ If this happens, it will be detected and recorded
 as a test failure in the build summary report.
 
 Turning on Code Coverage 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+==================================
 Code coverage is a metric that tells us if certain parts of our design
 have been exercised or not.  Turning on code coverage with OSVVM is simple.
 In the following example, we enable coverage options during analysis and 
@@ -559,6 +690,32 @@ Command Summary
 ----------------
 Commands are case sensitive.  Single word names are
 all lower case.  Multiple word names are CamelCase.
+
+.. list-table:: 
+    :widths: 30 40 
+    :header-rows: 1
+    
+    * - Command
+      - Description
+    * - library <library-name>
+      - Make this library the active library. Create it if it does not exist. 
+    * - analyze <VHDL-file>.vhdl
+      - Compile (aka analyze) the design into the active library.
+    * - simulate <test-name>
+      - Simulate (aka elaborate + run) the design using the active library.
+    * - include <script-name>.pro
+      - Include another project script
+    * - build <script-name>.pro
+      - Start a script from the simulator.  It is include + start a new log file for this script.
+      
+      
+    * - RunTest <test-name>.vhdl
+      - Compile and simulate in one step when <VHDL-file> = <test-name>
+    * - TestSuite <test-suite-name>
+      - Identify the current TestSuite.  If not specified the name is `default`.
+    * - TestCase <test-name>
+      - Identify the TestCase that is active. Must match name in the testbench call to SetAlertLogName.
+
 
 library <library> [<path>] 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -865,15 +1022,17 @@ More Information on OSVVM
 
 **Gitter:** https://gitter.im/OSVVM/Lobby   
 
+**Documentation:** `osvvm.github.io <https://osvvm.github.io>`__
+
 **Documentation:** `Documentation for the OSVVM libraries can be found
 here <https://github.com/OSVVM/Documentation>`__
 
 Copyright and License
 ---------------------
 
-Copyright (C) 2006-2021 by `SynthWorks Design Inc. <http://www.synthworks.com/>`__ 
+Copyright (C) 2006-2022 by `SynthWorks Design Inc. <http://www.synthworks.com/>`__ 
 
-Copyright (C) 2021 by `OSVVM contributors <CONTRIBUTOR.md>`__
+Copyright (C) 2022 by `OSVVM contributors <CONTRIBUTOR.md>`__
 
 This file is part of OSVVM.
 
