@@ -181,23 +181,22 @@ it is there if you need more capability.
 
 Basic Commands
 --------------------------
+- library <library-name>
+   - Make this library the active library. Create it if it does not exist. 
+- analyze <VHDL-file>
+   - Compile (aka analyze) the design into the active library.
+- simulate <test-name>
+   - Simulate (aka elaborate + run) the design using the active library.
+- include <script-name>.pro
+   - Include another project script
+- build <script-name>.pro
+   - Start a script from the simulator.  It is include + start a new log file for this script.
+   
+Scripts are named in the form ``<script-name>.pro``.  
+The scripts are TCL that is agumented with the OSVVM script API.
+The script API is created using TCL procedures.  
 
-.. list-table:: 
-    :widths: 30 40 
-    :header-rows: 1
-    
-    * - Command
-      - Description
-    * - library <library-name>
-      - Make this library the active library. Create it if it does not exist. 
-    * - analyze <VHDL-file>.vhdl
-      - Compile (aka analyze) the design into the active library.
-    * - simulate <test-name>
-      - Simulate (aka elaborate + run) the design using the active library.
-    * - include <script-name>.pro
-      - Include another project script
-    * - build <script-name>.pro
-      - Start a script from the simulator.  It is include + start a new log file for this script.
+For more details, see Command Summary later in this document.
 
 Running a Simple Test
 --------------------------
@@ -363,54 +362,15 @@ This is important as according to the
 verification engineers spend 46% of their time debugging.
 
 OSVVM produces the following reports:   
-* HTML Build Summary Report for human inspection that provides test completion status.
-* JUnit XML Build Summary Report for use with continuous integration (CI/CD) tools.  
-* HTML Test Case Detailed report for each test case with Alert, Functional Coverage, and Scoreboard reports.
-* HTML based simulator transcript/log files (simulator output)
-* Text based test case transcript file (from TranscriptOpen)
+- HTML Build Summary Report for human inspection that provides test completion status.
+- JUnit XML Build Summary Report for use with continuous integration (CI/CD) tools.  
+- HTML Test Case Detailed report for each test case with Alert, Functional Coverage, and Scoreboard reports.
+- HTML based simulator transcript/log files (simulator output)
+- Text based test case transcript file (from TranscriptOpen)
 
-
-/*
-
-Facilitate debug with HTML based test suite and test case reporting.
-Facilitate continuous integration (CI/CD) with JUnit XML test suite reporting.
-
-
-OSVVM produces two levels of reporting
-Tthe 
-
-When we run a set of tests, we need to be able to assess 
-whether all test cases passed or quickly identify which 
-test cases failed.  
-This is the purpose of Build Summary Reports.
-
-If a test fails, we need to have detailed information that helps 
-reveal the source of the issue. 
-This is the purpose of Detailed Test Case Reports.
-
-To facilitate this, OSVVM produces a Build Summary Report 
-that summarizes the results for an entire build (potentially
-more than one test suite) and a Detailed Test Case Report 
-for each test run.   
-
-
-
-Simulation Reports
--------------------------------------------
-A test case that ends with a call to ``EndOfTestReports`` and 
-whose test script is started with build will produce
-a build summary report with the formats YAML, HTML, and JUnit XML.
-
-A test case that ends with a call to ``EndOfTestReports`` and
-is started by OSVVM command simulate or RunTest will produce
-a detailed test case report (in YAML and HTML) that contains
-an Alert Report, a Functional Coverage Report (if functional coverage
-is used), a Scoreboard Report (if scoreboards are used), 
-links to any log files (created with TranscriptOpen), and 
-a link to the simulator output for this test in the HTML based log file.
-
-*/
-
+The best way to see the reports is to look at the ones from the demo. 
+If you have not already done ``build OsvvmLibraries/RunDemoTests.pro``, 
+then do so now.
 
 HTML Build Summary Report
 -------------------------------------------
@@ -418,36 +378,74 @@ The Build Summary Report allows us to quickly confirm if a
 build passed or quickly identify which test cases did not PASS. 
 
 The Build Summary Report has three distinct pieces:
-* Build PASS/FAIL status 
-* Test Suite PASS/FAIL status for each test suite in the build
-* Test Case PASS/FAIL status for each test case in a test suite
+- Build Status 
+- Test Suite Summary
+- Test Case Summary
 
 For each Test Suite and Test Case, there is additional information,
-such as Functional Coverage, Disabled Alert Count
+such as Functional Coverage and Disabled Alert Count.
 
-The best way to see the reports to look at the ones from the demo. 
-If you have not already done ``build OsvvmLibraries/RunDemoTests.pro``, 
-then do so now.
-Once you have, open the file OsvvmLibraries_RunDemoTests.html.   
+In the sim directory, the Build Summary Report is 
+in the file OsvvmLibraries_RunDemoTests.html.
+See :numref:`Figure {number} {name} <BuildSummaryReportFig>`.
 
-The following is an excerpt of OsvvmLibraries_RunDemoTests.html.  
-Passing tests are shown in green.
-Failures are shown in red (none here).  
+.. figure:: images/DemoBuildSummaryReport.png
+  :name: BuildSummaryReportFig
+  :scale: 25 %
+  :align: center
+  
+  Build Summary Report
+  
+Note that any place in the report there is a triangle preceding text,
+pressing on the triangle will rotate it and either hide or reveal
+additional information.
 
-.. image:: images/DemoBuildSummaryReport.png
 
-Build PASS/FAIL Status
+Build Status
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The Build Status is in a table at the top of the 
+Build Summary Report. 
+It is shown in :numref:`Figure {number} {name} <BuildStatusFig>`.
+If code coverage is run, there will be a link to 
+the results at the bottom of the Build Summary Report.
+
+.. figure:: images/DemoBuildStatus.png
+  :name: BuildStatusFig
+  :scale: 50 %
+  :align: center
+  
+  Build Status
+
+
+Test Suite Summary
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Link to Code Coverage
+When running tests, test cases are grouped into test suites.
+A build can include multiple test suites.
+The next table we see in the Build Summary Report is the
+Test Suite Summary.  
+:numref:`Figure {number} {name} <TestSuiteSummaryFig>` shows 
+that this build includes the test suites Axi4Full, AxiStream, and UART.
+
+.. figure:: images/DemoTestSuiteSummary.png
+  :name: TestSuiteSummaryFig
+  :scale: 50 %
+  :align: center
+  
+  Test Suite Summary
 
 
-Test Suite PASS/FAIL status
+Test Case Summary
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The remainder of the Build Summary Report is Test Case Summary.
+There is a seprate Test Case Summary for each test suite in the build.
+See :numref:`Figure {number} {name} <TestCaseSummaryFig>`.
 
-
-Test Case PASS/FAIL status
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+.. figure:: images/DemoTestCaseSummaries.png
+  :name: TestCaseSummaryFig
+  :scale: 50 %
+  :align: center
+  
+  Test Case Summary
 
  
 JUnit XML Build Summary Report
@@ -460,64 +458,141 @@ They also have facilities for displaying the
 report - however, the OSVVM HTML format provides
 a superset of information.
 
+OSVVM runs regressions on GitHub.  
 
 HTML Test Case Detailed Report
 ------------------------------------------
 For each test case that is run (simulated), 
 a Test Case Detailed Report is produced that
-contains detailed information about Alerts, 
-Functional Coverage, and Scoreboards.
+contains consists of the following information:  
 
-The Test Case Detailed Report consists of the following information:
-* Test Information Link Table 
-* Alert Report
-* Functional Coverage Report(s)
-* Scoreboard Report(s)
-* Link to Test Case Transcript (opened with Transcript Open)
-* Link to this test case in HTML based simulator transcript
+- Test Information Link Table  
+- Alert Report  
+- Functional Coverage Report(s)  
+- Scoreboard Report(s)  
+- Link to Test Case Transcript (opened with Transcript Open)   
+- Link to this test case in HTML based simulator transcript  
 
 After running one of the regressions, open one of the HTML files 
 in the directory ./reports/<test-suite-name>. 
 
+Note that any place in the report there is a triangle preceding text,
+pressing on the triangle will rotate it and either hide or reveal
+additional information.
+
+
 Test Information Link Table
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The Test Information Link Table is in a table at the top of the 
+Test Case Detailed Report. 
+:numref:`Figure {number} {name} <TestInfoFig>`
+has links to the Alert Report (in this file),
+Functional Coverage Report (in this file),
+Scoreboard Reports (in this file),
+a link to simulation results (if the simulation report is in HTML),
+and a link to any transcript files opened by OSVVM.
+
+.. figure:: images/DemoTestCaseLinks.png
+  :name: TestInfoFig
+  :scale: 50 %
+  :align: center
+  
+  Test Information Link Table
+
 
 Alert Report
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The Alert Report provides detailed information for each AlertLogID
+that is used in a test case.   
+See :numref:`Figure {number} {name} <AlertFig>`
 
-
-The first half of the report is a summary of the alerts encountered
-for each AlertLogID during the test.   
-This is shown in the following figure.
-
-.. image:: images/AlertReport.png
+.. image:: images/DemoAlertReport.png
+  :name: AlertFig
+  :scale: 50 %
+  :align: center
+  
+  Alert Report
+  
 
 Functional Coverage Report(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The second half of the report is the coverage report for each coverage 
-model defined in the test environment. 
-Note that items with a triangle in front of them can be closed for
-more compact viewing.
-The coverage report below is for test TbCov_CovDb_2 in the OSVVM 
-utility library regression suite.   Note that coverage model 
-"Test 3" is closed for more compact viewing.
+The Test Case Detailed Report contains a 
+Functional Coverage Report for each 
+functional coverage model used in the test case.
+See :numref:`Figure {number} {name} <FunctionalCoverageFig>`
+Note this report is not from the demo.
 
 .. image:: images/CoverageReport.png
+  :name: FunctionalCoverageFig
+  :scale: 50 %
+  :align: center
+  
+  Functional Coverage Report
 
 Scoreboard Report(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The Test Case Detailed Report contains a 
+Scoreboard Report for each 
+scoreboard model used in the test case.
+See :numref:`Figure {number} {name} <ScoreboardFig>`
 
-Link to Test Case Transcript
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. image:: images/DemoScoreboardReport.png
+  :name: ScoreboardFig
+  :scale: 50 %
+  :align: center
+  
+  Scoreboard Report
 
-Link to HTML based simulator transcript
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Test Case Transcript
+-------------------------------------------
+OSVVM's transcript utility facilitates collecting all 
+test output to into a single file.  
+
+:numref:`Figure {number} shows the {name} <TestCaseTranscriptFig>`
+
+
+.. image:: images/DemoVHDLTranscript.png
+  :name: TestCaseTranscriptFig
+  :scale: 50 %
+  :align: center
+  
+  Test Case Transcript
+
+
+
+HTML Simulator Transcript
+-------------------------------------------
+Simulator transcript files can be long.  
+The basic OSVVM regression test (OsvvmLibraries/RunAllTests.pro),
+produces a log file that is 84K lines long.  
+As a plain text file, this is not browsable, however,
+when converted to an html file it is.
+OSVVM gives you the option to create either html (default) or plain text.
+
+:numref:`Figure {number} shows the {name} <SimTranscriptFig>`
+
+
+.. image:: images/DemoSimTranscript.png
+  :name: SimTranscriptFig
+  :scale: 50 %
+  :align: center
+  
+  HTML Simulator Transcript
+
+
+
+How To Generate Reports
+==================================
 
 VHDL Aspects of Generating Reports
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-To generate reports, you need to have the following OSVVM test code in your VHDL testbench.
+------------------------------------------  
+To generate reports, you need to have the following in your VHDL testbench:  
+* Name your test case with ``SetAlertLogName("TestName")``.  
+* Do some self-checking with ``AffirmIf``, ``AffirmIfEqual``, or ``AffirmIfNotDiff``.  
+* End the test case with ``EndOfTestReports``.  
+
+These following code snippet shows these in use.
 More details of this are in OSVVM Test Writers User Guide in the documentation repository.
 
 .. code:: vhdl
@@ -529,7 +604,7 @@ More details of this are in OSVVM Test Writers User Guide in the documentation r
    TestProc : process
    begin
      -- Name the Test
-     SetAlertLogName("TestName") ; 
+     SetAlertLogName("TbDut") ; 
      . . .
      -- Do some Checks
      AffirmIfEqual(Data, X"A025", "Check Data") ;
@@ -539,9 +614,8 @@ More details of this are in OSVVM Test Writers User Guide in the documentation r
      std.env.stop(GetAlertCount) ; 
    end process TestProc ; 
 
-
 Generating Reports and Simple Tests
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------  
 If we have a simple test, where the design name is 
 Dut.vhd and the testbench is TbDut.vhd,
 then we can run it with the following script
@@ -564,10 +638,10 @@ as otherwise, a NAME_MISMATCH failure will be generated.
 
 
 Generating Reports and Running Tests without Configurations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------------------------  
 In OSVVM, we use the testbench framework shown in the
 OSVVM Test Writers User Guide (see documentation repository). 
-The test harness in this example is named TbUart. 
+The test harness in the following example is named TbUart. 
 The test sequencer entity is in file TestCtrl_e.vhd. 
 Tests are in architectures of TestCtrl in the files,
 TestCtrl_SendGet1.vhd, TestCtrl_SendGet2.vhd, and TbtCtrl_Scoreboard1.vhd. 
@@ -613,11 +687,11 @@ then the VHDL test name will not match the test case name
 and a NAME_MISMATCH failure will be generated by the scripts.  
 
 Generating Reports and Running Tests with Configurations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------------------------------------------  
 The OSVVM verification component regression suite uses configurations 
 to specify an exact architecture to run in a given test.
 We give the configuration, the test case, and the file the same name.
-We also put the configuration declartion at the end of the file
+We also put the configuration declaration at the end of the file
 containing the test case (try it, you will understand why).  
 When we run a test that uses a configuration, simulate specifies 
 the configuration's design unit name.
@@ -681,308 +755,170 @@ and SetCoverageSimulateOptions.  By default, OSVVM sets these options
 so that statement, branch, and statemachine coverage is collected. 
 
 When coverage is turned on for a build, coverage is collected for each test.  
-If there are multiple test suites in the build, then 
+If there are multiple test suites in the build,
+when a test suite completes execution, 
 the coverage for each test in the test suite is merged.  
 When a build completes the coverage from each test suite 
 is merged and an html coverage report is produced.
 
 Command Summary 
-----------------
+==================================
 Commands are case sensitive.  Single word names are
 all lower case.  Multiple word names are CamelCase.
 
-.. list-table:: 
-    :widths: 30 40 
-    :header-rows: 1
-    
-    * - Command
-      - Description
-    * - library <library-name>
-      - Make this library the active library. Create it if it does not exist. 
-    * - analyze <VHDL-file>.vhdl
-      - Compile (aka analyze) the design into the active library.
-    * - simulate <test-name>
-      - Simulate (aka elaborate + run) the design using the active library.
-    * - include <script-name>.pro
-      - Include another project script
-    * - build <script-name>.pro
-      - Start a script from the simulator.  It is include + start a new log file for this script.
+The following are general commands.      
       
+- library <library> [<path>]
+   - Make this library the active library. Create it if it does not exist.
+     Libraries are created in the path specified by LIB_BASE_DIR in Scripts/StartUp.tcl. 
+- LinkLibrary <library> [<path>]
+   - Create a mapping to a library that was already created.
+- LinkLibraryDirectory [LibraryDirectory]
+   - Map all of the libraries in the specified ``LibraryDirectory``.
+     If ``LibraryDirectory`` is not specified, the current directory is used.
+- LinkCurrentLibraries
+   - If you use ``cd``, then use LinkCurrentLibraries immediately after
+     to map all libraries in the current directory
+- RemoveAllLibraries
+   - Delete all of the working libraries.
+- SetLibraryDirectory [LibraryDirectory]
+   - Set the directory in which the libraries will be created.
+     If ``LibraryDirectory`` is not specified, the current directory is used.
+     By default, libraries are created in ``<LibraryDirectory>/VHDL_LIBS/<tool version>/``.
+- GetLibraryDirectory
+   - Get the Library Directory.
+- analyze [<path>/]<name>
+   - Analyze (aka compile) the design into the active library.
+     Name must be a file with an extension that is either *.vhd or *.vhdl.
+- simulate <test-name>
+   - Simulate (aka elaborate + run) the design using the active library.
+- TestCase <test-name>
+   - Identify the TestCase that is active. 
+     Must match name in the testbench call to SetAlertLogName.
+- RunTest [<path>/]<name> [<test-name>]
+   - Combines analyze, TestCase, and simulate into one step.
+     If ``test-name`` is not specified, use the base name of ``file``.
+- SkipTest <test-name> Reason
+   - Add Skip test to the Build Summary Reports with ``Reason`` as part of the report. 
+- TestSuite <test-suite-name>
+   - Identify the current TestSuite.  If not specified the name is `default`.
+- include [<path>/]<name>
+   - Include another project script.
+     If ``name`` is a file and its extension is .pro, .tcl, or .do, it will be sourced. 
+     If ``name`` is a directory then any file whose name is ``name`` and 
+     extension is .pro, .tcl, or .do will be sourced. 
+- build [<path>/]<name>
+   - Start a script from the simulator.  It is include + start a new log file for this script.
+- SetTranscriptType [html|log]
+   - Select the Transcript file to be either html or log.  The default is html.
+- GetTranscriptType
+   - Get the Transcript file type (either html or log).
+
+In all commands that accept a path, relative paths (including no path) is
+relative to the directory in which the current script is running.  
+
+
+The following commands set options for analyze and simulate.
+
+- SetVHDLVersion [2008 | 2019 | 1993 | 2002]
+   - Set VHDL analyze version.  OSVVM libraries require 2008 or newer.
+- GetVHDLVersion
+   - Return the current VHDL Version.
+- SetSimulatorResolution <value>
+   - Set Simulator Resolution. Any value supported by the simulator is ok.
+- GetSimulatorResolution
+   - Return the current Simulator Resolution.
+- SetCoverageAnalyzeEnable <value>
+   - If ``value`` is true, enable coverage during analyze,
+   - otherwise, if the ``value`` is "", set the enable to the specified by SetCoverageEnable,
+   - otherwise, disable coverage during analyze.
+- GetCoverageAnalyzeEnable
+   - Returns the setting for coverage during analyze.
+- SetCoverageAnalyzeOptions <options>
+   - Use the string specified in ``options`` as the coverage options during analyze. 
+- GetCoverageAnalyzeOptions 
+   - Return the coverage options for analyze.
+- SetCoverageSimulateEnable <value>
+   - If ``value`` is true, enable coverage during simulate,
+   - otherwise, if the ``value`` is "", set the enable to the specified by SetCoverageEnable,
+   - otherwise, disable coverage during simulate.
+- GetCoverageSimulateEnable
+   - Returns the setting for coverage during simulate.
+- SetCoverageSimulateOptions <options>
+   - Use the string specified in ``options`` as the coverage options during simulate. 
+- GetCoverageSimulateOptions 
+   - Return the coverage options for simulate.
+- SetCoverageEnable <value>
+   - If ``value`` is true, set coverage enable to true,
+   - otherwise, set coverage enable to false.
+   - The default value is "true"
+- GetCoverageEnable
+   - Get the CoverageEnable value. 
+- SetVhdlAnalyzeOptions <options>
+   - Set the VHDL options for analyze to ``options``.
+- GetVhdlAnalyzeOptions 
+   - Get the VHDL options for analyze.
+- SetVerilogAnalyzeOptions <options>
+   - Set the Verilog options for analyze to ``options``.
+- GetVerilogAnalyzeOptions 
+   - Get the Verilog options for analyze.
+- SetExtendedAnalyzeOptions <options> 
+   - Set extended (additional) options for analyze to ``options``.
+- GetExtendedAnalyzeOptions
+   - Get extended (additional) options for analyze.
+- SetExtendedSimulateOptions <options>
+   - Set extended (additional) options for simulate to ``options``.
+- GetExtendedSimulateOptions
+   - Get extended (additional) options for simulate.
+
+The values for a commands ``options`` value are typically simulator dependent.
+To keep a set of scripts simulator independent, be sure to call these
+at a high level, such as in ``LocalScriptDefaults.tcl``.
+
+Caution any undocumented commands are experimental and may change or be removed in a future revision.
+
+
+Script File Summary 
+==================================
+
+- StartUp.tcl  
+   - StartUp script for ActiveHDL, GHDL, Mentor, RivieraPro, and VSimSA (ActiveHDL)   
+   - Detects the simulator running and calls the VendorScript_vendor-name.tcl.
+     Also calls OsvvmProjectScripts.tcl and OsvvmScriptDefaults.tcl 
+
+- StartVCS.tcl  
+   - StartUp script for Synopsys VCS.  Does what StartUp.tcl does except is specific to VCS  
       
-    * - RunTest <test-name>.vhdl
-      - Compile and simulate in one step when <VHDL-file> = <test-name>
-    * - TestSuite <test-suite-name>
-      - Identify the current TestSuite.  If not specified the name is `default`.
-    * - TestCase <test-name>
-      - Identify the TestCase that is active. Must match name in the testbench call to SetAlertLogName.
-
-
-library <library> [<path>] 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Make the library the active library. If the 
-library does not exist, create it and create a 
-mapping to it. Libraries are created in the 
-path specified by LIB_BASE_DIR in Scripts/StartUp.tcl. 
-
-LinkLibrary <library> [<path>]  
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Create a mapping to a library that was already created.
-
-LinkLibraryDirectory [LibraryDirectory]  
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Map all of the libraries in the specified library directory.
-If one is not specified, one is looked for in the current 
-directory.
-
-SetLibraryDirectory [LibraryDirectory]  
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set the directory in which the libraries will be created.
-The libraries will be created in this directory in a 
-directory named, "VHDL_LIBS/<tool version>/".
-
-GetLibraryDirectory  
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Get the Library Directory.
-
-analyze <file>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Compile the file. A path name specified is
-relative to the location of the current <file>.pro
-directory location. Library is the one 
-specified in the previous library command.
-
-simulate <design-unit>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Start a simulation on the design unit. 
-Library is the one specified in the 
-previous library command.   
-
-RunTest <file> [<name>]
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-RunTest combines TestCase, analyze, and simulate. 
-RunTest optionally takes two parameters. 
-With two parameters, the first is the file 
-name to analyze, the second is the design 
-unit name to use for simulation and TestCase. 
-With one parameter, the first parameter is 
-the file name.  The second parameter is 
-the base name of the file name - any path 
-and file extension are removed. 
-
-include [<path>/]<name>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Include accepts an argument "name" that 
-is either a file or a directory. If it  
-is a file and its extension is .pro, .tcl, 
-or .do, it will be sourced. 
-
-If "name" is a directory, then files 
-whose name is "name" and whose extension is 
-.pro, .tcl, or .do, it will be sourced. 
-
-All paths and names specifed are relative are 
-relative to the current directory from 
-which the script is running. 
-
-Extensions of the form ".files" or 
-".dirs is handled in a manner described 
-in "Deprecated Descriptor Files". 
-
-build [<path>/]<name>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Re-initializes the working directory to 
-the script directory, opens a transcript 
-file, and calls include. A path name 
-specified is relative to the location of 
-the current <file>.pro directory location.
-
-SetVHDLVersion
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set VHDL analyze version. 
-Valid values = (2008, 2019, 1993, 2002). 
-OSVVM libraries require 2008 or newer.
-
-GetVHDLVersion
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Return the current VHDL Version.
-
-SetSimulatorResolution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set Simulator Resolution. 
-Any value supported by the simulator is ok.
-
-GetSimulatorResolution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Return the current Simulator Resolution.
-
-TestCase <name>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set the test case name.
-
-SkipTest <string>
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Adds a place holder in the results file for a test case 
-that does not run in a particular tool. 
-The <string> value specifies the reason the test case 
-was skipped in this tool.
-
-TestSuite <name> 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set the test suite name. 
-
-SetTranscriptType 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Select the Transcript file to be either html or log.
-The default is html.
-
-GetTranscriptType
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Get the Transcript file type (either html or log).
-
-SetCoverageAnalyzeEnable ""
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Value true selects use coverage options during analyze.
-Value "" sets the enable to the specified by SetCoverageEnable.
-
-GetCoverageAnalyzeEnable
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Returns the current enable setting.
-
-SetCoverageAnalyzeOptions "value"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set the coverage options.
-
-GetCoverageAnalyzeOptions 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set the coverage options for analyze to the string value.
-
-SetCoverageSimulateEnable ""
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Value true selects use coverage options during simulation.
-Value "" sets the enable to the specified by SetCoverageEnable.
-
-GetCoverageSimulateEnable
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Returns the current enable setting.
-
-SetCoverageSimulateOptions "value"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set the coverage options for simulate to the string value.
-
-GetCoverageSimulateOptions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Get the coverage options to the string value.
-
-SetCoverageEnable "value"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set CoverageEnable to value. 
-If no value is specified, then the value is "true".  
-The default value is "true"
-
-GetCoverageEnable
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Get the CoverageEnable value. 
-
-SetVhdlAnalyzeOptions "value"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set the VHDL options for analyze to the string value.
-
-GetVhdlAnalyzeOptions 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Get the VHDL options for analyze.
-
-SetVerilogAnalyzeOptions "value"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set the Verilog options for analyze to the string value.
-
-GetVerilogAnalyzeOptions 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Get the Verilog options for analyze.
-
-SetExtendedAnalyzeOptions "value" 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set extended (additional) options for analyze to the string value.
-
-GetExtendedAnalyzeOptions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Get extended (additional) options for analyze.
-
-SetExtendedSimulateOptions "value"
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Set extended (additional) options for simulate to the string value.
-
-GetExtendedSimulateOptions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Get extended (additional) options for simulate.
-
-LinkCurrentLibraries 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-EDA tools are centric to the current directory
-If you change directory, the EDA tool will loose 
-all of its library mapping information. 
-If immediately after a change directory, a LinkCurrentLibraries
-is called, then all existing libraries will be mapped in 
-the current directory.
-
-RemoveAllLibraries
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Delete all of the working libraries.
-
-Undocumented Items
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Anything undocumented is experimental and may change or be removed in a future revision.
-
-
-The Script Files
-----------------
-
--  StartUp.tcl
-
-   -  StartUp script for ActiveHDL, GHDL, Mentor, RivieraPro, and VSimSA (ActiveHDL)
-   -  Detects the simulator running and calls the VendorScript_vendor-name.tcl.
-      Also calls OsvvmProjectScripts.tcl and OsvvmScriptDefaults.tcl
-
--  StartVCS.tcl
-
-   -  StartUp script for Synopsys VCS.  Does what StartUp.tcl does except is specific to VCS
+- StartXcelium.tcl  
+   - StartUp script for Cadence Xcelium.  Does what StartUp.tcl does except is specific to Xcelium
       
--  StartXcelium.tcl
-
-   -  StartUp script for Cadence Xcelium.  Does what StartUp.tcl does except is specific to Xcelium
+- StartXSIM.tcl  
+   - StartUp script for Xilinx XSIM.  Does what StartUp.tcl does except is specific to Xsim
+   - Note, XSIM is currently a alpha level, experimental release.
       
--  StartXSIM.tcl
+- VendorScript_tool-name.tcl  
+   - TCL procedures that do simulator specific actions.
+   - "tool-name" = one of (ActiveHDL, GHDL, Mentor, RivieraPro, VSimSA, VCS, Xcelium, Xsim)
+   - VSimSA is the one associated with ActiveHDL.
+   - Called by StartUp.tcl 
 
-   -  StartUp script for Xilinx XSIM.  Does what StartUp.tcl does except is specific to Xsim
-   -  Note, XSIM is currently a alpha level, experimental release.
-      
--  VendorScript_tool-name.tcl
+- OsvvmProjectScripts.tcl  
+   - TCL procedures that do common simulator and project build tasks.
+   - Called by StartUp.tcl
 
-   -  TCL procedures that do simulator specific actions.
-   -  "tool-name" = one of (ActiveHDL, GHDL, Mentor, RivieraPro, VSimSA, VCS, Xcelium, Xsim)
-   -  VSimSA is the one associated with ActiveHDL.
-   -  Called by StartUp.tcl 
-
--  OsvvmProjectScripts.tcl
-
-   -  TCL procedures that do common simulator and project build tasks.
-   -  Called by StartUp.tcl
-
--  OsvvmScriptDefaults.tcl
-
-   -  Default settings for the OSVVM Script environment.
-   -  Called by StartUp.tcl
+- OsvvmScriptDefaults.tcl  
+   - Default settings for the OSVVM Script environment.
+   - Called by StartUp.tcl
    
--  LocalScriptDefaults.tcl
-
-   -  User default settings for the OSVVM Script environment.
-   -  Not in OSVVM repository so it will not be replaced on OSVVM updates
-   -  If it exists, called by StartUp.tcl
+- LocalScriptDefaults.tcl  
+   - User default settings for the OSVVM Script environment.
+   - Not in OSVVM repository so it will not be replaced on OSVVM updates
+   - If it exists, called by StartUp.tcl
 
 
 
 Deprecated Descriptor Files
----------------------------
-
+==================================
 Include with a file extension of ".dirs" or ".files" is deprecated and
 is only supported for backward compatibility.
 
@@ -999,13 +935,11 @@ source. If the extension of the name is ".lib", it is handled by calling
 
 
 Release History
----------------
-
+==================================
 For the release history see, `CHANGELOG.md <CHANGELOG.md>`__
 
 Participating and Project Organization
---------------------------------------
-
+====================================================================
 The OSVVM project welcomes your participation with either issue reports
 or pull requests. For details on `how to participate
 see <https://opensource.ieee.org/osvvm/OsvvmLibraries/-/blob/master/CONTRIBUTING.md>`__
@@ -1014,22 +948,20 @@ You can find the project `Authors here <AUTHORS.md>`__ and `Contributors
 here <CONTRIBUTORS.md>`__.
 
 More Information on OSVVM
--------------------------
-
+==================================
 **OSVVM Forums and Blog:** http://www.osvvm.org/   
 
 **SynthWorks OSVVM Blog:** http://www.synthworks.com/blog/osvvm/   
 
 **Gitter:** https://gitter.im/OSVVM/Lobby   
 
-**Documentation:** `osvvm.github.io <https://osvvm.github.io>`__
+**Documentation:** `osvvm.github.io <https://osvvm.github.io>`__   
 
 **Documentation:** `Documentation for the OSVVM libraries can be found
-here <https://github.com/OSVVM/Documentation>`__
+here <https://github.com/OSVVM/Documentation>`__   
 
 Copyright and License
----------------------
-
+==================================
 Copyright (C) 2006-2022 by `SynthWorks Design Inc. <http://www.synthworks.com/>`__ 
 
 Copyright (C) 2022 by `OSVVM contributors <CONTRIBUTOR.md>`__
