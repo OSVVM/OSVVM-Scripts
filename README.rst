@@ -362,11 +362,12 @@ This is important as according to the
 verification engineers spend 46% of their time debugging.
 
 OSVVM produces the following reports:   
-- HTML Build Summary Report for human inspection that provides test completion status.
-- JUnit XML Build Summary Report for use with continuous integration (CI/CD) tools.  
-- HTML Test Case Detailed report for each test case with Alert, Functional Coverage, and Scoreboard reports.
-- HTML based simulator transcript/log files (simulator output)
-- Text based test case transcript file (from TranscriptOpen)
+
+- HTML Build Summary Report for human inspection that provides test completion status.  
+- JUnit XML Build Summary Report for use with continuous integration (CI/CD) tools.   
+- HTML Test Case Detailed report for each test case with Alert, Functional Coverage, and Scoreboard reports.  
+- HTML based simulator transcript/log files (simulator output)  
+- Text based test case transcript file (from TranscriptOpen)  
 
 The best way to see the reports is to look at the ones from the demo. 
 If you have not already done ``build OsvvmLibraries/RunDemoTests.pro``, 
@@ -377,10 +378,11 @@ HTML Build Summary Report
 The Build Summary Report allows us to quickly confirm if a 
 build passed or quickly identify which test cases did not PASS. 
 
-The Build Summary Report has three distinct pieces:
-- Build Status 
-- Test Suite Summary
-- Test Case Summary
+The Build Summary Report has three distinct pieces:   
+
+- Build Status   
+- Test Suite Summary   
+- Test Case Summary   
 
 For each Test Suite and Test Case, there is additional information,
 such as Functional Coverage and Disabled Alert Count.
@@ -506,7 +508,7 @@ The Alert Report provides detailed information for each AlertLogID
 that is used in a test case.   
 See :numref:`Figure {number} {name} <AlertFig>`
 
-.. image:: images/DemoAlertReport.png
+.. figure:: images/DemoAlertReport.png
   :name: AlertFig
   :scale: 50 %
   :align: center
@@ -522,7 +524,7 @@ functional coverage model used in the test case.
 See :numref:`Figure {number} {name} <FunctionalCoverageFig>`
 Note this report is not from the demo.
 
-.. image:: images/CoverageReport.png
+.. figure:: images/CoverageReport.png
   :name: FunctionalCoverageFig
   :scale: 50 %
   :align: center
@@ -536,7 +538,7 @@ Scoreboard Report for each
 scoreboard model used in the test case.
 See :numref:`Figure {number} {name} <ScoreboardFig>`
 
-.. image:: images/DemoScoreboardReport.png
+.. figure:: images/DemoScoreboardReport.png
   :name: ScoreboardFig
   :scale: 50 %
   :align: center
@@ -552,7 +554,7 @@ test output to into a single file.
 :numref:`Figure {number} shows the {name} <TestCaseTranscriptFig>`
 
 
-.. image:: images/DemoVHDLTranscript.png
+.. figure:: images/DemoVHDLTranscript.png
   :name: TestCaseTranscriptFig
   :scale: 50 %
   :align: center
@@ -573,7 +575,7 @@ OSVVM gives you the option to create either html (default) or plain text.
 :numref:`Figure {number} shows the {name} <SimTranscriptFig>`
 
 
-.. image:: images/DemoSimTranscript.png
+.. figure:: images/DemoSimTranscript.png
   :name: SimTranscriptFig
   :scale: 50 %
   :align: center
