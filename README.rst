@@ -571,6 +571,9 @@ produces a log file that is 84K lines long.
 As a plain text file, this is not browsable, however,
 when converted to an html file it is.
 OSVVM gives you the option to create either html (default) or plain text.
+In the html report, any place there is a triangle preceding text,
+pressing on the triangle will rotate it and either hide or reveal
+additional information.
 
 :numref:`Figure {number} shows the {name} <SimTranscriptFig>`
 
