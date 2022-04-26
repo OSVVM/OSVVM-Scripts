@@ -215,10 +215,14 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable CoverageSimulateEnable
   variable TestSuiteName
 
-  puts "vsim -voptargs='+acc' -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
-#  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 
-  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684
+  simulate_beforeSimStartedCallback $LibraryUnit
+  set customArgs [simulate_getCustomSimArgs $LibraryUnit]
 
+  puts "vsim -voptargs='+acc' -t $SIMULATE_TIME_UNITS $customArgs -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
+#  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 
+  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS $customArgs -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684
+
+  simulate_simStartedCallback $LibraryUnit
   
   ### Project level settings - in OsvvmLibraries/Scripts
   # Historical name.  Must be run with "do" for actions to work
@@ -279,6 +283,7 @@ proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
     file delete -force -- $CodeCovResultsDir
   }
   vcover report -html -annotate -details -verbose -output ${CodeCovResultsDir} ${CodeCoverageDirectory}/${TestSuiteName}.ucdb 
+  cover_reportCallback ${CodeCoverageDirectory}/${TestSuiteName}.ucdb
 }
 
 proc vendor_GetCoverageFileName {TestName} { 

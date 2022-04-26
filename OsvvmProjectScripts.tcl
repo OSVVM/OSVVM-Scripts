@@ -59,6 +59,8 @@
 #  limitations under the License.
 #
 
+source ${::osvvm::SCRIPT_DIR}/CustomScripts.tcl
+
 # -------------------------------------------------
 # StartUp
 #   re-run the startup scripts, this program included
@@ -253,7 +255,7 @@ proc SetBuildName {Path_Or_File} {
 # -------------------------------------------------
 # build
 #
-proc build {{Path_Or_File "."}} {
+proc build_internal {{Path_Or_File "."}} {
   variable CURRENT_WORKING_DIRECTORY
   variable TestSuiteStartTimeMs
   variable TranscriptExtension
@@ -733,7 +735,7 @@ proc LinkCurrentLibraries {} {
 # -------------------------------------------------
 # analyze
 #
-proc analyze {FileName {OptionalCommands ""}} {
+proc analyze_internal {FileName {OptionalCommands ""}} {
   variable VHDL_WORKING_LIBRARY
   variable CURRENT_WORKING_DIRECTORY
   variable CoverageAnalyzeEnable
@@ -774,7 +776,7 @@ proc analyze {FileName {OptionalCommands ""}} {
 # -------------------------------------------------
 # Simulate
 #
-proc simulate {LibraryUnit {OptionalCommands ""}} {
+proc simulate_internal {LibraryUnit {OptionalCommands ""}} {
   variable VHDL_WORKING_LIBRARY
   variable vendor_simulate_started
   variable TestCaseName
