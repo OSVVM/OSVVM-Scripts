@@ -71,7 +71,8 @@ proc StartUp {} {
 
 namespace eval ::osvvm {
 
-variable OsvvmYamlResultsFile    "./OsvvmRun.yml"  ; # WARNING:  OSVVM VHDL code also uses this name. If change directory, make sure directory exists
+variable OutputDirectory         "./sim_tmp/"
+variable OsvvmYamlResultsFile    "${OutputDirectory}OsvvmRun.yml"  ; # WARNING:  OSVVM VHDL code also uses this name. If change directory, make sure directory exists
 variable ExtendedAnalyzeOptions  ""
 variable ExtendedSimulateOptions ""
 variable CoverageAnalyzeOptions  [vendor_SetCoverageAnalyzeDefaults]
@@ -82,17 +83,17 @@ variable CoverageEnable           "true"
 
 variable TranscriptExtension      "html"     ; # Set Transcripts to be html by default
 
-variable LogDirectory             "logs/${ToolNameVersion}"
-variable VhdlReportsDirectory     ""         ; # WARNING: OSVVM reporting requires this directory to be named reports
-variable ReportsDirectory         "reports"  ; # Directory scripts put reports into.
-variable OsvvmResultsDirectory    "results"  ; # WARNING: OSVVM regression tests expects this directory to be named results
-variable ResultsDirectory         "results"  ; # A place for user code to write if "." or $OsvvmResultsDirectory not ok
-variable CoverageDirectory        "CodeCoverage"
+variable LogDirectory             "${OutputDirectory}logs/${ToolNameVersion}"
+variable VhdlReportsDirectory     "${OutputDirectory}"         ; # WARNING: OSVVM reporting requires this directory to be named reports
+variable ReportsDirectory         "${OutputDirectory}reports"  ; # Directory scripts put reports into.
+variable OsvvmResultsDirectory    "${OutputDirectory}results"  ; # WARNING: OSVVM regression tests expects this directory to be named results
+variable ResultsDirectory         "${OutputDirectory}results"  ; # A place for user code to write if "." or $OsvvmResultsDirectory not ok
+variable CoverageDirectory        "${OutputDirectory}CodeCoverage"
 # variable LIB_BASE_DIR           ; # Default: $CURRENT_SIMULATION_DIRECTORY.  set by SetLibraryDirectoy
 variable VhdlLibraryDirectory     "VHDL_LIBS"
 variable VhdlLibrarySubdirectory  "${ToolNameVersion}"
 
-variable TranscriptYamlFile OSVVM_transcript.yml
+variable TranscriptYamlFile       "${OutputDirectory}OSVVM_transcript.yml"
 
 
 # -------------------------------------------------
@@ -259,6 +260,7 @@ proc build {{Path_Or_File "."}} {
   variable TranscriptExtension
   variable RanSimulationWithCoverage 
   variable TestSuiteName
+  variable OutputDirectory
 
   BeforeBuildCleanUp   
 
@@ -319,11 +321,10 @@ proc build {{Path_Or_File "."}} {
 
   # short sleep to allow the file to close
   after 1000
-  file rename -force ${::osvvm::OsvvmYamlResultsFile} ${BuildName}.yml
-  Report2Html  ${BuildName}.yml
-  Report2Junit ${BuildName}.yml
+  file rename -force ${::osvvm::OsvvmYamlResultsFile} ${OutputDirectory}${BuildName}.yml
+  Report2Html  ${OutputDirectory}${BuildName}.yml
+  Report2Junit ${OutputDirectory}${BuildName}.yml
 }
-
 
 # -------------------------------------------------
 # CreateDirectory - Create directory if does not exist
