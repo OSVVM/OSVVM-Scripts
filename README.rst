@@ -179,7 +179,7 @@ The API layer simplifies the steps of running simulations.
 For most applications you will not need any TCL, however,
 it is there if you need more capability.
 
-Basic Commands
+Basic Script Commands
 --------------------------
 - library <library-name>
    - Make this library the active library. Create it if it does not exist. 
