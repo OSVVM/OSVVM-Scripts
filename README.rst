@@ -389,7 +389,6 @@ such as Functional Coverage and Disabled Alert Count.
 
 In the sim directory, the Build Summary Report is 
 in the file OsvvmLibraries_RunDemoTests.html.
-See :numref:`Figure {number} {name} <BuildSummaryReportFig>`.
 
 .. figure:: images/DemoBuildSummaryReport.png
   :name: BuildSummaryReportFig
@@ -405,9 +404,8 @@ additional information.
 
 Build Status
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The Build Status is in a table at the top of the 
+The Build Status, shown below, is in a table at the top of the 
 Build Summary Report. 
-It is shown in :numref:`Figure {number} {name} <BuildStatusFig>`.
 If code coverage is run, there will be a link to 
 the results at the bottom of the Build Summary Report.
 
@@ -425,7 +423,7 @@ When running tests, test cases are grouped into test suites.
 A build can include multiple test suites.
 The next table we see in the Build Summary Report is the
 Test Suite Summary.  
-:numref:`Figure {number} {name} <TestSuiteSummaryFig>` shows 
+The figure below shows 
 that this build includes the test suites Axi4Full, AxiStream, and UART.
 
 .. figure:: images/DemoTestSuiteSummary.png
@@ -438,9 +436,8 @@ that this build includes the test suites Axi4Full, AxiStream, and UART.
 
 Test Case Summary
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The remainder of the Build Summary Report is Test Case Summary.
+The remainder of the Build Summary Report is Test Case Summary, see below.
 There is a seprate Test Case Summary for each test suite in the build.
-See :numref:`Figure {number} {name} <TestCaseSummaryFig>`.
 
 .. figure:: images/DemoTestCaseSummaries.png
   :name: TestCaseSummaryFig
@@ -487,8 +484,7 @@ Test Information Link Table
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The Test Information Link Table is in a table at the top of the 
 Test Case Detailed Report. 
-:numref:`Figure {number} {name} <TestInfoFig>`
-has links to the Alert Report (in this file),
+The figure below has links to the Alert Report (in this file),
 Functional Coverage Report (in this file),
 Scoreboard Reports (in this file),
 a link to simulation results (if the simulation report is in HTML),
@@ -504,9 +500,8 @@ and a link to any transcript files opened by OSVVM.
 
 Alert Report
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The Alert Report provides detailed information for each AlertLogID
+The Alert Report, shown below, provides detailed information for each AlertLogID
 that is used in a test case.   
-See :numref:`Figure {number} {name} <AlertFig>`
 
 .. figure:: images/DemoAlertReport.png
   :name: AlertFig
@@ -518,10 +513,9 @@ See :numref:`Figure {number} {name} <AlertFig>`
 
 Functional Coverage Report(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The Test Case Detailed Report contains a 
-Functional Coverage Report for each 
+The Test Case Detailed Reportcontains a 
+Functional Coverage Report, shown below, for each 
 functional coverage model used in the test case.
-See :numref:`Figure {number} {name} <FunctionalCoverageFig>`
 Note this report is not from the demo.
 
 .. figure:: images/CoverageReport.png
@@ -534,9 +528,8 @@ Note this report is not from the demo.
 Scoreboard Report(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The Test Case Detailed Report contains a 
-Scoreboard Report for each 
+Scoreboard Report, shown below,  for each 
 scoreboard model used in the test case.
-See :numref:`Figure {number} {name} <ScoreboardFig>`
 
 .. figure:: images/DemoScoreboardReport.png
   :name: ScoreboardFig
@@ -549,10 +542,7 @@ See :numref:`Figure {number} {name} <ScoreboardFig>`
 Test Case Transcript
 -------------------------------------------
 OSVVM's transcript utility facilitates collecting all 
-test output to into a single file.  
-
-:numref:`Figure {number} shows the {name} <TestCaseTranscriptFig>`
-
+test output to into a single file, as shown below.  
 
 .. figure:: images/DemoVHDLTranscript.png
   :name: TestCaseTranscriptFig
@@ -570,13 +560,10 @@ The basic OSVVM regression test (OsvvmLibraries/RunAllTests.pro),
 produces a log file that is 84K lines long.  
 As a plain text file, this is not browsable, however,
 when converted to an html file it is.
-OSVVM gives you the option to create either html (default) or plain text.
+OSVVM gives you the option to create either html (default), shown below, or plain text.
 In the html report, any place there is a triangle preceding text,
 pressing on the triangle will rotate it and either hide or reveal
 additional information.
-
-:numref:`Figure {number} shows the {name} <SimTranscriptFig>`
-
 
 .. figure:: images/DemoSimTranscript.png
   :name: SimTranscriptFig
