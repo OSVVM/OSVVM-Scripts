@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     5/2022   2022.05    Coverage report name based on TestCaseName rather than LibraryUnit
 #     2/2022   2022.02    Added Coverage Collection
 #    12/2021   2021.12    Updated since OsvvmProjectScripts uses relative paths.
 #     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate
@@ -218,6 +219,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable simulator
   variable CoverageSimulateEnable
   variable TestSuiteName
+  variable TestCaseName
   global sim_working_folder
 
   set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
@@ -277,7 +279,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   
   # Save Coverage Information 
   if {[info exists CoverageSimulateEnable]} {
-    acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${LibraryUnit}.acdb -testname ${LibraryUnit}
+    acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseName}.acdb -testname ${TestCaseName}
   }
 }
 

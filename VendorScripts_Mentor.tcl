@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     5/2022   2022.05    Coverage report name based on TestCaseName rather than LibraryUnit
 #     2/2022   2022.02    Added Coverage Collection
 #    12/2021   2021.12    Updated to use relative paths.
 #     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate
@@ -214,6 +215,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable simulator
   variable CoverageSimulateEnable
   variable TestSuiteName
+  variable TestCaseName
 
   puts "vsim -voptargs='+acc' -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
 #  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 
@@ -258,11 +260,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   
   # Removed.  Desirable, but causes crashes if no signals in testbench.
 #  add log -r [env]/*
-  run 1 ns 
+#  run 1 ns 
   run -all 
   
   if {[info exists CoverageSimulateEnable]} {
-    coverage save ${::osvvm::CoverageDirectory}/${TestSuiteName}/${LibraryUnit}.ucdb 
+    coverage save ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseName}.ucdb 
   }
 }
 
