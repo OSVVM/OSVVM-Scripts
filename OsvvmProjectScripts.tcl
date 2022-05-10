@@ -59,8 +59,6 @@
 #  limitations under the License.
 #
 
-source ${::osvvm::SCRIPT_DIR}/CustomScripts.tcl
-
 # -------------------------------------------------
 # StartUp
 #   re-run the startup scripts, this program included
@@ -96,6 +94,69 @@ variable VhdlLibrarySubdirectory  "${ToolNameVersion}"
 
 variable TranscriptYamlFile OSVVM_transcript.yml
 
+proc ExecuteIfExists {func args} {
+  set ret ""
+  if {[catch {set ret [$func {*}$args]} errmsg]} {
+    # Nothing to do - we just ignore the error
+    puts "MFE Error $errmsg"
+  }
+  return ret
+}
+
+proc include {Path_Or_File} {
+  variable simulator
+  ExecuteIfExists BeforeIncludeEvent $simulator $Path_Or_File
+  if {[catch {include_internal $Path_Or_File} errmsg]} {
+    puts "# ** Error: include '$Path_Or_File' failed: $errmsg"
+    ExecuteIfExists IncludeErrorEvent $simulator $Path_Or_File
+  } else {
+    ExecuteIfExists AfterIncludeEvent $simulator $Path_Or_File
+  }
+}
+
+proc simulate {LibraryUnit args} {
+  variable simulator
+  ExecuteIfExists BeforeSimulateEvent $simulator $LibraryUnit {*}$args
+  if {[catch {simulate_internal $LibraryUnit {*}$args} errmsg]} {
+    puts "# ** Error: simulate '$LibraryUnit $args' failed: $errmsg"
+    ExecuteIfExists SimulateErrorEvent $simulator $LibraryUnit {*}$args
+  } else {
+    ExecuteIfExists AfterSimulateEvent $simulator $LibraryUnit {*}$args
+  }
+}
+
+proc build {{Path_Or_File "."}} {
+  variable simulator
+  ExecuteIfExists BeforeBuildEvent $simulator $Path_Or_File
+  if {[catch {build_internal $Path_Or_File} errmsg]} {
+    puts "# ** Error: build '$Path_Or_File' failed: $errmsg"
+    ExecuteIfExists BuildErrorEvent $errmsg $simulator $Path_Or_File
+  } else {
+    ExecuteIfExists AfterBuildEvent $simulator $Path_Or_File
+  }
+}
+
+proc analyze {FileName args} {
+  variable simulator
+  ExecuteIfExists BeforeAnalyzeEvent $simulator $FileName {*}$args
+  if {[catch {analyze_internal $FileName {*}$args} errmsg]} {
+    puts "# ** Error: analyze '$FileName $args' failed: $errmsg"
+    ExecuteIfExists AnalyzeErrorEvent $simulator $FileName {*}$args
+  } else {
+    ExecuteIfExists AfterAnalyzeEvent $simulator $FileName {*}$args
+  }
+}
+
+proc library {LibraryName {PathToLib ""}} {
+  variable simulator
+  ExecuteIfExists BeforeLibraryEvent $simulator $LibraryName $PathToLib
+  if {[catch {library_internal  $LibraryName $PathToLib} errmsg]} {
+    puts "# ** Error: library ' $LibraryName $PathToLib' failed: $errmsg"
+    ExecuteIfExists LibraryErrorEvent $simulator $LibraryName $PathToLib
+  } else {
+    ExecuteIfExists AfterLibraryEvent $simulator $LibraryName $PathToLib
+  }
+}
 
 # -------------------------------------------------
 # IterateFile
@@ -131,7 +192,7 @@ proc IterateFile {FileWithNames ActionForName} {
 # include
 #   finds and sources a project file
 #
-proc include {Path_Or_File} {
+proc include_internal {Path_Or_File} {
   variable CURRENT_WORKING_DIRECTORY
   variable VHDL_WORKING_LIBRARY
 
@@ -627,7 +688,7 @@ proc ListLibraries {} {
 # -------------------------------------------------
 # Library
 #
-proc library {LibraryName {PathToLib ""}} {
+proc library_internal {LibraryName {PathToLib ""}} {
   variable VHDL_WORKING_LIBRARY
   variable LibraryList
   variable DIR_LIB
@@ -735,7 +796,7 @@ proc LinkCurrentLibraries {} {
 # -------------------------------------------------
 # analyze
 #
-proc analyze_internal {FileName {OptionalCommands ""}} {
+proc analyze_internal {FileName args} {
   variable VHDL_WORKING_LIBRARY
   variable CURRENT_WORKING_DIRECTORY
   variable CoverageAnalyzeEnable
@@ -755,16 +816,16 @@ proc analyze_internal {FileName {OptionalCommands ""}} {
 
   if {$FileExtension eq ".vhd" || $FileExtension eq ".vhdl"} {
     if {[info exists CoverageAnalyzeEnable]} {
-      set AllOptionalCommands [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$OptionalCommands]
+      set AllOptionalCommands [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$args]
     } else {
-      set AllOptionalCommands [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$OptionalCommands]
+      set AllOptionalCommands [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$args]
     }
     vendor_analyze_vhdl ${VHDL_WORKING_LIBRARY} ${NormFileName} ${AllOptionalCommands}
   } elseif {$FileExtension eq ".v" || $FileExtension eq ".sv"} {
     if {[info exists CoverageAnalyzeEnable]} {
-      set AllOptionalCommands [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$OptionalCommands]
+      set AllOptionalCommands [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$args]
     } else {
-      set AllOptionalCommands [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$OptionalCommands]
+      set AllOptionalCommands [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$args]
     }
     vendor_analyze_verilog ${VHDL_WORKING_LIBRARY} ${NormFileName} ${AllOptionalCommands}
   } elseif {$FileExtension eq ".lib"} {
@@ -776,7 +837,7 @@ proc analyze_internal {FileName {OptionalCommands ""}} {
 # -------------------------------------------------
 # Simulate
 #
-proc simulate_internal {LibraryUnit {OptionalCommands ""}} {
+proc simulate_internal {LibraryUnit args} {
   variable VHDL_WORKING_LIBRARY
   variable vendor_simulate_started
   variable TestCaseName
@@ -806,15 +867,17 @@ proc simulate_internal {LibraryUnit {OptionalCommands ""}} {
   set SimulateStartTime   [clock seconds]
   set SimulateStartTimeMs [clock milliseconds]
 
-  EchoOsvvmCmd "simulate $LibraryUnit $OptionalCommands"
+  EchoOsvvmCmd "simulate $LibraryUnit $args"
 
 
   if {[info exists CoverageSimulateEnable]} {
     set RanSimulationWithCoverage "true"
-    set AllOptionalCommands [concat {*}$OptionalCommands {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
+    set AllOptionalCommands [concat {*}$args {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
   } else {
-    set AllOptionalCommands [concat {*}$OptionalCommands {*}$ExtendedSimulateOptions]
+    set AllOptionalCommands [concat {*}$args {*}$ExtendedSimulateOptions]
   }
+  variable simulator
+  set AllOptionalCommands [concat [ExecuteIfExists GetAdditionalSimulationArguments $simulator $LibraryUnit {*}$args]]
 
   if {$TranscriptExtension eq "html"} {
     puts "<div id=\"${TestSuiteName}_${LibraryUnit}\" />"

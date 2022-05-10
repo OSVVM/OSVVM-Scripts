@@ -215,14 +215,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable CoverageSimulateEnable
   variable TestSuiteName
 
-  simulate_beforeSimStartedCallback $LibraryUnit
-  set customArgs [simulate_getCustomSimArgs $LibraryUnit]
-
-  puts "vsim -voptargs='+acc' -t $SIMULATE_TIME_UNITS $customArgs -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
+  puts "vsim -voptargs='+acc' -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
 #  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 
-  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS $customArgs -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684
+  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684
 
-  simulate_simStartedCallback $LibraryUnit
+  ExecuteIfExists AfterSimulationStartedEvent $simulator $LibraryName $LibraryUnit $OptionalCommands
   
   ### Project level settings - in OsvvmLibraries/Scripts
   # Historical name.  Must be run with "do" for actions to work

@@ -54,4 +54,4 @@ SetSimulatorResolution  ps
 SetLibraryDirectory                      ; # Create library directory in current run directory
 # LinkLibraryDirectory                     ; # Make libraries visible
 
-SetTranscriptType html 
+SetTranscriptType log 
