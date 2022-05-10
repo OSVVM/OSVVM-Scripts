@@ -258,6 +258,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   
   # Removed.  Desirable, but causes crashes if no signals in testbench.
 #  add log -r [env]/*
+  run 1 ns 
   run -all 
   
   if {[info exists CoverageSimulateEnable]} {
