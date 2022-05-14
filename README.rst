@@ -762,7 +762,7 @@ The following are general commands.
       
 - library <library> [<path>]
    - Make this library the active library. Create it if it does not exist.
-     Libraries are created in the path specified by LIB_BASE_DIR in Scripts/StartUp.tcl. 
+     Libraries are created in the path specified by VhdlLibraryDirectory in Scripts/OsvvmScriptDefaults.tcl. 
 - LinkLibrary <library> [<path>]
    - Create a mapping to a library that was already created.
 - LinkLibraryDirectory [LibraryDirectory]

@@ -39,19 +39,42 @@
 #  limitations under the License.
 #
 
-# SetVHDLVersion:   Set compile/simulate version.   
-# OSVVM requires 2008 or newer
-# Accepted parameters:  1993, 2002, 2008, 2019
-# OSVVM Usage:  test 2019 features
 
-SetVHDLVersion [expr {[info exists ::osvvm::DefaultVHDLVersion] ? $::osvvm::DefaultVHDLVersion : 2008 }]
+# OSVVM Variable Defaults
+namespace eval ::osvvm {
 
-# VHDL Simulation time units - Simulator is started with this value
-SetSimulatorResolution  ps
+  # Directory and Results file management
+  variable OutputBaseDirectory        ""  
+  variable LogSubdirectory            "logs/${ToolNameVersion}"
+  variable ReportsSubdirectory        "reports"  ; # Directory scripts put reports into.
+  variable ResultsSubdirectory        "results"  ; # Directory for files opened by TranscriptOpen
+  variable CoverageSubdirectory       "CodeCoverage"
+  variable VhdlLibraryDirectory       "VHDL_LIBS"
+  variable VhdlLibrarySubdirectory    "${ToolNameVersion}"
 
-# Setup the Library Directory.  Use one of the following.
-# SetLibraryDirectory C:/tools/sim_temp    ; # Create library directory in C:/tools/sim_temp
-SetLibraryDirectory                      ; # Create library directory in current run directory
-# LinkLibraryDirectory                     ; # Make libraries visible
+  variable DefaultLibraryParentDirectory [pwd]      ; # use local directory
+  
+  # Settings 
+  variable DefaultVHDLVersion     "2008"     ; # OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
+  variable SimulateTimeUnits      "ps"
+#  variable DefaultLibraryName     "default"
+  
+  # 
+  # Default Coverage Options
+  #
+  variable CoverageEnable           "true"
+  variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults]
+  variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
 
-SetTranscriptType html 
+  # 
+  # Extended Analyze and Simulate Options
+  #
+  variable VhdlAnalyzeOptions       ""
+  variable VerilogAnalyzeOptions    ""
+  variable ExtendedAnalyzeOptions   ""
+  variable ExtendedSimulateOptions  ""
+
+  # Default Transcript type - change with SetTranscriptType html 
+  variable TranscriptExtension      "html"     ; # Set Transcripts to be html by default
+
+}

@@ -25,7 +25,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2021 by SynthWorks Design Inc.
+#  Copyright (c) 2021 - 2022 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ proc Report2Html {ReportFile} {
   variable ResultsFile
 
   set FileName  [file rootname ${ReportFile}].html
-  file copy -force ${::osvvm::SCRIPT_DIR}/summary_header_report.html ${FileName}
+  file copy -force [file join ${::osvvm::SCRIPT_DIR} summary_header_report.html] ${FileName}
   set ResultsFile [open ${FileName} a]
 
   set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
@@ -205,11 +205,11 @@ proc ReportElaborateStatus {TestDict} {
   puts $ResultsFile "  <tr><td>Version</td>                           <td>[dict get $BuildInfo Version]</td></tr>"
   puts $ResultsFile "  <tr><td>OSVVM YAML Version</td>                <td>[dict get $TestDict Version]</td></tr>"
 
-  set resolvedCoverageDirectory [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::CoverageDirectory}]
+  set resolvedCoverageDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::CoverageDirectory}]
   set CodeCoverageFile [vendor_GetCoverageFileName ${BuildName}]
   if {[file exists ${resolvedCoverageDirectory}/${CodeCoverageFile}] && $::osvvm::RanSimulationWithCoverage eq "true"} {
 #    puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${resolvedCoverageDirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
-    puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${::osvvm::CoverageDirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
+    puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
   }
 
   puts $ResultsFile "</table>"
@@ -335,8 +335,9 @@ proc ReportTestSuites {TestDict} {
             set FailedColor  "#FF0000" 
           }
         }
+        set TestCaseHtmlFile [file join ${::osvvm::ReportsSubdirectory} ${SuiteName} ${TestName}.html]
         puts $ResultsFile "  <tr>"
-        puts $ResultsFile "      <td><a href=\"${::osvvm::ReportsDirectory}/${SuiteName}/${TestName}.html\">${TestName}</a></td>"
+        puts $ResultsFile "      <td><a href=\"${TestCaseHtmlFile}\">${TestName}</a></td>"
         puts $ResultsFile "      <td style=color:${StatusColor}>$TestStatus</td>"
         if { $TestReport eq "REPORT" } {
           puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestResults PassedCount] /  [dict get $TestResults AffirmCount]</td>"
@@ -348,7 +349,7 @@ proc ReportTestSuites {TestDict} {
             set FunctionalCov ""
           }
           if { ${FunctionalCov} ne "" } {
-            puts $ResultsFile "      <td><a href=\"${::osvvm::ReportsDirectory}/${SuiteName}/${TestName}.html#FunctionalCoverage\">${FunctionalCov}</a></td>"
+            puts $ResultsFile "      <td><a href=\"${TestCaseHtmlFile}#FunctionalCoverage\">${FunctionalCov}</a></td>"
           } else {
             puts $ResultsFile "      <td>-</td>"
           }

@@ -101,8 +101,8 @@ proc vendor_library {LibraryName RelativePathToLib} {
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
-  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
-  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set sim_working_folder $::osvvm::CurrentSimulationDirectory
+  set MY_START_DIR $::osvvm::CurrentSimulationDirectory
   set PathToLib [file normalize $RelativePathToLib]
   set PathAndLib ${PathToLib}/${LibraryName}
 
@@ -115,18 +115,6 @@ proc vendor_library {LibraryName RelativePathToLib} {
   puts "design activate $LibraryName"
   design activate $LibraryName
   
-#  # This was a work around before adding variable sim_working_folder
-#  # It should not be needed any longer.   
-#  cd ${PathAndLib}
-#  set ResultsBaseName [file tail ${::osvvm::ResultsDirectory}] 
-#  if {![file exists $ResultsBaseName]} {
-#    file link -symbolic $ResultsBaseName [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::ResultsDirectory}]
-#  }
-#  set ReportsBaseName [file tail ${::osvvm::ReportsDirectory}] 
-#  if {![file exists $ReportsBaseName]} {
-#    file link -symbolic $ReportsBaseName [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::ReportsDirectory}]
-#  }
-#  
   cd $MY_START_DIR
 }
 
@@ -137,8 +125,8 @@ proc vendor_LinkLibrary {LibraryName RelativePathToLib} {
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
-  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
-  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set sim_working_folder $::osvvm::CurrentSimulationDirectory
+  set MY_START_DIR $::osvvm::CurrentSimulationDirectory
   set PathToLib [file normalize $RelativePathToLib]
   set PathAndLib ${PathToLib}/${LibraryName}
 
@@ -158,24 +146,24 @@ proc vendor_LinkLibrary {LibraryName RelativePathToLib} {
 #
 proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
   variable VhdlVersion
-  variable DIR_LIB
+  variable VhdlLibraryFullPath
   variable CoverageAnalyzeEnable
   variable CoverageSimulateEnable
   global sim_working_folder
 
-  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set sim_working_folder $::osvvm::CurrentSimulationDirectory
   set FileName [file normalize $RelativePathToFile]
-  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set MY_START_DIR $::osvvm::CurrentSimulationDirectory
   set FileBaseName [file rootname [file tail $FileName]]
   
   # Check src to see if it has been added
-  if {![file isfile ${DIR_LIB}/$LibraryName/src/${FileBaseName}.vcom]} {
+  if {![file isfile ${VhdlLibraryFullPath}/$LibraryName/src/${FileBaseName}.vcom]} {
     echo addfile ${FileName}
     addfile ${FileName}
     filevhdloptions -${VhdlVersion} ${FileName}
   }
   # Compile it.
-  echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName} > ${DIR_LIB}/$LibraryName/src/${FileBaseName}.vcom
+  echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName} > ${VhdlLibraryFullPath}/$LibraryName/src/${FileBaseName}.vcom
   if {[info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
     puts "vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}"
          vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
@@ -190,8 +178,8 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
 proc vendor_analyze_verilog {LibraryName File_Relative_Path OptionalCommands} {
   global sim_working_folder
 
-  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
-  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set sim_working_folder $::osvvm::CurrentSimulationDirectory
+  set MY_START_DIR $::osvvm::CurrentSimulationDirectory
   
   set FileName [file normalize $File_Relative_Path]
 
@@ -214,7 +202,7 @@ proc vendor_end_previous_simulation {} {
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
-  variable SIMULATE_TIME_UNITS
+  variable SimulateTimeUnits
   variable ToolVendor
   variable simulator
   variable CoverageSimulateEnable
@@ -222,13 +210,13 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable TestCaseName
   global sim_working_folder
 
-  set sim_working_folder $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set sim_working_folder $::osvvm::CurrentSimulationDirectory
 
   # With sim_working_folder setting should no longer need MY_START_DIR
-  set MY_START_DIR $::osvvm::CURRENT_SIMULATION_DIRECTORY
+  set MY_START_DIR $::osvvm::CurrentSimulationDirectory
   
-  puts "asim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}" 
-        asim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}  
+  puts "asim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}" 
+        asim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}  
   
   # ActiveHDL changes the directory, so change it back to the OSVVM run directory
   cd $MY_START_DIR

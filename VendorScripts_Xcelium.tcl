@@ -133,7 +133,7 @@ proc CreateToolSetup {} {
 #
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlShortVersion
-  variable DIR_LIB
+  variable VhdlLibraryFullPath
   variable VENDOR_TRANSCRIPT_FILE
 
   CreateToolSetup
@@ -165,7 +165,7 @@ proc vendor_end_previous_simulation {} {
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
-  variable SIMULATE_TIME_UNITS
+  variable SimulateTimeUnits
   variable ToolVendor
   variable simulator
   variable VENDOR_TRANSCRIPT_FILE

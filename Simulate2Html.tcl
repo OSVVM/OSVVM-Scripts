@@ -26,7 +26,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2021-2022 by SynthWorks Design Inc.
+#  Copyright (c) 2021 - 2022 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -51,27 +51,27 @@ proc Simulate2Html {TestCaseName TestSuiteName} {
   variable SbSlvYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_sb_slv.yml]
   variable SbIntYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_sb_int.yml]
 
-
   CreateSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
+  set TestSuiteDirectory [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
   if {[file exists ${AlertYamlFile}]} {
     Alert2Html ${TestCaseName} ${TestSuiteName} ${AlertYamlFile}
-    file rename -force ${AlertYamlFile}  ${::osvvm::ReportsDirectory}/${TestSuiteName}
+    file rename -force ${AlertYamlFile}  ${TestSuiteDirectory}
   }
   
   if {[file exists ${CovYamlFile}]} {
     Cov2Html ${TestCaseName} ${TestSuiteName} ${CovYamlFile}
-    file rename -force ${CovYamlFile}  ${::osvvm::ReportsDirectory}/${TestSuiteName}
+    file rename -force ${CovYamlFile}  ${TestSuiteDirectory}
   }
   
   if {[file exists ${SbSlvYamlFile}]} {
     Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbSlvYamlFile} Scoreboard_slv
-    file rename -force ${SbSlvYamlFile}  ${::osvvm::ReportsDirectory}/${TestSuiteName}
+    file rename -force ${SbSlvYamlFile}  ${TestSuiteDirectory}
   }
   
   if {[file exists ${SbIntYamlFile}]} {
     Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbIntYamlFile} Scoreboard_int
-    file rename -force ${SbIntYamlFile}  ${::osvvm::ReportsDirectory}/${TestSuiteName}
+    file rename -force ${SbIntYamlFile}  ${TestSuiteDirectory}
   }
   
   FinalizeSimulationReportFile ${TestCaseName} ${TestSuiteName}
@@ -125,15 +125,25 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   if {[file exists ${SbIntYamlFile}]} {
     puts $ResultsFile "  <tr><td><a href=\"#Scoreboard_int\">ScoreboardPkg_int Report(s)</a></td></tr>"
   }
+  if {${::osvvm::ReportsSubdirectory} eq ""} {
+    set ReportsPrefix ".."
+  } else {
+    set ReportsPrefix "../.."
+  }
   if {([info exists CurrentTranscript]) && ([file extension $CurrentTranscript] eq ".html")} {
-#    set resolvedLogDirectory [file join ${::osvvm::CURRENT_SIMULATION_DIRECTORY} ${::osvvm::LogDirectory}]
-#    puts $ResultsFile "  <tr><td><a href=\"${resolvedLogDirectory}/${CurrentTranscript}#${TestSuiteName}_${TestCaseName}\">Link to Simulation Results</a></td></tr>"
-    puts $ResultsFile "  <tr><td><a href=\"../../${::osvvm::LogDirectory}/${CurrentTranscript}#${TestSuiteName}_${TestCaseName}\">Link to Simulation Results</a></td></tr>"
+    set SimulationResultsLink [file join ${::osvvm::LogSubdirectory} ${CurrentTranscript}#${TestSuiteName}_${TestCaseName}]
+    puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${SimulationResultsLink}\">Link to Simulation Results</a></td></tr>"
   }
   if {[file exists ${TranscriptYamlFile}]} {
     set TranscriptFileArray [::yaml::yaml2dict -file ${TranscriptYamlFile}]
     foreach TranscriptFile $TranscriptFileArray {
-      puts $ResultsFile "  <tr><td><a href=\"../../${TranscriptFile}\">${TranscriptFile}</a></td></tr>"
+      set TranscriptBaseName [file tail $TranscriptFile]
+      set CopyTargetFile [file join ${::osvvm::ResultsDirectory} ${TestSuiteName} ${TranscriptBaseName}]
+      if {[file normalize ${TranscriptFile}] ne [file normalize ${CopyTargetFile}]} {
+        file rename -force ${TranscriptFile}  ${CopyTargetFile}
+      }
+      set HtmlTargetFile [file join ${::osvvm::ResultsSubdirectory} ${TestSuiteName} ${TranscriptBaseName}]
+      puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${HtmlTargetFile}\">${TranscriptBaseName}</a></td></tr>"
     }
     # Remove file so it does not impact any following simulation
     file delete -force -- ${TranscriptYamlFile}

@@ -167,16 +167,16 @@ proc vendor_end_previous_simulation {} {
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
-  variable SIMULATE_TIME_UNITS
+  variable SimulateTimeUnits
   variable ToolVendor
   variable simulator
   variable CoverageSimulateEnable
   variable TestSuiteName
   variable TestCaseName
 
-  puts "vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} "
-#        vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}  
-    if { [catch {vsim {*}${OptionalCommands} -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit}} Msg]} {
+  puts "vsim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} "
+#        vsim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}  
+    if { [catch {vsim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}} Msg]} {
       error $Msg "simulate $LibraryUnit $OptionalCommands" 1
     } 
   ### Project level settings - in OsvvmLibraries/Scripts

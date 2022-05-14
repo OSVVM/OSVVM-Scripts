@@ -125,7 +125,7 @@ proc CreateToolSetup {} {
 #
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlShortVersion
-  variable DIR_LIB
+  variable VhdlLibraryFullPath
   variable VENDOR_TRANSCRIPT_FILE
 
   CreateToolSetup
@@ -154,7 +154,7 @@ proc vendor_end_previous_simulation {} {
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
-  variable SIMULATE_TIME_UNITS
+  variable SimulateTimeUnits
   variable ToolVendor
   variable simulator
   variable VENDOR_TRANSCRIPT_FILE
@@ -206,11 +206,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   close $SynFile
 
   # removed $OptionalCommands
-#  puts "exec vcs -full64 -a ${VENDOR_TRANSCRIPT_FILE} -R -sim_res=${SIMULATE_TIME_UNITS} +vhdllib+${LibraryName} ${LibraryUnit}"
+#  puts "exec vcs -full64 -a ${VENDOR_TRANSCRIPT_FILE} -R -sim_res=${SimulateTimeUnits} +vhdllib+${LibraryName} ${LibraryUnit}"
 # caution there is a performance impact of -debug_access+all
-  puts      "vcs -full64 -time $SIMULATE_TIME_UNITS -debug_access+all ${LibraryName}.${LibraryUnit}"
-  eval  exec vcs -full64 -time $SIMULATE_TIME_UNITS -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
-#  eval  exec vcs -full64 -kdb -time $SIMULATE_TIME_UNITS -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+  puts      "vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit}"
+  eval  exec vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+#  eval  exec vcs -full64 -kdb -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
   puts "./simv -ucli -do temp_Synopsys_run.tcl"
   exec  ./simv -ucli -do temp_Synopsys_run.tcl |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
 }

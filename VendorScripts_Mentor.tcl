@@ -210,16 +210,16 @@ proc vendor_end_previous_simulation {} {
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
-  variable SIMULATE_TIME_UNITS
+  variable SimulateTimeUnits
   variable ToolVendor
   variable simulator
   variable CoverageSimulateEnable
   variable TestSuiteName
   variable TestCaseName
 
-  puts "vsim -voptargs='+acc' -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
-#  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 
-  eval vsim -voptargs="+acc" -t $SIMULATE_TIME_UNITS -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684
+  puts "vsim -voptargs='+acc' -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
+#  eval vsim -voptargs="+acc" -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 
+  eval vsim -voptargs="+acc" -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684
 
   
   ### Project level settings - in OsvvmLibraries/Scripts

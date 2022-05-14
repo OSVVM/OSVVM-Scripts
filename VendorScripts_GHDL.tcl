@@ -143,11 +143,10 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
 
 proc CheckTranscript {} {
   variable GHDL_TRANSCRIPT_FILE
-  variable CURRENT_SIMULATION_DIRECTORY
   variable ToolNameVersion
 
   if {![info exists GHDL_TRANSCRIPT_FILE]} {
-    set GHDL_TRANSCRIPT_FILE [file join ${CURRENT_SIMULATION_DIRECTORY} ${::osvvm::LogDirectory} default.log]
+    set GHDL_TRANSCRIPT_FILE [file join ${::osvvm::LogDirectory} default.log]
     CreateDirectory [file dirname $GHDL_TRANSCRIPT_FILE]
     exec echo "Start Time [clock format [clock seconds] -format %T]" > $GHDL_TRANSCRIPT_FILE
   }
@@ -173,17 +172,17 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable console
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable GHDL_TRANSCRIPT_FILE
-  variable DIR_LIB
+  variable VhdlLibraryFullPath
   variable GHDL_WORKING_LIBRARY_PATH
   variable CoverageSimulateEnable
 
   CheckTranscript
-#  set GHDL_WORKING_LIBRARY_PATH   [GhdlLibraryPath $LibraryName $DIR_LIB] 
+#  set GHDL_WORKING_LIBRARY_PATH   [GhdlLibraryPath $LibraryName $VhdlLibraryFullPath] 
 
 #  puts "$ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}" 
 #  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} | tee -a $GHDL_TRANSCRIPT_FILE $console
-#  exec echo "$ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName}" | {*}[get_tee]
-#  eval exec  $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${FileName} |& {*}[get_tee]
+#  exec echo "$ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${VhdlLibraryFullPath} ${FileName}" | {*}[get_tee]
+#  eval exec  $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${VhdlLibraryFullPath} ${FileName} |& {*}[get_tee]
   exec echo "$ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}" | {*}[get_tee]
 #  eval exec  $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} |& {*}[get_tee]
   exec        $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName} |& {*}[get_tee]
@@ -211,16 +210,16 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable console
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable GHDL_TRANSCRIPT_FILE
-  variable DIR_LIB
+  variable VhdlLibraryFullPath
   variable GHDL_WORKING_LIBRARY_PATH
 
   CheckTranscript
-#  set GHDL_WORKING_LIBRARY_PATH   [GhdlLibraryPath $LibraryName $DIR_LIB]
+#  set GHDL_WORKING_LIBRARY_PATH   [GhdlLibraryPath $LibraryName $VhdlLibraryFullPath]
 
 #  puts "$ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}" 
 #  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} | tee -a $GHDL_TRANSCRIPT_FILE $console
-#  exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit}" | {*}[get_tee]
-#  eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${DIR_LIB} ${LibraryUnit} |& {*}[get_tee]
+#  exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${VhdlLibraryFullPath} ${LibraryUnit}" | {*}[get_tee]
+#  eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${VhdlLibraryFullPath} ${LibraryUnit} |& {*}[get_tee]
   exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${LibraryUnit}" | {*}[get_tee]
 #  eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} |& {*}[get_tee]
 #  if { [catch {eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} |& {*}[get_tee]} SimErr]} { 

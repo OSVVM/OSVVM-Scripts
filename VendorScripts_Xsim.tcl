@@ -115,13 +115,13 @@ proc vendor_map {LibraryName PathToLib} {
 #
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlVersion
-  variable DIR_LIB
+  variable VhdlLibraryFullPath
 
 # note if VhdlVersion /= 2008 then do not use --$Version  
 # it supports --relax
 # --log <log name>
 # 
-#  No library open, can specify it in the --work as --work ${LibraryName}=${DIR_LIB}/${LibraryName}
+#  No library open, can specify it in the --work as --work ${LibraryName}=${VhdlLibraryFullPath}/${LibraryName}
   puts "xvhdl --${VhdlVersion} --work ${LibraryName} ${FileName}"
 #   exec xvhdl --${VhdlVersion} --work ${LibraryName} ${FileName}
    exec xvhdl --${VhdlVersion} --work ${LibraryName} ${FileName}
@@ -146,16 +146,16 @@ proc vendor_end_previous_simulation {} {
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
-  variable SIMULATE_TIME_UNITS
+  variable SimulateTimeUnits
   variable ToolVendor
   variable simulator
   variable CoverageSimulateEnable
 
   # removed $OptionalCommands
-#  puts "xelab --timeprecision_vhdl 1${SIMULATE_TIME_UNITS} --mt off  ${LibraryName}.${LibraryUnit} --runall"
-#  exec  xelab --timeprecision_vhdl 1${SIMULATE_TIME_UNITS} --mt off  ${LibraryName}.${LibraryUnit} --runall
-  puts "xelab --timeprecision_vhdl 1${SIMULATE_TIME_UNITS} --mt off  ${LibraryName}.${LibraryUnit} --snapshot ${LibraryName}_${LibraryUnit}" 
-  exec  xelab --timeprecision_vhdl 1${SIMULATE_TIME_UNITS} --mt off  ${LibraryName}.${LibraryUnit} --snapshot ${LibraryName}_${LibraryUnit} 
+#  puts "xelab --timeprecision_vhdl 1${SimulateTimeUnits} --mt off  ${LibraryName}.${LibraryUnit} --runall"
+#  exec  xelab --timeprecision_vhdl 1${SimulateTimeUnits} --mt off  ${LibraryName}.${LibraryUnit} --runall
+  puts "xelab --timeprecision_vhdl 1${SimulateTimeUnits} --mt off  ${LibraryName}.${LibraryUnit} --snapshot ${LibraryName}_${LibraryUnit}" 
+  exec  xelab --timeprecision_vhdl 1${SimulateTimeUnits} --mt off  ${LibraryName}.${LibraryUnit} --snapshot ${LibraryName}_${LibraryUnit} 
   puts "xsim  -runall ${LibraryName}_${LibraryUnit}" 
   exec  xsim  -runall ${LibraryName}_${LibraryUnit} 
 
