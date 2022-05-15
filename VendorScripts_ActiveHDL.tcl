@@ -20,6 +20,7 @@
 #  Revision History:
 #    Date      Version    Description
 #     5/2022   2022.05    Coverage report name based on TestCaseName rather than LibraryUnit
+#                         Updated variable naming 
 #     2/2022   2022.02    Added Coverage Collection
 #    12/2021   2021.12    Updated since OsvvmProjectScripts uses relative paths.
 #     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate

@@ -18,6 +18,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    05/2022   2022.05    Refactored to move variable settings from OsvvmProjectScripts
 #    02/2022   2022.02    Added call to SetTranscriptType to make HTML the default transcript
 #     2/2021   2021.02    Refactored Default Settings from StartUp.tcl
 #

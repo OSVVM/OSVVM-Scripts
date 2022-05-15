@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    05/2022   2022.05    Updated directory handling
 #    03/2022   2022.03    Added Transcript File reporting.
 #    02/2022   2022.02    Added Scoreboard Reports. Updated YAML file handling.
 #    10/2021   Initial    Initial Revision

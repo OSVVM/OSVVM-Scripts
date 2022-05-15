@@ -2,7 +2,8 @@
 
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                  | 
 |---------------|--------------------|-----------------------------------------------------------------------| 
-| 2022.05       | May 2022           | Coverage report name now based on TestCaseName rather than LibraryUnit|
+| 2022.05       | May 2022           | Refactored variables in OsvvmProjectScripts to OsvvmDefaultSettings   |
+|               |                    | Coverage report name now based on TestCaseName rather than LibraryUnit|
 | 2022.03       | March 2022         | Added link to test transcript files (TranscriptOpen)                  |
 |               |                    | Report links to Code Coverage and Transcripts now use relative paths  |
 | 2022.02       | February 2022      | Added Transcripts in HTML, Scoreboard Reports, and Code Coverage Integration  |

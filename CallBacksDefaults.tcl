@@ -19,13 +19,12 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    02/2022   2022.02    Added call to SetTranscriptType to make HTML the default transcript
-#     2/2021   2021.02    Refactored Default Settings from StartUp.tcl
+#    05/2022   2022.05    Initial
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2021 by SynthWorks Design Inc.  
+#  Copyright (c) 2022 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
