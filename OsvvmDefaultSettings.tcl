@@ -24,7 +24,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2021 by SynthWorks Design Inc.  
+#  Copyright (c) 2021 - 2022 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -44,11 +44,7 @@
 namespace eval ::osvvm {
 
   # Directory and Results file management
-  if {$simulator eq "GHDL"} {
-    variable OutputBaseDirectory      "OSVVM"  ; # Create Subdirectory for GHDL
-  } else {
-    variable OutputBaseDirectory      ""  
-  }
+  variable OutputBaseDirectory        ""  
   variable LogSubdirectory            "logs/${ToolNameVersion}"
   variable ReportsSubdirectory        "reports"  ; # Directory scripts put reports into.
   variable ResultsSubdirectory        "results"  ; # Directory for files opened by TranscriptOpen
