@@ -142,9 +142,11 @@ proc vendor_end_previous_simulation {} {
   global SourceMap
 
   # close junk in source window
-  foreach index [array names SourceMap] { 
-    noview source [file tail $index] 
-  }
+  if {![catch {noview} msg]} {
+    foreach index [array names SourceMap] { 
+      noview source [file tail $index] 
+    }
+  }  
   
   quit -sim
 }
