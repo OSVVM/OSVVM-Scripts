@@ -480,6 +480,7 @@ proc EchoOsvvmCmd {CmdInfoToPrint} {
 #
 proc StartTranscript {FileBaseName} {
   variable CurrentTranscript
+  variable BuildTranscript
   variable LogDirectory
   variable CurrentSimulationDirectory
   variable FirstEchoCmd
@@ -492,6 +493,7 @@ proc StartTranscript {FileBaseName} {
     set FileName [file join $LogDirectory $FileBaseName]
     CreateDirectory [file dirname $FileName]
     set CurrentTranscript $FileBaseName
+    set BuildTranscript   $CurrentTranscript
     vendor_StartTranscript $FileName
     if {[info exists FirstEchoCmd]} {
       # nothing in transcript yet.

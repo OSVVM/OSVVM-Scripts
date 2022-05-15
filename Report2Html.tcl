@@ -65,7 +65,7 @@ proc Report2Html {ReportFile} {
 
 proc ReportElaborateStatus {TestDict} {
   variable ResultsFile
-  variable CurrentTranscript
+  variable BuildTranscript
 
   if {[info exists ReportTestSuiteSummary]} {
     unset ReportTestSuiteSummary
@@ -207,10 +207,10 @@ proc ReportElaborateStatus {TestDict} {
   puts $ResultsFile "  <tr><td>Version</td>                           <td>[dict get $BuildInfo Version]</td></tr>"
   puts $ResultsFile "  <tr><td>OSVVM YAML Version</td>                <td>[dict get $TestDict Version]</td></tr>"
   
-  if {[info exists CurrentTranscript]} {
-    set SimulationResultsLink [file join ${::osvvm::LogSubdirectory} ${CurrentTranscript}]
+  if {[info exists BuildTranscript]} {
+    set SimulationResultsLink [file join ${::osvvm::LogDirectory} ${BuildTranscript}]
     if {[file exists ${SimulationResultsLink}]} {
-      puts $ResultsFile "  <tr><td>Simulation Transcript</td>         <td><a href=\"${SimulationResultsLink}\">${CurrentTranscript}</a></td></tr>"
+      puts $ResultsFile "  <tr><td>Simulation Transcript</td>         <td><a href=\"${SimulationResultsLink}\">${BuildTranscript}</a></td></tr>"
     }
   }
 
