@@ -179,37 +179,40 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     if { [catch {vsim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}} Msg]} {
       error $Msg "simulate $LibraryUnit $OptionalCommands" 1
     } 
-  ### Project level settings - in OsvvmLibraries/Scripts
-  # Project Vendor script
-  if {[file exists ${SCRIPT_DIR}/${ToolVendor}.tcl]} {
-    source ${SCRIPT_DIR}/${ToolVendor}.tcl
-  }
-  # Project Simulator Script
-  if {[file exists ${SCRIPT_DIR}/${simulator}.tcl]} {
-    source ${SCRIPT_DIR}/${simulator}.tcl
-  }
+    
+  SimulateRunScripts ${LibraryUnit}
 
-  ### User level settings for simulator in the simulation run directory
-  # User Vendor script
-  if {[file exists ${ToolVendor}.tcl]} {
-    source ${ToolVendor}.tcl
-  }
-  # User Simulator Script
-  if {[file exists ${simulator}.tcl]} {
-    source ${simulator}.tcl
-  }
-  # User wave.do
-  if {[file exists wave.do]} {
-    do wave.do
-  }
-  # User Testbench Script
-  if {[file exists ${LibraryUnit}.tcl]} {
-    source ${LibraryUnit}.tcl
-  }
-  # User Testbench + Simulator Script
-  if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
-    source ${LibraryUnit}_${simulator}.tcl
-  }
+#  ### Project level settings - in OsvvmLibraries/Scripts
+#  # Project Vendor script
+#  if {[file exists ${SCRIPT_DIR}/${ToolVendor}.tcl]} {
+#    source ${SCRIPT_DIR}/${ToolVendor}.tcl
+#  }
+#  # Project Simulator Script
+#  if {[file exists ${SCRIPT_DIR}/${simulator}.tcl]} {
+#    source ${SCRIPT_DIR}/${simulator}.tcl
+#  }
+#
+#  ### User level settings for simulator in the simulation run directory
+#  # User Vendor script
+#  if {[file exists ${ToolVendor}.tcl]} {
+#    source ${ToolVendor}.tcl
+#  }
+#  # User Simulator Script
+#  if {[file exists ${simulator}.tcl]} {
+#    source ${simulator}.tcl
+#  }
+#  # User wave.do
+#  if {[file exists wave.do]} {
+#    do wave.do
+#  }
+#  # User Testbench Script
+#  if {[file exists ${LibraryUnit}.tcl]} {
+#    source ${LibraryUnit}.tcl
+#  }
+#  # User Testbench + Simulator Script
+#  if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
+#    source ${LibraryUnit}_${simulator}.tcl
+#  }
 
   log -rec [env]/*
   run -all 

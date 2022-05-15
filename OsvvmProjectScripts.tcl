@@ -19,6 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    05/2022   2022.05    Refactored to move variable settings to OsvvmDefaultSettings
 #    02/2022   2022.02    Added Analyze and Simulate Coverage and Extended Options
 #                         Added support to run code coverage
 #    01/2022   2022.01    Library directory to lower case.  Added OptionalCommands to Verilog analyze.
@@ -832,6 +833,44 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   unset TestCaseName
 }
 
+proc SimulateRunScripts {LibraryUnit} {
+  variable SCRIPT_DIR
+  variable ToolVendor
+  variable simulator
+  
+  # Project Vendor script
+  if {[file exists ${SCRIPT_DIR}/${ToolVendor}.tcl]} {
+    source ${SCRIPT_DIR}/${ToolVendor}.tcl
+  }
+  # Project Simulator Script
+  if {[file exists ${SCRIPT_DIR}/${simulator}.tcl]} {
+    source ${SCRIPT_DIR}/${simulator}.tcl
+  }
+
+  ### User level settings for simulator in the simulation run directory
+  # User Vendor script
+  if {[file exists ${ToolVendor}.tcl]} {
+    source ${ToolVendor}.tcl
+  }
+  # User Simulator Script
+  if {[file exists ${simulator}.tcl]} {
+    source ${simulator}.tcl
+  }
+  # User wave.do
+  if {[file exists wave.do]} {
+    source wave.do
+  }
+  # User Testbench Script
+  if {[file exists ${LibraryUnit}.tcl]} {
+    source ${LibraryUnit}.tcl
+  }
+  # User Testbench + Simulator Script
+  if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
+    source ${LibraryUnit}_${simulator}.tcl
+  }
+}
+
+
 # -------------------------------------------------
 proc MergeCoverage {SuiteName MergeName} {
   CreateDirectory [file join $::osvvm::CurrentSimulationDirectory $::osvvm::CoverageDirectory $MergeName]
@@ -1246,7 +1285,7 @@ namespace export RemoveAllLibraries RemoveLocalLibraries CreateDirectory
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory SetTranscriptType GetTranscriptType
 namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries
-namespace export FindLibraryPath EndSimulation DirectoryExists
+namespace export DirectoryExists
 namespace export SetExtendedAnalyzeOptions GetExtendedAnalyzeOptions
 namespace export SetExtendedSimulateOptions GetExtendedSimulateOptions
 namespace export SetCoverageAnalyzeOptions GetCoverageAnalyzeOptions
@@ -1254,6 +1293,10 @@ namespace export SetCoverageAnalyzeEnable GetCoverageAnalyzeEnable
 namespace export SetCoverageSimulateOptions GetCoverageSimulateOptions
 namespace export SetCoverageSimulateEnable GetCoverageSimulateEnable
 namespace export MergeCoverage
+
+# Exported only for tesing purposes
+namespace export FindLibraryPath EndSimulation 
+
 
 
 # end namespace ::osvvm

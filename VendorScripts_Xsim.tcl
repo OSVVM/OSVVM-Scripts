@@ -159,37 +159,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   puts "xsim  -runall ${LibraryName}_${LibraryUnit}" 
   exec  xsim  -runall ${LibraryName}_${LibraryUnit} 
 
-#  ### Project level settings - in OsvvmLibraries/Scripts
-#  # Project Vendor script
-#  if {[file exists ${SCRIPT_DIR}/${ToolVendor}.tcl]} {
-#    source ${SCRIPT_DIR}/${ToolVendor}.tcl
-#  }
-#  # Project Simulator Script
-#  if {[file exists ${SCRIPT_DIR}/${simulator}.tcl]} {
-#    source ${SCRIPT_DIR}/${simulator}.tcl
-#  }
 #
-#  ### User level settings for simulator in the simulation run directory
-#  # User Vendor script
-#  if {[file exists ${ToolVendor}.tcl]} {
-#    source ${ToolVendor}.tcl
-#  }
-#  # User Simulator Script
-#  if {[file exists ${simulator}.tcl]} {
-#    source ${simulator}.tcl
-#  }
-#  # User Testbench Script
-#  if {[file exists ${LibraryUnit}.tcl]} {
-#    source ${LibraryUnit}.tcl
-#  }
-#  # User Testbench + Simulator Script
-#  if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
-#    source ${LibraryUnit}_${simulator}.tcl
-#  }
-#  # User wave.do
-#  if {[file exists wave.do]} {
-#    do wave.do
-#  }
+#    SimulateRunScripts ${LibraryUnit}
 #
 #  log -rec [env]/*
 #  run -all 

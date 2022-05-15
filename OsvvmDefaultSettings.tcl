@@ -44,7 +44,11 @@
 namespace eval ::osvvm {
 
   # Directory and Results file management
-  variable OutputBaseDirectory        ""  
+  if {$simulator eq "GHDL"} {
+    variable OutputBaseDirectory      "OSVVM"  ; # Create Subdirectory for GHDL
+  } else {
+    variable OutputBaseDirectory      ""  
+  }
   variable LogSubdirectory            "logs/${ToolNameVersion}"
   variable ReportsSubdirectory        "reports"  ; # Directory scripts put reports into.
   variable ResultsSubdirectory        "results"  ; # Directory for files opened by TranscriptOpen

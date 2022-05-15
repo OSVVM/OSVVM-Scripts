@@ -61,7 +61,7 @@
 
 
 namespace eval ::osvvm {
-  # Default SCRIPT_DIR setup - revised by ActiveHDL VSimSA
+  # Default SCRIPT_DIR setup - revised for ActiveHDL VSimSA
   variable SCRIPT_DIR  [file dirname [file normalize [info script]]]
   variable OsvvmInitialized  "false"
   variable ToolName   ""
@@ -84,10 +84,10 @@ namespace eval ::osvvm {
 
     } else {
       set ToolName   "ActiveHDL"
-      
     }
+    
   } elseif {$ToolExecutableName eq "vish" || $ToolExecutableName eq "vsimk"} {
-    set ToolName "Mentor"
+    set ToolName "Siemens"
     
   } elseif {[string match -nocase $ToolExecutableName "vivado"]} {
     set ToolName "Vivado"

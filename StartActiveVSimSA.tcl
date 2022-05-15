@@ -18,12 +18,13 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    05/2022   2022.05    Updated based on StartUpShared.tcl 
 #    01/2022   2022.01    Initial
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2021 by SynthWorks Design Inc.  
+#  Copyright (c) 2021 - 2022 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -40,30 +41,13 @@
 
 
 namespace eval ::osvvm {
-  # Initial SCRIPT_DIR setup - revised by ActiveHDL VSimSA
 #  variable SCRIPT_DIR  [file dirname [file normalize [info script]]]
+  variable SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
   
-  # 
-  # Find the simulator
-  #
-  variable ToolExecutable [info nameofexecutable]
-  variable ToolExecutableName [file rootname [file tail $ToolExecutable]]
-
-  set SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
-  source ${SCRIPT_DIR}/VendorScripts_VSimSA.tcl
+  variable OsvvmInitialized  "false"
+  variable ToolName   "VSimSA"
 }
-# OSVVM Project Scripts 
-if {![catch {package require yaml}]} {
-  source ${::osvvm::SCRIPT_DIR}/OsvvmYamlSupport.tcl
-} else {
-  source ${::osvvm::SCRIPT_DIR}/NoYamlPackage.tcl
-}
-source ${::osvvm::SCRIPT_DIR}/OsvvmProjectScripts.tcl
-namespace import ::osvvm::*
 
-# Set OSVVM Script Defaults - defaults may call scripts
-source ${::osvvm::SCRIPT_DIR}/OsvvmScriptDefaults.tcl
+source ${::osvvm::SCRIPT_DIR}/StartUpShared.tcl
 
-if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl]} {
-  source ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl
-}
+set ::osvvm::OsvvmInitialized "true"
