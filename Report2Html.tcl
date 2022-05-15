@@ -65,6 +65,7 @@ proc Report2Html {ReportFile} {
 
 proc ReportElaborateStatus {TestDict} {
   variable ResultsFile
+  variable CurrentTranscript
 
   if {[info exists ReportTestSuiteSummary]} {
     unset ReportTestSuiteSummary
@@ -205,6 +206,13 @@ proc ReportElaborateStatus {TestDict} {
   puts $ResultsFile "  <tr><td>Simulator</td>                         <td>[dict get $BuildInfo Simulator]</td></tr>"
   puts $ResultsFile "  <tr><td>Version</td>                           <td>[dict get $BuildInfo Version]</td></tr>"
   puts $ResultsFile "  <tr><td>OSVVM YAML Version</td>                <td>[dict get $TestDict Version]</td></tr>"
+  
+  if {[info exists CurrentTranscript]} {
+    set SimulationResultsLink [file join ${::osvvm::LogSubdirectory} ${CurrentTranscript}]
+    if {[file exists ${SimulationResultsLink}]} {
+      puts $ResultsFile "  <tr><td>Simulation Transcript</td>         <td><a href=\"${SimulationResultsLink}\">${CurrentTranscript}</a></td></tr>"
+    }
+  }
 
   set resolvedCoverageDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::CoverageDirectory}]
   set CodeCoverageFile [vendor_GetCoverageFileName ${BuildName}]
