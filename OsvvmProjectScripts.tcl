@@ -359,18 +359,6 @@ proc CheckWorkingDir {} {
   variable LibraryDirectoryList
 
   set CurrentDir [pwd]
-# This is now initialized, so it will be set
-#  if {![info exists CurrentWorkingDirectory]} {
-#    #  CurrentWorkingDirectory is a relative path to the script that is currently running
-#    set CurrentWorkingDirectory ""
-#  }
-#  if {![info exists CurrentSimulationDirectory] || $CurrentSimulationDirectory ne $CurrentDir } {
-#    # Simulation Directory Moved, Libraries are invalid
-#    if {[info exists VhdlLibraryParentDirectory]} {
-#      unset VhdlLibraryParentDirectory
-#      unset VhdlLibraryFullPath
-#    }
-# } - parser wants closed bracketing even in comments
   if {$CurrentSimulationDirectory ne $CurrentDir } {
     if {$VhdlLibraryParentDirectory eq $CurrentSimulationDirectory} {
       # Simulation Directory Moved, Set Library to current directory
@@ -396,11 +384,7 @@ proc CheckWorkingDir {} {
 proc CheckLibraryInit {} {
   variable VhdlLibraryParentDirectory
   variable VhdlLibraryFullPath
-#  variable CurrentSimulationDirectory
-
-#  if {![info exists VhdlLibraryParentDirectory]} {
-#    SetLibraryDirectory $CurrentSimulationDirectory
-#  }
+  
   if { ${VhdlLibraryParentDirectory} eq [pwd]} {
     # Local Library Directory - use OutputBaseDirectory
     set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
@@ -429,7 +413,7 @@ proc CheckLibraryExists {} {
 proc CheckSimulationDirs {} {
   variable CurrentSimulationDirectory
 
-  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::OsvvmResultsDirectory}]
+#  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::OsvvmResultsDirectory}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ResultsDirectory}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ReportsDirectory}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::VhdlReportsDirectory}]

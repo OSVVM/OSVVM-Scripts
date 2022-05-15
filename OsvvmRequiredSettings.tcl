@@ -79,6 +79,6 @@ namespace eval ::osvvm {
   #  TranscriptYamlFile: temporary file that contains set of files used in TranscriptOpen.  Deleted by scripts.
   variable TranscriptYamlFile       "OSVVM_transcript.yml" ;  
   
-  #  OsvvmResultsDirectory: Used by VC test cases - update VC test cases
-  variable OsvvmResultsDirectory    "results"  ;  # 
+#  #  OsvvmResultsDirectory: Used by VC test cases - update VC test cases
+#  variable OsvvmResultsDirectory    "results"  ;  # 
 }
