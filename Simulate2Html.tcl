@@ -141,7 +141,11 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
       set TranscriptBaseName [file tail $TranscriptFile]
       set CopyTargetFile [file join ${::osvvm::ResultsDirectory} ${TestSuiteName} ${TranscriptBaseName}]
       if {[file normalize ${TranscriptFile}] ne [file normalize ${CopyTargetFile}]} {
-        file rename -force ${TranscriptFile}  ${CopyTargetFile}
+        if {[file exists ${TranscriptFile}]} {
+          # Check required since if file is open, closed, then re-opened, 
+          # it will be in the file more than once
+          file rename -force ${TranscriptFile}  ${CopyTargetFile}
+        }
       }
       set HtmlTargetFile [file join ${::osvvm::ResultsSubdirectory} ${TestSuiteName} ${TranscriptBaseName}]
       puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${HtmlTargetFile}\">${TranscriptBaseName}</a></td></tr>"
