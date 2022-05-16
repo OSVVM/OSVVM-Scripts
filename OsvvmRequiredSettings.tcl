@@ -51,8 +51,10 @@ namespace eval ::osvvm {
   # Using OSVVM functions to set values allows the values
   # to be processed by the scripts (to make corrections, case changes, or normalize the path)  
   # 
-  # ?Make it conditional in the event of calling StartUp? if {![info exists VhdlLibraryParentDirectory]} {}
-  SetLibraryDirectory $DefaultLibraryParentDirectory 
+  # ?Make it conditional?  Need to define VhdlLibraryInit - could even be only here
+  #  if {![info exists VhdlLibraryInit]} {}
+  SetLibraryDirectory $VhdlLibraryParentDirectory 
+  #  variable VhdlLibraryInit "TRUE"
   
   SetVHDLVersion $DefaultVHDLVersion
   

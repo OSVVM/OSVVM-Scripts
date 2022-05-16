@@ -1176,26 +1176,9 @@ proc GetSimulatorResolution {} {
 #
 proc SetLibraryDirectory {{LibraryDirectory "."}} {
   variable VhdlLibraryParentDirectory
-#  variable VhdlLibraryFullPath
   
   set VhdlLibraryParentDirectory [file normalize $LibraryDirectory]
   
-#  # VhdlLibraryParentDirectory is an absolute path
-#  set DefaultLibraryParentDirectory [file normalize "."]
-#
-#  if {$LibraryDirectory eq "" || $LibraryDirectory eq "."} {
-#    set VhdlLibraryParentDirectory $DefaultLibraryParentDirectory
-#  } else {
-#    set VhdlLibraryParentDirectory [file normalize $LibraryDirectory]
-##    CreateDirectory $VhdlLibraryParentDirectory
-#  }
-#  if { ${DefaultLibraryParentDirectory} eq ${VhdlLibraryParentDirectory} } {
-#    # Local Library Directory - use OutputBaseDirectory
-#    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
-#  } else {
-#    # Global Library Directory - do not use OutputBaseDirectory
-#    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
-#  }
 }
 
 proc GetLibraryDirectory {} {

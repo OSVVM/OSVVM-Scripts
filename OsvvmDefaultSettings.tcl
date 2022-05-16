@@ -52,9 +52,15 @@ namespace eval ::osvvm {
   variable CoverageSubdirectory       "CodeCoverage"
   variable VhdlLibraryDirectory       "VHDL_LIBS"
   variable VhdlLibrarySubdirectory    "${ToolNameVersion}"
-
-  variable DefaultLibraryParentDirectory [pwd]      ; # use local directory
+  variable VhdlLibraryParentDirectory [pwd]      ; # use local directory
   
+  # Also change with SetTranscriptType html 
+  variable TranscriptExtension      "html"     ; # Set Transcripts to be html by default
+  if {!($ToolVendor eq "Siemens" || $ToolVendor eq "Aldec") } {
+    variable TranscriptExtension      "log"     ; # html currently supported for Aldec and Siemens simulators
+  } 
+  
+
   # Settings 
   variable DefaultVHDLVersion     "2008"     ; # OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
   variable SimulateTimeUnits      "ps"
@@ -75,7 +81,5 @@ namespace eval ::osvvm {
   variable ExtendedAnalyzeOptions   ""
   variable ExtendedSimulateOptions  ""
 
-  # Default Transcript type - change with SetTranscriptType html 
-  variable TranscriptExtension      "html"     ; # Set Transcripts to be html by default
 
 }
