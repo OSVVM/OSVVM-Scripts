@@ -870,6 +870,162 @@ at a high level, such as in ``LocalScriptDefaults.tcl``.
 Caution any undocumented commands are experimental and may change or be removed in a future revision.
 
 
+Variables
+==================================
+
+Variables set by OSVVM Scripts
+------------------------------------------ 
+All osvvm VendorScripts_xxx.tcl set the variables
+ToolVendor, ToolName, ToolType, and ToolNameVersion. 
+These are useful for personalizing scripts. 
+For example, 
+
+.. code:: tcl
+
+   if {$ToolName eq "GHDL"} {
+     # ... do something based on GHDL
+   } 
+
+ToolVendor is the name of the vendor.
+ToolName is the name of the tool.  
+ToolType can be either "simulator" or "synthesis".
+ToolNameVersion is formatted "<ToolName-version>", 
+where version is specific to a tool and revision.
+
+Note that ToolName was formerly named simulator.
+The variable simulator is deprecated.  
+Use ToolName instead.  
+
+The settings for ToolVendor and ToolName is as defined
+in the table below.
+
+.. list-table:: 
+    :widths: 10 10 10 30
+    :header-rows: 1
+    
+    * - ToolVendor
+      - ToolName
+      - ToolType
+      - Notes
+    * - Aldec
+      - ActiveHDL
+      - simulator
+      -
+    * - Aldec
+      - RivieraPRO
+      - simulator
+      -
+    * - Aldec
+      - VSimSA
+      - simulator
+      - ActiveHDL command line
+    * - Cadence
+      - Xcelium
+      - simulator
+      -
+    * - GHDL
+      - GHDL
+      - simulator
+      -
+    * - Siemens
+      - ModelSim
+      - simulator
+      -
+    * - Siemens
+      - QuestaSim
+      - simulator
+      -
+    * - Synopsys
+      - VCS
+      - simulator
+      -
+    * - Xilinx
+      - XSIM
+      - simulator
+      - Still in Debug
+    * - Xilinx
+      - Vivado
+      - synthesis
+      - Currently supports analyze
+
+Variables used to configure OSVVM
+------------------------------------------ 
+Variables that the user can customize for OSVVM are in the
+file, OsvvmDefaultSettings.tcl. 
+If you wish to change these, copy OsvvmDefaultSettings to 
+LocalScriptDefaults.tcl and edit them there. 
+
+.. list-table:: 
+    :widths: 10 40
+    :header-rows: 1
+    
+    * - Variable Name
+      - Description
+    * - Controlling Directories
+      - 
+    * - OutputBaseDirectory
+      - Directory that holds OSVVM output files and separates them from other stuff.
+    * - LogSubdirectory
+      - Contains simulator transcripts in html or log format
+    * - ReportsSubdirectory
+      - Test case detailed reports (Alerts, Functional Coverage, Scoreboard) are stored 
+        in the subdirectory, <TestSuiteName>.
+        Must not include any path indicators.  Maybe empty string "".
+    * - ResultsSubdirectory
+      - Files printed by TranscriptOpen are stored 
+        in the subdirectory, <TestSuiteName>.
+    * - CoverageSubdirectory
+      - Code coverage output for simulators that support it
+    * - VhdlLibraryParentDirectory
+      - Specify a directory here to put library in a different parent directory - such as c:/temp/sim
+    * - VhdlLibraryDirectory
+      - Primary directory when library is in $OutputBaseDirectory.
+    * - VhdlLibrarySubdirectory
+      - Subdirectory for libraries.  Default is "<ToolNameVersion>".
+    * - 
+      - 
+    * - Simulator Settings
+      - 
+    * - DefaultVHDLVersion
+      - OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
+    * - SimulateTimeUnits
+      - ps, ns, us, ms, ...
+    * - TranscriptExtension
+      - Either html or log 
+    * - VhdlAnalyzeOptions
+      - Additional options for analyze
+    * - VerilogAnalyzeOptions
+      - Additional options for analyze
+    * - ExtendedAnalyzeOptions
+      - Additional options for analyze
+    * - ExtendedSimulateOptions
+      - Additional options for simulate
+    * - 
+      - 
+    * - Coverage Settings
+      - 
+    * - CoverageAnalyzeOptions
+      - Default coverage options for analyze 
+    * - CoverageSimulateOptions
+      - Default coverage options for simulate 
+      
+
+Example LocalScriptDefaults.tcl
+------------------------------------------ 
+LocalScriptDefaults is not in the OSVVM release.   
+It is a file you create.  
+This way it does not get destroyed when you do
+a pull on the OsvvmLibraries git repository.
+
+.. code:: tcl
+
+    namespace eval ::osvvm {
+      variable OutputBaseDirectory         "OSVVM" ;              # Put output in a Subdirectory
+      variable VhdlLibraryParentDirectory  "C:/tools/sim_temp" ;  # put libraries somewhere else
+      variable VhdlLibraryDirectory        ""  ;                  # only use VhdlLibrarySubdirectory
+    } 
+
+
 Script File Summary 
 ==================================
 
