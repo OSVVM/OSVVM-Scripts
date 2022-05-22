@@ -39,8 +39,9 @@
 #
   variable ToolType    "synthesis"
   variable ToolVendor  "Xilinx"
-  variable simulator   "Vivado"
-  variable ToolNameVersion "Vivado-[version -short]"
+  variable ToolName   "Vivado"
+  variable simulator   $ToolName ; # Deprecated 
+  variable ToolNameVersion "${ToolName}-[version -short]"
   puts $ToolNameVersion
   
   # Quite unfortunately, much of Vivado doesn't support VHDL-2008 properly.

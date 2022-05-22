@@ -66,16 +66,20 @@ proc Report2Html {ReportFile} {
 proc ReportElaborateStatus {TestDict} {
   variable ResultsFile
   variable BuildTranscript
+  variable AnalyzeErrors
+  variable SimulateErrors
 
   if {[info exists ReportTestSuiteSummary]} {
     unset ReportTestSuiteSummary
   }
-
   set BuildStatus "PASSED"
   set TestCasesPassed 0
   set TestCasesFailed 0
   set TestCasesSkipped 0
   set TestCasesRun 0
+  if {$AnalyzeErrors || $SimulateErrors} {
+    set BuildStatus "FAILED"
+  }
   
   set HaveTestSuites [dict exists $TestDict TestSuites]
 
@@ -188,6 +192,16 @@ proc ReportElaborateStatus {TestDict} {
     set StatusColor  "#D09000" 
     set SkippedColor "#D09000"
   }
+  if {$AnalyzeErrors} {
+    set AnalyzeColor  "#FF0000"
+  } else {
+    set AnalyzeColor  "#000000"
+  }
+  if {$SimulateErrors} {
+    set SimulateColor  "#FF0000"
+  } else {
+    set SimulateColor  "#000000"
+  }
   set ElapsedTimeSeconds [dict get $RunInfo Elapsed]
   set ElapsedTimeSecondsInt [expr {round($ElapsedTimeSeconds)}]
   set ElapsedTimeHms     [format %d:%02d:%02d [expr ($ElapsedTimeSecondsInt/(60*60))] [expr (($ElapsedTimeSecondsInt/60)%60)] [expr (${ElapsedTimeSecondsInt}%60)]]
@@ -200,6 +214,8 @@ proc ReportElaborateStatus {TestDict} {
   puts $ResultsFile "  <tr style=color:${PassedColor}><td>PASSED</td>  <td>$TestCasesPassed</td></tr>"
   puts $ResultsFile "  <tr style=color:${FailedColor}><td>FAILED</td>  <td>$TestCasesFailed</td></tr>"
   puts $ResultsFile "  <tr style=color:${SkippedColor}><td>SKIPPED</td> <td>$TestCasesSkipped</td></tr>"
+  puts $ResultsFile "  <tr style=color:${AnalyzeColor}><td>Analyze Failures</td> <td>$AnalyzeErrors</td></tr>"
+  puts $ResultsFile "  <tr style=color:${SimulateColor}><td>Simulate Failures</td> <td>$SimulateErrors</td></tr>"
   puts $ResultsFile "  <tr><td>Elapsed Time (h:m:s)</td>              <td>$ElapsedTimeHms</td></tr>"
   puts $ResultsFile "  <tr><td>Elapsed Time (seconds)</td>            <td>$ElapsedTimeSeconds</td></tr>"
   puts $ResultsFile "  <tr><td>Date</td>                              <td>[dict get $BuildInfo Date]</td></tr>"

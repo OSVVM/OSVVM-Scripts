@@ -81,5 +81,9 @@ namespace eval ::osvvm {
   variable ExtendedAnalyzeOptions   ""
   variable ExtendedSimulateOptions  ""
 
-
+  # 
+  # If Reports Fail, procude an error message
+  #    For CI jobs, set this to "false" so the CI error reporter will attempt to run
+  #
+  variable FailOnReportErrors       "true"
 }

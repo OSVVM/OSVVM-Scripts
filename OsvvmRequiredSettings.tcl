@@ -48,24 +48,42 @@
 #
 
 namespace eval ::osvvm {
-  # Using OSVVM functions to set values allows the values
-  # to be processed by the scripts (to make corrections, case changes, or normalize the path)  
-  # 
-  # ?Make it conditional?  Need to define VhdlLibraryInit - could even be only here
-  #  if {![info exists VhdlLibraryInit]} {}
-  SetLibraryDirectory $VhdlLibraryParentDirectory 
-  #  variable VhdlLibraryInit "TRUE"
-  
-  SetVHDLVersion $DefaultVHDLVersion
-  
-  SetSimulatorResolution $SimulateTimeUnits
-  
-  SetTranscriptType $TranscriptExtension
 
+  #
+  # Extended TCL information about errors - for debugging
+  #   TCL's errorInfo is saved to these as build finishes
+  #
+  variable BuildErrorInfo
+  variable ReportsErrorInfo
+
+  #
+  # Variables set by VendorScripts_***.tcl
+  #
+  #  variable ToolType    
+  #  variable ToolVendor  
+  #  variable ToolName   
+  #  variable simulator    ; # Deprecated use ToolName instead
+  #  variable ToolNameVersion 
+
+  # 
+  # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
+  #    Call OSVVM functions to do parameter checking and normalization
+  SetVHDLVersion         $DefaultVHDLVersion
+  SetSimulatorResolution $SimulateTimeUnits
+  SetTranscriptType      $TranscriptExtension
+  SetLibraryDirectory    $VhdlLibraryParentDirectory 
+  
+  
+  #
+  #  Initialize internal settings
+  #
   # CurrentWorkingDirectory is a relative path to the scripts currently running 
   set CurrentWorkingDirectory ""
   # CurrentSimulationDirectory is an absolute path to the simulation directory (for reports and such)
   set CurrentSimulationDirectory ""
+  
+  # When a build is started, run include instead of build
+  set BuildStarted 0
 
   # Directory and Results file management
   variable ReportsDirectory          [file join ${OutputBaseDirectory} ${ReportsSubdirectory}]
@@ -83,4 +101,11 @@ namespace eval ::osvvm {
   
 #  #  OsvvmResultsDirectory: Used by VC test cases - update VC test cases
 #  variable OsvvmResultsDirectory    "results"  ;  # 
+
+  # Error handling
+  variable AnalyzeErrors 0
+  variable ConsecutiveAnalyzeErrors 0
+  variable SimulateErrors 0
+  variable ConsecutiveSimulateErrors 0
+  
 }

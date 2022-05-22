@@ -56,7 +56,8 @@
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Aldec"
-  variable simulator   "ActiveHDL"
+  variable ToolName    "ActiveHDL"
+  variable simulator   $ToolName ; # Deprecated  
   variable ToolNameVersion ${simulator}-${version}
   puts $ToolNameVersion
   # Allow variable OSVVM library to be updated

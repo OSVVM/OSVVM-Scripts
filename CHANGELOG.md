@@ -3,6 +3,8 @@
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                  | 
 |---------------|--------------------|-----------------------------------------------------------------------| 
 | 2022.05       | May 2022           | Refactored variables in OsvvmProjectScripts to OsvvmDefaultSettings   |
+|               |                    | Build, Analyze, Simulate now have error handling                      |
+|               |                    | Reports now record Analyze and Simulate Failures                      |
 |               |                    | Coverage report name now based on TestCaseName rather than LibraryUnit|
 | 2022.03       | March 2022         | Added link to test transcript files (TranscriptOpen)                  |
 |               |                    | Report links to Code Coverage and Transcripts now use relative paths  |

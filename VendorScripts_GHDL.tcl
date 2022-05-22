@@ -50,7 +50,8 @@
 #
   variable ToolType   "simulator"
   variable ToolVendor "GHDL"
-  variable simulator  "GHDL"
+  variable ToolName  "GHDL"
+  variable simulator   $ToolName ; # Deprecated 
   variable ghdl "ghdl"
   
   # required for mintty

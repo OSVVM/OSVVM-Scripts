@@ -68,6 +68,8 @@ proc Report2Junit {ReportFile} {
 proc JunitCreateSummary {TestDict} {
   variable ResultsFile
   variable ReportTestSuiteSummary
+  variable AnalyzeErrors
+  variable SimulateErrors
 
   if {[info exists ReportTestSuiteSummary]} {
     unset ReportTestSuiteSummary
@@ -81,7 +83,9 @@ proc JunitCreateSummary {TestDict} {
   set TestCasesFailed 0
   set TestCasesSkipped 0
   set TestCasesRun 0
-  
+  if {$AnalyzeErrors || $SimulateErrors} {
+    set BuildStatus "FAILED"
+  }
 
   foreach TestSuite [dict get $TestDict TestSuites] {
     set SuitePassed 0

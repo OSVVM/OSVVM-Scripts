@@ -4,7 +4,8 @@
 #
 #  Maintainer:        Jim Lewis      email:  jim@synthworks.com
 #  Contributor(s):
-#     Jim Lewis      email:  jim@synthworks.com
+#     Jim Lewis           email:  jim@synthworks.com
+#     Markus Ferringer    Patterns for error handling
 #
 #  Description
 #    Tcl procedures with the intent of making running
@@ -20,6 +21,7 @@
 #  Revision History:
 #    Date      Version    Description
 #    05/2022   2022.05    Refactored to move variable settings to OsvvmDefaultSettings
+#                         Added Error Handling
 #    02/2022   2022.02    Added Analyze and Simulate Coverage and Extended Options
 #                         Added support to run code coverage
 #    01/2022   2022.01    Library directory to lower case.  Added OptionalCommands to Verilog analyze.
@@ -207,6 +209,40 @@ proc include {Path_Or_File} {
   set CurrentWorkingDirectory ${StartingPath}
 }
 
+
+# -------------------------------------------------
+# BeforeBuildCleanUp 
+#
+proc BeforeBuildCleanUp {} {
+  variable RanSimulationWithCoverage "false"
+  variable vendor_simulate_started
+  variable TestSuiteName
+  variable TranscriptYamlFile 
+  variable AnalyzeErrors  0
+  variable ConsecutiveAnalyzeErrors  0
+  variable SimulateErrors 0
+  variable ConsecutiveSimulateErrors 0
+  
+  # Close any previous build information
+  if {[info exists TestSuiteName]} {
+    unset TestSuiteName
+  }
+  # If Transcript Open, then Close it
+  TerminateTranscript
+
+  # End simulations if started - only set by simulate
+  if {[info exists vendor_simulate_started]} {
+    puts "Ending Previous Simulation"
+    EndSimulation
+    unset vendor_simulate_started
+  }
+  
+  # Remove old files if they were left lying around
+  if {[file exists ${TranscriptYamlFile}]} {
+    file delete -force -- ${TranscriptYamlFile}
+  }
+}
+
 # -------------------------------------------------
 proc SetBuildName {Path_Or_File} {
   # Create the Log File Name
@@ -233,6 +269,51 @@ proc SetBuildName {Path_Or_File} {
 # build
 #
 proc build {{Path_Or_File "."}} {
+  variable AnalyzeErrors 
+  variable SimulateErrors
+  variable BuildErrorInfo
+  variable ReportsErrorInfo
+  variable BuildStarted
+  
+  if {$BuildStarted != 0} {
+    include $Path_Or_File
+  } else {
+    set BuildStarted 1
+    set BuildName [SetBuildName $Path_Or_File]
+
+    #  Catch any errors from the build and handle them below
+    set BuildErrorCode [catch {LocalBuild $BuildName $Path_Or_File} BuildErrMsg]
+    set BuildErrorInfo $::errorInfo
+    set BuildStarted 0
+    
+    # Try to create reports, even if the build failed
+    set ReportsErrorCode [catch {CreateReports $BuildName} ReportsErrMsg]
+    set ReportsErrorInfo $::errorInfo
+    
+    if {$BuildErrorCode != 0 || $AnalyzeErrors > 0 || $SimulateErrors > 0} {   
+      set ErrorSource ""
+      if {$BuildErrorCode != 0} {
+        set ErrorSource "BuildErrorCode = $BuildErrorCode. "
+      }
+      if {$AnalyzeErrors > 0} {
+        set ErrorSource "${ErrorSource}AnalyzeErrors  = $AnalyzeErrors. "
+      }
+      if {$SimulateErrors > 0} {
+        set ErrorSource "${ErrorSource}SimulateErrors  = $SimulateErrors. "
+      }
+      error "Build failed with ${ErrorSource}"
+    } 
+    if {$ReportsErrorCode != 0} {  
+      if {$FailOnReportErrors} {
+        error "Failed during reporting.  Please include your simulator version in any issue reports"
+      } else {
+        puts  "Failed during reporting.  Please include your simulator version in any issue reports"
+      }
+    } 
+  }
+}
+
+proc LocalBuild {BuildName Path_Or_File} {
   variable CurrentWorkingDirectory
   variable TestSuiteStartTimeMs
   variable TranscriptExtension
@@ -248,7 +329,7 @@ proc build {{Path_Or_File "."}} {
   CheckWorkingDir
 #  CheckSimulationDirs
 
-  set BuildName [SetBuildName $Path_Or_File]
+#  set BuildName [SetBuildName $Path_Or_File]
   set LogFileName ${BuildName}.${TranscriptExtension}
 
   StartTranscript ${LogFileName}
@@ -296,43 +377,16 @@ proc build {{Path_Or_File "."}} {
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   puts "Build Finish time [clock format $BuildFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
   StopTranscript ${LogFileName}
+}
+
+proc CreateReports {BuildName} {
 
   # short sleep to allow the file to close
   after 1000
-  set BuildYamlFile [file join ${OutputBaseDirectory} ${BuildName}.yml]
+  set BuildYamlFile [file join ${::osvvm::OutputBaseDirectory} ${BuildName}.yml]
   file rename -force ${::osvvm::OsvvmYamlResultsFile} ${BuildYamlFile}
   Report2Html  ${BuildYamlFile}
   Report2Junit ${BuildYamlFile}
-}
-
-
-# -------------------------------------------------
-# CreateDirectory - Create directory if does not exist
-#
-proc BeforeBuildCleanUp {} {
-  variable RanSimulationWithCoverage "false"
-  variable vendor_simulate_started
-  variable TestSuiteName
-  variable TranscriptYamlFile 
-  
-  # Close any previous build information
-  if {[info exists TestSuiteName]} {
-    unset TestSuiteName
-  }
-  # If Transcript Open, then Close it
-  TerminateTranscript
-
-  # End simulations if started - only set by simulate
-  if {[info exists vendor_simulate_started]} {
-    puts "Ending Previous Simulation"
-    EndSimulation
-    unset vendor_simulate_started
-  }
-  
-  # Remove old files if they were left lying around
-  if {[file exists ${TranscriptYamlFile}]} {
-    file delete -force -- ${TranscriptYamlFile}
-  }
 }
 
 # -------------------------------------------------
@@ -712,6 +766,22 @@ proc LinkCurrentLibraries {} {
 # analyze
 #
 proc analyze {FileName {OptionalCommands ""}} {
+  variable AnalyzeErrors 
+  variable ConsecutiveAnalyzeErrors 
+   
+  if {[catch {LocalAnalyze $FileName {*}$OptionalCommands} errmsg]} {
+    set AnalyzeErrors            [expr $AnalyzeErrors+1]
+    set ConsecutiveAnalyzeErrors [expr $ConsecutiveAnalyzeErrors+1]
+    
+    if {$ConsecutiveAnalyzeErrors > 1} {
+      error "# ** Error: analyze '$FileName $OptionalCommands' failed: $errmsg"
+    }
+  } else {
+    set ConsecutiveAnalyzeErrors 0 
+  }
+}
+
+proc LocalAnalyze {FileName {OptionalCommands ""}} {
   variable VhdlWorkingLibrary
   variable CurrentWorkingDirectory
   variable CoverageAnalyzeEnable
@@ -753,6 +823,22 @@ proc analyze {FileName {OptionalCommands ""}} {
 # Simulate
 #
 proc simulate {LibraryUnit {OptionalCommands ""}} {
+  variable SimulateErrors 
+  variable ConsecutiveSimulateErrors 
+   
+  if {[catch {LocalSimulate $LibraryUnit {*}$OptionalCommands} errmsg]} {
+    set SimulateErrors            [expr $SimulateErrors+1]
+    set ConsecutiveSimulateErrors [expr $ConsecutiveSimulateErrors+1]
+    
+    if {$ConsecutiveSimulateErrors > 5} {
+      error "# ** Error: analyze '$FileName $OptionalCommands' failed: $errmsg"
+    }
+  } else {
+    set ConsecutiveSimulateErrors 0 
+  }
+}
+
+proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
   variable VhdlWorkingLibrary
   variable vendor_simulate_started
   variable TestCaseName
@@ -1264,7 +1350,7 @@ namespace export SetCoverageSimulateEnable GetCoverageSimulateEnable
 namespace export MergeCoverage
 
 # Exported only for tesing purposes
-namespace export FindLibraryPath EndSimulation 
+namespace export FindLibraryPath EndSimulation LocalAnalyze
 
 
 

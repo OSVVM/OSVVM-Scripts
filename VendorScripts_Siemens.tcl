@@ -56,11 +56,12 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Siemens"
   if {[lindex [split [vsim -version]] 0] eq "Questa"} {
-    variable simulator   "QuestaSim"
+    variable ToolName   "QuestaSim"
   } else {
-    variable simulator   "ModelSim"
+    variable ToolName   "ModelSim"
   }
-  variable ToolNameVersion ${simulator}-[vsimVersion]
+  variable simulator   $ToolName ; # Deprecated 
+  variable ToolNameVersion ${ToolName}-[vsimVersion]
   puts $ToolNameVersion
 
 
