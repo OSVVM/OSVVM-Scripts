@@ -131,17 +131,16 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   # For now, do not use -dbg flag with coverage.   
   if {[info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
     echo vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-#        vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-    if { [catch {vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
-      error $Msg "analyze $FileName $OptionalCommands" 1
-    } 
+    vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+#    if { [catch {vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
+#      error $Msg "analyze $FileName $OptionalCommands" 1
+#    } 
   } else {
     echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-#         vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-# Catch does not remove stdout.  exec hides stdout
-    if { [catch {vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
-      error $Msg "analyze $FileName $OptionalCommands" 1
-    } 
+    vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+#    if { [catch {vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
+#      error $Msg "analyze $FileName $OptionalCommands" 1
+#    } 
   }
 }
 
@@ -149,10 +148,10 @@ proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #  Untested branch for Verilog - will need adjustment
 #  Untested branch for Verilog - will need adjustment
   echo vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-#       vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-  if { [catch {vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
-    error $Msg "analyze $FileName $OptionalCommands" 1
-  } 
+  vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+#  if { [catch {vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
+#    error $Msg "analyze $FileName $OptionalCommands" 1
+#  } 
 }
 
 # -------------------------------------------------
@@ -176,10 +175,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable TestCaseName
 
   puts "vsim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} "
-#        vsim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}  
-    if { [catch {vsim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}} Msg]} {
-      error $Msg "simulate $LibraryUnit $OptionalCommands" 1
-    } 
+  vsim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}
+
+#   if { [catch {vsim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}} Msg]} {
+#     error $Msg "simulate $LibraryUnit $OptionalCommands" 1
+#   } 
     
   SimulateRunScripts ${LibraryUnit}
 

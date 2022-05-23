@@ -218,18 +218,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   CheckTranscript
 #  set GHDL_WORKING_LIBRARY_PATH   [GhdlLibraryPath $LibraryName $VhdlLibraryFullPath]
 
-#  puts "$ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit}" 
-#  eval exec $ghdl --elab-run --std=08 --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} | tee -a $GHDL_TRANSCRIPT_FILE $console
-#  exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${VhdlLibraryFullPath} ${LibraryUnit}" | {*}[get_tee]
-#  eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${VhdlLibraryFullPath} ${LibraryUnit} |& {*}[get_tee]
   exec echo "$ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${LibraryUnit}" | {*}[get_tee]
-#  eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} |& {*}[get_tee]
-#  if { [catch {eval exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${LibraryUnit} |& {*}[get_tee]} SimErr]} { 
+#  if { [catch {exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${LibraryUnit} |& {*}[get_tee]} SimErr]} { 
 #    puts "ghdl --elab-run ended with error $SimErr"
 #  }
-  if { [catch {exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${LibraryUnit} |& {*}[get_tee]} SimErr]} { 
-    puts "ghdl --elab-run ended with error $SimErr"
-  }
+  exec $ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${LibraryUnit} |& {*}[get_tee]
   
   # Save Coverage Information
   if {[info exists CoverageSimulateEnable]} {
