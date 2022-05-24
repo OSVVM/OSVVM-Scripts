@@ -768,12 +768,13 @@ proc LinkCurrentLibraries {} {
 proc analyze {FileName {OptionalCommands ""}} {
   variable AnalyzeErrors 
   variable ConsecutiveAnalyzeErrors 
+  variable AnalyzeErrorsStopCount
    
   if {[catch {LocalAnalyze $FileName {*}$OptionalCommands} errmsg]} {
     set AnalyzeErrors            [expr $AnalyzeErrors+1]
     set ConsecutiveAnalyzeErrors [expr $ConsecutiveAnalyzeErrors+1]
     
-    if {$ConsecutiveAnalyzeErrors > 1} {
+    if {$AnalyzeErrorsStopCount != 0 && $AnalyzeErrors >= $AnalyzeErrorsStopCount } {
       error "# ** Error: analyze '$FileName $OptionalCommands' failed: $errmsg"
     }
   } else {
@@ -825,12 +826,13 @@ proc LocalAnalyze {FileName {OptionalCommands ""}} {
 proc simulate {LibraryUnit {OptionalCommands ""}} {
   variable SimulateErrors 
   variable ConsecutiveSimulateErrors 
+  variable SimulateErrorsStopCount
    
   if {[catch {LocalSimulate $LibraryUnit {*}$OptionalCommands} errmsg]} {
     set SimulateErrors            [expr $SimulateErrors+1]
     set ConsecutiveSimulateErrors [expr $ConsecutiveSimulateErrors+1]
     
-    if {$ConsecutiveSimulateErrors > 5} {
+    if {$SimulateErrorsStopCount != 0 && $SimulateErrors >= $SimulateErrorsStopCount } {
       error "# ** Error: analyze '$FileName $OptionalCommands' failed: $errmsg"
     }
   } else {

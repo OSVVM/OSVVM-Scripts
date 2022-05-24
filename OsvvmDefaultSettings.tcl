@@ -73,6 +73,14 @@ namespace eval ::osvvm {
   variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults]
   variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
 
+  #
+  # Stop Counts for Failures seen by Analyze and Simulate
+  #   Value 0 is special to mean, don't stop
+  #   Otherwise Errors >= ErrorsStopCount, stop the build.
+  #
+  variable AnalyzeErrorsStopCount  0
+  variable SimulateErrorsStopCount 0
+  
   # 
   # Extended Analyze and Simulate Options
   #
