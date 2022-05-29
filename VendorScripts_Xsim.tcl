@@ -56,15 +56,17 @@
 # -------------------------------------------------
 # StartTranscript / StopTranscxript
 #
-proc vendor_StartTranscript {FileName} {
-#  transcript file ""
-#  puts transcript file $FileName
-#  transcript file $FileName
-}
 
-proc vendor_StopTranscript {FileName} {
-#  transcript file -close $FileName
-}
+# With this commented out, it will run the DefaultVendor_StartTranscript
+# proc vendor_StartTranscript {FileName} {
+# #  transcript file ""
+# #  puts transcript file $FileName
+# #  transcript file $FileName
+# }
+# 
+# proc vendor_StopTranscript {FileName} {
+# #  transcript file -close $FileName
+# }
 
 # -------------------------------------------------
 # SetCoverageAnalyzeOptions
