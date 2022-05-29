@@ -95,3 +95,12 @@ if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl]} {
   source ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl
 }
 source ${::osvvm::SCRIPT_DIR}/OsvvmRequiredSettings.tcl
+
+#
+# If package tee available use it, otherwise use the provisional one
+#
+if {![catch {package require tee}]} {
+  package require tee
+} else {
+  source ${::osvvm::SCRIPT_DIR}/tee.tcl
+}
