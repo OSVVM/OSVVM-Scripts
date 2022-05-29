@@ -55,12 +55,27 @@
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Siemens"
-  if {[lindex [split [vsim -version]] 0] eq "Questa"} {
-    variable ToolName   "QuestaSim"
+  if {[info exists ::ToolName]} {
+    variable ToolName $::ToolName
   } else {
-    variable ToolName   "ModelSim"
+    if {[lindex [split [vsim -version]] 2] eq "ModelSim"} {
+      variable ToolName   "ModelSim"
+    } else {
+      variable ToolName   "QuestaSim"
+    }
   }
   variable simulator   $ToolName ; # Deprecated 
+  
+  if {$argv eq "-c"} {
+    variable ToolArgs "-c"
+    variable NoGui true
+  } elseif {[lindex $argv 1] eq "-batch"} {
+    variable ToolArgs "-batch"
+    variable NoGui true
+  } else {
+    variable ToolArgs "-gui"
+    variable NoGui false
+  }
   variable ToolNameVersion ${ToolName}-[vsimVersion]
   puts $ToolNameVersion
 
@@ -69,14 +84,27 @@
 # StartTranscript / StopTranscxript
 #
 proc vendor_StartTranscript {FileName} {
-  transcript file ""
-  echo transcript file $FileName
-  transcript file $FileName
+  variable NoGui
+
+  if {$NoGui} {
+    DefaultVendor_StartTranscript $FileName
+  } else {
+    transcript file ""
+    echo transcript file $FileName
+    transcript file $FileName
+  }
 }
 
 proc vendor_StopTranscript {FileName} {
+  variable NoGui
+
   # FileName not used here
   transcript file ""
+  if {$NoGui} {
+    DefaultVendor_StopTranscript $FileName
+  } else {
+    transcript file ""
+  }
 }
 
 # -------------------------------------------------
@@ -141,11 +169,14 @@ proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #
 proc vendor_end_previous_simulation {} {
   global SourceMap
+  variable NoGui
 
   # close junk in source window
-  if {![catch {noview} msg]} {
-    foreach index [array names SourceMap] { 
-      noview source [file tail $index] 
+  if {! $NoGui} {
+    if {![catch {noview} msg]} {
+      foreach index [array names SourceMap] { 
+        noview source [file tail $index] 
+      }
     }
   }  
   
@@ -218,11 +249,31 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable CoverageSimulateEnable
   variable TestSuiteName
   variable TestCaseName
+  
+  if {$::osvvm::NoGui} {
+    set VsimOptions ""
+  } else {
+    set VsimOptions "-voptargs='+acc'"
+  }
 
-  puts "vsim -voptargs='+acc' -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
-#  eval vsim -voptargs="+acc" -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684 
-  eval vsim -voptargs="+acc" -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684
+  set VsimOptions "$VsimOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
+  
+  puts "vsim {*}${VsimOptions}"
+  vsim {*}${VsimOptions}
 
+#
+#  Was hoping to catch the output for batch, but no work.
+#
+#  if {$::osvvm::NoGui} {
+#    if { [catch {exec vsim -batch {*}${VsimOptions}} SimResults]} { 
+#      error "ghdl --elab-run ended with error $SimResults"
+#    } else {
+#      puts $SimResults
+#    }
+#  } else {
+#    vsim {*}${VsimOptions}
+#  }
+  
   
   ### Project level settings - in OsvvmLibraries/Scripts
   # Historical name.  Must be run with "do" for actions to work
