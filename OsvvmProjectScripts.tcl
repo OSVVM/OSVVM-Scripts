@@ -241,6 +241,8 @@ proc BeforeBuildCleanUp {} {
   if {[file exists ${TranscriptYamlFile}]} {
     file delete -force -- ${TranscriptYamlFile}
   }
+  
+  set ::osvvm::CurrentWorkingDirectory ""
 }
 
 # -------------------------------------------------
@@ -274,17 +276,51 @@ proc build {{Path_Or_File "."}} {
   variable BuildErrorInfo
   variable ReportsErrorInfo
   variable BuildStarted
+  variable TranscriptExtension
+  variable TranscriptDirectory
   
   if {$BuildStarted != 0} {
     include $Path_Or_File
   } else {
+  
+    BeforeBuildCleanUp   
+    
     set BuildStarted 1
     set BuildName [SetBuildName $Path_Or_File]
+    
+    
+    # Current Build Setup
+#    set ::osvvm::CurrentWorkingDirectory ""  ;# moved to BeforeBuildCleanUp
+#    CheckWorkingDir ;# Done in StartTranscript
+    
+    set LogFileName ${BuildName}.${TranscriptExtension}
 
+    StartTranscript ${LogFileName}
+    
+# This should become StartTranscript + vendor_StartTranscript    
+# Call to StartTranscript moves to here.
+# #    set TranscriptDirectory [InitializeTranscriptDirectory]
+# #    set LogFileName [file join $TranscriptDirectory ${BuildName}_log.txt]
+#     # TEE stdout to stdout and transcript
+#     set LogFile  [open ${LogFileName} w]
+# #    chan configure $LogFile -encoding ascii
+# #   fconfigure $LogFile -encoding ascii
+#     tee channel stderr $LogFile
+#     tee channel stdout $LogFile
+# #    chan configure stdout -encoding ascii ; # nope.  So bad it is comical
+    
     #  Catch any errors from the build and handle them below
     set BuildErrorCode [catch {LocalBuild $BuildName $Path_Or_File} BuildErrMsg]
     set BuildErrorInfo $::errorInfo
     set BuildStarted 0
+    
+    StopTranscript ${LogFileName}
+
+    
+## This should become StopTranscript + vendor_StopTranscript    
+#    # Restore stdout 
+#    chan pop stdout
+#    chan pop stderr
     
     # Try to create reports, even if the build failed
     set ReportsErrorCode [catch {CreateReports $BuildName} ReportsErrMsg]
@@ -321,18 +357,17 @@ proc LocalBuild {BuildName Path_Or_File} {
   variable TestSuiteName
   variable OutputBaseDirectory
 
-  BeforeBuildCleanUp   
-
-  # Current Build Setup
-  #  CurrentWorkingDirectory is a relative path
-  set CurrentWorkingDirectory ""
-  CheckWorkingDir
-#  CheckSimulationDirs
-
-#  set BuildName [SetBuildName $Path_Or_File]
-  set LogFileName ${BuildName}.${TranscriptExtension}
-
-  StartTranscript ${LogFileName}
+#   BeforeBuildCleanUp   
+# 
+#   # Current Build Setup
+#   set CurrentWorkingDirectory ""
+#   CheckWorkingDir
+# #  CheckSimulationDirs
+# 
+# #  set BuildName [SetBuildName $Path_Or_File]
+# #  set LogFileName ${BuildName}.${TranscriptExtension}
+# 
+# #  StartTranscript ${LogFileName}
 
   EchoOsvvmCmd "build $Path_Or_File"
 
@@ -345,7 +380,7 @@ proc LocalBuild {BuildName Path_Or_File} {
   puts  $RunFile "Build:"
   puts  $RunFile "  Name: $BuildName"
   puts  $RunFile "  Date: [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
-  puts  $RunFile "  Simulator: $::osvvm::simulator"
+  puts  $RunFile "  Simulator: \"${::osvvm::simulator} ${::osvvm::ToolArgs}\""
   puts  $RunFile "  Version: $::osvvm::ToolNameVersion"
 #  puts  $RunFile "  Date: [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   close $RunFile
@@ -376,7 +411,6 @@ proc LocalBuild {BuildName Path_Or_File} {
 
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   puts "Build Finish time [clock format $BuildFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
-  StopTranscript ${LogFileName}
 }
 
 proc CreateReports {BuildName} {
@@ -532,6 +566,21 @@ proc EchoOsvvmCmd {CmdInfoToPrint} {
 # StartTranscript
 #   Used by build
 #
+proc InitializeTranscriptDirectory {} {
+  variable FirstEchoCmd
+
+  CheckWorkingDir
+
+  set TranscriptDirectory   [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
+  CreateDirectory $TranscriptDirectory
+  if {[info exists FirstEchoCmd]} {
+    # nothing in transcript yet.
+    unset FirstEchoCmd
+  }
+  return $TranscriptDirectory
+}
+
+
 proc StartTranscript {FileBaseName} {
   variable CurrentTranscript
   variable BuildTranscript
@@ -548,12 +597,28 @@ proc StartTranscript {FileBaseName} {
     CreateDirectory [file dirname $FileName]
     set CurrentTranscript $FileBaseName
     set BuildTranscript   $CurrentTranscript
-    vendor_StartTranscript $FileName
+    if {![catch {info body vendor_StartTranscript} err]} {
+      vendor_StartTranscript $FileName
+    } else {
+      DefaultVendor_StartTranscript $FileName
+    }
     if {[info exists FirstEchoCmd]} {
       # nothing in transcript yet.
       unset FirstEchoCmd
     }
   }
+}
+
+proc DefaultVendor_StartTranscript {FileName} { 
+
+# #    chan configure $LogFile -encoding ascii
+# #   fconfigure $LogFile -encoding ascii
+# #    chan configure stdout -encoding ascii ; # nope.  So bad it is comical
+
+  # TEE stdout to stdout and transcript
+  set LogFile  [open ${FileName} w]
+  tee channel stderr $LogFile
+  tee channel stdout $LogFile
 }
 
 # -------------------------------------------------
@@ -568,12 +633,23 @@ proc StopTranscript {{FileBaseName ""}} {
   if {($FileBaseName eq $CurrentTranscript)} {
     # FileName used within the STOP_TRANSCRIPT variable if required
     set FileName [file join $LogDirectory $FileBaseName]
-    vendor_StopTranscript $FileName
+    if {![catch {info body vendor_StopTranscript} err]} {
+      vendor_StopTranscript $FileName
+    } else {
+      DefaultVendor_StopTranscript $FileName
+    }
     unset CurrentTranscript
     if {[info exists FirstEchoCmd]} {
       unset FirstEchoCmd
     }
   }
+}
+
+proc DefaultVendor_StopTranscript {{FileBaseName ""}} {
+
+  # Restore stdout 
+  chan pop stdout
+  chan pop stderr
 }
 
 # -------------------------------------------------
@@ -776,6 +852,8 @@ proc analyze {FileName {OptionalCommands ""}} {
     
     if {$AnalyzeErrorsStopCount != 0 && $AnalyzeErrors >= $AnalyzeErrorsStopCount } {
       error "# ** Error: analyze '$FileName $OptionalCommands' failed: $errmsg"
+    } else {
+      puts "# ** Error: analyze '$FileName $OptionalCommands' failed: $errmsg"
     }
   } else {
     set ConsecutiveAnalyzeErrors 0 
@@ -833,7 +911,9 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
     set ConsecutiveSimulateErrors [expr $ConsecutiveSimulateErrors+1]
     
     if {$SimulateErrorsStopCount != 0 && $SimulateErrors >= $SimulateErrorsStopCount } {
-      error "# ** Error: analyze '$FileName $OptionalCommands' failed: $errmsg"
+      error "# ** Error: simulate '$LibraryUnit $OptionalCommands' failed: $errmsg"
+    } else {
+      puts  "# ** Error: simulate '$LibraryUnit $OptionalCommands' failed: $errmsg"
     }
   } else {
     set ConsecutiveSimulateErrors 0 

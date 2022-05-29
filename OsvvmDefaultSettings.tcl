@@ -56,9 +56,9 @@ namespace eval ::osvvm {
   
   # Also change with SetTranscriptType html 
   variable TranscriptExtension      "html"     ; # Set Transcripts to be html by default
-  if {!($ToolVendor eq "Siemens" || $ToolVendor eq "Aldec") } {
-    variable TranscriptExtension      "log"     ; # html currently supported for Aldec and Siemens simulators
-  } 
+#   if {!($ToolVendor eq "Siemens" || $ToolVendor eq "Aldec" || $ToolName eq "GHDL") } {
+#     variable TranscriptExtension      "log"     ; # html currently supported for Aldec and Siemens simulators
+#   } 
   
 
   # Settings 

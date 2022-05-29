@@ -64,6 +64,9 @@ namespace eval ::osvvm {
   #  variable ToolName   
   #  variable simulator    ; # Deprecated use ToolName instead
   #  variable ToolNameVersion 
+  if {![info exists ToolArgs]} {
+    variable ToolArgs ""
+  }
 
   # 
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
