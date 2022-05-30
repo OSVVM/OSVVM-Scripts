@@ -47,7 +47,7 @@ namespace eval ::osvvm {
   variable SCRIPT_DIR  [file dirname [file normalize [info script]]]
   
   variable OsvvmInitialized  "false"
-  variable ToolName   "VCS"
+  variable ScriptBaseName   "VCS"
 }
 
 source ${::osvvm::SCRIPT_DIR}/StartUpShared.tcl

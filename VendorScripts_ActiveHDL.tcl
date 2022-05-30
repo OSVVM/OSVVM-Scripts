@@ -63,9 +63,15 @@
   # Allow variable OSVVM library to be updated
   setlibrarymode -rw osvvm
 
+  if {[batch_mode]} {
+    variable NoGui true
+  } else {
+    variable NoGui false
+  }
+
 
 # -------------------------------------------------
-# StartTranscript / StopTranscxript
+# StartTranscript / StopTranscript
 #
 proc vendor_StartTranscript {FileName} {
   transcript off
@@ -225,44 +231,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   
   SimulateRunScripts ${LibraryUnit}
 
-#  ### Project level settings - in OsvvmLibraries/Scripts
-#  # Project Vendor script
-#  if {[file exists ${SCRIPT_DIR}/${ToolVendor}.tcl]} {
-#    source ${SCRIPT_DIR}/${ToolVendor}.tcl
-#    cd $MY_START_DIR
-#  }
-#  # Project Simulator Script
-#  if {[file exists ${SCRIPT_DIR}/${simulator}.tcl]} {
-#    source ${SCRIPT_DIR}/${simulator}.tcl
-#    cd $MY_START_DIR
-#  }
-#
-#  ### User level settings for simulator in the simulation run directory
-#  # User Vendor script
-#  if {[file exists ${ToolVendor}.tcl]} {
-#    source ${ToolVendor}.tcl
-#    cd $MY_START_DIR
-#  }
-#  # User Simulator Script
-#  if {[file exists ${simulator}.tcl]} {
-#    source ${simulator}.tcl
-#    cd $MY_START_DIR
-#  }
-#  # User wave.do
-#  if {[file exists wave.do]} {
-#    source wave.do
-#    cd $MY_START_DIR
-#  }
-#  # User Testbench Script
-#  if {[file exists ${LibraryUnit}.tcl]} {
-#    source ${LibraryUnit}.tcl
-#    cd $MY_START_DIR
-#  }
-#  # User Testbench + Simulator Script
-#  if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
-#    source ${LibraryUnit}_${simulator}.tcl
-#    cd $MY_START_DIR
-#  }
 
   log -rec [env]/*
   cd $MY_START_DIR

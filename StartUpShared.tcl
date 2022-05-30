@@ -58,7 +58,7 @@
 # Load Base OSVVM Project Scripts and Vendor Specific Scripts
 source ${::osvvm::SCRIPT_DIR}/OsvvmProjectScripts.tcl
 namespace eval ::osvvm {
-  source ${::osvvm::SCRIPT_DIR}/VendorScripts_${::osvvm::ToolName}.tcl
+  source ${::osvvm::SCRIPT_DIR}/VendorScripts_${::osvvm::ScriptBaseName}.tcl
 }
 
 # Load OSVVM YAML support if yaml support available 
@@ -83,8 +83,8 @@ if {[file exists ${::osvvm::SCRIPT_DIR}/LocalCallBacks.tcl]} {
 # Override simulator specific actions here
 #   While intended for call back feature, can be used to replace any
 #   previously defined procedure - such as vendor_SetCoverageAnalyzeDefaults
-if {[file exists ${::osvvm::SCRIPT_DIR}/CallBacks_${::osvvm::ToolName}.tcl]} {
-  source ${::osvvm::SCRIPT_DIR}/CallBacks_${::osvvm::ToolName}.tcl
+if {[file exists ${::osvvm::SCRIPT_DIR}/CallBacks_${::osvvm::ScriptBaseName}.tcl]} {
+  source ${::osvvm::SCRIPT_DIR}/CallBacks_${::osvvm::ScriptBaseName}.tcl
 }
 
 # Load OSVVM Defaults and then User Defaults (LocalScriptDefaults)

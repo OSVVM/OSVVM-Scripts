@@ -60,6 +60,11 @@
   variable ToolNameVersion ${ToolName}-[lindex [split $version] [llength $version]-1]
   puts $ToolNameVersion
 
+  if {[batch_mode]} {
+    variable NoGui true
+  } else {
+    variable NoGui false
+  }
 
 # -------------------------------------------------
 # StartTranscript / StopTranscxript
