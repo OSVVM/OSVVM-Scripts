@@ -261,21 +261,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   puts "vsim {*}${VsimOptions}"
   vsim {*}${VsimOptions}
 
-#
-#  Was hoping to catch the output for batch, but no work.
-#
-#  if {$::osvvm::NoGui} {
-#    if { [catch {exec vsim -batch {*}${VsimOptions}} SimResults]} { 
-#      error "ghdl --elab-run ended with error $SimResults"
-#    } else {
-#      puts $SimResults
-#    }
-#  } else {
-#    vsim {*}${VsimOptions}
-#  }
-  
-  
-  ### Project level settings - in OsvvmLibraries/Scripts
   # Historical name.  Must be run with "do" for actions to work
   if {[file exists ${SCRIPT_DIR}/Siemens.do]} {
     do ${SCRIPT_DIR}/Siemens.do

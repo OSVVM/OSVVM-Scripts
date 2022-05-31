@@ -68,24 +68,10 @@
 # -------------------------------------------------
 # StartTranscript / StopTranscript
 #
-## proc vendor_StartTranscript {FileName} {
-##   variable GHDL_TRANSCRIPT_FILE
-##    
-##   if {[info exists GHDL_TRANSCRIPT_FILE]} {
-##     unset GHDL_TRANSCRIPT_FILE 
-##   }
-##   set GHDL_TRANSCRIPT_FILE "$FileName"
-##   puts "Transcript $GHDL_TRANSCRIPT_FILE" 
-##   exec echo "Start Time [clock format [clock seconds] -format %T]" > $GHDL_TRANSCRIPT_FILE
-## }
-## 
-## proc vendor_StopTranscript {FileName} {
-##   variable GHDL_TRANSCRIPT_FILE
-##    
-##   puts "Stop Transcript $GHDL_TRANSCRIPT_FILE" 
-##   exec echo "Stop Time [clock format [clock seconds] -format %T]" >> $GHDL_TRANSCRIPT_FILE
-## #  unset GHDL_TRANSCRIPT_FILE 
-## }
+
+# 
+#  Uses DefaultVendor_StartTranscript and DefaultVendor_StopTranscript
+#
 
 # -------------------------------------------------
 # SetCoverageAnalyzeOptions
@@ -140,27 +126,6 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
   }
 }
 
-## proc CheckTranscript {} {
-##   variable GHDL_TRANSCRIPT_FILE
-##   variable ToolNameVersion
-## 
-##   if {![info exists GHDL_TRANSCRIPT_FILE]} {
-##     set GHDL_TRANSCRIPT_FILE [file join ${::osvvm::LogDirectory} default.log]
-##     CreateDirectory [file dirname $GHDL_TRANSCRIPT_FILE]
-##     exec echo "Start Time [clock format [clock seconds] -format %T]" > $GHDL_TRANSCRIPT_FILE
-##   }
-## }
-
-##proc get_tee {} {
-##  variable GHDL_TRANSCRIPT_FILE
-##  variable console
-##  set tee [list tee -a $GHDL_TRANSCRIPT_FILE]
-##  if {$console ne {}} {
-##    lappend tee $console
-##  }
-##  return $tee
-##}
-
 
 # -------------------------------------------------
 # analyze
@@ -175,15 +140,7 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable GHDL_WORKING_LIBRARY_PATH
   variable CoverageSimulateEnable
 
-#  CheckTranscript
-#  set GHDL_WORKING_LIBRARY_PATH   [GhdlLibraryPath $LibraryName $VhdlLibraryFullPath] 
-
-#  puts "$ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName}" 
-#  eval exec $ghdl -a --std=08 -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} | tee -a $GHDL_TRANSCRIPT_FILE $console
-#  exec echo "$ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${VhdlLibraryFullPath} ${FileName}" | {*}[get_tee]
-#  eval exec  $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} -P${VhdlLibraryFullPath} ${FileName} |& {*}[get_tee]
   puts "ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}"
-#  eval exec  $ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} ${FileName} |& {*}[get_tee]
   set results [exec ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}]
   puts $results  
 }
@@ -214,8 +171,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   } else {
     puts $SimResults
   }
-#  set results [exec ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${LibraryUnit}]
-#  puts $results
   
   # Save Coverage Information
   if {[info exists CoverageSimulateEnable]} {

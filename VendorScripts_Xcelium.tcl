@@ -57,19 +57,24 @@
 # -------------------------------------------------
 # StartTranscript / StopTranscxript
 #
-proc vendor_StartTranscript {FileName} {
-  variable VENDOR_TRANSCRIPT_FILE
-   
-  if {[info exists VENDOR_TRANSCRIPT_FILE]} {
-    unset VENDOR_TRANSCRIPT_FILE 
-  }
-  set VENDOR_TRANSCRIPT_FILE $FileName
-  exec echo "Stop Time [clock format [clock seconds] -format %T]" >> $VENDOR_TRANSCRIPT_FILE
-}
 
-proc vendor_StopTranscript {FileName} {
-#  transcript file -close $FileName
-}
+# 
+#  Uses DefaultVendor_StartTranscript and DefaultVendor_StopTranscript
+#
+
+# proc vendor_StartTranscript {FileName} {
+#   variable VENDOR_TRANSCRIPT_FILE
+#    
+#   if {[info exists VENDOR_TRANSCRIPT_FILE]} {
+#     unset VENDOR_TRANSCRIPT_FILE 
+#   }
+#   set VENDOR_TRANSCRIPT_FILE $FileName
+#   exec echo "Stop Time [clock format [clock seconds] -format %T]" >> $VENDOR_TRANSCRIPT_FILE
+# }
+# 
+# proc vendor_StopTranscript {FileName} {
+# #  transcript file -close $FileName
+# }
 
 # -------------------------------------------------
 # SetCoverageAnalyzeOptions
@@ -136,13 +141,14 @@ proc CreateToolSetup {} {
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlShortVersion
   variable VhdlLibraryFullPath
-  variable VENDOR_TRANSCRIPT_FILE
+#  variable VENDOR_TRANSCRIPT_FILE
 
   CreateToolSetup
 
   exec echo "xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}"
-  exec       xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
-#  exec       xmvhdl -CDSLIB cds.lib -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
+  exec       xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName} 
+#  exec       xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
+##  exec       xmvhdl -CDSLIB cds.lib -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
 }
 
 
@@ -170,7 +176,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SimulateTimeUnits
   variable ToolVendor
   variable simulator
-  variable VENDOR_TRANSCRIPT_FILE
+#  variable VENDOR_TRANSCRIPT_FILE
   variable CoverageSimulateEnable
 
   CreateToolSetup
@@ -222,9 +228,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 
   # removed $OptionalCommands
   puts  "xmelab  ${LibraryName}.${LibraryUnit}"
-  eval  exec xmelab  ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+  eval  exec xmelab  ${LibraryName}.${LibraryUnit}  
+#  eval  exec xmelab  ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
   puts  "xmsim  ${LibraryName}.${LibraryUnit}"
-  exec  xmsim  -input temp_Cadence_run.tcl ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+  exec  xmsim  -input temp_Cadence_run.tcl ${LibraryName}.${LibraryUnit}  
+#  exec  xmsim  -input temp_Cadence_run.tcl ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
 #  run 
 #  exit
 }

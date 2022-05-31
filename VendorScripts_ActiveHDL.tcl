@@ -68,6 +68,7 @@
   } else {
     variable NoGui false
   }
+  variable FailOnBuildErrors        "false"
 
 
 # -------------------------------------------------

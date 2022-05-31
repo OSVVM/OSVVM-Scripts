@@ -70,7 +70,7 @@ namespace eval ::osvvm {
   # Default Coverage Options
   #
   variable CoverageEnable           "true"
-  variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults]
+  variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults] 
   variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
 
   #
@@ -93,5 +93,10 @@ namespace eval ::osvvm {
   # If Reports Fail, procude an error message
   #    For CI jobs, set this to "false" so the CI error reporter will attempt to run
   #
-  variable FailOnReportErrors       "true"
+  if {![info exists FailOnBuildErrors]} {
+    variable FailOnBuildErrors        "true"
+  }
+  if {![info exists FailOnReportErrors]} {
+    variable FailOnReportErrors       "true"
+  }
 }

@@ -72,6 +72,19 @@ if {![catch {package require yaml}]} {
 # Import any procedure exported by previous OSVVM scripts
 namespace import ::osvvm::*
 
+# Load OSVVM Defaults and then User Defaults (LocalScriptDefaults)
+# Dependencies in here depend on VendorScripts_???.tcl
+source ${::osvvm::SCRIPT_DIR}/OsvvmDefaultSettings.tcl
+# Load User Settings if they exist
+if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl]} {
+  source ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl
+}
+
+# Finalize Settings
+source ${::osvvm::SCRIPT_DIR}/OsvvmRequiredSettings.tcl
+
+
+
 # Set OSVVM Script Defaults - defaults may call scripts
 source ${::osvvm::SCRIPT_DIR}/CallBacksDefaults.tcl
 # Override common actions here
@@ -86,15 +99,6 @@ if {[file exists ${::osvvm::SCRIPT_DIR}/LocalCallBacks.tcl]} {
 if {[file exists ${::osvvm::SCRIPT_DIR}/CallBacks_${::osvvm::ScriptBaseName}.tcl]} {
   source ${::osvvm::SCRIPT_DIR}/CallBacks_${::osvvm::ScriptBaseName}.tcl
 }
-
-# Load OSVVM Defaults and then User Defaults (LocalScriptDefaults)
-#   These may call things from the OsvvmProjectScripts
-source ${::osvvm::SCRIPT_DIR}/OsvvmDefaultSettings.tcl
-# Check for User Settings
-if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl]} {
-  source ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl
-}
-source ${::osvvm::SCRIPT_DIR}/OsvvmRequiredSettings.tcl
 
 #
 # If package tee available use it, otherwise use the provisional one

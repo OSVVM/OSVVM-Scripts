@@ -49,12 +49,16 @@
   variable ToolVendor  "Xilinx"
   variable ToolName   "XSIM"
   variable simulator   $ToolName ; # Deprecated 
-  variable ToolNameVersion "xsim_21_1"
+  variable ToolNameVersion "xsim_22_1"
   puts $ToolNameVersion
 
 
 # -------------------------------------------------
 # StartTranscript / StopTranscxript
+#
+
+# 
+#  Uses DefaultVendor_StartTranscript and DefaultVendor_StopTranscript
 #
 
 # With this commented out, it will run the DefaultVendor_StartTranscript

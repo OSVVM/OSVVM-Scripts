@@ -57,19 +57,24 @@
 # -------------------------------------------------
 # StartTranscript / StopTranscxript
 #
-proc vendor_StartTranscript {FileName} {
-  variable VENDOR_TRANSCRIPT_FILE
-   
-  if {[info exists VENDOR_TRANSCRIPT_FILE]} {
-    unset VENDOR_TRANSCRIPT_FILE 
-  }
-  set VENDOR_TRANSCRIPT_FILE $FileName
-  exec echo "Stop Time [clock format [clock seconds] -format %T]" >> $VENDOR_TRANSCRIPT_FILE
-}
 
-proc vendor_StopTranscript {FileName} {
-#  transcript file -close $FileName
-}
+# 
+#  Uses DefaultVendor_StartTranscript and DefaultVendor_StopTranscript
+#
+
+# proc vendor_StartTranscript {FileName} {
+#   variable VENDOR_TRANSCRIPT_FILE
+#    
+#   if {[info exists VENDOR_TRANSCRIPT_FILE]} {
+#     unset VENDOR_TRANSCRIPT_FILE 
+#   }
+#   set VENDOR_TRANSCRIPT_FILE $FileName
+#   exec echo "Stop Time [clock format [clock seconds] -format %T]" >> $VENDOR_TRANSCRIPT_FILE
+# }
+# 
+# proc vendor_StopTranscript {FileName} {
+# #  transcript file -close $FileName
+# }
 
 # -------------------------------------------------
 # SetCoverageAnalyzeOptions
@@ -128,19 +133,19 @@ proc CreateToolSetup {} {
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlShortVersion
   variable VhdlLibraryFullPath
-  variable VENDOR_TRANSCRIPT_FILE
+#  variable VENDOR_TRANSCRIPT_FILE
 
   CreateToolSetup
 
   exec echo "vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName}"
-  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
-#  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -kdb -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
+  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName} 
+#   exec       vhdlan -full64 -vhdl${VhdlShortVersion}      -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
+##  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -kdb -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
 }
 
 proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #  Untested branch for Verilog - will need adjustment
    puts "Verilog is not supported for now"
-#        vlog -work ${LibraryName} ${FileName}
 }
 
 # -------------------------------------------------
@@ -159,7 +164,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SimulateTimeUnits
   variable ToolVendor
   variable simulator
-  variable VENDOR_TRANSCRIPT_FILE
+#  variable VENDOR_TRANSCRIPT_FILE
   variable CoverageSimulateEnable
 
   CreateToolSetup
@@ -211,10 +216,12 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 #  puts "exec vcs -full64 -a ${VENDOR_TRANSCRIPT_FILE} -R -sim_res=${SimulateTimeUnits} +vhdllib+${LibraryName} ${LibraryUnit}"
 # caution there is a performance impact of -debug_access+all
   puts      "vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit}"
-  eval  exec vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
-#  eval  exec vcs -full64 -kdb -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+  eval  exec vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} 
+#  eval  exec vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+##  eval  exec vcs -full64 -kdb -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
   puts "./simv -ucli -do temp_Synopsys_run.tcl"
-  exec  ./simv -ucli -do temp_Synopsys_run.tcl |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+  exec  ./simv -ucli -do temp_Synopsys_run.tcl  
+#  exec  ./simv -ucli -do temp_Synopsys_run.tcl |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
 }
 
 # -------------------------------------------------

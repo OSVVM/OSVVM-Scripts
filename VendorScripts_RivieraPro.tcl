@@ -137,15 +137,9 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   if {[info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
     echo vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
     vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-#    if { [catch {vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
-#      error $Msg "analyze $FileName $OptionalCommands" 1
-#    } 
   } else {
     echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
     vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-#    if { [catch {vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
-#      error $Msg "analyze $FileName $OptionalCommands" 1
-#    } 
   }
 }
 
@@ -154,9 +148,6 @@ proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #  Untested branch for Verilog - will need adjustment
   echo vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
   vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-#  if { [catch {vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}} Msg]} {
-#    error $Msg "analyze $FileName $OptionalCommands" 1
-#  } 
 }
 
 # -------------------------------------------------

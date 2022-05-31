@@ -67,7 +67,10 @@ namespace eval ::osvvm {
   if {![info exists ToolArgs]} {
     variable ToolArgs ""
   }
-
+  if {![info exists NoGui]} {
+    variable NoGui true
+  }
+  
   # 
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
   #    Call OSVVM functions to do parameter checking and normalization
@@ -102,9 +105,6 @@ namespace eval ::osvvm {
   #  TranscriptYamlFile: temporary file that contains set of files used in TranscriptOpen.  Deleted by scripts.
   variable TranscriptYamlFile       "OSVVM_transcript.yml" ;  
   
-#  #  OsvvmResultsDirectory: Used by VC test cases - update VC test cases
-#  variable OsvvmResultsDirectory    "results"  ;  # 
-
   # Error handling
   variable AnalyzeErrors 0
   variable ConsecutiveAnalyzeErrors 0

@@ -287,40 +287,17 @@ proc build {{Path_Or_File "."}} {
     
     set BuildStarted 1
     set BuildName [SetBuildName $Path_Or_File]
-    
-    
-    # Current Build Setup
-#    set ::osvvm::CurrentWorkingDirectory ""  ;# moved to BeforeBuildCleanUp
-#    CheckWorkingDir ;# Done in StartTranscript
-    
+        
     set LogFileName ${BuildName}.${TranscriptExtension}
 
     StartTranscript ${LogFileName}
-    
-# This should become StartTranscript + vendor_StartTranscript    
-# Call to StartTranscript moves to here.
-# #    set TranscriptDirectory [InitializeTranscriptDirectory]
-# #    set LogFileName [file join $TranscriptDirectory ${BuildName}_log.txt]
-#     # TEE stdout to stdout and transcript
-#     set LogFile  [open ${LogFileName} w]
-# #    chan configure $LogFile -encoding ascii
-# #   fconfigure $LogFile -encoding ascii
-#     tee channel stderr $LogFile
-#     tee channel stdout $LogFile
-# #    chan configure stdout -encoding ascii ; # nope.  So bad it is comical
-    
+        
     #  Catch any errors from the build and handle them below
     set BuildErrorCode [catch {LocalBuild $BuildName $Path_Or_File} BuildErrMsg]
     set BuildErrorInfo $::errorInfo
     set BuildStarted 0
     
     StopTranscript ${LogFileName}
-
-    
-## This should become StopTranscript + vendor_StopTranscript    
-#    # Restore stdout 
-#    chan pop stdout
-#    chan pop stderr
     
     # Try to create reports, even if the build failed
     set ReportsErrorCode [catch {CreateReports $BuildName} ReportsErrMsg]
@@ -337,13 +314,21 @@ proc build {{Path_Or_File "."}} {
       if {$SimulateErrors > 0} {
         set ErrorSource "${ErrorSource}SimulateErrors  = $SimulateErrors. "
       }
-      error "Build failed with ${ErrorSource}"
+      if {$::osvvm::FailOnBuildErrors} {
+        puts  "Error:  Build failed with ${ErrorSource}."
+        error "For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
+      } else {
+        puts "Error:  Build failed with ${ErrorSource}."
+        puts "Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
+      }
     } 
     if {$ReportsErrorCode != 0} {  
-      if {$FailOnReportErrors} {
-        error "Failed during reporting.  Please include your simulator version in any issue reports"
+      if {$::osvvm::FailOnReportErrors} {
+        puts  "Error: Failed during reporting.  Please include your simulator version in any issue reports"
+        error "For tcl errorInfo, puts \$::osvvm::ReportsErrorInfo"
       } else {
-        puts  "Failed during reporting.  Please include your simulator version in any issue reports"
+        puts  "Error: Failed during reporting.  Please include your simulator version in any issue reports"
+        puts  "Error: For tcl errorInfo, puts \$::osvvm::ReportsErrorInfo"
       }
     } 
   }
@@ -356,18 +341,6 @@ proc LocalBuild {BuildName Path_Or_File} {
   variable RanSimulationWithCoverage 
   variable TestSuiteName
   variable OutputBaseDirectory
-
-#   BeforeBuildCleanUp   
-# 
-#   # Current Build Setup
-#   set CurrentWorkingDirectory ""
-#   CheckWorkingDir
-# #  CheckSimulationDirs
-# 
-# #  set BuildName [SetBuildName $Path_Or_File]
-# #  set LogFileName ${BuildName}.${TranscriptExtension}
-# 
-# #  StartTranscript ${LogFileName}
 
   EchoOsvvmCmd "build $Path_Or_File"
 
@@ -438,10 +411,8 @@ proc CreateDirectory {Directory} {
 #   Used by library, analyze, and simulate
 #
 proc CheckWorkingDir {} {
-#  variable CurrentWorkingDirectory
   variable CurrentSimulationDirectory
   variable VhdlLibraryParentDirectory
-#  variable VhdlLibraryFullPath
   variable VhdlWorkingLibrary
   variable LibraryList
   variable LibraryDirectoryList
@@ -501,7 +472,6 @@ proc CheckLibraryExists {} {
 proc CheckSimulationDirs {} {
   variable CurrentSimulationDirectory
 
-#  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::OsvvmResultsDirectory}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ResultsDirectory}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ReportsDirectory}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::VhdlReportsDirectory}]
@@ -552,12 +522,9 @@ proc EchoOsvvmCmd {CmdInfoToPrint} {
   } elseif {[info exists FirstEchoCmd]} {
     puts "</details><details>"
     puts "<summary>${CmdInfoToPrint}</summary>"
-
-#    puts "</details><details><summary>${CmdInfoToPrint}</summary>"
   } else {
     puts "<pre><details>"
     puts "<summary>${CmdInfoToPrint}</summary>"
-#    puts "<pre><details><summary>${CmdInfoToPrint}</summary>"
     set FirstEchoCmd TRUE
   }
 }
@@ -612,9 +579,6 @@ proc StartTranscript {FileBaseName} {
 proc DefaultVendor_StartTranscript {FileName} { 
 
 # #    chan configure $LogFile -encoding ascii
-# #   fconfigure $LogFile -encoding ascii
-# #    chan configure stdout -encoding ascii ; # nope.  So bad it is comical
-
   # TEE stdout to stdout and transcript
   set LogFile  [open ${FileName} w]
   tee channel stderr $LogFile
@@ -943,9 +907,6 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
     EndSimulation
   }
   set vendor_simulate_started 1
-
-#  StartTranscript ${LibraryUnit}.log
-
 
   set SimulateStartTime   [clock seconds]
   set SimulateStartTimeMs [clock milliseconds]
