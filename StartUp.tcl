@@ -64,7 +64,6 @@ namespace eval ::osvvm {
   # Default SCRIPT_DIR setup - revised for ActiveHDL VSimSA
   variable SCRIPT_DIR  [file dirname [file normalize [info script]]]
   variable OsvvmInitialized  "false"
-  variable ScriptBaseName   ""
   
   # 
   # Determine simulator from name of executable and settings
@@ -76,24 +75,26 @@ namespace eval ::osvvm {
   if {[info exists aldec]} {
     variable ToolFamily [lindex [split [vsim -version]] 2]
     if {$ToolFamily eq "Riviera-PRO"} { 
-      set ScriptBaseName   "RivieraPRO"
+      variable ScriptBaseName   "RivieraPRO"
 
     } elseif {[string match -nocase $ToolExecutableName "vsimsa"]} {
-      set SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
-      set ScriptBaseName   "VSimSA"
+      if {![info exists ScriptBaseName]} {
+        set SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
+      } 
+      variable ScriptBaseName   "VSimSA"
 
     } else {
-      set ScriptBaseName   "ActiveHDL"
+      variable ScriptBaseName   "ActiveHDL"
     }
     
   } elseif {$ToolExecutableName eq "vish" || $ToolExecutableName eq "vsimk"} {
-    set ScriptBaseName "Siemens"
+    variable ScriptBaseName "Siemens"
     
   } elseif {[string match -nocase $ToolExecutableName "vivado"]} {
-    set ScriptBaseName "Vivado"
+    variable ScriptBaseName "Vivado"
 
   } else {
-    set ScriptBaseName "GHDL"
+    variable ScriptBaseName "GHDL"
 
   }
 }
