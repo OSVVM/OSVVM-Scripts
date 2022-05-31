@@ -253,7 +253,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   if {$::osvvm::NoGui} {
     set VsimOptions ""
   } else {
-    set VsimOptions "-voptargs='+acc'"
+    set VsimOptions "-voptargs=+acc"
   }
 
   set VsimOptions "$VsimOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
