@@ -563,7 +563,7 @@ proc StartTranscript {FileBaseName} {
 
 proc DefaultVendor_StartTranscript {FileName} { 
 
-  if {$GotTee} {
+  if {$::osvvm::GotTee} {
   # #    chan configure $LogFile -encoding ascii
     # TEE stdout to stdout and transcript
     set LogFile  [open ${FileName} w]
