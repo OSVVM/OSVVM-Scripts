@@ -533,21 +533,6 @@ proc EchoOsvvmCmd {CmdInfoToPrint} {
 # StartTranscript
 #   Used by build
 #
-proc InitializeTranscriptDirectory {} {
-  variable FirstEchoCmd
-
-  CheckWorkingDir
-
-  set TranscriptDirectory   [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
-  CreateDirectory $TranscriptDirectory
-  if {[info exists FirstEchoCmd]} {
-    # nothing in transcript yet.
-    unset FirstEchoCmd
-  }
-  return $TranscriptDirectory
-}
-
-
 proc StartTranscript {FileBaseName} {
   variable CurrentTranscript
   variable BuildTranscript
@@ -578,11 +563,13 @@ proc StartTranscript {FileBaseName} {
 
 proc DefaultVendor_StartTranscript {FileName} { 
 
-# #    chan configure $LogFile -encoding ascii
-  # TEE stdout to stdout and transcript
-  set LogFile  [open ${FileName} w]
-  tee channel stderr $LogFile
-  tee channel stdout $LogFile
+  if {$GotTee} {
+  # #    chan configure $LogFile -encoding ascii
+    # TEE stdout to stdout and transcript
+    set LogFile  [open ${FileName} w]
+    tee channel stderr $LogFile
+    tee channel stdout $LogFile
+  }
 }
 
 # -------------------------------------------------

@@ -101,10 +101,10 @@ if {[file exists ${::osvvm::SCRIPT_DIR}/CallBacks_${::osvvm::ScriptBaseName}.tcl
 }
 
 #
-# If package tee available use it, otherwise use the provisional one
+# If the tee scripts load, mark them as available
 #
-if {![catch {package require tee}]} {
-  package require tee
+if {[catch {source ${::osvvm::SCRIPT_DIR}/tee.tcl}]} {
+   variable ::osvvm::GotTee false
 } else {
-  source ${::osvvm::SCRIPT_DIR}/tee.tcl
+   variable ::osvvm::GotTee true
 }

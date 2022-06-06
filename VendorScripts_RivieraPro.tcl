@@ -93,7 +93,8 @@ proc vendor_SetCoverageAnalyzeDefaults {} {
 proc vendor_SetCoverageSimulateDefaults {} {
   variable CoverageSimulateOptions
 #  set CoverageSimulateOptions "-acdb -acdb_cov sbmec -cc_all"
-  set CoverageSimulateOptions "-acdb -acdb_cov sbm -cc_all"
+#  set CoverageSimulateOptions "-acdb -acdb_cov sbm -cc_all"
+  set CoverageSimulateOptions "-acdb_cov sbm -cc_all"
 }
 
 # -------------------------------------------------
@@ -133,21 +134,24 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable CoverageAnalyzeEnable
   variable CoverageSimulateEnable
   
-  # For now, do not use -dbg flag with coverage.   
-  if {[info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
-    echo vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-    vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+  if {$::osvvm::NoGui || [info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
+    set DebugOptions ""
   } else {
-    echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-    vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+    set DebugOptions "-dbg"
   }
+  
+  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  puts "vcom {*}$AnalyzeOptions"
+        vcom {*}$AnalyzeOptions
 }
 
 proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #  Untested branch for Verilog - will need adjustment
 #  Untested branch for Verilog - will need adjustment
-  echo vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-  vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+
+  set  AnalyzeOptions [concat -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  puts "vlog {*}$AnalyzeOptions"
+        vlog {*}$AnalyzeOptions
 }
 
 # -------------------------------------------------
@@ -162,17 +166,16 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
-  variable SCRIPT_DIR
   variable SimulateTimeUnits
-  variable ToolVendor
-  variable simulator
   variable CoverageSimulateEnable
   variable TestSuiteName
   variable TestCaseName
 
-  puts "vsim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} "
-  vsim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}
-    
+  set SimulateOptions [concat {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}]
+
+  puts "vsim {*}${SimulateOptions}"
+        vsim {*}${SimulateOptions}
+        
   SimulateRunScripts ${LibraryUnit}
 
   log -rec [env]/*

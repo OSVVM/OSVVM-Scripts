@@ -111,4 +111,6 @@ namespace eval ::osvvm {
   variable SimulateErrors 0
   variable ConsecutiveSimulateErrors 0
   
+  variable GotTee false
+  
 }
