@@ -705,7 +705,7 @@ proc library {LibraryName {PathToLib ""}} {
   if {$found >= 0} {
     # Lookup Existing Library Directory
     set item [lindex $LibraryList $found]
-    set ResolvedPathToLib [lindex $item 1]
+    set ResolvedPathToLib [lreplace $item 0 0]
   }
   EchoOsvvmCmd  "library $LibraryName $ResolvedPathToLib"
   vendor_library $LowerLibraryName $ResolvedPathToLib
