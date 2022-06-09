@@ -869,6 +869,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   } else {
     set ConsecutiveSimulateErrors 0 
   }
+  unset ::osvvm::TestCaseName
 }
 
 proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
@@ -931,8 +932,6 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
     puts  $RunFile "      ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
     close $RunFile
   }
-
-  unset TestCaseName
 }
 
 proc SimulateRunScripts {LibraryUnit} {
