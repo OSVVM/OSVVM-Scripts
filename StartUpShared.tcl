@@ -79,6 +79,10 @@ source ${::osvvm::SCRIPT_DIR}/OsvvmDefaultSettings.tcl
 if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl]} {
   source ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl
 }
+# Simulator specific defaults
+if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults_${::osvvm::ScriptBaseName}.tcl]} {
+  source ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults_${::osvvm::ScriptBaseName}.tcl
+}
 
 # Finalize Settings
 source ${::osvvm::SCRIPT_DIR}/OsvvmRequiredSettings.tcl

@@ -53,8 +53,11 @@ namespace eval ::osvvm {
   # Extended TCL information about errors - for debugging
   #   TCL's errorInfo is saved to these as build finishes
   #
+  variable AnalyzeErrorInfo
+  variable SimulateErrorInfo
   variable BuildErrorInfo
   variable ReportsErrorInfo
+
 
   #
   # Variables set by VendorScripts_***.tcl

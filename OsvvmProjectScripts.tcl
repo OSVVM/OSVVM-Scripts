@@ -797,9 +797,11 @@ proc analyze {FileName {OptionalCommands ""}} {
   variable ConsecutiveAnalyzeErrors 
   variable AnalyzeErrorsStopCount
    
-  if {[catch {LocalAnalyze $FileName {*}$OptionalCommands} errmsg]} {
+  if {[catch {LocalAnalyze $FileName $OptionalCommands} errmsg]} {
     set AnalyzeErrors            [expr $AnalyzeErrors+1]
     set ConsecutiveAnalyzeErrors [expr $ConsecutiveAnalyzeErrors+1]
+    set ::osvvm::AnalyzeErrorInfo $::errorInfo
+    puts "# ** Error: analyze  For tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
     
     if {$AnalyzeErrorsStopCount != 0 && $AnalyzeErrors >= $AnalyzeErrorsStopCount } {
       error "# ** Error: analyze '$FileName $OptionalCommands' failed: $errmsg"
@@ -857,10 +859,12 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   variable ConsecutiveSimulateErrors 
   variable SimulateErrorsStopCount
    
-  if {[catch {LocalSimulate $LibraryUnit {*}$OptionalCommands} errmsg]} {
+  if {[catch {LocalSimulate $LibraryUnit $OptionalCommands} errmsg]} {
     set SimulateErrors            [expr $SimulateErrors+1]
     set ConsecutiveSimulateErrors [expr $ConsecutiveSimulateErrors+1]
-    
+    set ::osvvm::SimulateErrorInfo $::errorInfo
+    puts "# ** Error: simulate  For tcl errorInfo, puts \$::osvvm::SimulateErrorInfo"
+
     if {$SimulateErrorsStopCount != 0 && $SimulateErrors >= $SimulateErrorsStopCount } {
       error "# ** Error: simulate '$LibraryUnit $OptionalCommands' failed: $errmsg"
     } else {
@@ -869,7 +873,9 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   } else {
     set ConsecutiveSimulateErrors 0 
   }
-  unset ::osvvm::TestCaseName
+  if {[info exists ::osvvm::TestCaseName]} {
+    unset ::osvvm::TestCaseName
+  }
 }
 
 proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
