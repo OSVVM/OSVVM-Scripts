@@ -169,7 +169,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SimulateTimeUnits
   variable CoverageSimulateEnable
   variable TestSuiteName
-  variable TestCaseName
+  variable TestCaseFileName
 
   set SimulateOptions [concat {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}]
 
@@ -183,9 +183,16 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   
   # Save Coverage Information 
   if {[info exists CoverageSimulateEnable]} {
-    acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseName}.acdb -testname ${TestCaseName}
+    acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.acdb -testname ${TestCaseFileName}
   }
 }
+
+# -------------------------------------------------
+proc vendor_generic {Name Value} {
+  
+  return "-g${Name}=${Value}"
+}
+
 
 # -------------------------------------------------
 # Merge Coverage

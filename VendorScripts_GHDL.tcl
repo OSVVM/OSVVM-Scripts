@@ -178,6 +178,12 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   }
 }
 
+# -------------------------------------------------
+proc vendor_generic {Name Value} {
+  
+  return "-g${Name}=${Value}"
+}
+
 
 # -------------------------------------------------
 # Merge Coverage

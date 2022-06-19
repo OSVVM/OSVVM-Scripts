@@ -216,7 +216,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable simulator
   variable CoverageSimulateEnable
   variable TestSuiteName
-  variable TestCaseName
+  variable TestCaseFileName
   global sim_working_folder
 
   set sim_working_folder $::osvvm::CurrentSimulationDirectory
@@ -240,8 +240,14 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   
   # Save Coverage Information 
   if {[info exists CoverageSimulateEnable]} {
-    acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseName}.acdb -testname ${TestCaseName}
+    acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.acdb -testname ${TestCaseFileName}
   }
+}
+
+# -------------------------------------------------
+proc vendor_generic {Name Value} {
+  
+  return "-g${Name}=${Value}"
 }
 
 # -------------------------------------------------

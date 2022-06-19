@@ -876,12 +876,16 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   if {[info exists ::osvvm::TestCaseName]} {
     unset ::osvvm::TestCaseName
   }
+  # Remove Generics
+  set ::osvvm::GenericList ""
+  set ::osvvm::GenericNames ""
 }
 
 proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
   variable VhdlWorkingLibrary
   variable vendor_simulate_started
   variable TestCaseName
+  variable TestCaseFileName
   variable TestSuiteName
   variable TranscriptExtension
   variable CoverageSimulateEnable
@@ -892,6 +896,8 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
   if {![info exists TestCaseName]} {
     TestCase $LibraryUnit
   }
+  # Generics are not finalized until the call to Simulate.  TestCaseName may be set before.
+  set TestCaseFileName ${TestCaseName}${::osvvm::GenericNames}
 
   CheckWorkingDir
   CheckLibraryExists
@@ -931,10 +937,12 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
 
   puts "Simulate Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
 
-  Simulate2Html $TestCaseName $TestSuiteName
+  Simulate2Html $TestCaseName $TestSuiteName $TestCaseFileName
 
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
+    puts  $RunFile "      TestCaseFileName: $TestCaseFileName"
+    puts  $RunFile "      TestCaseGenerics: \"$::osvvm::GenericList\""
     puts  $RunFile "      ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
     close $RunFile
   }
@@ -977,6 +985,17 @@ proc SimulateRunScripts {LibraryUnit} {
   }
 }
 
+# -------------------------------------------------
+proc generic {Name Value} {
+  variable GenericList
+  variable GenericNames
+  
+  lappend GenericList "$Name $Value"
+  set GenericNames ${GenericNames}_${Name}_${Value}
+  
+#   return "-g${Name}=${Value}"
+  return [vendor_generic ${Name} ${Value}]
+}
 
 # -------------------------------------------------
 proc MergeCoverage {SuiteName MergeName} {
@@ -1370,6 +1389,7 @@ proc DirectoryExists {DirInQuestion} {
 # map
 
 namespace export analyze simulate build include library RunTest SkipTest TestSuite TestCase
+namespace export generic
 namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
 namespace export RemoveAllLibraries RemoveLocalLibraries CreateDirectory
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution

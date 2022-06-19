@@ -248,7 +248,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SimulateTimeUnits
   variable CoverageSimulateEnable
   variable TestSuiteName
-  variable TestCaseName
+  variable TestCaseFileName
   
   if {$::osvvm::NoGui} {
     set VsimOptions ""
@@ -274,9 +274,16 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   run -all 
   
   if {[info exists CoverageSimulateEnable]} {
-    coverage save ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseName}.ucdb 
+    coverage save ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.ucdb 
   }
 }
+
+# -------------------------------------------------
+proc vendor_generic {Name Value} {
+  
+  return "-g${Name}=${Value}"
+}
+
 
 # -------------------------------------------------
 # Merge Coverage

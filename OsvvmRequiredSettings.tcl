@@ -87,12 +87,14 @@ namespace eval ::osvvm {
   #  Initialize internal settings
   #
   # CurrentWorkingDirectory is a relative path to the scripts currently running 
-  set CurrentWorkingDirectory ""
+  variable CurrentWorkingDirectory ""
   # CurrentSimulationDirectory is an absolute path to the simulation directory (for reports and such)
-  set CurrentSimulationDirectory ""
+  variable CurrentSimulationDirectory ""
   
   # When a build is started, run include instead of build
-  set BuildStarted 0
+  variable BuildStarted 0
+  variable GenericList  ""
+  variable GenericNames ""
 
   # Directory and Results file management
   variable ReportsDirectory          [file join ${OutputBaseDirectory} ${ReportsSubdirectory}]

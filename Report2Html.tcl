@@ -313,7 +313,8 @@ proc ReportTestSuites {TestDict} {
       puts $ResultsFile "  <tr></tr>"
 
       foreach TestCase [dict get $TestSuite TestCases] {
-        set TestName    [dict get $TestCase TestCaseName]
+        set TestName     [dict get $TestCase TestCaseName]
+        set TestFileName [dict get $TestCase TestCaseFileName]
         
         if { [dict exists $TestCase Status] } { 
           set TestStatus    [dict get $TestCase Status]
@@ -360,9 +361,24 @@ proc ReportTestSuites {TestDict} {
             set FailedColor  "#FF0000" 
           }
         }
-        set TestCaseHtmlFile [file join ${::osvvm::ReportsSubdirectory} ${SuiteName} ${TestName}.html]
+        set TestCaseHtmlFile [file join ${::osvvm::ReportsSubdirectory} ${SuiteName} ${TestFileName}.html]
+        set TestCaseGenerics [dict get $TestCase TestCaseGenerics]
+        set TestCaseName $TestName
+        if {${TestCaseGenerics} ne ""} {
+          set i 0
+          set ListLen [llength ${TestCaseGenerics}]
+          append TestCaseName " (" 
+          foreach GenericName $TestCaseGenerics {
+            incr i
+            if {$i != $ListLen} {
+              append TestCaseName [lindex $GenericName 1] " ,"
+            } else {
+              append TestCaseName [lindex $GenericName 1] ")"
+            }
+          }
+        }
         puts $ResultsFile "  <tr>"
-        puts $ResultsFile "      <td><a href=\"${TestCaseHtmlFile}\">${TestName}</a></td>"
+        puts $ResultsFile "      <td><a href=\"${TestCaseHtmlFile}\">${TestCaseName}</a></td>"
         puts $ResultsFile "      <td style=color:${StatusColor}>$TestStatus</td>"
         if { $TestReport eq "REPORT" } {
           puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestResults PassedCount] /  [dict get $TestResults AffirmCount]</td>"

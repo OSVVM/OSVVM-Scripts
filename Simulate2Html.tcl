@@ -44,7 +44,7 @@
 
 package require yaml
 
-proc Simulate2Html {TestCaseName TestSuiteName} {
+proc Simulate2Html {TestCaseName TestSuiteName TestCaseFileName} {
   variable ResultsFile
   variable VhdlReportsDirectory
   variable AlertYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_alerts.yml]
@@ -52,39 +52,41 @@ proc Simulate2Html {TestCaseName TestSuiteName} {
   variable SbSlvYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_sb_slv.yml]
   variable SbIntYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_sb_int.yml]
 
+  set TestSuiteDirectory [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
+  CreateDirectory $TestSuiteDirectory
+  
   CreateSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
-  set TestSuiteDirectory [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
   if {[file exists ${AlertYamlFile}]} {
     Alert2Html ${TestCaseName} ${TestSuiteName} ${AlertYamlFile}
-    file rename -force ${AlertYamlFile}  ${TestSuiteDirectory}
+    file rename -force ${AlertYamlFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_alerts.yml]
   }
   
   if {[file exists ${CovYamlFile}]} {
     Cov2Html ${TestCaseName} ${TestSuiteName} ${CovYamlFile}
-    file rename -force ${CovYamlFile}  ${TestSuiteDirectory}
+    file rename -force ${CovYamlFile}     [file join ${TestSuiteDirectory} ${TestCaseFileName}_cov.yml]
   }
   
   if {[file exists ${SbSlvYamlFile}]} {
     Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbSlvYamlFile} Scoreboard_slv
-    file rename -force ${SbSlvYamlFile}  ${TestSuiteDirectory}
+    file rename -force ${SbSlvYamlFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_slv.yml]
   }
   
   if {[file exists ${SbIntYamlFile}]} {
     Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbIntYamlFile} Scoreboard_int
-    file rename -force ${SbIntYamlFile}  ${TestSuiteDirectory}
+    file rename -force ${SbIntYamlFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_int.yml]
   }
   
   FinalizeSimulationReportFile ${TestCaseName} ${TestSuiteName}
+  
+  file rename -force ${TestCaseName}.html [file join ${TestSuiteDirectory} ${TestCaseFileName}.html]
 }
 
 proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
   variable ResultsFile
 
-  set ReportDir [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
-  CreateDirectory $ReportDir 
-
-  set FileName [file join ${ReportDir} ${TestCaseName}.html]
+  # Create the TestCase file in the simulation directory
+  set FileName ${TestCaseName}.html
   if { $initialize } {
     file copy -force ${::osvvm::SCRIPT_DIR}/header_report.html ${FileName}
   }
@@ -99,9 +101,9 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   variable SbSlvYamlFile 
   variable SbIntYamlFile 
   variable TranscriptYamlFile
-  
-  OpenSimulationReportFile ${TestCaseName} ${TestSuiteName} 1
-  
+    
+  OpenSimulationReportFile   ${TestCaseName} ${TestSuiteName} 1
+
   puts $ResultsFile "<title>$TestCaseName Test Case Detailed Report</title>"
   puts $ResultsFile "</head>"
   puts $ResultsFile "<body>"
@@ -152,6 +154,12 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
     }
     # Remove file so it does not impact any following simulation
     file delete -force -- ${TranscriptYamlFile}
+  }
+  # Print the Generics
+  if {${::osvvm::GenericList} ne ""} {
+    foreach GenericName $::osvvm::GenericList {
+      puts $ResultsFile "  <tr><td>Generic: [lindex $GenericName 0] = [lindex $GenericName 1]</td></tr>"
+    }
   }
   
   puts $ResultsFile "</table>"
