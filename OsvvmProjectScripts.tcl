@@ -948,41 +948,26 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
   }
 }
 
-proc SimulateRunScripts {LibraryUnit} {
-  variable SCRIPT_DIR
+proc RunIfExists {ScriptToRun} {
+  if {[file exists $ScriptToRun]} {
+    source ${ScriptToRun}
+  }
+}
+proc SimulateRunSubScripts {LibraryUnit Directory} {
   variable ToolVendor
   variable simulator
   
-  # Project Vendor script
-  if {[file exists ${SCRIPT_DIR}/${ToolVendor}.tcl]} {
-    source ${SCRIPT_DIR}/${ToolVendor}.tcl
-  }
-  # Project Simulator Script
-  if {[file exists ${SCRIPT_DIR}/${simulator}.tcl]} {
-    source ${SCRIPT_DIR}/${simulator}.tcl
-  }
+  RunIfExists [file join $Directory ${ToolVendor}.tcl]
+  RunIfExists [file join $Directory ${simulator}.tcl]
+  RunIfExists [file join $Directory wave.do]
+  RunIfExists [file join $Directory ${LibraryUnit}.tcl]
+  RunIfExists [file join $Directory ${LibraryUnit}_${simulator}.tcl]
+}
 
-  ### User level settings for simulator in the simulation run directory
-  # User Vendor script
-  if {[file exists ${ToolVendor}.tcl]} {
-    source ${ToolVendor}.tcl
-  }
-  # User Simulator Script
-  if {[file exists ${simulator}.tcl]} {
-    source ${simulator}.tcl
-  }
-  # User wave.do
-  if {[file exists wave.do]} {
-    source wave.do
-  }
-  # User Testbench Script
-  if {[file exists ${LibraryUnit}.tcl]} {
-    source ${LibraryUnit}.tcl
-  }
-  # User Testbench + Simulator Script
-  if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
-    source ${LibraryUnit}_${simulator}.tcl
-  }
+proc SimulateRunScripts {LibraryUnit} {
+  SimulateRunSubScripts ${LibraryUnit} ${::osvvm::SCRIPT_DIR}
+  SimulateRunSubScripts ${LibraryUnit} ${::osvvm::CurrentSimulationDirectory}
+  SimulateRunSubScripts ${LibraryUnit} ${::osvvm::CurrentWorkingDirectory}
 }
 
 # -------------------------------------------------
