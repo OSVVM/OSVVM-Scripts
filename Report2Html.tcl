@@ -314,8 +314,6 @@ proc ReportTestSuites {TestDict} {
 
       foreach TestCase [dict get $TestSuite TestCases] {
         set TestName     [dict get $TestCase TestCaseName]
-        set TestFileName [dict get $TestCase TestCaseFileName]
-        
         if { [dict exists $TestCase Status] } { 
           set TestStatus    [dict get $TestCase Status]
           set TestResults [dict get $TestCase Results]
@@ -361,19 +359,26 @@ proc ReportTestSuites {TestDict} {
             set FailedColor  "#FF0000" 
           }
         }
+        if { [dict exists $TestCase TestCaseFileName] } { 
+          set TestFileName [dict get $TestCase TestCaseFileName]
+        } else {
+          set TestFileName $TestName
+        }
         set TestCaseHtmlFile [file join ${::osvvm::ReportsSubdirectory} ${SuiteName} ${TestFileName}.html]
-        set TestCaseGenerics [dict get $TestCase TestCaseGenerics]
         set TestCaseName $TestName
-        if {${TestCaseGenerics} ne ""} {
-          set i 0
-          set ListLen [llength ${TestCaseGenerics}]
-          append TestCaseName " (" 
-          foreach GenericName $TestCaseGenerics {
-            incr i
-            if {$i != $ListLen} {
-              append TestCaseName [lindex $GenericName 1] " ,"
-            } else {
-              append TestCaseName [lindex $GenericName 1] ")"
+        if { [dict exists $TestCase TestCaseGenerics] } { 
+          set TestCaseGenerics [dict get $TestCase TestCaseGenerics]
+          if {${TestCaseGenerics} ne ""} {
+            set i 0
+            set ListLen [llength ${TestCaseGenerics}]
+            append TestCaseName " (" 
+            foreach GenericName $TestCaseGenerics {
+              incr i
+              if {$i != $ListLen} {
+                append TestCaseName [lindex $GenericName 1] " ,"
+              } else {
+                append TestCaseName [lindex $GenericName 1] ")"
+              }
             }
           }
         }
