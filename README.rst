@@ -331,7 +331,7 @@ shown below.
 
 .. code:: tcl
 
-   build ../OsvvmLibraries/AXI4/RunAllTests.pro
+   build ../OsvvmLibraries/RunAllTests.pro
    
 
 For most VC and OsvvmLibraries, there is a RunDemoTests.pro that runs
@@ -580,12 +580,13 @@ How To Generate Reports
 VHDL Aspects of Generating Reports
 ------------------------------------------  
 To generate reports, you need to have the following in your VHDL testbench:  
+
 * Name your test case with ``SetAlertLogName("TestName")``.  
 * Do some self-checking with ``AffirmIf``, ``AffirmIfEqual``, or ``AffirmIfNotDiff``.  
 * End the test case with ``EndOfTestReports``.  
 
 These following code snippet shows these in use.
-More details of this are in OSVVM Test Writers User Guide in the documentation repository.
+More details of this are in `OSVVM Test Writers User Guide <https://github.com/OSVVM/Documentation/blob/main/OSVVM_test_writers_user_guide.pdf>`__ in the documentation repository.
 
 .. code:: vhdl
 
@@ -632,7 +633,7 @@ as otherwise, a NAME_MISMATCH failure will be generated.
 Generating Reports and Running Tests without Configurations
 ------------------------------------------------------------------  
 In OSVVM, we use the testbench framework shown in the
-OSVVM Test Writers User Guide (see documentation repository). 
+`OSVVM Test Writers User Guide <https://github.com/OSVVM/Documentation/blob/main/OSVVM_test_writers_user_guide.pdf>`__ (see documentation repository). 
 The test harness in the following example is named TbUart. 
 The test sequencer entity is in file TestCtrl_e.vhd. 
 Tests are in architectures of TestCtrl in the files,
