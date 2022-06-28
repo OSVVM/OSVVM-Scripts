@@ -580,6 +580,7 @@ How To Generate Reports
 VHDL Aspects of Generating Reports
 ------------------------------------------  
 To generate reports, you need to have the following in your VHDL testbench:  
+
 * Name your test case with ``SetAlertLogName("TestName")``.  
 * Do some self-checking with ``AffirmIf``, ``AffirmIfEqual``, or ``AffirmIfNotDiff``.  
 * End the test case with ``EndOfTestReports``.  
