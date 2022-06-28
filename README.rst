@@ -331,7 +331,7 @@ shown below.
 
 .. code:: tcl
 
-   build ../OsvvmLibraries/AXI4/RunAllTests.pro
+   build ../OsvvmLibraries/RunAllTests.pro
    
 
 For most VC and OsvvmLibraries, there is a RunDemoTests.pro that runs
