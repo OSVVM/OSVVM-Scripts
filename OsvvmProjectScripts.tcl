@@ -353,7 +353,7 @@ proc LocalBuild {BuildName Path_Or_File} {
   puts  $RunFile "Build:"
   puts  $RunFile "  Name: $BuildName"
   puts  $RunFile "  Date: [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
-  puts  $RunFile "  Simulator: \"${::osvvm::simulator} ${::osvvm::ToolArgs}\""
+  puts  $RunFile "  Simulator: \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
   puts  $RunFile "  Version: $::osvvm::ToolNameVersion"
 #  puts  $RunFile "  Date: [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   close $RunFile
@@ -955,13 +955,13 @@ proc RunIfExists {ScriptToRun} {
 }
 proc SimulateRunSubScripts {LibraryUnit Directory} {
   variable ToolVendor
-  variable simulator
+  variable ToolName
   
   RunIfExists [file join $Directory ${ToolVendor}.tcl]
-  RunIfExists [file join $Directory ${simulator}.tcl]
+  RunIfExists [file join $Directory ${ToolName}.tcl]
   RunIfExists [file join $Directory wave.do]
   RunIfExists [file join $Directory ${LibraryUnit}.tcl]
-  RunIfExists [file join $Directory ${LibraryUnit}_${simulator}.tcl]
+  RunIfExists [file join $Directory ${LibraryUnit}_${ToolName}.tcl]
 }
 
 proc SimulateRunScripts {LibraryUnit} {

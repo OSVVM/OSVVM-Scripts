@@ -48,7 +48,7 @@
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Synopsys"
-  variable ToolName   "VCS"
+  variable ToolName    "VCS"
   variable simulator   $ToolName ; # Deprecated 
   variable ToolNameVersion "${ToolName}-R2020_12"
   puts $ToolNameVersion
@@ -163,7 +163,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor
-  variable simulator
+  variable ToolName
 #  variable VENDOR_TRANSCRIPT_FILE
   variable CoverageSimulateEnable
 
@@ -177,8 +177,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     puts  $SynFile "source ${SCRIPT_DIR}/${ToolVendor}.tcl"
   }
 # Project Simulator Script
-  if {[file exists ${SCRIPT_DIR}/${simulator}.tcl]} {
-    puts  $SynFile "source ${SCRIPT_DIR}/${simulator}.tcl"
+  if {[file exists ${SCRIPT_DIR}/${ToolName}.tcl]} {
+    puts  $SynFile "source ${SCRIPT_DIR}/${ToolName}.tcl"
   }
  
 ### User level settings for simulator in the simulation run directory
@@ -187,8 +187,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     puts  $SynFile "source ${ToolVendor}.tcl"
   }
 # User Simulator Script
-  if {[file exists ${simulator}.tcl]} {
-    puts  $SynFile "source ${simulator}.tcl"
+  if {[file exists ${ToolName}.tcl]} {
+    puts  $SynFile "source ${ToolName}.tcl"
   }
 # User wave.do
   if {[file exists wave.do]} {
@@ -199,8 +199,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     puts  $SynFile "source ${LibraryUnit}.tcl"
   }
 # User Testbench + Simulator Script
-  if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
-    puts  $SynFile "source ${LibraryUnit}_${simulator}.tcl"
+  if {[file exists ${LibraryUnit}_${ToolName}.tcl]} {
+    puts  $SynFile "source ${LibraryUnit}_${ToolName}.tcl"
   }
   puts  $SynFile "run" 
   

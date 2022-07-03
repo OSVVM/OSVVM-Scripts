@@ -107,8 +107,10 @@ if {[file exists ${::osvvm::SCRIPT_DIR}/CallBacks_${::osvvm::ScriptBaseName}.tcl
 #
 # If the tee scripts load, mark them as available
 #
-if {[catch {source ${::osvvm::SCRIPT_DIR}/tee.tcl}]} {
-   variable ::osvvm::GotTee false
-} else {
-   variable ::osvvm::GotTee true
+if {${::osvvm::ToolName} ne "XSIM"} {
+  if {[catch {source ${::osvvm::SCRIPT_DIR}/tee.tcl}]} {
+     variable ::osvvm::GotTee false
+  } else {
+     variable ::osvvm::GotTee true
+  }
 }

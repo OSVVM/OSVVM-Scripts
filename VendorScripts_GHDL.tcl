@@ -50,7 +50,7 @@
 #
   variable ToolType   "simulator"
   variable ToolVendor "GHDL"
-  variable ToolName  "GHDL"
+  variable ToolName   "GHDL"
   variable simulator   $ToolName ; # Deprecated 
 ##  variable ghdl "ghdl"
   

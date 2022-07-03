@@ -247,15 +247,15 @@ As a result, when simulate runs, it will also include the
 following files in order, if they exist:
 
 -  OsvvmLibraries/Scripts/<ToolVendor>.tcl
--  OsvvmLibraries/Scripts/<simulator>.tcl
+-  OsvvmLibraries/Scripts/<ToolName>.tcl
 -  <sim-run-dir>/<ToolVendor>.tcl
--  <sim-run-dir>/<simulator>.tcl
+-  <sim-run-dir>/<ToolName>.tcl
 -  <sim-run-dir>/<test-name>.tcl
--  <sim-run-dir>/<test-name>_<simulator>.tcl
+-  <sim-run-dir>/<test-name>_<ToolName>.tcl
 -  <sim-run-dir>/wave.do
 
 ToolVendor is either {Aldec, Siemens, Cadence, Synopsys}. 
-Simulator is one of {QuestaSim, ModelSim, RivieraPRO, ActiveHDL, VCS, Xcelium}. 
+ToolName is one of {QuestaSim, ModelSim, RivieraPRO, ActiveHDL, VCS, Xcelium}. 
 "test-name" is the name of the design being simulated. 
 "sim-run-dir" is the directory from which you run the simulator.
 

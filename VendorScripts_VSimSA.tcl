@@ -55,7 +55,7 @@
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Aldec"
-  variable ToolName   "VSimSA"
+  variable ToolName    "VSimSA"
   variable simulator   $ToolName ; # Deprecated 
   variable ToolNameVersion ${ToolName}-[lindex [split $version] [llength $version]-1]
   puts $ToolNameVersion
@@ -163,7 +163,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor
-  variable simulator
   variable CoverageSimulateEnable
   variable TestSuiteName
   variable TestCaseFileName

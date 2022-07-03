@@ -58,7 +58,7 @@
   variable ToolVendor  "Aldec"
   variable ToolName    "ActiveHDL"
   variable simulator   $ToolName ; # Deprecated  
-  variable ToolNameVersion ${simulator}-${version}
+  variable ToolNameVersion ${ToolName}-${version}
   puts $ToolNameVersion
   # Allow variable OSVVM library to be updated
   setlibrarymode -rw osvvm
@@ -213,7 +213,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor
-  variable simulator
   variable CoverageSimulateEnable
   variable TestSuiteName
   variable TestCaseFileName

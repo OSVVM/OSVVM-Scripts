@@ -48,7 +48,7 @@
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Cadence"
-  variable ToolName   "Xcelium"
+  variable ToolName    "Xcelium"
   variable simulator   $ToolName ; # Deprecated 
   variable ToolNameVersion ${ToolName}-[lindex [exec xmvhdl -version] 2] 
 #  variable ToolNameVersion "21.03-s006"
@@ -175,7 +175,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor
-  variable simulator
+  variable ToolName
 #  variable VENDOR_TRANSCRIPT_FILE
   variable CoverageSimulateEnable
 
@@ -191,8 +191,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     puts  $RunFile "source ${SCRIPT_DIR}/${ToolVendor}.tcl"
   }
 # Project Simulator Script
-  if {[file exists ${SCRIPT_DIR}/${simulator}.tcl]} {
-    puts  $RunFile "source ${SCRIPT_DIR}/${simulator}.tcl"
+  if {[file exists ${SCRIPT_DIR}/${ToolName}.tcl]} {
+    puts  $RunFile "source ${SCRIPT_DIR}/${ToolName}.tcl"
   }
  
 ### User level settings for simulator in the simulation run directory
@@ -201,8 +201,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     puts  $RunFile "source ${ToolVendor}.tcl"
   }
 # User Simulator Script
-  if {[file exists ${simulator}.tcl]} {
-    puts  $RunFile "source ${simulator}.tcl"
+  if {[file exists ${ToolName}.tcl]} {
+    puts  $RunFile "source ${ToolName}.tcl"
   }
 # User wave.do
   if {[file exists wave.do]} {
@@ -213,8 +213,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     puts  $RunFile "source ${LibraryUnit}.tcl"
   }
 # User Testbench + Simulator Script
-  if {[file exists ${LibraryUnit}_${simulator}.tcl]} {
-    puts  $RunFile "source ${LibraryUnit}_${simulator}.tcl"
+  if {[file exists ${LibraryUnit}_${ToolName}.tcl]} {
+    puts  $RunFile "source ${LibraryUnit}_${ToolName}.tcl"
   }
   puts  $RunFile "run" 
 

@@ -62,15 +62,13 @@
 #
 
 # With this commented out, it will run the DefaultVendor_StartTranscript
-# proc vendor_StartTranscript {FileName} {
-# #  transcript file ""
-# #  puts transcript file $FileName
-# #  transcript file $FileName
-# }
-# 
-# proc vendor_StopTranscript {FileName} {
-# #  transcript file -close $FileName
-# }
+proc vendor_StartTranscript {FileName} {
+#  Do nothing
+}
+
+proc vendor_StopTranscript {FileName} {
+#  Do nothing
+}
 
 # -------------------------------------------------
 # SetCoverageAnalyzeOptions
@@ -123,16 +121,15 @@ proc vendor_map {LibraryName PathToLib} {
 #
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlVersion
+  variable CoverageAnalyzeEnable
+  variable CoverageSimulateEnable
   variable VhdlLibraryFullPath
-
-# note if VhdlVersion /= 2008 then do not use --$Version  
-# it supports --relax
-# --log <log name>
-# 
-#  No library open, can specify it in the --work as --work ${LibraryName}=${VhdlLibraryFullPath}/${LibraryName}
-  puts "xvhdl --${VhdlVersion} --work ${LibraryName} ${FileName}"
-#   exec xvhdl --${VhdlVersion} --work ${LibraryName} ${FileName}
-   exec xvhdl --${VhdlVersion} --work ${LibraryName} ${FileName}
+  
+  set DebugOptions ""
+  
+  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  puts "xvhdl {*}$AnalyzeOptions"
+  exec  xvhdl {*}$AnalyzeOptions
 }
 
 proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
@@ -156,28 +153,26 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor
-  variable simulator
   variable CoverageSimulateEnable
 
-  # removed $OptionalCommands
-#  puts "xelab --timeprecision_vhdl 1${SimulateTimeUnits} --mt off  ${LibraryName}.${LibraryUnit} --runall"
-#  exec  xelab --timeprecision_vhdl 1${SimulateTimeUnits} --mt off  ${LibraryName}.${LibraryUnit} --runall
-  puts "xelab --timeprecision_vhdl 1${SimulateTimeUnits} --mt off  ${LibraryName}.${LibraryUnit} --snapshot ${LibraryName}_${LibraryUnit}" 
-  exec  xelab --timeprecision_vhdl 1${SimulateTimeUnits} --mt off  ${LibraryName}.${LibraryUnit} --snapshot ${LibraryName}_${LibraryUnit} 
-  puts "xsim  -runall ${LibraryName}_${LibraryUnit}" 
-  exec  xsim  -runall ${LibraryName}_${LibraryUnit} 
-
-#
-#    SimulateRunScripts ${LibraryUnit}
-#
-#  log -rec [env]/*
-#  run -all 
+  set  ElaborateOptions "-timeprecision_vhdl 1${SimulateTimeUnits} -mt off  ${LibraryName}.${LibraryUnit} -runall"
+  puts "xelab {*}$ElaborateOptions"
+  exec  xelab {*}$ElaborateOptions
+  
+#  set  ElaborateOptions "-timeprecision_vhdl 1${SimulateTimeUnits} -mt off  ${LibraryName}.${LibraryUnit} -snapshot ${LibraryName}_${LibraryUnit}"
+#  puts "xelab {*}$ElaborateOptions"
+#  exec  xelab {*}$ElaborateOptions
+#  
+#  set  SimulateOptions "-runall ${LibraryName}_${LibraryUnit}"
+#  puts "xsim {*}$SimulateOptions"
+#  exec  xsim {*}$SimulateOptions
 }
 
 # -------------------------------------------------
 proc vendor_generic {Name Value} {
   
-  return "-g${Name}=${Value}"
+#  return "-generic_top \"${Name}=${Value}\""
+  return "-generic_top ${Name}=${Value}"
 }
 
 
