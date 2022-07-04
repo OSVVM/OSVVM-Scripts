@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    06/2022   2022.06    Print PASSED/FAILED with Coverage HTML
 #    02/2022   2022.02    Updated YAML file handling
 #    01/2022   2022.01    Handling for All Range
 #    10/2021   Initial    Initial Revision

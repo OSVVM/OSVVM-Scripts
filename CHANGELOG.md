@@ -2,6 +2,8 @@
 
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                  | 
 |---------------|--------------------|-----------------------------------------------------------------------| 
+| 2022.06       | June 2022          | Added Generic handling.  Support for printing Coverage PASSED/FAILED  |
+|               |                    | Fixed Spaces in library path.                                         |
 | 2022.05       | May 2022           | Refactored variables in OsvvmProjectScripts to OsvvmDefaultSettings   |
 |               |                    | Build, Analyze, Simulate now have error handling                      |
 |               |                    | Reports now record Analyze and Simulate Failures                      |
