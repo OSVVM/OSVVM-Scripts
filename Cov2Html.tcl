@@ -62,8 +62,10 @@ proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
   puts $ResultsFile "<h2 id=\"FunctionalCoverage\">$TestCaseName Coverage Report</h2>"
 
   set TestDict [::yaml::yaml2dict -file ${CovYamlFile}]
-  set VersionNum  [dict get $TestDict Version]
-  set Coverage    [dict get $TestDict Coverage]
+  set VersionNum    [dict get $TestDict Version]
+  set CovSettings   [dict get $TestDict Settings]
+  set WritePassFail [dict get $CovSettings WritePassFail]
+  set Coverage      [dict get $TestDict Coverage]
   puts $ResultsFile "<strong>Total Coverage: $Coverage</strong>"
   puts $ResultsFile "<br><br>"
   
@@ -71,7 +73,7 @@ proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
     puts $ResultsFile "  <details open><summary style=\"font-size: 16px;\"><strong>[dict get $ModelDict Name] Coverage Model &emsp; &emsp; Coverage: [format %.1f [dict get $ModelDict Coverage]]</strong></summary>"
     puts $ResultsFile "  <div  style=\"margin: 5px 30px;\">"
     OsvvmCovInfo2Html $ModelDict
-    OsvvmCovBins2Html $ModelDict
+    OsvvmCovBins2Html $ModelDict $WritePassFail
     puts $ResultsFile "  <br>"
     puts $ResultsFile "  </div>"
     puts $ResultsFile "  </details>"
@@ -91,7 +93,11 @@ proc OsvvmCovInfo2Html {ModelDict} {
   puts $ResultsFile "    <table>"
 
   dict for {key val} ${CovInformation} {
+    if {$key ne "Seeds"} {
       puts $ResultsFile "      <tr><td>${key}</td><td>${val}</td></tr>"
+    } else {
+      puts $ResultsFile "      <tr><td>${key}</td><td>[lindex ${val} 0], &nbsp;[lindex ${val} 1]</td></tr>"
+    }
   }
   
   puts $ResultsFile "    </table>"
@@ -100,7 +106,7 @@ proc OsvvmCovInfo2Html {ModelDict} {
   puts $ResultsFile "    </details>"
 }
 
-proc OsvvmCovBins2Html {ModelDict} {
+proc OsvvmCovBins2Html {ModelDict WritePassFail} {
   variable ResultsFile
   
   set BinInfoDict [dict get $ModelDict BinInfo] 
@@ -120,6 +126,9 @@ proc OsvvmCovBins2Html {ModelDict} {
   puts $ResultsFile "        <th rowspan=\"2\">Count</th>"
   puts $ResultsFile "        <th rowspan=\"2\">AtLeast</th>"
   puts $ResultsFile "        <th rowspan=\"2\">Percent<br>Coverage</th>"
+  if {$WritePassFail} {
+    puts $ResultsFile "      <th rowspan=\"2\">Status</th>"
+  }
   puts $ResultsFile "      </tr>"
   puts $ResultsFile "      <tr></tr>"
 
@@ -139,9 +148,18 @@ proc OsvvmCovBins2Html {ModelDict} {
         puts $ResultsFile "        <td>ALL</td>"
       }
     }
-    puts $ResultsFile "        <td>[dict get $BinDict Count]</td>"
-    puts $ResultsFile "        <td>[dict get $BinDict AtLeast]</td>"
+    set CovCount   [dict get $BinDict Count]
+    set CovAtLeast [dict get $BinDict AtLeast]
+    puts $ResultsFile "        <td>$CovCount</td>"
+    puts $ResultsFile "        <td>$CovAtLeast</td>"
     puts $ResultsFile "        <td>[format %.1f [dict get $BinDict PercentCov]]</td>"
+  if {$WritePassFail} {
+    if {$CovCount >= $CovAtLeast} {
+      puts $ResultsFile "        <td style=color:#00C000>PASSED</td>"
+    } else {
+      puts $ResultsFile "        <td style=color:#F00000>FAILED</td>"
+    }
+  }
     puts $ResultsFile "      </tr>"
   }
   set NumBins [expr 5 + [llength $RangeArray]]
