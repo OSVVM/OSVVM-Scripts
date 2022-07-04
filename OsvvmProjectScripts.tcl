@@ -941,9 +941,9 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
 
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
-    puts  $RunFile "      TestCaseFileName: $TestCaseFileName"
-    puts  $RunFile "      TestCaseGenerics: \"$::osvvm::GenericList\""
-    puts  $RunFile "      ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
+    puts  $RunFile "        TestCaseFileName: $TestCaseFileName"
+    puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericList\""
+    puts  $RunFile "        ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
     close $RunFile
   }
 }
@@ -1055,7 +1055,7 @@ proc TestCase {TestName} {
   } else {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
   }
-  puts  $RunFile "    - TestCaseName: $TestName"
+  puts  $RunFile "      - TestCaseName: $TestName"
   close $RunFile
 }
 
