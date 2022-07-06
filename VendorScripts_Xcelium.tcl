@@ -77,6 +77,14 @@
 # }
 
 # -------------------------------------------------
+# IsVendorCommand
+#
+proc IsVendorCommand {LineOfText} {
+
+  return [regexp {xmvhdl|xmelab|xmsim} $LineOfText] 
+}
+
+# -------------------------------------------------
 # SetCoverageAnalyzeOptions
 # SetCoverageCoverageOptions
 #

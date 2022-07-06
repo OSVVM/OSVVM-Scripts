@@ -77,6 +77,14 @@
 # }
 
 # -------------------------------------------------
+# IsVendorCommand
+#
+proc IsVendorCommand {LineOfText} {
+
+  return [regexp {vhdlan|vcs|simv} $LineOfText] 
+}
+
+# -------------------------------------------------
 # SetCoverageAnalyzeOptions
 # SetCoverageCoverageOptions
 #

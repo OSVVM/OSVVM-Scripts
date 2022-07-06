@@ -71,6 +71,14 @@ proc vendor_StopTranscript {FileName} {
 }
 
 # -------------------------------------------------
+# IsVendorCommand
+#
+proc IsVendorCommand {LineOfText} {
+
+  return [regexp {xvhdl|xelab|xsim} $LineOfText] 
+}
+
+# -------------------------------------------------
 # SetCoverageAnalyzeOptions
 # SetCoverageCoverageOptions
 #

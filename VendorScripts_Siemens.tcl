@@ -108,6 +108,14 @@ proc vendor_StopTranscript {FileName} {
 }
 
 # -------------------------------------------------
+# IsVendorCommand
+#
+proc IsVendorCommand {LineOfText} {
+
+  return [regexp {vlib|vmap|vcom|vlog|vsim|run|coverage|vcover} $LineOfText] 
+}
+
+# -------------------------------------------------
 # SetCoverageAnalyzeOptions
 # SetCoverageCoverageOptions
 #

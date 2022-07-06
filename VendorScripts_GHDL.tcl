@@ -88,6 +88,14 @@ proc vendor_SetCoverageSimulateDefaults {} {
 }
 
 # -------------------------------------------------
+# IsVendorCommand
+#
+proc IsVendorCommand {LineOfText} {
+
+  return [regexp {ghdl} $LineOfText] 
+}
+
+# -------------------------------------------------
 # Library
 #
 proc GhdlLibraryPath {LibraryName PathToLib} {
