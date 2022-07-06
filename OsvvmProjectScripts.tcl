@@ -1112,10 +1112,10 @@ proc SkipTest {FileName Reason} {
   } else {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
   }
-  puts  $RunFile "    - TestCaseName: $SimName"
-  puts  $RunFile "      Name: $SimName"
-  puts  $RunFile "      Status: SKIPPED"
-  puts  $RunFile "      Results: {Reason: \"$Reason\"}"
+  puts  $RunFile "      - TestCaseName: $SimName"
+  puts  $RunFile "        Name: $SimName"
+  puts  $RunFile "        Status: SKIPPED"
+  puts  $RunFile "        Results: {Reason: \"$Reason\"}"
   close $RunFile
 }
 
