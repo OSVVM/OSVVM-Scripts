@@ -54,6 +54,9 @@ namespace eval ::osvvm {
   variable VhdlLibrarySubdirectory    "${ToolNameVersion}"
   variable VhdlLibraryParentDirectory [pwd]      ; # use local directory
   
+  variable CreateSimScripts  0
+  variable CreateOsvvmOutput 0
+  
   # Also change with SetTranscriptType html 
   variable TranscriptExtension      "html"     ; # Set Transcripts to be html by default
 #   if {!($ToolVendor eq "Siemens" || $ToolVendor eq "Aldec" || $ToolName eq "GHDL") } {
