@@ -86,7 +86,7 @@ proc vendor_StopTranscript {FileName} {
 #
 proc IsVendorCommand {LineOfText} {
 
-  return [regexp {vlib|vmap|vcom|vlog|vsim|run|acdb} $LineOfText] 
+  return [regexp {^alib |^amap |^acom |^alog |^asim |^vlib |^vmap |^vcom |^vlog |^vsim |^run |^acdb } $LineOfText] 
 }
 
 # -------------------------------------------------
@@ -113,13 +113,13 @@ proc vendor_library {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
-    echo vlib    ${PathAndLib}
-         vlib    ${PathAndLib}
+    puts "vlib    ${PathAndLib}"
+          vlib    ${PathAndLib}
     after 1000
   }
   if {![file exists ./compile/${LibraryName}.epr]} {
-    echo vmap    $LibraryName  ${PathAndLib}
-         vmap    $LibraryName  ${PathAndLib}
+    puts "vmap    $LibraryName  ${PathAndLib}"
+          vmap    $LibraryName  ${PathAndLib}
   }
 }
 
@@ -131,8 +131,8 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
   } else {
     set ResolvedLib ${PathToLib}
   }
-  echo vmap    $LibraryName  ${ResolvedLib}
-       vmap    $LibraryName  ${ResolvedLib}
+  puts "vmap    $LibraryName  ${ResolvedLib}"
+        vmap    $LibraryName  ${ResolvedLib}
 }
 
 # -------------------------------------------------

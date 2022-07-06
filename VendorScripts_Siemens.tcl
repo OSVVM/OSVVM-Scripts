@@ -112,7 +112,7 @@ proc vendor_StopTranscript {FileName} {
 #
 proc IsVendorCommand {LineOfText} {
 
-  return [regexp {vlib|vmap|vcom|vlog|vsim|run|coverage|vcover} $LineOfText] 
+  return [regexp {^vlib |^vmap |^vcom |^vlog |^vsim |^run |^coverage |^vcover } $LineOfText] 
 }
 
 # -------------------------------------------------
@@ -161,14 +161,13 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
 #
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlVersion
-  puts "vcom -${VhdlVersion} -work ${LibraryName} {*}${OptionalCommands} ${FileName} "
+#  puts "vcom -${VhdlVersion} -work ${LibraryName} {*}${OptionalCommands} ${FileName} "
         vcom -${VhdlVersion} -work ${LibraryName} {*}${OptionalCommands} ${FileName}
 }
 
 proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #  Untested branch for Verilog - will need adjustment
-#  Untested branch for Verilog - will need adjustment
-  puts "vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName} "
+#  puts "vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName} "
         vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
 }
 
@@ -266,7 +265,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 
   set VsimOptions "$VsimOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
   
-  puts "vsim {*}${VsimOptions}"
+#  puts "vsim {*}${VsimOptions}"
   vsim {*}${VsimOptions}
 
   # Historical name.  Must be run with "do" for actions to work

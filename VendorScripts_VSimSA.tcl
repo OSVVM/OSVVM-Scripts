@@ -84,7 +84,7 @@ proc vendor_StopTranscript {FileName} {
 #
 proc IsVendorCommand {LineOfText} {
 
-  return [regexp {vlib|vmap|vcom|vlog|vsim|run|acdb} $LineOfText] 
+  return [regexp {^alib |^amap |^acom |^alog |^asim |^vlib |^vmap |^vcom |^vlog |^vsim |^run |^acdb } $LineOfText] 
 }
 
 # -------------------------------------------------

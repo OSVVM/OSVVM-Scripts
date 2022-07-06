@@ -89,7 +89,7 @@ proc vendor_StopTranscript {FileName} {
 #
 proc IsVendorCommand {LineOfText} {
 
-  return [regexp {vlib|vmap|vcom|vlog|vsim|run|acdb} $LineOfText] 
+  return [regexp {^design |^alib |^amap |^acom |^alog |^asim |^vlib |^vmap |^vcom |^vlog |^vsim |^run |^acdb } $LineOfText] 
 }
 
 # -------------------------------------------------
@@ -174,21 +174,25 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
   set FileBaseName [file rootname [file tail $FileName]]
   
   # Check src to see if it has been added
-  if {![file isfile ${VhdlLibraryFullPath}/$LibraryName/src/${FileBaseName}.vcom]} {
+  set FileAlreadyAdded ${VhdlLibraryFullPath}/$LibraryName/src/${FileBaseName}.vcom
+  if {![file isfile ${FileAlreadyAdded}]} {
     echo addfile ${FileName}
     addfile ${FileName}
     filevhdloptions -${VhdlVersion} ${FileName}
   }
-  # Compile it.
-  echo vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName} > ${VhdlLibraryFullPath}/$LibraryName/src/${FileBaseName}.vcom
-  if {[info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
-    puts "vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}"
-         vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+  
+  if {$::osvvm::NoGui || [info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
+    set DebugOptions ""
   } else {
-    puts "vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}"
-         vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+    set DebugOptions "-dbg"
   }
-
+  
+  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  
+  echo "vcom {*}$AnalyzeOptions" > ${FileAlreadyAdded}
+#  puts "vcom {*}$AnalyzeOptions"
+        vcom {*}$AnalyzeOptions
+  
   cd $MY_START_DIR
 }
 
