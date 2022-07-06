@@ -133,10 +133,14 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   } else {
     set ReportsPrefix "../.."
   }
-  if {([info exists CurrentTranscript]) && ([file extension $CurrentTranscript] eq ".html")} {
-    set SimulationResultsLink [file join ${::osvvm::LogSubdirectory} ${CurrentTranscript}#${TestSuiteName}_${TestCaseName}]
-    puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${SimulationResultsLink}\">Link to Simulation Results</a></td></tr>"
-  }
+  set HtmlTranscript [file rootname ${CurrentTranscript}]_log.html
+  set SimulationResultsLink [file join ${::osvvm::LogSubdirectory} ${HtmlTranscript}#${TestSuiteName}_${TestCaseName}]
+  puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${SimulationResultsLink}\">Link to Simulation Results</a></td></tr>"
+
+#  if {([info exists CurrentTranscript]) && ([file extension $CurrentTranscript] eq ".html")} {
+#    set SimulationResultsLink [file join ${::osvvm::LogSubdirectory} ${CurrentTranscript}#${TestSuiteName}_${TestCaseName}]
+#    puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${SimulationResultsLink}\">Link to Simulation Results</a></td></tr>"
+#  }
   if {[file exists ${TranscriptYamlFile}]} {
     set TranscriptFileArray [::yaml::yaml2dict -file ${TranscriptYamlFile}]
     foreach TranscriptFile $TranscriptFileArray {

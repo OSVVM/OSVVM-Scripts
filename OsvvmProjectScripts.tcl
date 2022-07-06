@@ -388,13 +388,27 @@ proc LocalBuild {BuildName Path_Or_File} {
 }
 
 proc CreateReports {BuildName} {
+  variable TranscriptFileName
 
   # short sleep to allow the file to close
   after 1000
+  set TranscriptType [GetTranscriptType]
+  if {${TranscriptType} eq "log"} {
+    Log2Html $TranscriptFileName 
+    SetTranscriptType html
+  }
+  if {$::osvvm::CreateSimScripts} {
+    Log2Sim $TranscriptFileName 
+  }
+  
+  if {$::osvvm::CreateOsvvmOutput} {
+    Log2Osvvm $TranscriptFileName 
+  }
   set BuildYamlFile [file join ${::osvvm::OutputBaseDirectory} ${BuildName}.yml]
   file rename -force ${::osvvm::OsvvmYamlResultsFile} ${BuildYamlFile}
   Report2Html  ${BuildYamlFile}
   Report2Junit ${BuildYamlFile}
+  SetTranscriptType ${TranscriptType}
 }
 
 # -------------------------------------------------
@@ -540,20 +554,21 @@ proc StartTranscript {FileBaseName} {
   variable LogDirectory
   variable CurrentSimulationDirectory
   variable FirstEchoCmd
+  variable TranscriptFileName
 
   CheckWorkingDir
 
   if {($FileBaseName ne "NONE.log") && (![info exists CurrentTranscript])} {
     set LogDirectory   [file join ${CurrentSimulationDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
     # Create directories if they do not exist
-    set FileName [file join $LogDirectory $FileBaseName]
-    CreateDirectory [file dirname $FileName]
+    set TranscriptFileName [file join $LogDirectory $FileBaseName]
+    CreateDirectory [file dirname $TranscriptFileName]
     set CurrentTranscript $FileBaseName
     set BuildTranscript   $CurrentTranscript
     if {![catch {info body vendor_StartTranscript} err]} {
-      vendor_StartTranscript $FileName
+      vendor_StartTranscript $TranscriptFileName
     } else {
-      DefaultVendor_StartTranscript $FileName
+      DefaultVendor_StartTranscript $TranscriptFileName
     }
     if {[info exists FirstEchoCmd]} {
       # nothing in transcript yet.
