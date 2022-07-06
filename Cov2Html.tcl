@@ -85,7 +85,7 @@ proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
 proc OsvvmCovInfo2Html {ModelDict} {
   variable ResultsFile
   
-  set CovInformation [dict get $ModelDict Settings] 
+  set CovModelSettings [dict get $ModelDict Settings] 
   
   puts $ResultsFile "    <DIV STYLE=\"font-size:5px\"><BR></DIV>"
   puts $ResultsFile "    <details><summary>[dict get $ModelDict Name] Coverage Settings</summary>"
@@ -93,7 +93,7 @@ proc OsvvmCovInfo2Html {ModelDict} {
   puts $ResultsFile "    <div  style=\"margin: 0px 30px;\">"
   puts $ResultsFile "    <table>"
 
-  dict for {key val} ${CovInformation} {
+  dict for {key val} ${CovModelSettings} {
     if {$key ne "Seeds"} {
       puts $ResultsFile "      <tr><td>${key}</td><td>${val}</td></tr>"
     } else {
@@ -110,8 +110,10 @@ proc OsvvmCovInfo2Html {ModelDict} {
 proc OsvvmCovBins2Html {ModelDict WritePassFail} {
   variable ResultsFile
   
-  set BinInfoDict [dict get $ModelDict BinInfo] 
-  set BinsArray   [dict get $ModelDict Bins]
+  set CovModelSettings [dict get $ModelDict Settings] 
+  set CovWeight        [dict get $CovModelSettings CovWeight] 
+  set BinInfoDict      [dict get $ModelDict BinInfo] 
+  set BinsArray        [dict get $ModelDict Bins]
 
   puts $ResultsFile "      <DIV STYLE=\"font-size:5px\"><BR></DIV>"
   puts $ResultsFile "      <details open><summary>[dict get $ModelDict Name] Coverage Bins</summary>"
@@ -136,7 +138,8 @@ proc OsvvmCovBins2Html {ModelDict WritePassFail} {
   foreach BinDict $BinsArray {
     puts $ResultsFile "      <tr>"
     puts $ResultsFile "        <td>[dict get $BinDict Name]</td>"
-    puts $ResultsFile "        <td>[dict get $BinDict Type]</td>"
+    set CovType [dict get $BinDict Type]
+    puts $ResultsFile "        <td>$CovType</td>"
     set RangeArray [dict get $BinDict Range]
     foreach RangeDict $RangeArray {
       set MinRange [dict get $RangeDict Min]
@@ -154,13 +157,22 @@ proc OsvvmCovBins2Html {ModelDict WritePassFail} {
     puts $ResultsFile "        <td>$CovCount</td>"
     puts $ResultsFile "        <td>$CovAtLeast</td>"
     puts $ResultsFile "        <td>[format %.1f [dict get $BinDict PercentCov]]</td>"
-  if {$WritePassFail} {
-    if {$CovCount >= $CovAtLeast} {
-      puts $ResultsFile "        <td style=color:#00C000>PASSED</td>"
-    } else {
-      puts $ResultsFile "        <td style=color:#F00000>FAILED</td>"
+    if {$WritePassFail} {
+      if {$CovWeight > 0} {
+        if {$CovType eq "COUNT"} {
+          set CovPassed [expr {$CovCount >= $CovAtLeast}]
+        } else {
+          set CovPassed [expr {$CovCount != 0}]
+        }
+        if {$CovPassed} {
+          puts $ResultsFile "        <td style=color:#00C000>PASSED</td>"
+        } else {
+          puts $ResultsFile "        <td style=color:#F00000>FAILED</td>"
+        }
+      } else {
+          puts $ResultsFile "        <td>-</td>"
+      }
     }
-  }
     puts $ResultsFile "      </tr>"
   }
   set NumBins [expr 5 + [llength $RangeArray]]
