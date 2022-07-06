@@ -42,7 +42,7 @@
 
 namespace eval ::osvvm {
 
-  proc Log2Osvvm {LogFile} {
+  proc Log2OsvvmOutput {LogFile} {
 
     set LogFileHandle [open $LogFile r]
     set LogDir  [file dirname $LogFile]
@@ -51,9 +51,10 @@ namespace eval ::osvvm {
     set OsvvmFile [file join ${LogDir} ${LogName}_osvvm.log]
     set OsvvmFileHandle [open $OsvvmFile w]
 
-    while { [gets $LogFileHandle LineOfLogFile] >= 0 } {
-      if {[regexp {%%|simulate} $LineOfLogFile] } {
-        puts $OsvvmFileHandle [regsub {^KERNEL: %%} [regsub {^# } $LineOfLogFile ""] "%%"]
+    while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
+      set LineOfLogFile [regsub {^KERNEL: %%} [regsub {^# } $RawLineOfLogFile ""] "%%"]
+      if {[regexp {^%%|^simulate } $LineOfLogFile] } {
+        puts $OsvvmFileHandle $LineOfLogFile
       }
     }
     close $LogFileHandle 
@@ -117,9 +118,10 @@ namespace eval ::osvvm {
     set SimFile [file join ${LogDir} ${LogName}_sim.tcl]
     set SimFileHandle [open $SimFile w]
     
-    while { [gets $LogFileHandle LineOfLogFile] >= 0 } {
+    while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
+      set LineOfLogFile [regsub {^# } $RawLineOfLogFile ""]
       if {[IsVendorCommand $LineOfLogFile]} {
-        puts $SimFileHandle [regsub {^KERNEL: %%} [regsub {^# } $LineOfLogFile ""] "%%"]
+        puts $SimFileHandle [regsub {\{\*\}} $LineOfLogFile ""]
       }
     }
     close $LogFileHandle 

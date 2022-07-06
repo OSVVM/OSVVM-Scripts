@@ -224,9 +224,14 @@ proc ReportElaborateStatus {TestDict} {
   puts $ResultsFile "  <tr><td>OSVVM YAML Version</td>                <td>[dict get $TestDict Version]</td></tr>"
   
   if {[info exists BuildTranscript]} {
-    set SimulationResultsLink [file join ${::osvvm::LogDirectory} ${BuildTranscript}]
-    if {[file exists ${SimulationResultsLink}]} {
-      puts $ResultsFile "  <tr><td>Simulation Transcript</td>         <td><a href=\"${SimulationResultsLink}\">${BuildTranscript}</a></td></tr>"
+    set BuildTranscriptPath [file join ${::osvvm::LogDirectory} ${BuildTranscript}]
+    if {[file exists ${BuildTranscriptPath}]} {
+      puts $ResultsFile "  <tr><td>Simulation Transcript</td>         <td><a href=\"${BuildTranscriptPath}\">${BuildTranscript}</a></td></tr>"
+    }
+    set HtmlTranscript [file rootname $BuildTranscript]_log.html
+    set HtmlTranscriptPath [file join ${::osvvm::LogDirectory} ${HtmlTranscript}]
+    if {[file exists ${HtmlTranscriptPath}]} {
+      puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td>         <td><a href=\"${HtmlTranscriptPath}\">${HtmlTranscript}</a></td></tr>"
     }
   }
 

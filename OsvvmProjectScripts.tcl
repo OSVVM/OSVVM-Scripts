@@ -278,7 +278,7 @@ proc build {{Path_Or_File "."}} {
   variable ReportsErrorInfo
   variable BuildStarted
   variable TranscriptExtension
-  variable TranscriptDirectory
+  variable BuildName
   
   if {$BuildStarted != 0} {
     include $Path_Or_File
@@ -289,7 +289,7 @@ proc build {{Path_Or_File "."}} {
     set BuildStarted 1
     set BuildName [SetBuildName $Path_Or_File]
         
-    set LogFileName ${BuildName}.${TranscriptExtension}
+    set LogFileName ${BuildName}.log ; #${TranscriptExtension}
 
     StartTranscript ${LogFileName}
         
@@ -393,7 +393,7 @@ proc CreateReports {BuildName} {
   # short sleep to allow the file to close
   after 1000
   set TranscriptType [GetTranscriptType]
-  if {${TranscriptType} eq "log"} {
+  if {${TranscriptType} eq "html"} {
     Log2Html $TranscriptFileName 
     SetTranscriptType html
   }
@@ -402,7 +402,7 @@ proc CreateReports {BuildName} {
   }
   
   if {$::osvvm::CreateOsvvmOutput} {
-    Log2Osvvm $TranscriptFileName 
+    Log2OsvvmOutput $TranscriptFileName 
   }
   set BuildYamlFile [file join ${::osvvm::OutputBaseDirectory} ${BuildName}.yml]
   file rename -force ${::osvvm::OsvvmYamlResultsFile} ${BuildYamlFile}
@@ -532,16 +532,20 @@ proc EchoOsvvmCmd {CmdInfoToPrint} {
   variable TranscriptExtension
   variable CompoundCommand
 
-  if {[info exists CompoundCommand] || ($TranscriptExtension eq "log")} {
-    puts "${CmdInfoToPrint}"
-  } elseif {[info exists FirstEchoCmd]} {
-    puts "</details><details>"
-    puts "<summary>${CmdInfoToPrint}</summary>"
-  } else {
-    puts "<pre><details>"
-    puts "<summary>${CmdInfoToPrint}</summary>"
-    set FirstEchoCmd TRUE
-  }
+  puts "${CmdInfoToPrint}"
+
+# HTML now done by Log2Html
+#
+#  if {[info exists CompoundCommand] || ($TranscriptExtension eq "log")} {
+#    puts "${CmdInfoToPrint}"
+#  } elseif {[info exists FirstEchoCmd]} {
+#    puts "</details><details>"
+#    puts "<summary>${CmdInfoToPrint}</summary>"
+#  } else {
+#    puts "<pre><details>"
+#    puts "<summary>${CmdInfoToPrint}</summary>"
+#    set FirstEchoCmd TRUE
+#  }
 }
 
 # -------------------------------------------------

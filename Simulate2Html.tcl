@@ -101,6 +101,7 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   variable SbSlvYamlFile 
   variable SbIntYamlFile 
   variable TranscriptYamlFile
+  variable BuildName
     
   OpenSimulationReportFile   ${TestCaseName} ${TestSuiteName} 1
 
@@ -133,14 +134,15 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   } else {
     set ReportsPrefix "../.."
   }
-  set HtmlTranscript [file rootname ${CurrentTranscript}]_log.html
-  set SimulationResultsLink [file join ${::osvvm::LogSubdirectory} ${HtmlTranscript}#${TestSuiteName}_${TestCaseName}]
-  puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${SimulationResultsLink}\">Link to Simulation Results</a></td></tr>"
-
 #  if {([info exists CurrentTranscript]) && ([file extension $CurrentTranscript] eq ".html")} {
 #    set SimulationResultsLink [file join ${::osvvm::LogSubdirectory} ${CurrentTranscript}#${TestSuiteName}_${TestCaseName}]
 #    puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${SimulationResultsLink}\">Link to Simulation Results</a></td></tr>"
 #  }
+  if {([GetTranscriptType] eq "html") && ([info exists CurrentTranscript])} {
+    set HtmlTranscript [file rootname ${CurrentTranscript}]_log.html
+    set SimulationResultsLink [file join ${::osvvm::LogSubdirectory} ${HtmlTranscript}#${TestSuiteName}_${TestCaseName}]
+    puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${SimulationResultsLink}\">Link to Simulation Results</a></td></tr>"
+  }
   if {[file exists ${TranscriptYamlFile}]} {
     set TranscriptFileArray [::yaml::yaml2dict -file ${TranscriptYamlFile}]
     foreach TranscriptFile $TranscriptFileArray {
@@ -165,7 +167,12 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
       puts $ResultsFile "  <tr><td>Generic: [lindex $GenericName 0] = [lindex $GenericName 1]</td></tr>"
     }
   }
-  
+  # Print link back to Build Summary Report
+  if {([info exists BuildName])} {
+    set BuildLink ${ReportsPrefix}/${BuildName}.html
+    puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${BuildName}.html\">${BuildName} Build Summary</a></td></tr>"
+  }
+    
   puts $ResultsFile "</table>"
   puts $ResultsFile "<br><br>"
   close $ResultsFile
