@@ -92,7 +92,7 @@ proc vendor_SetCoverageSimulateDefaults {} {
 #
 proc IsVendorCommand {LineOfText} {
 
-  return [regexp {ghdl} $LineOfText] 
+  return [regexp {^ghdl } $LineOfText] 
 }
 
 # -------------------------------------------------
