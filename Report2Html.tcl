@@ -63,20 +63,38 @@ proc Report2Html {ReportFile} {
   close $ResultsFile
 }
 
+proc ReportBuildStatus {} {
+  variable AnalyzeErrors
+  variable SimulateErrors
+  variable BuildStatus 
+  variable TestCasesPassed 
+  variable TestCasesFailed 
+  variable TestCasesSkipped 
+  variable TestCasesRun 
+  variable BuildName
+  
+  puts "Build: ${BuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${AnalyzeErrors},  Simulate Errors: ${AnalyzeErrors} "
+}
+
 proc ReportElaborateStatus {TestDict} {
   variable ResultsFile
   variable BuildTranscript
   variable AnalyzeErrors
   variable SimulateErrors
+  variable BuildStatus "PASSED"
+  variable TestCasesPassed 0
+  variable TestCasesFailed 0
+  variable TestCasesSkipped 0
+  variable TestCasesRun 0
 
   if {[info exists ReportTestSuiteSummary]} {
     unset ReportTestSuiteSummary
   }
-  set BuildStatus "PASSED"
-  set TestCasesPassed 0
-  set TestCasesFailed 0
-  set TestCasesSkipped 0
-  set TestCasesRun 0
+#  set BuildStatus "PASSED"
+#  set TestCasesPassed 0
+#  set TestCasesFailed 0
+#  set TestCasesSkipped 0
+#  set TestCasesRun 0
   if {$AnalyzeErrors || $SimulateErrors} {
     set BuildStatus "FAILED"
   }
@@ -230,7 +248,7 @@ proc ReportElaborateStatus {TestDict} {
     }
     set HtmlTranscript [file rootname $BuildTranscript]_log.html
     set HtmlTranscriptPath [file join ${::osvvm::LogDirectory} ${HtmlTranscript}]
-    if {[file exists ${HtmlTranscriptPath}]} {
+    if {$::osvvm::TranscriptExtension eq "html"} {
       puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td>         <td><a href=\"${HtmlTranscriptPath}\">${HtmlTranscript}</a></td></tr>"
     }
   }

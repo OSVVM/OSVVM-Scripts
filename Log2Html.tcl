@@ -75,7 +75,10 @@ namespace eval ::osvvm {
     set PrintPrefix "<pre><details>"
     while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
       set LineOfLogFile [regsub {^KERNEL: %%} [regsub {^# } $RawLineOfLogFile ""] "%%"]
-      if {[regexp {^build|^include} $LineOfLogFile] } {
+      if {[regexp {^Build Start} $LineOfLogFile] } {
+        puts $HtmlFileHandle "</details>"
+        puts $HtmlFileHandle $LineOfLogFile
+      } elseif {[regexp {^build|^include} $LineOfLogFile] } {
         puts $HtmlFileHandle "${PrintPrefix}<summary>${LineOfLogFile}</summary>"
         if {$FirstFind} {
           set PrintPrefix "</details><details>"
@@ -105,7 +108,6 @@ namespace eval ::osvvm {
         puts $HtmlFileHandle $LineOfLogFile
       }
     }
-    puts $HtmlFileHandle "</details>"
     close $LogFileHandle 
     close $HtmlFileHandle 
   }

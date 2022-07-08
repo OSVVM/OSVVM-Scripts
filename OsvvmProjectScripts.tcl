@@ -298,11 +298,14 @@ proc build {{Path_Or_File "."}} {
     set BuildErrorInfo $::errorInfo
     set BuildStarted 0
     
-    StopTranscript ${LogFileName}
-    
     # Try to create reports, even if the build failed
     set ReportsErrorCode [catch {CreateReports $BuildName} ReportsErrMsg]
     set ReportsErrorInfo $::errorInfo
+    
+    StopTranscript ${LogFileName}
+    
+    set Log2ErrorCode [catch {Log2Osvvm} ReportsErrMsg]
+    set Log2ErrorInfo $::errorInfo
     
     if {$BuildErrorCode != 0 || $AnalyzeErrors > 0 || $SimulateErrors > 0} {   
       set ErrorSource ""
@@ -332,6 +335,18 @@ proc build {{Path_Or_File "."}} {
         puts  "Error: For tcl errorInfo, puts \$::osvvm::ReportsErrorInfo"
       }
     } 
+    if {$Log2ErrorCode != 0} {  
+      if {$::osvvm::FailOnReportErrors} {
+        puts  "Error: Failed during Log2Html, Log2Sim, Log2OsvvmOutput.  Please include your simulator version in any issue reports"
+        error "For tcl errorInfo, puts \$::osvvm::Log2ErrorInfo"
+      } else {
+        puts  "Error: Failed during Log2Html, Log2Sim, or Log2OsvvmOutput.  Please include your simulator version in any issue reports"
+        puts  "Error: For tcl errorInfo, puts \$::osvvm::Log2ErrorInfo"
+      }
+    } 
+    if {($::osvvm::BuildStatus eq "FAILED") && ($::osvvm::FailOnTestCaseErrors)} {
+        error "Test Finished with Test Case Errors"
+    }
   }
 }
 
@@ -347,7 +362,7 @@ proc LocalBuild {BuildName Path_Or_File} {
 
   set  BuildStartTime    [clock seconds]
   set  BuildStartTimeMs  [clock milliseconds]
-  puts "Build Start time [clock format $BuildStartTime -format %T]"
+  puts "Starting Build at time [clock format $BuildStartTime -format %T]"
 
   set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} w]
   puts  $RunFile "Version: 1.0"
@@ -388,27 +403,29 @@ proc LocalBuild {BuildName Path_Or_File} {
 }
 
 proc CreateReports {BuildName} {
-  variable TranscriptFileName
 
   # short sleep to allow the file to close
   after 1000
-  set TranscriptType [GetTranscriptType]
-  if {${TranscriptType} eq "html"} {
-    Log2Html $TranscriptFileName 
-    SetTranscriptType html
-  }
-  if {$::osvvm::CreateSimScripts} {
-    Log2Sim $TranscriptFileName 
-  }
-  
-  if {$::osvvm::CreateOsvvmOutput} {
-    Log2OsvvmOutput $TranscriptFileName 
-  }
   set BuildYamlFile [file join ${::osvvm::OutputBaseDirectory} ${BuildName}.yml]
   file rename -force ${::osvvm::OsvvmYamlResultsFile} ${BuildYamlFile}
   Report2Html  ${BuildYamlFile}
   Report2Junit ${BuildYamlFile}
-  SetTranscriptType ${TranscriptType}
+  
+  ReportBuildStatus  
+}
+
+proc Log2Osvvm {} {
+  variable TranscriptFileName
+
+  if {$::osvvm::TranscriptExtension eq "html"} {
+    Log2Html $TranscriptFileName 
+  }
+  if {$::osvvm::CreateSimScripts} {
+    Log2Sim $TranscriptFileName 
+  }
+  if {$::osvvm::CreateOsvvmOutput} {
+    Log2OsvvmOutput $TranscriptFileName 
+  }
 }
 
 # -------------------------------------------------
@@ -599,6 +616,8 @@ proc DefaultVendor_StartTranscript {FileName} {
 proc StopTranscript {{FileBaseName ""}} {
   variable CurrentTranscript
   variable LogDirectory
+
+  flush stdout
 
   # Stop only if it is the transcript that is open
   if {($FileBaseName eq $CurrentTranscript)} {
@@ -933,7 +952,6 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
 
   EchoOsvvmCmd "simulate $LibraryUnit $OptionalCommands"
 
-
   if {[info exists CoverageSimulateEnable]} {
     set RanSimulationWithCoverage "true"
     set AllOptionalCommands [concat {*}$OptionalCommands {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
@@ -941,11 +959,11 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
     set AllOptionalCommands [concat {*}$OptionalCommands {*}$ExtendedSimulateOptions]
   }
 
-  if {$TranscriptExtension eq "html"} {
-    puts "<div id=\"${TestSuiteName}_${TestCaseName}\" />"
-  }
+#  if {$TranscriptExtension eq "html"} {
+#    puts "<div id=\"${TestSuiteName}_${TestCaseName}\" />"
+#  }
 
-  puts "Simulate Start time [clock format $SimulateStartTime -format %T]"
+  puts "Simulation Start time [clock format $SimulateStartTime -format %T]"
 
   vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} ${AllOptionalCommands}
 
@@ -955,7 +973,7 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
   set  SimulateFinishTimeMs  [clock milliseconds]
   set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
 
-  puts "Simulate Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
+  puts "Simulation Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
 
   Simulate2Html $TestCaseName $TestSuiteName $TestCaseFileName
 
