@@ -54,17 +54,17 @@ proc Report2Junit {ReportFile} {
 }
 
 
-proc Simulate2Html {TestCaseName TestSuiteName} {
+proc Simulate2Html {TestCaseName TestSuiteName TestCaseFileName} {
   puts "To generate OSVVM simulation HTML files, please install TCL yaml package from Tcllib"
   puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
 }
 
-proc Cov2Html {TestCaseName} {
+proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
   puts "To generate OSVVM coverage HTML files, please install TCL yaml package from Tcllib"
   puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
 }
 
-proc Alert2Html {TestCaseName} {
+proc Alert2Html {TestCaseName TestSuiteName AlertYamlFile} {
   puts "To generate OSVVM coverage HTML files, please install TCL yaml package from Tcllib"
   puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
 }
