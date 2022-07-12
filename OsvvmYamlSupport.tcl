@@ -43,6 +43,7 @@ namespace eval ::osvvm {
 
 package require yaml
 
+  variable GotYaml 1
   source ${::osvvm::SCRIPT_DIR}/Simulate2Html.tcl
   source ${::osvvm::SCRIPT_DIR}/Alert2Html.tcl
   source ${::osvvm::SCRIPT_DIR}/Cov2Html.tcl

@@ -43,28 +43,39 @@
 #  limitations under the License.
 #
 
-proc Report2Html {ReportFile} {
-  puts "To generate OSVVM Test Suite Report HTML files, please install TCL yaml package from Tcllib"
-  puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
-}
+namespace eval ::osvvm {
 
-proc Report2Junit {ReportFile} {
-  puts "To generate OSVVM Test Suite Report JUnit XML CI Results files, please install TCL yaml package from Tcllib"
-  puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
-}
+  variable GotYaml 0
 
+  proc Report2Html {args} {
+    puts "To generate OSVVM Test Suite Report HTML files, please install TCL yaml package from Tcllib"
+    puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+  }
 
-proc Simulate2Html {TestCaseName TestSuiteName TestCaseFileName} {
-  puts "To generate OSVVM simulation HTML files, please install TCL yaml package from Tcllib"
-  puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
-}
+  proc Report2Junit {args} {
+#    puts "To generate OSVVM Test Suite Report JUnit XML CI Results files, please install TCL yaml package from Tcllib"
+#    puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+  }
 
-proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
-  puts "To generate OSVVM coverage HTML files, please install TCL yaml package from Tcllib"
-  puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
-}
+  proc Simulate2Html {args} {
+    puts "To generate OSVVM simulation HTML files, please install TCL yaml package from Tcllib"
+    puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+  }
 
-proc Alert2Html {TestCaseName TestSuiteName AlertYamlFile} {
-  puts "To generate OSVVM coverage HTML files, please install TCL yaml package from Tcllib"
-  puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+  proc Cov2Html {args} {
+    puts "To generate OSVVM coverage HTML files, please install TCL yaml package from Tcllib"
+    puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+  }
+
+  proc Alert2Html {args} {
+    puts "To generate OSVVM coverage HTML files, please install TCL yaml package from Tcllib"
+    puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+  }
+  
+  proc ReportBuildStatus {args} {
+#    puts "To generate OSVVM Test Suite Report JUnit XML CI Results files, please install TCL yaml package from Tcllib"
+#    puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+  }
+namespace export Simulate2Html Cov2Html Alert2Html Scoreboard2Html Report2Html Report2Junit
+# end namespace ::osvvm
 }
