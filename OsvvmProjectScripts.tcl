@@ -843,9 +843,9 @@ proc analyze {FileName {OptionalCommands ""}} {
     puts "# ** Error: analyze  For tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
     
     if {$AnalyzeErrorsStopCount != 0 && $AnalyzeErrors >= $AnalyzeErrorsStopCount } {
-      error "# ** Error: analyze '$FileName $OptionalCommands' failed: $errmsg"
+      error "AnalyzeError: analyze '$FileName $OptionalCommands' failed: $errmsg"
     } else {
-      puts "# ** Error: analyze '$FileName $OptionalCommands' failed: $errmsg"
+      puts  "AnalyzeError: analyze '$FileName $OptionalCommands' failed: $errmsg"
     }
   } else {
     set ConsecutiveAnalyzeErrors 0 
@@ -905,9 +905,9 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
     puts "# ** Error: simulate  For tcl errorInfo, puts \$::osvvm::SimulateErrorInfo"
 
     if {$SimulateErrorsStopCount != 0 && $SimulateErrors >= $SimulateErrorsStopCount } {
-      error "# ** Error: simulate '$LibraryUnit $OptionalCommands' failed: $errmsg"
+      error "SimulateError: '$LibraryUnit $OptionalCommands' failed: $errmsg"
     } else {
-      puts  "# ** Error: simulate '$LibraryUnit $OptionalCommands' failed: $errmsg"
+      puts  "SimulateError: '$LibraryUnit $OptionalCommands' failed: $errmsg"
     }
   } else {
     set ConsecutiveSimulateErrors 0 
@@ -1086,6 +1086,7 @@ proc TestCase {TestName} {
     TestSuite Default
   }
 
+  puts "TestCase $TestName"
   set TestCaseName $TestName
 
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {

@@ -73,7 +73,7 @@ proc ReportBuildStatus {} {
   variable TestCasesRun 
   variable BuildName
   
-  puts "Build: ${BuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${AnalyzeErrors},  Simulate Errors: ${AnalyzeErrors} "
+  puts "Build: ${BuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${AnalyzeErrors},  Simulate Errors: ${SimulateErrors} "
 }
 
 proc ReportElaborateStatus {TestDict} {
@@ -423,7 +423,12 @@ proc ReportTestSuites {TestDict} {
             puts $ResultsFile "      <td>-</td>"
           }
           puts $ResultsFile "      <td>[SumAlertCount [dict get $TestResults DisabledAlertCount]]</td>"
-          puts $ResultsFile "      <td>[dict get $TestCase ElapsedTime]</td>"
+          if {[dict exists $TestCase ElapsedTime]} {
+            set TestCaseElapsedTime [dict get $TestCase ElapsedTime]
+          } else {
+            set TestCaseElapsedTime missing
+          }
+          puts $ResultsFile "      <td>$TestCaseElapsedTime</td>"
         } else {
           puts $ResultsFile "      <td style=\"text-align: left\" colspan=\"6\"> &emsp; $Reason</td>"
         }

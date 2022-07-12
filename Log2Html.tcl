@@ -90,6 +90,8 @@ namespace eval ::osvvm {
       } elseif {[regexp {^RunTest} $LineOfLogFile] } {
         set InRunTest 1
         puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
+      } elseif {[regexp {^AnalyzeError:|^SimulateError:} $LineOfLogFile] } {
+          puts $HtmlFileHandle "</details><details><summary style=color:#FF0000>$LineOfLogFile</summary>"
       } elseif {[regexp {^analyze} $LineOfLogFile] } {
         if {! $InRunTest} {
           puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
@@ -98,13 +100,16 @@ namespace eval ::osvvm {
         }
       } elseif {[regexp {^simulate} $LineOfLogFile] } {
         if {! $InRunTest} {
-          puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary> <div id=\"${TestSuiteName}_[lindex $LineOfLogFile 1]\" />"
+          puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary> <div id=\"${TestSuiteName}_${TestCaseName}\" />"
         } else {
           puts $HtmlFileHandle "$LineOfLogFile <div id=\"${TestSuiteName}_[lindex $LineOfLogFile 1]\" />"
         }
   #      puts $HtmlFileHandle "<div id=\"[lindex $LineOfLogFile 1]\" />"
         set InRunTest 0
       } else {
+        if {[regexp {^TestCase} $LineOfLogFile] } {
+          set TestCaseName [lindex $LineOfLogFile 1]
+        }
         puts $HtmlFileHandle $LineOfLogFile
       }
     }
