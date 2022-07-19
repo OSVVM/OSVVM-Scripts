@@ -223,6 +223,7 @@ proc BeforeBuildCleanUp {} {
   variable ConsecutiveAnalyzeErrors  0
   variable SimulateErrors 0
   variable ConsecutiveSimulateErrors 0
+  variable ScriptErrors 0 
   
   # Close any previous build information
   if {[info exists TestSuiteName]} {
@@ -274,8 +275,10 @@ proc SetBuildName {Path_Or_File} {
 proc build {{Path_Or_File "."}} {
   variable AnalyzeErrors 
   variable SimulateErrors
+  variable ScriptErrors 
   variable BuildErrorInfo
   variable ReportsErrorInfo
+  variable Log2ErrorInfo
   variable BuildStarted
   variable TranscriptExtension
   variable BuildName
@@ -304,7 +307,7 @@ proc build {{Path_Or_File "."}} {
     
     StopTranscript ${LogFileName}
     
-    set Log2ErrorCode [catch {Log2Osvvm} ReportsErrMsg]
+    set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
     set Log2ErrorInfo $::errorInfo
     
     if {$BuildErrorCode != 0 || $AnalyzeErrors > 0 || $SimulateErrors > 0} {   
@@ -337,11 +340,20 @@ proc build {{Path_Or_File "."}} {
     } 
     if {$Log2ErrorCode != 0} {  
       if {$::osvvm::FailOnReportErrors} {
-        puts  "Error: Failed during Log2Html, Log2Sim, Log2OsvvmOutput.  Please include your simulator version in any issue reports"
-        error "For tcl errorInfo, puts \$::osvvm::Log2ErrorInfo"
+        puts  "Error: Failed during Log2Osvvm.  Please include your simulator version in any issue reports"
+        error "For tcl errorInfo, puts \$::osvvm::Log2OsvvmErrorInfo"
       } else {
-        puts  "Error: Failed during Log2Html, Log2Sim, or Log2OsvvmOutput.  Please include your simulator version in any issue reports"
-        puts  "Error: For tcl errorInfo, puts \$::osvvm::Log2ErrorInfo"
+        puts  "Error: Failed during Log2Osvvm.  Please include your simulator version in any issue reports"
+        puts  "Error: For tcl errorInfo, puts \$::osvvm::Log2OsvvmErrorInfo"
+      }
+    } 
+    if {$ScriptErrors != 0} {  
+      if {$::osvvm::FailOnReportErrors} {
+        puts  "Error: Failed during Simulate2Html.  Please include your simulator version in any issue reports"
+        error "For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
+      } else {
+        puts  "Error: Failed during Simulate2Html.  Please include your simulator version in any issue reports"
+        puts  "Error: For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
       }
     } 
     if {($::osvvm::BuildStatus eq "FAILED") && ($::osvvm::FailOnTestCaseErrors)} {
@@ -414,19 +426,6 @@ proc CreateReports {BuildName} {
   ReportBuildStatus  
 }
 
-proc Log2Osvvm {} {
-  variable TranscriptFileName
-
-  if {$::osvvm::TranscriptExtension eq "html"} {
-    Log2Html $TranscriptFileName 
-  }
-  if {$::osvvm::CreateSimScripts} {
-    Log2Sim $TranscriptFileName 
-  }
-  if {$::osvvm::CreateOsvvmOutput} {
-    Log2OsvvmOutput $TranscriptFileName 
-  }
-}
 
 # -------------------------------------------------
 # CreateDirectory - Create directory if does not exist

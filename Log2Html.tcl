@@ -42,100 +42,140 @@
 
 namespace eval ::osvvm {
 
-  proc Log2OsvvmOutput {LogFile} {
-
+  proc Log2Osvvm {LogFile} {
+    variable LogFileHandle
+    variable HtmlFileHandle
+    variable SimFileHandle
+    variable OsvvmFileHandle
+    
     set LogFileHandle [open $LogFile r]
     set LogDir  [file dirname $LogFile]
     set LogName [file rootname [file tail $LogFile]]
     
-    set OsvvmFile [file join ${LogDir} ${LogName}_osvvm.log]
-    set OsvvmFileHandle [open $OsvvmFile w]
-
-    while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
-      set LineOfLogFile [regsub {^KERNEL: %%} [regsub {^# } $RawLineOfLogFile ""] "%%"]
-      if {[regexp {^%%|^simulate } $LineOfLogFile] } {
-        puts $OsvvmFileHandle $LineOfLogFile
-      }
+    if {$::osvvm::TranscriptExtension eq "html"} {
+      set HtmlFile [file join ${LogDir} ${LogName}_log.html]
+      set HtmlFileHandle [open $HtmlFile w]
     }
+    if {$::osvvm::CreateSimScripts} {
+      set SimFile [file join ${LogDir} ${LogName}_sim.tcl]
+      set SimFileHandle [open $SimFile w]
+    }
+    if {$::osvvm::CreateOsvvmOutput} {
+      set OsvvmFile [file join ${LogDir} ${LogName}_osvvm.log]
+      set OsvvmFileHandle [open $OsvvmFile w]
+    }
+    
+    set ErrorCode [catch {LocalLog2Osvvm $LogFile} errmsg]
+    
     close $LogFileHandle 
-    close $OsvvmFileHandle 
+    
+    if {$::osvvm::TranscriptExtension eq "html"} {
+      close $HtmlFileHandle 
+    }
+    if {$::osvvm::CreateSimScripts} {
+      close $SimFileHandle 
+    }
+    if {$::osvvm::CreateOsvvmOutput} {
+      close $OsvvmFileHandle 
+    }
+    
+    if {$ErrorCode} {
+      set ::osvvm::Log2OsvvmErrorInfo $::errorInfo
+      set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+
+      puts "# ** Error: Log2Osvvm  For tcl errorInfo, puts \$::osvvm::Log2OsvvmErrorInfo"
+      error "ScriptError: Log2Osvvm 'Log File: $LogFile ' failed: $errmsg"
+    }
   }
 
-  proc Log2Html {LogFile} {
-    set LogFileHandle [open $LogFile r]
-    set LogDir  [file dirname $LogFile]
-    set LogName [file rootname [file tail $LogFile]]
-    
-    set HtmlFile [file join ${LogDir} ${LogName}_log.html]
-    set HtmlFileHandle [open $HtmlFile w]
-    
-    set InRunTest 0
-    set FirstFind 1
-    set TestSuiteName Default
-    set PrintPrefix "<pre><details>"
+  proc LocalLog2Osvvm {LogFile} {
+    variable LogFileHandle
+    variable LineOfLogFile
+    variable InRunTest 0
+    variable FirstFind 1
+    variable TestSuiteName Default
+    variable PrintPrefix "<pre><details>"
+
     while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
       set LineOfLogFile [regsub {^KERNEL: %%} [regsub {^# } $RawLineOfLogFile ""] "%%"]
-      if {[regexp {^Build Start} $LineOfLogFile] } {
-        puts $HtmlFileHandle "</details>"
-        puts $HtmlFileHandle $LineOfLogFile
-      } elseif {[regexp {^build|^include} $LineOfLogFile] } {
-        puts $HtmlFileHandle "${PrintPrefix}<summary>${LineOfLogFile}</summary>"
-        if {$FirstFind} {
-          set PrintPrefix "</details><details>"
-          set FirstFind 0
-        } 
-      } elseif {[regexp {^TestSuite} $LineOfLogFile] } {
-        set TestSuiteName [lindex $LineOfLogFile 1]
+        
+      if {$::osvvm::TranscriptExtension eq "html"} {
+        Log2Html  
+      }
+      if {$::osvvm::CreateSimScripts} {
+        Log2Sim 
+      }
+      if {$::osvvm::CreateOsvvmOutput} {
+        Log2OsvvmOutput  
+      }
+    }
+  }
+
+  proc Log2Html {} {
+    variable HtmlFileHandle
+    variable LineOfLogFile
+    variable InRunTest
+    variable FirstFind
+    variable TestSuiteName 
+    variable PrintPrefix 
+    
+    if {[regexp {^Build Start} $LineOfLogFile] } {
+      puts $HtmlFileHandle "</details>"
+      puts $HtmlFileHandle $LineOfLogFile
+    } elseif {[regexp {^build|^include} $LineOfLogFile] } {
+      puts $HtmlFileHandle "${PrintPrefix}<summary>${LineOfLogFile}</summary>"
+      if {$FirstFind} {
+        set PrintPrefix "</details><details>"
+        set FirstFind 0
+      } 
+    } elseif {[regexp {^TestSuite} $LineOfLogFile] } {
+      set TestSuiteName [lindex $LineOfLogFile 1]
+      puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
+    } elseif {[regexp {^RunTest} $LineOfLogFile] } {
+      set InRunTest 1
+      puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
+    } elseif {[regexp {^AnalyzeError:|^SimulateError:|^ScriptError:} $LineOfLogFile] } {
+        puts $HtmlFileHandle "</details><details><summary style=color:#FF0000>$LineOfLogFile</summary>"
+    } elseif {[regexp {^analyze} $LineOfLogFile] } {
+      if {! $InRunTest} {
         puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
-      } elseif {[regexp {^RunTest} $LineOfLogFile] } {
-        set InRunTest 1
-        puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
-      } elseif {[regexp {^AnalyzeError:|^SimulateError:} $LineOfLogFile] } {
-          puts $HtmlFileHandle "</details><details><summary style=color:#FF0000>$LineOfLogFile</summary>"
-      } elseif {[regexp {^analyze} $LineOfLogFile] } {
-        if {! $InRunTest} {
-          puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
-        } else {
-          puts $HtmlFileHandle $LineOfLogFile
-        }
-      } elseif {[regexp {^simulate} $LineOfLogFile] } {
-        if {! $InRunTest} {
-          puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary> <div id=\"${TestSuiteName}_${TestCaseName}\" />"
-        } else {
-          puts $HtmlFileHandle "$LineOfLogFile <div id=\"${TestSuiteName}_[lindex $LineOfLogFile 1]\" />"
-        }
-  #      puts $HtmlFileHandle "<div id=\"[lindex $LineOfLogFile 1]\" />"
-        set InRunTest 0
       } else {
-        if {[regexp {^TestCase} $LineOfLogFile] } {
-          set TestCaseName [lindex $LineOfLogFile 1]
-        }
         puts $HtmlFileHandle $LineOfLogFile
       }
-    }
-    close $LogFileHandle 
-    close $HtmlFileHandle 
-  }
-
-  proc Log2Sim {LogFile} {
-    set LogFileHandle [open $LogFile r]
-    set LogDir  [file dirname $LogFile]
-    set LogName [file rootname [file tail $LogFile]]
-    
-    set SimFile [file join ${LogDir} ${LogName}_sim.tcl]
-    set SimFileHandle [open $SimFile w]
-    
-    while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
-      set LineOfLogFile [regsub {^# } $RawLineOfLogFile ""]
-      if {[IsVendorCommand $LineOfLogFile]} {
-        puts $SimFileHandle [regsub {\{\*\}} $LineOfLogFile ""]
+    } elseif {[regexp {^simulate} $LineOfLogFile] } {
+      if {! $InRunTest} {
+        puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary> <div id=\"${TestSuiteName}_${TestCaseName}\" />"
+      } else {
+        puts $HtmlFileHandle "$LineOfLogFile <div id=\"${TestSuiteName}_[lindex $LineOfLogFile 1]\" />"
       }
+      set InRunTest 0
+    } else {
+      if {[regexp {^TestCase} $LineOfLogFile] } {
+        set TestCaseName [lindex $LineOfLogFile 1]
+      }
+      puts $HtmlFileHandle $LineOfLogFile
     }
-    close $LogFileHandle 
-    close $SimFileHandle 
   }
 
-namespace export Log2Sim Log2Html GrepOsvvm
+  proc Log2Sim {} {
+    variable SimFileHandle
+    variable LineOfLogFile
+    
+    if {[IsVendorCommand $LineOfLogFile]} {
+      puts $SimFileHandle [regsub {\{\*\}} $LineOfLogFile ""]
+    }
+  }
+
+  proc Log2OsvvmOutput {} {
+    variable OsvvmFileHandle
+    variable LineOfLogFile
+
+    if {[regexp {^%%|^simulate } $LineOfLogFile] } {
+      puts $OsvvmFileHandle $LineOfLogFile
+    }
+  }
+  
+namespace export Log2Osvvm
 
 }
 

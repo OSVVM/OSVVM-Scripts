@@ -45,7 +45,23 @@ proc Scoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
   variable ResultsFile
   
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
+  
+  set ErrorCode [catch {LocalScoreboard2Html $TestCaseName $TestSuiteName $SbYamlFile $SbName} errmsg]
+  
+  close $ResultsFile
 
+  if {$ErrorCode} {
+    set ::osvvm::SimulateScriptErrorInfo $::errorInfo
+    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+
+    puts "# ** Error: Scoreboard2Html  For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
+    error "ScriptError: Scoreboard2Html 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName,  Scoreboard Name: $SbName ' failed: $errmsg"
+  }  
+}
+
+proc LocalScoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
+  variable ResultsFile
+  
   puts $ResultsFile "<hr>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
   puts $ResultsFile "<h2 id=\"${SbName}\">$TestCaseName Scoreboard Report</h2>"
@@ -62,7 +78,6 @@ proc Scoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
     puts $ResultsFile "  </div>"
     puts $ResultsFile "  </details>"
   }
-  close $ResultsFile
 }
 
 proc OsvvmScoreboardInfo2Html {ScoreboardDict} {

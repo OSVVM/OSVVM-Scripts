@@ -47,6 +47,22 @@ proc Alert2Html {TestCaseName TestSuiteName AlertYamlFile} {
 
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
+  set ErrorCode [catch {LocalAlert2Html $TestCaseName $TestSuiteName $AlertYamlFile} errmsg]
+  
+  close $ResultsFile
+
+  if {$ErrorCode} {
+    set ::osvvm::SimulateScriptErrorInfo $::errorInfo
+    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+
+    puts "# ** Error: Alert2Html  For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
+    error "ScriptError: Alert2Html 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName ' failed: $errmsg"
+  }
+}
+
+proc LocalAlert2Html {TestCaseName TestSuiteName AlertYamlFile} {
+  variable ResultsFile
+
   set Alert2HtmlDict [::yaml::yaml2dict -file ${AlertYamlFile}]
   
   AlertSettings $Alert2HtmlDict
@@ -93,7 +109,6 @@ proc Alert2Html {TestCaseName TestSuiteName AlertYamlFile} {
 #   puts $ResultsFile "</details>"
   puts $ResultsFile "</details>"
   puts $ResultsFile "<br><br>"
-  close $ResultsFile
 }
 
 proc AlertSettings {AlertDict} {

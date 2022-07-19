@@ -95,6 +95,24 @@ proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
 
 proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   variable ResultsFile
+
+  OpenSimulationReportFile   ${TestCaseName} ${TestSuiteName} 1
+
+  set ErrorCode [catch {LocalCreateSimulationReportFile $TestCaseName $TestSuiteName} errmsg]
+  
+  close $ResultsFile
+
+  if {$ErrorCode} {
+    set ::osvvm::SimulateScriptErrorInfo $::errorInfo
+    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+
+    puts "# ** Error: CreateSimulationReportFile  For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
+    error "ScriptError: CreateSimulationReportFile 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName ' failed: $errmsg"
+  }
+}
+
+proc LocalCreateSimulationReportFile {TestCaseName TestSuiteName} {
+  variable ResultsFile
   variable CurrentTranscript
   variable AlertYamlFile 
   variable CovYamlFile   
@@ -103,7 +121,6 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
   variable TranscriptYamlFile
   variable BuildName
     
-  OpenSimulationReportFile   ${TestCaseName} ${TestSuiteName} 1
 
   puts $ResultsFile "<title>$TestCaseName Test Case Detailed Report</title>"
   puts $ResultsFile "</head>"
@@ -175,7 +192,6 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
     
   puts $ResultsFile "</table>"
   puts $ResultsFile "<br><br>"
-  close $ResultsFile
 }
 
 proc FinalizeSimulationReportFile {TestCaseName TestSuiteName} {

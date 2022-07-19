@@ -44,24 +44,37 @@ package require yaml
 
 proc Report2Junit {ReportFile} {
   variable ResultsFile
-  variable ReportTestSuiteSummary
-  variable HaveTestSuites
 
   set FileName  [file rootname ${ReportFile}].xml
+  set ResultsFile [open ${FileName} w]
+
+  set ErrorCode [catch {LocalReport2Junit $ReportFile} errmsg]
+  
+  close $ResultsFile
+
+  if {$ErrorCode} {
+    set ::osvvm::SimulateScriptErrorInfo $::errorInfo
+    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+
+    puts "# ** Error: Report2Junit  For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
+    error "ScriptError: Report2Junit 'Report File: $ReportFile ' failed: $errmsg"
+  }
+}
+
+
+proc LocalReport2Junit {ReportFile} {
+  variable ResultsFile
+  variable ReportTestSuiteSummary
+  variable HaveTestSuites
+  
   set TestDict [::yaml::yaml2dict -file ${ReportFile}]
   set VersionNum  [dict get $TestDict Version]
 
   set HaveTestSuites [dict exists $TestDict TestSuites]
   if { $HaveTestSuites } {
-
-    set ResultsFile [open ${FileName} w]
-
     JunitCreateSummary $TestDict 
-  
     JunitTestSuites $TestDict $ReportTestSuiteSummary 
-    
     puts $ResultsFile "</testsuites>"
-    close $ResultsFile
   }
 }
 

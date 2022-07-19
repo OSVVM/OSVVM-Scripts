@@ -57,7 +57,8 @@ namespace eval ::osvvm {
   variable SimulateErrorInfo
   variable BuildErrorInfo
   variable ReportsErrorInfo
-
+  variable SimulateScriptErrorInfo
+  variable Log2OsvvmErrorInfo
 
   #
   # Variables set by VendorScripts_***.tcl

@@ -49,6 +49,23 @@ proc Report2Html {ReportFile} {
   set FileName  [file rootname ${ReportFile}].html
   file copy -force [file join ${::osvvm::SCRIPT_DIR} summary_header_report.html] ${FileName}
   set ResultsFile [open ${FileName} a]
+  
+  set ErrorCode [catch {LocalReport2Html $ReportFile} errmsg]
+  
+  close $ResultsFile
+
+  if {$ErrorCode} {
+    set ::osvvm::SimulateScriptErrorInfo $::errorInfo
+    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+
+    puts "# ** Error: Report2Html  For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
+    error "ScriptError: Report2Html 'Report File: $ReportFile ' failed: $errmsg"
+  }
+}
+
+
+proc LocalReport2Html {ReportFile} {
+  variable ResultsFile
 
   set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
   set VersionNum  [dict get $Report2HtmlDict Version]
@@ -60,7 +77,6 @@ proc Report2Html {ReportFile} {
   puts $ResultsFile "<br><br>"
   puts $ResultsFile "</body>"
   puts $ResultsFile "</html>"
-  close $ResultsFile
 }
 
 proc ReportBuildStatus {} {

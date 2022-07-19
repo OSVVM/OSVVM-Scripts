@@ -56,6 +56,23 @@ proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
   variable ResultsFile
     
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
+  
+  set ErrorCode [catch {LocalCov2Html $TestCaseName $TestSuiteName $CovYamlFile} errmsg]
+  
+  close $ResultsFile
+
+  if {$ErrorCode} {
+    set ::osvvm::SimulateScriptErrorInfo $::errorInfo
+    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+
+    puts "# ** Error: Cov2Html  For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
+    error "ScriptError: Cov2Html 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName ' failed: $errmsg"
+  }
+}
+
+proc LocalCov2Html {TestCaseName TestSuiteName CovYamlFile} {
+  variable ResultsFile
+    
 #  set CovFile ${::osvvm::ReportsDirectory}/${TestCaseName}_cov.yml
 
   puts $ResultsFile "<hr>"
@@ -79,7 +96,6 @@ proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
     puts $ResultsFile "  </div>"
     puts $ResultsFile "  </details>"
   }
-  close $ResultsFile
 }
 
 proc OsvvmCovInfo2Html {ModelDict} {
