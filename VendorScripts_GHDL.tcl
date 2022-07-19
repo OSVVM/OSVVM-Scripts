@@ -148,8 +148,8 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable GHDL_WORKING_LIBRARY_PATH
   variable CoverageSimulateEnable
 
-  puts "ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}"
-  set results [exec ghdl -a --std=${VhdlShortVersion} -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}]
+  puts "ghdl -a --std=${VhdlShortVersion} -Wno-library -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}"
+  set results [exec ghdl -a --std=${VhdlShortVersion} -Wno-library -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}]
   puts $results  
 }
 
