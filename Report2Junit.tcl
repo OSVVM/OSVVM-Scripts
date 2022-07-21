@@ -53,14 +53,14 @@ proc Report2Junit {ReportFile} {
   close $ResultsFile
 
   if {$ErrorCode} {
-    set ::osvvm::SimulateScriptErrorInfo $::errorInfo
-    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+    set ::osvvm::Simulate2JunitErrorInfo $::errorInfo
+#    Report2Junit errors are caught Build
+#    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
 
-    puts "# ** Error: Report2Junit  For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
-    error "ScriptError: Report2Junit 'Report File: $ReportFile ' failed: $errmsg"
+    puts "# ** Error: Report2Junit  For tcl errorInfo, puts \$::osvvm::Simulate2JunitErrorInfo"
+    error "ReportError: Report2Junit 'Report File: $ReportFile ' failed: $errmsg"
   }
 }
-
 
 proc LocalReport2Junit {ReportFile} {
   variable ResultsFile
@@ -231,7 +231,11 @@ proc JunitTestSuites {TestDict TestSuiteSummary } {
         set TestStatus  [dict get $TestCase Status]
         set VhdlName    [dict get $TestCase Name]
         if { $TestStatus ne "SKIPPED" } {
-          set ElapsedTime [dict get $TestCase ElapsedTime]
+          if {[dict exists $TestCase ElapsedTime]} {
+            set ElapsedTime [dict get $TestCase ElapsedTime]
+          } else {
+            set ElapsedTime missing
+          }
         } else {
           set ElapsedTime 0
         } 

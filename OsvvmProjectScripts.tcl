@@ -277,7 +277,6 @@ proc build {{Path_Or_File "."}} {
   variable SimulateErrors
   variable ScriptErrors 
   variable BuildErrorInfo
-  variable ReportsErrorInfo
   variable Log2ErrorInfo
   variable BuildStarted
   variable TranscriptExtension
@@ -298,12 +297,12 @@ proc build {{Path_Or_File "."}} {
         
     #  Catch any errors from the build and handle them below
     set BuildErrorCode [catch {LocalBuild $BuildName $Path_Or_File} BuildErrMsg]
-    set BuildErrorInfo $::errorInfo
+    set LocalBuildErrorInfo $::errorInfo
     set BuildStarted 0
     
     # Try to create reports, even if the build failed
-    set ReportsErrorCode [catch {CreateReports $BuildName} ReportsErrMsg]
-    set ReportsErrorInfo $::errorInfo
+    set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
+    set LocalReportErrorInfo $::errorInfo
     
     StopTranscript ${LogFileName}
     
@@ -311,6 +310,7 @@ proc build {{Path_Or_File "."}} {
     set Log2ErrorInfo $::errorInfo
     
     if {$BuildErrorCode != 0 || $AnalyzeErrors > 0 || $SimulateErrors > 0} {   
+      set ::osvvm::BuildErrorInfo $LocalBuildErrorInfo
       set ErrorSource ""
       if {$BuildErrorCode != 0} {
         set ErrorSource "BuildErrorCode = $BuildErrorCode. "
@@ -329,13 +329,14 @@ proc build {{Path_Or_File "."}} {
         puts "Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
       }
     } 
-    if {$ReportsErrorCode != 0} {  
+    if {$ReportErrorCode != 0} {  
+      set ::osvvm::BuildReportErrorInfo $LocalReportErrorInfo 
       if {$::osvvm::FailOnReportErrors} {
-        puts  "Error: Failed during reporting.  Please include your simulator version in any issue reports"
-        error "For tcl errorInfo, puts \$::osvvm::ReportsErrorInfo"
+        puts  "Error: Failed during AfterBuildReports.  Please include your simulator version in any issue reports"
+        error "For tcl errorInfo, puts \$::osvvm::BuildReportErrorInfo"
       } else {
-        puts  "Error: Failed during reporting.  Please include your simulator version in any issue reports"
-        puts  "Error: For tcl errorInfo, puts \$::osvvm::ReportsErrorInfo"
+        puts  "Error: Failed during AfterBuildReports.  Please include your simulator version in any issue reports"
+        puts  "Error: For tcl errorInfo, puts \$::osvvm::BuildReportErrorInfo"
       }
     } 
     if {$Log2ErrorCode != 0} {  
@@ -350,10 +351,10 @@ proc build {{Path_Or_File "."}} {
     if {$ScriptErrors != 0} {  
       if {$::osvvm::FailOnReportErrors} {
         puts  "Error: Failed during Simulate2Html.  Please include your simulator version in any issue reports"
-        error "For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
+        error "For tcl errorInfo, puts \$::osvvm::Simulate2HtmlErrorInfo"
       } else {
         puts  "Error: Failed during Simulate2Html.  Please include your simulator version in any issue reports"
-        puts  "Error: For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
+        puts  "Error: For tcl errorInfo, puts \$::osvvm::Simulate2HtmlErrorInfo"
       }
     } 
     if {($::osvvm::BuildStatus eq "FAILED") && ($::osvvm::FailOnTestCaseErrors)} {
@@ -414,7 +415,7 @@ proc LocalBuild {BuildName Path_Or_File} {
   puts "Build Finish time [clock format $BuildFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
 }
 
-proc CreateReports {BuildName} {
+proc AfterBuildReports {BuildName} {
 
   # short sleep to allow the file to close
   after 1000
@@ -897,10 +898,23 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   variable ConsecutiveSimulateErrors 
   variable SimulateErrorsStopCount
    
-  if {[catch {LocalSimulate $LibraryUnit $OptionalCommands} errmsg]} {
+  set SimulateErrorCode [catch {LocalSimulate $LibraryUnit $OptionalCommands} errmsg]
+  set LocalSimulateErrorInfo $::errorInfo
+  
+  set ReportErrorCode [catch {AfterSimulateReports} errmsg]
+  set LocalReportErrorInfo $::errorInfo
+
+  if {[info exists ::osvvm::TestCaseName]} {
+    unset ::osvvm::TestCaseName
+  }
+  # Remove Generics
+  set ::osvvm::GenericList ""
+  set ::osvvm::GenericNames ""
+  
+  if {$SimulateErrorCode != 0} {
+    set ::osvvm::SimulateErrorInfo $LocalSimulateErrorInfo
     set SimulateErrors            [expr $SimulateErrors+1]
     set ConsecutiveSimulateErrors [expr $ConsecutiveSimulateErrors+1]
-    set ::osvvm::SimulateErrorInfo $::errorInfo
     puts "# ** Error: simulate  For tcl errorInfo, puts \$::osvvm::SimulateErrorInfo"
 
     if {$SimulateErrorsStopCount != 0 && $SimulateErrors >= $SimulateErrorsStopCount } {
@@ -911,12 +925,17 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   } else {
     set ConsecutiveSimulateErrors 0 
   }
-  if {[info exists ::osvvm::TestCaseName]} {
-    unset ::osvvm::TestCaseName
-  }
-  # Remove Generics
-  set ::osvvm::GenericList ""
-  set ::osvvm::GenericNames ""
+
+  if {$ReportErrorCode != 0} {  
+    set ::osvvm::SimulateReportErrorInfo $LocalReportErrorInfo 
+    if {$::osvvm::FailOnReportErrors} {
+      puts  "Error: Failed during AfterSimulateReports.  Please include your simulator version in any issue reports"
+      error "For tcl errorInfo, puts \$::osvvm::SimulateReportErrorInfo"
+    } else {
+      puts  "Error: Failed during AfterSimulateReports.  Please include your simulator version in any issue reports"
+      puts  "Error: For tcl errorInfo, puts \$::osvvm::SimulateReportErrorInfo"
+    }
+  } 
 }
 
 proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
@@ -924,12 +943,13 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
   variable vendor_simulate_started
   variable TestCaseName
   variable TestCaseFileName
-  variable TestSuiteName
-  variable TranscriptExtension
   variable CoverageSimulateEnable
   variable CoverageSimulateOptions
   variable ExtendedSimulateOptions
   variable RanSimulationWithCoverage
+  variable SimulateStartTime
+  variable SimulateStartTimeMs
+  
 
   if {![info exists TestCaseName]} {
     TestCase $LibraryUnit
@@ -958,13 +978,20 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
     set AllOptionalCommands [concat {*}$OptionalCommands {*}$ExtendedSimulateOptions]
   }
 
-#  if {$TranscriptExtension eq "html"} {
-#    puts "<div id=\"${TestSuiteName}_${TestCaseName}\" />"
-#  }
-
   puts "Simulation Start time [clock format $SimulateStartTime -format %T]"
 
   vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} ${AllOptionalCommands}
+
+}
+
+proc AfterSimulateReports {} {
+  variable TestCaseName
+  variable TestSuiteName
+  variable TestCaseFileName
+  variable SimulateStartTime
+  variable SimulateStartTimeMs
+
+  Simulate2Html $TestCaseName $TestSuiteName $TestCaseFileName
 
   #puts "Start time  [clock format $SimulateStartTime -format %T]"
   set  SimulateFinishTime    [clock seconds]
@@ -973,8 +1000,6 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
   set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
 
   puts "Simulation Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
-
-  Simulate2Html $TestCaseName $TestSuiteName $TestCaseFileName
 
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]

@@ -1,4 +1,4 @@
-#  File Name:         Log2Html.tcl
+#  File Name:         Log2Osvvm.tcl
 #  Purpose:           Extract information from OSVVM Log Files
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 
@@ -7,9 +7,7 @@
 #     Jim Lewis      email:  jim@synthworks.com   
 # 
 #  Description
-#    Log2Osvvm - find lines in an OSVVM log file that start with %%
-#    Log2Html  - convert an OSVVM log file to HtmlFile
-#    Log2Sim   - convert an OSVVM log file to a simulation script
+#    Log2Osvvm - Create HTML, Simulation Scripts, and osvvm logs
 #    
 #  Developed by: 
 #        SynthWorks Design Inc. 
@@ -84,7 +82,7 @@ namespace eval ::osvvm {
       set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
 
       puts "# ** Error: Log2Osvvm  For tcl errorInfo, puts \$::osvvm::Log2OsvvmErrorInfo"
-      error "ScriptError: Log2Osvvm 'Log File: $LogFile ' failed: $errmsg"
+      error "ReportError: Log2Osvvm 'Log File: $LogFile ' failed: $errmsg"
     }
   }
 
@@ -134,7 +132,7 @@ namespace eval ::osvvm {
     } elseif {[regexp {^RunTest} $LineOfLogFile] } {
       set InRunTest 1
       puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
-    } elseif {[regexp {^AnalyzeError:|^SimulateError:|^ScriptError:} $LineOfLogFile] } {
+    } elseif {[regexp {^AnalyzeError:|^SimulateError:|^ScriptError:|^ReportError:} $LineOfLogFile] } {
         puts $HtmlFileHandle "</details><details><summary style=color:#FF0000>$LineOfLogFile</summary>"
     } elseif {[regexp {^analyze} $LineOfLogFile] } {
       if {! $InRunTest} {

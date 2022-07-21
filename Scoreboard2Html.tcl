@@ -51,11 +51,11 @@ proc Scoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
   close $ResultsFile
 
   if {$ErrorCode} {
-    set ::osvvm::SimulateScriptErrorInfo $::errorInfo
+    set ::osvvm::Simulate2HtmlErrorInfo $::errorInfo
     set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
 
-    puts "# ** Error: Scoreboard2Html  For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
-    error "ScriptError: Scoreboard2Html 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName,  Scoreboard Name: $SbName ' failed: $errmsg"
+    puts "# ** Error: Scoreboard2Html  For tcl errorInfo, puts \$::osvvm::Simulate2HtmlErrorInfo"
+    error "ReportError: Scoreboard2Html 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName,  Scoreboard Name: $SbName ' failed: $errmsg"
   }  
 }
 

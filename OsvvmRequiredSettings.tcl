@@ -56,8 +56,11 @@ namespace eval ::osvvm {
   variable AnalyzeErrorInfo
   variable SimulateErrorInfo
   variable BuildErrorInfo
-  variable ReportsErrorInfo
-  variable SimulateScriptErrorInfo
+  variable BuildReportErrorInfo
+  variable SimulateReportErrorInfo
+  variable Simulate2HtmlErrorInfo
+  variable Report2HtmlErrorInfo
+  variable Report2JunitErrorInfo
   variable Log2OsvvmErrorInfo
 
   #

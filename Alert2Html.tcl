@@ -52,11 +52,11 @@ proc Alert2Html {TestCaseName TestSuiteName AlertYamlFile} {
   close $ResultsFile
 
   if {$ErrorCode} {
-    set ::osvvm::SimulateScriptErrorInfo $::errorInfo
+    set ::osvvm::Simulate2HtmlErrorInfo $::errorInfo
     set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
 
-    puts "# ** Error: Alert2Html  For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
-    error "ScriptError: Alert2Html 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName ' failed: $errmsg"
+    puts "# ** Error: Alert2Html  For tcl errorInfo, puts \$::osvvm::Simulate2HtmlErrorInfo"
+    error "ReportError: Alert2Html 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName ' failed: $errmsg"
   }
 }
 

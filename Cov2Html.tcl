@@ -62,11 +62,11 @@ proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
   close $ResultsFile
 
   if {$ErrorCode} {
-    set ::osvvm::SimulateScriptErrorInfo $::errorInfo
+    set ::osvvm::Simulate2HtmlErrorInfo $::errorInfo
     set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
 
-    puts "# ** Error: Cov2Html  For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
-    error "ScriptError: Cov2Html 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName ' failed: $errmsg"
+    puts "# ** Error: Cov2Html  For tcl errorInfo, puts \$::osvvm::Simulate2HtmlErrorInfo"
+    error "ReportError: Cov2Html 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName ' failed: $errmsg"
   }
 }
 

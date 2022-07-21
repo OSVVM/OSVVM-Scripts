@@ -55,14 +55,14 @@ proc Report2Html {ReportFile} {
   close $ResultsFile
 
   if {$ErrorCode} {
-    set ::osvvm::SimulateScriptErrorInfo $::errorInfo
-    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+    set ::osvvm::Report2HtmlErrorInfo $::errorInfo
+#   Report2Html errors are caught Build
+#    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
 
-    puts "# ** Error: Report2Html  For tcl errorInfo, puts \$::osvvm::SimulateScriptErrorInfo"
-    error "ScriptError: Report2Html 'Report File: $ReportFile ' failed: $errmsg"
+    puts "# ** Error: Report2Html  For tcl errorInfo, puts \$::osvvm::Report2HtmlErrorInfo"
+    error "ReportError: Report2Html 'Report File: $ReportFile ' failed: $errmsg"
   }
 }
-
 
 proc LocalReport2Html {ReportFile} {
   variable ResultsFile
