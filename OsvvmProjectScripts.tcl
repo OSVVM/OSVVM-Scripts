@@ -1035,14 +1035,25 @@ proc SimulateRunSubScripts {LibraryUnit Directory} {
 
 proc SimulateRunScripts {LibraryUnit} {
   variable TestCaseName 
+  variable  SCRIPT_DIR
+  variable  CurrentSimulationDirectory
+  variable  CurrentWorkingDirectory
   
-  SimulateRunSubScripts ${LibraryUnit} ${::osvvm::SCRIPT_DIR}
-  SimulateRunSubScripts ${LibraryUnit} ${::osvvm::CurrentSimulationDirectory}
-  SimulateRunSubScripts ${LibraryUnit} ${::osvvm::CurrentWorkingDirectory}
+  SimulateRunSubScripts ${LibraryUnit} ${SCRIPT_DIR}
+  if {${CurrentSimulationDirectory} ne ${SCRIPT_DIR}} {
+    SimulateRunSubScripts ${LibraryUnit} ${CurrentSimulationDirectory}
+  }
+  if {(${CurrentWorkingDirectory} ne ${CurrentSimulationDirectory}) && (${CurrentWorkingDirectory} ne ${SCRIPT_DIR})} {
+    SimulateRunSubScripts ${LibraryUnit} ${CurrentWorkingDirectory}
+  }
   if {$TestCaseName ne $LibraryUnit} {
-    SimulateRunDesignScripts ${TestCaseName} ${::osvvm::SCRIPT_DIR}
-    SimulateRunDesignScripts ${TestCaseName} ${::osvvm::CurrentSimulationDirectory}
-    SimulateRunDesignScripts ${TestCaseName} ${::osvvm::CurrentWorkingDirectory}
+    SimulateRunDesignScripts ${TestCaseName} ${SCRIPT_DIR}
+    if {${CurrentSimulationDirectory} ne ${SCRIPT_DIR}} {
+      SimulateRunDesignScripts ${TestCaseName} ${CurrentSimulationDirectory}
+    }
+    if {(${CurrentWorkingDirectory} ne ${CurrentSimulationDirectory}) && (${CurrentWorkingDirectory} ne ${SCRIPT_DIR})} {
+      SimulateRunDesignScripts ${TestCaseName} ${CurrentWorkingDirectory}
+    }
   }
 }
 
