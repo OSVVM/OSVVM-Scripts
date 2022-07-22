@@ -1015,21 +1015,35 @@ proc RunIfExists {ScriptToRun} {
     source ${ScriptToRun}
   }
 }
+
+proc SimulateRunDesignScripts {TestName Directory} {
+  variable ToolName
+  
+  RunIfExists [file join ${Directory} ${TestName}.tcl]
+  RunIfExists [file join ${Directory} ${TestName}_${ToolName}.tcl]
+}
+
 proc SimulateRunSubScripts {LibraryUnit Directory} {
   variable ToolVendor
   variable ToolName
   
-  RunIfExists [file join $Directory ${ToolVendor}.tcl]
-  RunIfExists [file join $Directory ${ToolName}.tcl]
-  RunIfExists [file join $Directory wave.do]
-  RunIfExists [file join $Directory ${LibraryUnit}.tcl]
-  RunIfExists [file join $Directory ${LibraryUnit}_${ToolName}.tcl]
+  RunIfExists [file join ${Directory} ${ToolVendor}.tcl]
+  RunIfExists [file join ${Directory} ${ToolName}.tcl]
+  RunIfExists [file join ${Directory} wave.do]
+  SimulateRunDesignScripts ${LibraryUnit} ${Directory}
 }
 
 proc SimulateRunScripts {LibraryUnit} {
+  variable TestCaseName 
+  
   SimulateRunSubScripts ${LibraryUnit} ${::osvvm::SCRIPT_DIR}
   SimulateRunSubScripts ${LibraryUnit} ${::osvvm::CurrentSimulationDirectory}
   SimulateRunSubScripts ${LibraryUnit} ${::osvvm::CurrentWorkingDirectory}
+  if {$TestCaseName ne $LibraryUnit} {
+    SimulateRunDesignScripts ${TestCaseName} ${::osvvm::SCRIPT_DIR}
+    SimulateRunDesignScripts ${TestCaseName} ${::osvvm::CurrentSimulationDirectory}
+    SimulateRunDesignScripts ${TestCaseName} ${::osvvm::CurrentWorkingDirectory}
+  }
 }
 
 # -------------------------------------------------
