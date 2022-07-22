@@ -87,7 +87,7 @@ if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults_${::osvvm::ScriptBas
 # Finalize Settings
 source ${::osvvm::SCRIPT_DIR}/OsvvmRequiredSettings.tcl
 
-source ${::osvvm::SCRIPT_DIR}/Log2Html.tcl
+source ${::osvvm::SCRIPT_DIR}/Log2Osvvm.tcl
 
 
 # Set OSVVM Script Defaults - defaults may call scripts

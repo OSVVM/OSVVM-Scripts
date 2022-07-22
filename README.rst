@@ -243,21 +243,29 @@ This may be for all designs or just one particular design.
 We may also need specific actions to be done when running
 on a particular simulator.
 
-As a result, when simulate runs, it will also include the
-following files in order, if they exist:
+When simulate (or RunTest) is called, it will source the following files in order, if they exist:
 
--  OsvvmLibraries/Scripts/<ToolVendor>.tcl
--  OsvvmLibraries/Scripts/<ToolName>.tcl
--  <sim-run-dir>/<ToolVendor>.tcl
--  <sim-run-dir>/<ToolName>.tcl
--  <sim-run-dir>/<test-name>.tcl
--  <sim-run-dir>/<test-name>_<ToolName>.tcl
--  <sim-run-dir>/wave.do
+-  <ToolVendor>.tcl
+-  <ToolName>.tcl
+-  wave.do
+-  <LibraryUnit>.tcl
+-  <LibraryUnit>_<ToolName>.tcl
+-  <TestCaseName>.tcl
+-  <TestCaseName>_<ToolName>.tcl
 
 ToolVendor is either {Aldec, Siemens, Cadence, Synopsys}. 
 ToolName is one of {QuestaSim, ModelSim, RivieraPRO, ActiveHDL, VCS, Xcelium}. 
-"test-name" is the name of the design being simulated. 
-"sim-run-dir" is the directory from which you run the simulator.
+LibraryUnit is the name specified to simulate. 
+TestCaseName is the name specified to TestCase.
+
+It will search for these files in the following directories
+- OsvvmLibraries/Scripts
+- CurrentSimulationDirectory
+- CurrentWorkingDirectory
+
+CurrentSimulationDirectory is the directory in which the simulator is running.
+CurrentWorkingDirectory is the directory of the script that calls either 
+RunTest or simulate.   
 
 Currently GHDL does not run any extra scripts since it is a batch
 simulator.
