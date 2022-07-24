@@ -52,7 +52,7 @@ proc Scoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
 
   if {$ErrorCode} {
     set ::osvvm::Simulate2HtmlErrorInfo $::errorInfo
-    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+    set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
 
     puts "# ** Error: Scoreboard2Html  For tcl errorInfo, puts \$::osvvm::Simulate2HtmlErrorInfo"
     error "ReportError: Scoreboard2Html 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName,  Scoreboard Name: $SbName ' failed: $errmsg"

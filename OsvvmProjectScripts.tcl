@@ -219,11 +219,11 @@ proc BeforeBuildCleanUp {} {
   variable vendor_simulate_started
   variable TestSuiteName
   variable TranscriptYamlFile 
-  variable AnalyzeErrors  0
+  variable AnalyzeErrorCount  0
   variable ConsecutiveAnalyzeErrors  0
-  variable SimulateErrors 0
+  variable SimulateErrorCount 0
   variable ConsecutiveSimulateErrors 0
-  variable ScriptErrors 0 
+  variable ScriptErrorCount 0 
   
   # Close any previous build information
   if {[info exists TestSuiteName]} {
@@ -273,9 +273,9 @@ proc SetBuildName {Path_Or_File} {
 # build
 #
 proc build {{Path_Or_File "."}} {
-  variable AnalyzeErrors 
-  variable SimulateErrors
-  variable ScriptErrors 
+  variable AnalyzeErrorCount 
+  variable SimulateErrorCount
+  variable ScriptErrorCount 
   variable BuildErrorInfo
   variable Log2ErrorInfo
   variable BuildStarted
@@ -309,17 +309,17 @@ proc build {{Path_Or_File "."}} {
     set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
     set Log2ErrorInfo $::errorInfo
     
-    if {$BuildErrorCode != 0 || $AnalyzeErrors > 0 || $SimulateErrors > 0} {   
+    if {$BuildErrorCode != 0 || $AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
       set ::osvvm::BuildErrorInfo $LocalBuildErrorInfo
       set ErrorSource ""
       if {$BuildErrorCode != 0} {
         set ErrorSource "BuildErrorCode = $BuildErrorCode. "
       }
-      if {$AnalyzeErrors > 0} {
-        set ErrorSource "${ErrorSource}AnalyzeErrors  = $AnalyzeErrors. "
+      if {$AnalyzeErrorCount > 0} {
+        set ErrorSource "${ErrorSource}AnalyzeErrorCount  = $AnalyzeErrorCount. "
       }
-      if {$SimulateErrors > 0} {
-        set ErrorSource "${ErrorSource}SimulateErrors  = $SimulateErrors. "
+      if {$SimulateErrorCount > 0} {
+        set ErrorSource "${ErrorSource}SimulateErrorCount  = $SimulateErrorCount. "
       }
       if {$::osvvm::FailOnBuildErrors} {
         puts  "Error:  Build failed with ${ErrorSource}."
@@ -348,7 +348,7 @@ proc build {{Path_Or_File "."}} {
         puts  "Error: For tcl errorInfo, puts \$::osvvm::Log2OsvvmErrorInfo"
       }
     } 
-    if {$ScriptErrors != 0} {  
+    if {$ScriptErrorCount != 0} {  
       if {$::osvvm::FailOnReportErrors} {
         puts  "Error: Failed during Simulate2Html.  Please include your simulator version in any issue reports"
         error "For tcl errorInfo, puts \$::osvvm::Simulate2HtmlErrorInfo"
@@ -832,17 +832,17 @@ proc LinkCurrentLibraries {} {
 # analyze
 #
 proc analyze {FileName {OptionalCommands ""}} {
-  variable AnalyzeErrors 
+  variable AnalyzeErrorCount 
   variable ConsecutiveAnalyzeErrors 
-  variable AnalyzeErrorsStopCount
+  variable AnalyzeErrorStopCount
    
   if {[catch {LocalAnalyze $FileName $OptionalCommands} errmsg]} {
-    set AnalyzeErrors            [expr $AnalyzeErrors+1]
+    set AnalyzeErrorCount            [expr $AnalyzeErrorCount+1]
     set ConsecutiveAnalyzeErrors [expr $ConsecutiveAnalyzeErrors+1]
     set ::osvvm::AnalyzeErrorInfo $::errorInfo
     puts "# ** Error: analyze  For tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
     
-    if {$AnalyzeErrorsStopCount != 0 && $AnalyzeErrors >= $AnalyzeErrorsStopCount } {
+    if {$AnalyzeErrorStopCount != 0 && $AnalyzeErrorCount >= $AnalyzeErrorStopCount } {
       error "AnalyzeError: analyze '$FileName $OptionalCommands' failed: $errmsg"
     } else {
       puts  "AnalyzeError: analyze '$FileName $OptionalCommands' failed: $errmsg"
@@ -894,9 +894,9 @@ proc LocalAnalyze {FileName {OptionalCommands ""}} {
 # Simulate
 #
 proc simulate {LibraryUnit {OptionalCommands ""}} {
-  variable SimulateErrors 
+  variable SimulateErrorCount 
   variable ConsecutiveSimulateErrors 
-  variable SimulateErrorsStopCount
+  variable SimulateErrorStopCount
    
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit $OptionalCommands} errmsg]
   set LocalSimulateErrorInfo $::errorInfo
@@ -913,11 +913,11 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   
   if {$SimulateErrorCode != 0} {
     set ::osvvm::SimulateErrorInfo $LocalSimulateErrorInfo
-    set SimulateErrors            [expr $SimulateErrors+1]
+    set SimulateErrorCount            [expr $SimulateErrorCount+1]
     set ConsecutiveSimulateErrors [expr $ConsecutiveSimulateErrors+1]
     puts "# ** Error: simulate  For tcl errorInfo, puts \$::osvvm::SimulateErrorInfo"
 
-    if {$SimulateErrorsStopCount != 0 && $SimulateErrors >= $SimulateErrorsStopCount } {
+    if {$SimulateErrorStopCount != 0 && $SimulateErrorCount >= $SimulateErrorStopCount } {
       error "SimulateError: '$LibraryUnit $OptionalCommands' failed: $errmsg"
     } else {
       puts  "SimulateError: '$LibraryUnit $OptionalCommands' failed: $errmsg"

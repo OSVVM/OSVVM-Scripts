@@ -57,7 +57,7 @@ proc Report2Html {ReportFile} {
   if {$ErrorCode} {
     set ::osvvm::Report2HtmlErrorInfo $::errorInfo
 #   Report2Html errors are caught Build
-#    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+#    set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
 
     puts "# ** Error: Report2Html  For tcl errorInfo, puts \$::osvvm::Report2HtmlErrorInfo"
     error "ReportError: Report2Html 'Report File: $ReportFile ' failed: $errmsg"
@@ -80,8 +80,8 @@ proc LocalReport2Html {ReportFile} {
 }
 
 proc ReportBuildStatus {} {
-  variable AnalyzeErrors
-  variable SimulateErrors
+  variable AnalyzeErrorCount
+  variable SimulateErrorCount
   variable BuildStatus 
   variable TestCasesPassed 
   variable TestCasesFailed 
@@ -89,14 +89,14 @@ proc ReportBuildStatus {} {
   variable TestCasesRun 
   variable BuildName
   
-  puts "Build: ${BuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${AnalyzeErrors},  Simulate Errors: ${SimulateErrors} "
+  puts "Build: ${BuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${AnalyzeErrorCount},  Simulate Errors: ${SimulateErrorCount} "
 }
 
 proc ReportElaborateStatus {TestDict} {
   variable ResultsFile
   variable BuildTranscript
-  variable AnalyzeErrors
-  variable SimulateErrors
+  variable AnalyzeErrorCount
+  variable SimulateErrorCount
   variable BuildStatus "PASSED"
   variable TestCasesPassed 0
   variable TestCasesFailed 0
@@ -111,7 +111,7 @@ proc ReportElaborateStatus {TestDict} {
 #  set TestCasesFailed 0
 #  set TestCasesSkipped 0
 #  set TestCasesRun 0
-  if {$AnalyzeErrors || $SimulateErrors} {
+  if {$AnalyzeErrorCount || $SimulateErrorCount} {
     set BuildStatus "FAILED"
   }
   
@@ -206,7 +206,6 @@ proc ReportElaborateStatus {TestDict} {
   if { [dict exists $TestDict Run] } {
     set RunInfo   [dict get $TestDict Run] 
   } else {
-#    set RunInfo   [dict create Start 2010-01-01T00:01-0800 Finish 2010-01-01T00:01-0800 Elapsed 0.0]
     set RunInfo   [dict create Start NONE Finish NONE Elapsed 0.0]
   }
   set BuildName [dict get $BuildInfo Name]
@@ -226,12 +225,12 @@ proc ReportElaborateStatus {TestDict} {
     set StatusColor  "#D09000" 
     set SkippedColor "#D09000"
   }
-  if {$AnalyzeErrors} {
+  if {$AnalyzeErrorCount} {
     set AnalyzeColor  "#FF0000"
   } else {
     set AnalyzeColor  "#000000"
   }
-  if {$SimulateErrors} {
+  if {$SimulateErrorCount} {
     set SimulateColor  "#FF0000"
   } else {
     set SimulateColor  "#000000"
@@ -248,8 +247,8 @@ proc ReportElaborateStatus {TestDict} {
   puts $ResultsFile "  <tr style=color:${PassedColor}><td>PASSED</td>  <td>$TestCasesPassed</td></tr>"
   puts $ResultsFile "  <tr style=color:${FailedColor}><td>FAILED</td>  <td>$TestCasesFailed</td></tr>"
   puts $ResultsFile "  <tr style=color:${SkippedColor}><td>SKIPPED</td> <td>$TestCasesSkipped</td></tr>"
-  puts $ResultsFile "  <tr style=color:${AnalyzeColor}><td>Analyze Failures</td> <td>$AnalyzeErrors</td></tr>"
-  puts $ResultsFile "  <tr style=color:${SimulateColor}><td>Simulate Failures</td> <td>$SimulateErrors</td></tr>"
+  puts $ResultsFile "  <tr style=color:${AnalyzeColor}><td>Analyze Failures</td> <td>$AnalyzeErrorCount</td></tr>"
+  puts $ResultsFile "  <tr style=color:${SimulateColor}><td>Simulate Failures</td> <td>$SimulateErrorCount</td></tr>"
   puts $ResultsFile "  <tr><td>Elapsed Time (h:m:s)</td>              <td>$ElapsedTimeHms</td></tr>"
   puts $ResultsFile "  <tr><td>Elapsed Time (seconds)</td>            <td>$ElapsedTimeSeconds</td></tr>"
   puts $ResultsFile "  <tr><td>Date</td>                              <td>[dict get $BuildInfo Date]</td></tr>"

@@ -115,11 +115,12 @@ namespace eval ::osvvm {
   variable TranscriptYamlFile       "OSVVM_transcript.yml" ;  
   
   # Error handling
-  variable AnalyzeErrors 0
+  variable AnalyzeErrorCount 0
   variable ConsecutiveAnalyzeErrors 0
-  variable SimulateErrors 0
+  variable SimulateErrorCount 0
   variable ConsecutiveSimulateErrors 0
-  
+  variable ScriptErrorCount 0 
+
   variable GotTee false
   
 }

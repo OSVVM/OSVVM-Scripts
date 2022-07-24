@@ -104,7 +104,7 @@ proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
 
   if {$ErrorCode} {
     set ::osvvm::Simulate2HtmlErrorInfo $::errorInfo
-    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+    set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
 
     puts "# ** Error: CreateSimulationReportFile  For tcl errorInfo, puts \$::osvvm::Simulate2HtmlErrorInfo"
     error "ReportError: CreateSimulationReportFile 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName ' failed: $errmsg"

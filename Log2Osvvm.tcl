@@ -79,7 +79,7 @@ namespace eval ::osvvm {
     
     if {$ErrorCode} {
       set ::osvvm::Log2OsvvmErrorInfo $::errorInfo
-      set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+      set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
 
       puts "# ** Error: Log2Osvvm  For tcl errorInfo, puts \$::osvvm::Log2OsvvmErrorInfo"
       error "ReportError: Log2Osvvm 'Log File: $LogFile ' failed: $errmsg"

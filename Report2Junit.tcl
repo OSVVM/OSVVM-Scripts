@@ -55,7 +55,7 @@ proc Report2Junit {ReportFile} {
   if {$ErrorCode} {
     set ::osvvm::Report2JunitErrorInfo $::errorInfo
 #    Report2Junit errors are caught Build
-#    set ::osvvm::ScriptErrors    [expr $::osvvm::SimulateErrors+1]
+#    set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
 
     puts "# ** Error: Report2Junit  For tcl errorInfo, puts \$::osvvm::Report2JunitErrorInfo"
     error "ReportError: Report2Junit 'Report File: $ReportFile ' failed: $errmsg"
@@ -81,8 +81,8 @@ proc LocalReport2Junit {ReportFile} {
 proc JunitCreateSummary {TestDict} {
   variable ResultsFile
   variable ReportTestSuiteSummary
-  variable AnalyzeErrors
-  variable SimulateErrors
+  variable AnalyzeErrorCount
+  variable SimulateErrorCount
 
   if {[info exists ReportTestSuiteSummary]} {
     unset ReportTestSuiteSummary
@@ -96,7 +96,7 @@ proc JunitCreateSummary {TestDict} {
   set TestCasesFailed 0
   set TestCasesSkipped 0
   set TestCasesRun 0
-  if {$AnalyzeErrors || $SimulateErrors} {
+  if {$AnalyzeErrorCount || $SimulateErrorCount} {
     set BuildStatus "FAILED"
   }
 
@@ -177,7 +177,11 @@ proc JunitCreateSummary {TestDict} {
   # Print Initial Build Summary
   #  <testsuites name="Build" time="25.0" tests="20" failures="5" errors="0" skipped="2">
   set BuildInfo [dict get $TestDict Build]
-  set BuildRun [dict get $TestDict Run]
+  if { [dict exists $TestDict Run] } {
+    set BuildRun   [dict get $TestDict Run] 
+  } else {
+    set BuildRun   [dict create Start NONE Finish NONE Elapsed 0.0]
+  }
   puts $ResultsFile "<testsuites "
   puts $ResultsFile "   name=\"[dict get $BuildInfo Name]\""
   puts $ResultsFile "   timestamp=\"[dict get $BuildInfo Date]\""
