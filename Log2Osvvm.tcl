@@ -115,6 +115,7 @@ namespace eval ::osvvm {
     variable InRunTest
     variable FirstFind
     variable TestSuiteName 
+    variable TestCaseName 
     variable PrintPrefix 
     
     if {[regexp {^Build Start} $LineOfLogFile] } {
@@ -144,7 +145,7 @@ namespace eval ::osvvm {
       if {! $InRunTest} {
         puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary> <div id=\"${TestSuiteName}_${TestCaseName}\" />"
       } else {
-        puts $HtmlFileHandle "$LineOfLogFile <div id=\"${TestSuiteName}_[lindex $LineOfLogFile 1]\" />"
+        puts $HtmlFileHandle "$LineOfLogFile <div id=\"${TestSuiteName}_${TestCaseName}\" />"
       }
       set InRunTest 0
     } else {
