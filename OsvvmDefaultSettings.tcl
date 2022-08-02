@@ -106,5 +106,9 @@ namespace eval ::osvvm {
   variable VerilogAnalyzeOptions    ""
   variable ExtendedAnalyzeOptions   ""
   variable ExtendedSimulateOptions  ""
-
+  
+  #
+  # Second Top
+  #
+  variable SecondSimulationTopLevel ""
 }

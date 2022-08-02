@@ -150,7 +150,7 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   }
   
   set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
-  puts "vcom {*}$AnalyzeOptions"
+  puts "vcom $AnalyzeOptions"
         vcom {*}$AnalyzeOptions
 }
 
@@ -159,7 +159,7 @@ proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #  Untested branch for Verilog - will need adjustment
 
   set  AnalyzeOptions [concat -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
-  puts "vlog {*}$AnalyzeOptions"
+  puts "vlog $AnalyzeOptions"
         vlog {*}$AnalyzeOptions
 }
 
@@ -180,9 +180,9 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable TestSuiteName
   variable TestCaseFileName
 
-  set SimulateOptions [concat {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}]
+  set SimulateOptions [concat {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
 
-  puts "vsim {*}${SimulateOptions}"
+  puts "vsim ${SimulateOptions}"
         vsim {*}${SimulateOptions}
         
   SimulateRunScripts ${LibraryUnit}
