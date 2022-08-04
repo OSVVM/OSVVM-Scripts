@@ -204,10 +204,9 @@ proc vendor_analyze_verilog {LibraryName File_Relative_Path OptionalCommands} {
   
   set FileName [file normalize $File_Relative_Path]
 
-#  Untested branch for Verilog - will need adjustment
-#  Untested branch for Verilog - will need adjustment
-    echo vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-         vlog -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  puts "vlog $AnalyzeOptions"
+        vlog {*}$AnalyzeOptions
   cd $MY_START_DIR
 }
 
