@@ -158,7 +158,7 @@ proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
 #  Untested branch for Verilog - will need adjustment
 #  Untested branch for Verilog - will need adjustment
 
-  set  AnalyzeOptions [concat -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
   puts "vlog $AnalyzeOptions"
         vlog {*}$AnalyzeOptions
 }

@@ -1070,6 +1070,17 @@ proc generic {Name Value} {
 }
 
 # -------------------------------------------------
+proc CreateVerilogLibraryParams {prefix} {
+  variable LibraryList
+  
+  foreach item $LibraryList {
+    set LibraryName [lindex $item 0]
+    append VerilogLibraryParams ${prefix} ${LibraryName} " "
+  }
+  return $VerilogLibraryParams
+}
+
+# -------------------------------------------------
 proc MergeCoverage {SuiteName MergeName} {
   CreateDirectory [file join $::osvvm::CurrentSimulationDirectory $::osvvm::CoverageDirectory $MergeName]
   vendor_MergeCodeCoverage $SuiteName ${::osvvm::CoverageDirectory} ${MergeName}
@@ -1285,6 +1296,18 @@ proc SetExtendedSimulateOptions {{Options ""}} {
 proc GetExtendedSimulateOptions {} {
   variable ExtendedSimulateOptions
   return $ExtendedSimulateOptions
+}
+
+# -------------------------------------------------
+# SetSecondSimulationTopLevel, GetSecondSimulationTopLevel
+#
+proc SetSecondSimulationTopLevel {{LibraryDotDesignUnit ""}} {  ; # Specify as Libary.DesignUnit 
+  variable SecondSimulationTopLevel
+  set      SecondSimulationTopLevel $LibraryDotDesignUnit 
+}
+proc GetSecondSimulationTopLevel {} {
+  variable SecondSimulationTopLevel
+  return  $SecondSimulationTopLevel
 }
 
 # -------------------------------------------------
