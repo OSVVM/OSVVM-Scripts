@@ -20,6 +20,8 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    08/2022   2022.08    Added handling for Analyze with Verilog Libraries.  
+#                         Added SetSecondSimulationTopLevel, GetSecondSimulationTopLevel
 #    06/2022   2022.06    Generic handling.  Fixed spaces in library path.
 #    05/2022   2022.05    Refactored to move variable settings to OsvvmDefaultSettings
 #                         Added Error Handling
