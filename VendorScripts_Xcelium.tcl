@@ -49,10 +49,11 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Cadence"
   variable ToolName    "Xcelium"
-  variable simulator   $ToolName ; # Deprecated 
+  variable ToolSupportsGenericPackages false
   variable ToolNameVersion ${ToolName}-[lindex [exec xmvhdl -version] 2] 
-#  variable ToolNameVersion "21.03-s006"
   puts $ToolNameVersion
+
+  variable simulator   $ToolName ; # Deprecated 
 
 # -------------------------------------------------
 # StartTranscript / StopTranscxript
