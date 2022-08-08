@@ -77,6 +77,10 @@ namespace eval ::osvvm {
   if {![info exists NoGui]} {
     variable NoGui true
   }
+  if {![info exists ToolSupportsGenericPackages]} {
+    variable ToolSupportsGenericPackages true
+  }
+
   
   # 
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
