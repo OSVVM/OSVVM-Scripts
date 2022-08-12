@@ -899,9 +899,15 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   variable SimulateErrorCount 
   variable ConsecutiveSimulateErrors 
   variable SimulateErrorStopCount
-   
+  
+  set SavedInteractive [GetInteractive] 
+  if {! $::osvvm::BuildStarted} {
+    SetInteractive "true"
+  }
+
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit $OptionalCommands} errmsg]
   set LocalSimulateErrorInfo $::errorInfo
+  SetInteractive $SavedInteractive  ; # Restore original value
   
   set ReportErrorCode [catch {AfterSimulateReports} errmsg]
   set LocalReportErrorInfo $::errorInfo
@@ -1041,20 +1047,20 @@ proc SimulateRunScripts {LibraryUnit} {
   variable  CurrentSimulationDirectory
   variable  CurrentWorkingDirectory
   
-  SimulateRunSubScripts ${LibraryUnit} ${SCRIPT_DIR}
-  if {${CurrentSimulationDirectory} ne ${SCRIPT_DIR}} {
+  SimulateRunSubScripts ${LibraryUnit} ${CurrentWorkingDirectory}
+  if {${CurrentSimulationDirectory} ne ${CurrentWorkingDirectory}} {
     SimulateRunSubScripts ${LibraryUnit} ${CurrentSimulationDirectory}
   }
-  if {(${CurrentWorkingDirectory} ne ${CurrentSimulationDirectory}) && (${CurrentWorkingDirectory} ne ${SCRIPT_DIR})} {
-    SimulateRunSubScripts ${LibraryUnit} ${CurrentWorkingDirectory}
+  if {(${SCRIPT_DIR} ne ${CurrentWorkingDirectory}) && (${SCRIPT_DIR} ne ${CurrentSimulationDirectory})} {
+    SimulateRunSubScripts ${LibraryUnit} ${SCRIPT_DIR}
   }
   if {$TestCaseName ne $LibraryUnit} {
-    SimulateRunDesignScripts ${TestCaseName} ${SCRIPT_DIR}
-    if {${CurrentSimulationDirectory} ne ${SCRIPT_DIR}} {
+    SimulateRunDesignScripts ${TestCaseName} ${CurrentWorkingDirectory}
+    if {${CurrentSimulationDirectory} ne ${CurrentWorkingDirectory}} {
       SimulateRunDesignScripts ${TestCaseName} ${CurrentSimulationDirectory}
     }
-    if {(${CurrentWorkingDirectory} ne ${CurrentSimulationDirectory}) && (${CurrentWorkingDirectory} ne ${SCRIPT_DIR})} {
-      SimulateRunDesignScripts ${TestCaseName} ${CurrentWorkingDirectory}
+    if {(${SCRIPT_DIR} ne ${CurrentWorkingDirectory}) && (${SCRIPT_DIR} ne ${CurrentSimulationDirectory})} {
+      SimulateRunDesignScripts ${TestCaseName} ${SCRIPT_DIR}
     }
   }
 }
@@ -1145,7 +1151,11 @@ proc TestCase {TestName} {
   variable TestSuiteName
 
   if {![info exists TestSuiteName]} {
-    TestSuite Default
+    if {[info exists VhdlWorkingLibrary]} {
+      TestSuite $::osvvm::VhdlWorkingLibrary
+    } else {
+      TestSuite Default
+    }
   }
 
   puts "TestCase $TestName"
@@ -1298,6 +1308,81 @@ proc SetExtendedSimulateOptions {{Options ""}} {
 proc GetExtendedSimulateOptions {} {
   variable ExtendedSimulateOptions
   return $ExtendedSimulateOptions
+}
+
+# -------------------------------------------------
+# SetExtendedElaborateOptions, SetExtendedRunOptions
+#    Only for simulators that elaborate and run separately - like GHDL
+#    Currently only implemented for GHDL
+#
+proc SetExtendedElaborateOptions {{Options ""}} {
+  variable ExtendedElaborateOptions
+  set ExtendedElaborateOptions $Options ;
+}
+proc GetExtendedElaborateOptions {} {
+  variable ExtendedElaborateOptions
+  return $ExtendedElaborateOptions
+}
+
+proc SetExtendedRunOptions {{Options ""}} {
+  variable ExtendedRunOptions
+  set ExtendedRunOptions $Options ;
+}
+proc GetExtendedRunOptions {} {
+  variable ExtendedRunOptions
+  return $ExtendedRunOptions
+}
+
+# -------------------------------------------------
+# SetSaveWaves
+#    Important for simulators that do everything from the command line
+#    Currently only implemented for GHDL
+#
+proc SetSaveWaves {{Options "true"}} {
+  variable SaveWaves
+  set SaveWaves $Options ;
+}
+proc GetSaveWaves {} {
+  variable SaveWaves
+  return $SaveWaves
+}
+
+# -------------------------------------------------
+# SetInteractive, SetDebug, SetLogSignals
+#
+proc SetInteractive {{Options "true"}} {
+  variable SimulateInteractive
+  set SimulateInteractive $Options ;
+  if {! $::osvvm::DebugIsSet} {
+    set ::osvvm::Debug $Options ;
+  }
+  if {! $::osvvm::LogSignalsIsSet} {
+    set ::osvvm::LogSignals $Options ;
+  }
+}
+proc GetInteractive {} {
+  variable SimulateInteractive
+  return $SimulateInteractive
+}
+
+proc SetDebug {{Options "true"}} {
+  variable Debug
+  set DebugIsSet "true":
+  set Debug $Options ;
+}
+proc GetDebug {} {
+  variable Debug
+  return $Debug
+}
+
+proc SetLogSignals {{Options "true"}} {
+  variable LogSignals
+  set LogSignalsIsSet "true":
+  set LogSignals $Options ;
+}
+proc GetLogSignals {} {
+  variable LogSignals
+  return $LogSignals
 }
 
 # -------------------------------------------------

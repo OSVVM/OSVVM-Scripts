@@ -106,6 +106,17 @@ namespace eval ::osvvm {
   variable VerilogAnalyzeOptions    ""
   variable ExtendedAnalyzeOptions   ""
   variable ExtendedSimulateOptions  ""
+  variable ExtendedElaborateOptions  ""
+  variable ExtendedRunOptions  ""
+  
+  variable SaveWaves "false"
+  variable SimulateInteractive "false"
+  
+  variable SimulateInteractive "true"
+  variable DebugIsSet          "false"
+  variable Debug               "true"
+  variable LogSignalsIsSet     "false"
+  variable LogSignals          "true"
   
   #
   # Second Top
