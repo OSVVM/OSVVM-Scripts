@@ -172,9 +172,30 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable VhdlShortVersion
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable GHDL_WORKING_LIBRARY_PATH
+  variable ExtendedElaborateOptions  ""
+  variable ExtendedRunOptions  ""
 
-  puts "ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${LibraryUnit}" 
-  if { [catch {exec ghdl --elab-run --std=${VhdlShortVersion} --syn-binding --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${LibraryUnit}} SimResults]} { 
+  set LocalElaborateOptions [concat --std=${VhdlShortVersion} --syn-binding {*}${ExtendedElaborateOptions} --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands}]
+
+  set LocalReportDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
+
+  set SignalSelectionFile [FindFirstFile ${LibraryUnit}.ghdl]
+  if {${SignalSelectionFile} ne ""} {
+    set SignalSelectionOptions "--read-wave-opt=${SignalSelectionFile}"
+  } else {
+    set SignalSelectionOptions ""
+  }
+  
+  if {$::osvvm::SaveWaves} {
+    set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.ghw ${SignalSelectionOptions} ]
+  } else {
+    set LocalRunOptions ${ExtendedRunOptions}
+  }
+  
+# format for select file  
+
+  puts "ghdl --elab-run {*}${LocalElaborateOptions} ${LibraryUnit} {*}${ExtendedRunOptions}" 
+  if { [catch {exec ghdl --elab-run {*}${LocalElaborateOptions} ${LibraryUnit} {*}${ExtendedRunOptions}} SimResults]} { 
     error "ghdl --elab-run ended with error $SimResults"
   } else {
     puts $SimResults
@@ -184,6 +205,23 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   if {[info exists CoverageSimulateEnable]} {
 #    acdb save -o ${LibraryUnit}.acdb -testname ${LibraryUnit}
   }
+}
+
+# -------------------------------------------------
+proc FindFirstFile {Name} {
+  set LocalPathName [file join ${::osvvm::CurrentWorkingDirectory} ${Name}]
+  if {[file exists $LocalPathName]} {
+    return ${LocalPathName}
+  }
+  set LocalPathName [file join ${::osvvm::CurrentSimulationDirectory} ${Name}]
+  if {[file exists $LocalPathName]} {
+    return ${LocalPathName}
+  }
+  set LocalPathName [file join ${::osvvm::SCRIPT_DIR} ${Name}]
+  if {[file exists $LocalPathName]} {
+    return ${LocalPathName}
+  }
+  return ""
 }
 
 # -------------------------------------------------
