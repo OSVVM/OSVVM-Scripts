@@ -69,23 +69,36 @@ proc LocalScoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
   set TestDict [::yaml::yaml2dict -file ${SbYamlFile}]
   set VersionNum  [dict get $TestDict Version]
   puts $ResultsFile "<br><br>"
+  puts $ResultsFile "  <div  style=\"margin: 10px 20px;\">"
+  puts $ResultsFile "    <table>"
   
-  foreach ScoreboardDict [dict get $TestDict Scoreboards] {
-    puts $ResultsFile "  <details open><summary style=\"font-size: 16px;\"><strong>[dict get $ScoreboardDict Name] Scoreboard</strong></summary>"
-    puts $ResultsFile "  <div  style=\"margin: 10px 20px;\">"
-    OsvvmScoreboardInfo2Html $ScoreboardDict
-    puts $ResultsFile "  <br>"
-    puts $ResultsFile "  </div>"
-    puts $ResultsFile "  </details>"
-  }
+  set ScoreboardDictArray [dict get $TestDict Scoreboards]
+  ScoreboardHeader2Html $ScoreboardDictArray
+  ScoreboardBody2Html   $ScoreboardDictArray
+
+  puts $ResultsFile "    </table>"
+  puts $ResultsFile "<br>"
 }
 
-proc OsvvmScoreboardInfo2Html {ScoreboardDict} {
+proc ScoreboardHeader2Html {ScoreboardDictArray} {
+  variable ResultsFile
+  
+  set FirstScoreboardDict [lindex $ScoreboardDictArray 0]
+  puts $ResultsFile "    <tr>"
+  foreach key [dict keys $FirstScoreboardDict] {
+    puts $ResultsFile "      <th>${key}</th>"
+  }
+  puts $ResultsFile "    </tr>"
+}
+
+proc ScoreboardBody2Html {ScoreboardDictArray} {
   variable ResultsFile
     
-  puts $ResultsFile "    <table>"
-  dict for {key val} ${ScoreboardDict} {
-      puts $ResultsFile "      <tr><td>${key}</td><td>${val}</td></tr>"
+  foreach ScoreboardDict $ScoreboardDictArray {
+    puts $ResultsFile "    <tr>"
+    dict for {key val} ${ScoreboardDict} {
+      puts $ResultsFile "      <td>${val}</td>"
+    }
+    puts $ResultsFile "    </tr>"
   }
-  puts $ResultsFile "    </table>"
 }
