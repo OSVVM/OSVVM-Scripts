@@ -1273,7 +1273,7 @@ proc GetTranscriptType {} {
 #
 proc SetVhdlAnalyzeOptions {{Options ""}} {
   variable VhdlAnalyzeOptions
-  set      VhdlAnalyzeOptions $Options ;
+  set      VhdlAnalyzeOptions $Options
 }
 proc GetVhdlAnalyzeOptions {} {
   variable VhdlAnalyzeOptions
@@ -1282,7 +1282,7 @@ proc GetVhdlAnalyzeOptions {} {
 
 proc SetVerilogAnalyzeOptions {{Options ""}} {
   variable VerilogAnalyzeOptions
-  set      VerilogAnalyzeOptions $Options ;
+  set      VerilogAnalyzeOptions $Options
 }
 proc GetVerilogAnalyzeOptions {} {
   variable VerilogAnalyzeOptions
@@ -1294,7 +1294,7 @@ proc GetVerilogAnalyzeOptions {} {
 #
 proc SetExtendedAnalyzeOptions {{Options ""}} {
   variable ExtendedAnalyzeOptions
-  set ExtendedAnalyzeOptions $Options ;
+  set ExtendedAnalyzeOptions $Options
 }
 proc GetExtendedAnalyzeOptions {} {
   variable ExtendedAnalyzeOptions
@@ -1303,7 +1303,7 @@ proc GetExtendedAnalyzeOptions {} {
 
 proc SetExtendedSimulateOptions {{Options ""}} {
   variable ExtendedSimulateOptions
-  set ExtendedSimulateOptions $Options ;
+  set ExtendedSimulateOptions $Options
 }
 proc GetExtendedSimulateOptions {} {
   variable ExtendedSimulateOptions
@@ -1317,7 +1317,7 @@ proc GetExtendedSimulateOptions {} {
 #
 proc SetExtendedElaborateOptions {{Options ""}} {
   variable ExtendedElaborateOptions
-  set ExtendedElaborateOptions $Options ;
+  set ExtendedElaborateOptions $Options
 }
 proc GetExtendedElaborateOptions {} {
   variable ExtendedElaborateOptions
@@ -1326,7 +1326,7 @@ proc GetExtendedElaborateOptions {} {
 
 proc SetExtendedRunOptions {{Options ""}} {
   variable ExtendedRunOptions
-  set ExtendedRunOptions $Options ;
+  set ExtendedRunOptions $Options
 }
 proc GetExtendedRunOptions {} {
   variable ExtendedRunOptions
@@ -1340,7 +1340,7 @@ proc GetExtendedRunOptions {} {
 #
 proc SetSaveWaves {{Options "true"}} {
   variable SaveWaves
-  set SaveWaves $Options ;
+  set SaveWaves $Options
 }
 proc GetSaveWaves {} {
   variable SaveWaves
@@ -1352,12 +1352,12 @@ proc GetSaveWaves {} {
 #
 proc SetInteractive {{Options "true"}} {
   variable SimulateInteractive
-  set SimulateInteractive $Options ;
+  set SimulateInteractive $Options
   if {! $::osvvm::DebugIsSet} {
-    set ::osvvm::Debug $Options ;
+    set ::osvvm::Debug $Options
   }
   if {! $::osvvm::LogSignalsIsSet} {
-    set ::osvvm::LogSignals $Options ;
+    set ::osvvm::LogSignals $Options
   }
 }
 proc GetInteractive {} {
@@ -1367,8 +1367,8 @@ proc GetInteractive {} {
 
 proc SetDebug {{Options "true"}} {
   variable Debug
-  set DebugIsSet "true":
-  set Debug $Options ;
+  set DebugIsSet "true"
+  set Debug $Options
 }
 proc GetDebug {} {
   variable Debug
@@ -1377,8 +1377,8 @@ proc GetDebug {} {
 
 proc SetLogSignals {{Options "true"}} {
   variable LogSignals
-  set LogSignalsIsSet "true":
-  set LogSignals $Options ;
+  set LogSignalsIsSet "true"
+  set LogSignals $Options
 }
 proc GetLogSignals {} {
   variable LogSignals
@@ -1403,9 +1403,9 @@ proc GetSecondSimulationTopLevel {} {
 proc SetCoverageEnable {{Enable "true"}} {
   variable CoverageEnable
   if {[string tolower $Enable] eq "true"} {
-    set CoverageEnable "true" ;
+    set CoverageEnable "true"
   } else {
-    set CoverageEnable "false" ;
+    set CoverageEnable "false"
   }
 }
 proc GetCoverageEnable {} {
@@ -1418,7 +1418,7 @@ proc GetCoverageEnable {} {
 #
 proc SetCoverageAnalyzeOptions {{Options ""}} {
   variable CoverageAnalyzeOptions
-  set CoverageAnalyzeOptions $Options ;
+  set CoverageAnalyzeOptions $Options
 }
 proc GetCoverageAnalyzeOptions {} {
   variable CoverageAnalyzeOptions
@@ -1585,6 +1585,13 @@ namespace export SetCoverageAnalyzeOptions GetCoverageAnalyzeOptions
 namespace export SetCoverageAnalyzeEnable GetCoverageAnalyzeEnable
 namespace export SetCoverageSimulateOptions GetCoverageSimulateOptions
 namespace export SetCoverageSimulateEnable GetCoverageSimulateEnable
+namespace export SetExtendedElaborateOptions GetExtendedElaborateOptions
+namespace export SetExtendedRunOptions GetExtendedRunOptions
+namespace export SetSaveWaves GetSaveWaves
+namespace export SetInteractive GetInteractive
+namespace export SetDebug GetDebug
+namespace export SetLogSignals GetLogSignals
+namespace export SetSecondSimulationTopLevel GetSecondSimulationTopLevel
 namespace export MergeCoverage
 
 # Exported only for tesing purposes

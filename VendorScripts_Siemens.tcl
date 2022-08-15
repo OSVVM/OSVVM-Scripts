@@ -262,7 +262,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable TestSuiteName
   variable TestCaseFileName
   
-  if {$::osvvm::NoGui} {
+  if {($::osvvm::NoGui) || !($::osvvm::Debug)} {
     set VsimOptions ""
   } else {
     set VsimOptions "-voptargs=+acc"
