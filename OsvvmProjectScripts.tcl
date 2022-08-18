@@ -219,6 +219,7 @@ proc include {Path_Or_File} {
 proc BeforeBuildCleanUp {} {
   variable RanSimulationWithCoverage "false"
   variable vendor_simulate_started
+  variable TestCaseName
   variable TestSuiteName
   variable TranscriptYamlFile 
   variable AnalyzeErrorCount  0
@@ -228,6 +229,9 @@ proc BeforeBuildCleanUp {} {
   variable ScriptErrorCount 0 
   
   # Close any previous build information
+  if {[info exists TestCaseName]} {
+    unset TestCaseName
+  }
   if {[info exists TestSuiteName]} {
     unset TestSuiteName
   }
@@ -284,13 +288,13 @@ proc build {{Path_Or_File "."}} {
   variable TranscriptExtension
   variable BuildName
   
-  if {$BuildStarted != 0} {
+  if {$BuildStarted} {
     include $Path_Or_File
   } else {
   
     BeforeBuildCleanUp   
     
-    set BuildStarted 1
+    set BuildStarted "true"
     set BuildName [SetBuildName $Path_Or_File]
         
     set LogFileName ${BuildName}.log ; #${TranscriptExtension}
@@ -300,7 +304,7 @@ proc build {{Path_Or_File "."}} {
     #  Catch any errors from the build and handle them below
     set BuildErrorCode [catch {LocalBuild $BuildName $Path_Or_File} BuildErrMsg]
     set LocalBuildErrorInfo $::errorInfo
-    set BuildStarted 0
+    set BuildStarted "false"
     
     # Try to create reports, even if the build failed
     set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
@@ -895,17 +899,17 @@ proc LocalAnalyze {FileName {OptionalCommands ""}} {
 # -------------------------------------------------
 # Simulate
 #
-proc simulate {LibraryUnit {OptionalCommands ""}} {
+proc simulate {LibraryUnit args} {
   variable SimulateErrorCount 
   variable ConsecutiveSimulateErrors 
   variable SimulateErrorStopCount
   
   set SavedInteractive [GetInteractive] 
-  if {! $::osvvm::BuildStarted} {
+  if {!($::osvvm::BuildStarted)} {
     SetInteractive "true"
   }
 
-  set SimulateErrorCode [catch {LocalSimulate $LibraryUnit $OptionalCommands} errmsg]
+  set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} errmsg]
   set LocalSimulateErrorInfo $::errorInfo
   SetInteractive $SavedInteractive  ; # Restore original value
   
@@ -926,9 +930,9 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
     puts "# ** Error: simulate  For tcl errorInfo, puts \$::osvvm::SimulateErrorInfo"
 
     if {$SimulateErrorStopCount != 0 && $SimulateErrorCount >= $SimulateErrorStopCount } {
-      error "SimulateError: '$LibraryUnit $OptionalCommands' failed: $errmsg"
+      error "SimulateError: '$LibraryUnit $args' failed: $errmsg"
     } else {
-      puts  "SimulateError: '$LibraryUnit $OptionalCommands' failed: $errmsg"
+      puts  "SimulateError: '$LibraryUnit $args' failed: $errmsg"
     }
   } else {
     set ConsecutiveSimulateErrors 0 
@@ -946,7 +950,7 @@ proc simulate {LibraryUnit {OptionalCommands ""}} {
   } 
 }
 
-proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
+proc LocalSimulate {LibraryUnit args} {
   variable VhdlWorkingLibrary
   variable vendor_simulate_started
   variable TestCaseName
@@ -977,18 +981,18 @@ proc LocalSimulate {LibraryUnit {OptionalCommands ""}} {
   set SimulateStartTime   [clock seconds]
   set SimulateStartTimeMs [clock milliseconds]
 
-  EchoOsvvmCmd "simulate $LibraryUnit $OptionalCommands"
+  EchoOsvvmCmd "simulate $LibraryUnit $args"
 
   if {[info exists CoverageSimulateEnable]} {
     set RanSimulationWithCoverage "true"
-    set AllOptionalCommands [concat {*}$OptionalCommands {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
+    set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
   } else {
-    set AllOptionalCommands [concat {*}$OptionalCommands {*}$ExtendedSimulateOptions]
+    set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions]
   }
 
   puts "Simulation Start time [clock format $SimulateStartTime -format %T]"
 
-  vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} ${AllOptionalCommands}
+  vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} ${SimulateOptions}
 
 }
 
@@ -1366,13 +1370,11 @@ proc GetInteractive {} {
 }
 
 proc SetDebug {{Options "true"}} {
-  variable Debug
-  set DebugIsSet "true"
-  set Debug $Options
+  set ::osvvm::DebugIsSet "true"
+  set ::osvvm::Debug $Options
 }
 proc GetDebug {} {
-  variable Debug
-  return $Debug
+  return $::osvvm::Debug
 }
 
 proc SetLogSignals {{Options "true"}} {

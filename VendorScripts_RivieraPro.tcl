@@ -143,7 +143,7 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable CoverageAnalyzeEnable
   variable CoverageSimulateEnable
   
-  if {$::osvvm::NoGui || [info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
+  if {$::osvvm::NoGui || !($::osvvm::Debug) || [info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
     set DebugOptions ""
   } else {
     set DebugOptions "-dbg"

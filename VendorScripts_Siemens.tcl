@@ -76,9 +76,15 @@
     variable ToolArgs "-gui"
     variable NoGui false
   }
-  variable ToolNameVersion ${ToolName}-[vsimVersion]
+  variable ToolVersion [vsimVersion]
+  variable ToolNameVersion ${ToolName}-${ToolVersion}
   puts $ToolNameVersion
-
+  
+  if {$ToolVersion >= 2020.01} {
+    variable DebugOptions "-debug,cell"
+  } else {
+    variable DebugOptions "+acc"
+  }
 
 # -------------------------------------------------
 # StartTranscript / StopTranscxript
@@ -265,14 +271,14 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   if {($::osvvm::NoGui) || !($::osvvm::Debug)} {
     set VsimOptions ""
   } else {
-    set VsimOptions "-voptargs=+acc"
+    set VsimOptions "-voptargs=$::osvvm::DebugOptions"
   }
 
   set VsimOptions "$VsimOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
   
 #  puts "vsim {*}${VsimOptions}"
   vsim {*}${VsimOptions}
-
+  
   # Historical name.  Must be run with "do" for actions to work
   if {[file exists ${SCRIPT_DIR}/Siemens.do]} {
     do ${SCRIPT_DIR}/Siemens.do

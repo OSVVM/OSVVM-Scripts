@@ -100,7 +100,7 @@ namespace eval ::osvvm {
   variable CurrentSimulationDirectory ""
   
   # When a build is started, run include instead of build
-  variable BuildStarted 0
+  variable BuildStarted "false"
   variable GenericList  ""
   variable GenericNames ""
 
