@@ -75,7 +75,7 @@ namespace eval ::osvvm {
   if {[info exists aldec]} {
     variable ToolFamily [lindex [split [vsim -version]] 2]
     if {$ToolFamily eq "Riviera-PRO"} { 
-      variable ScriptBaseName   "RivieraPRO"
+      variable ScriptBaseName   "RivieraPro"
 
     } elseif {[string match -nocase $ToolExecutableName "vsimsa"]} {
       if {![info exists ScriptBaseName]} {
