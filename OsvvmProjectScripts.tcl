@@ -117,7 +117,7 @@ proc include {Path_Or_File} {
   variable CurrentWorkingDirectory
   variable VhdlWorkingLibrary
 
-  EchoOsvvmCmd "include $Path_Or_File"
+  puts "include $Path_Or_File"                    ; # EchoOsvvmCmd
 
 # probably remove.  Redundant with analyze and simulate
 #  puts "set StartingPath ${CurrentWorkingDirectory} Starting Include"
@@ -377,7 +377,7 @@ proc LocalBuild {BuildName Path_Or_File} {
   variable TestSuiteName
   variable OutputBaseDirectory
 
-  EchoOsvvmCmd "build $Path_Or_File"
+  puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
   set  BuildStartTime    [clock seconds]
   set  BuildStartTimeMs  [clock milliseconds]
@@ -548,30 +548,6 @@ proc ReducePath {PathIn} {
 }
 
 # -------------------------------------------------
-# EchoOsvvmCmd
-#
-proc EchoOsvvmCmd {CmdInfoToPrint} {
-  variable FirstEchoCmd
-  variable TranscriptExtension
-  variable CompoundCommand
-
-  puts "${CmdInfoToPrint}"
-
-# HTML now done by Log2Html
-#
-#  if {[info exists CompoundCommand] || ($TranscriptExtension eq "log")} {
-#    puts "${CmdInfoToPrint}"
-#  } elseif {[info exists FirstEchoCmd]} {
-#    puts "</details><details>"
-#    puts "<summary>${CmdInfoToPrint}</summary>"
-#  } else {
-#    puts "<pre><details>"
-#    puts "<summary>${CmdInfoToPrint}</summary>"
-#    set FirstEchoCmd TRUE
-#  }
-}
-
-# -------------------------------------------------
 # StartTranscript
 #   Used by build
 #
@@ -660,7 +636,7 @@ proc TerminateTranscript {} {
 }
 
 # -------------------------------------------------
-# TerminateTranscript
+# EndSimulation
 #   Used by build
 #
 proc EndSimulation {} {
@@ -752,7 +728,7 @@ proc library {LibraryName {PathToLib ""}} {
     set item [lindex $LibraryList $found]
     set ResolvedPathToLib [lreplace $item 0 0]
   }
-  EchoOsvvmCmd  "library $LibraryName $ResolvedPathToLib"
+  puts "library $LibraryName $ResolvedPathToLib"  ; # EchoOsvvmCmd
   vendor_library $LowerLibraryName $ResolvedPathToLib
 
   set VhdlWorkingLibrary  $LibraryName
@@ -783,7 +759,7 @@ proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
 
 proc LinkLibrary {LibraryName {PathToLib ""}} {
 
-  EchoOsvvmCmd "LinkLibrary $LibraryName $PathToLib"
+  puts "LinkLibrary $LibraryName $PathToLib"      ; # EchoOsvvmCmd
   LocalLinkLibrary $LibraryName $PathToLib 
 }
 
@@ -837,28 +813,28 @@ proc LinkCurrentLibraries {} {
 # -------------------------------------------------
 # analyze
 #
-proc analyze {FileName {OptionalCommands ""}} {
+proc analyze {FileName args} {
   variable AnalyzeErrorCount 
   variable ConsecutiveAnalyzeErrors 
   variable AnalyzeErrorStopCount
    
-  if {[catch {LocalAnalyze $FileName $OptionalCommands} errmsg]} {
+  if {[catch {LocalAnalyze $FileName {*}$args} errmsg]} {
     set AnalyzeErrorCount            [expr $AnalyzeErrorCount+1]
     set ConsecutiveAnalyzeErrors [expr $ConsecutiveAnalyzeErrors+1]
     set ::osvvm::AnalyzeErrorInfo $::errorInfo
     puts "# ** Error: analyze  For tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
     
     if {$AnalyzeErrorStopCount != 0 && $AnalyzeErrorCount >= $AnalyzeErrorStopCount } {
-      error "AnalyzeError: analyze '$FileName $OptionalCommands' failed: $errmsg"
+      error "AnalyzeError: analyze '$FileName $args' failed: $errmsg"
     } else {
-      puts  "AnalyzeError: analyze '$FileName $OptionalCommands' failed: $errmsg"
+      puts  "AnalyzeError: analyze '$FileName $args' failed: $errmsg"
     }
   } else {
     set ConsecutiveAnalyzeErrors 0 
   }
 }
 
-proc LocalAnalyze {FileName {OptionalCommands ""}} {
+proc LocalAnalyze {FileName args} {
   variable VhdlWorkingLibrary
   variable CurrentWorkingDirectory
   variable CoverageAnalyzeEnable
@@ -866,11 +842,12 @@ proc LocalAnalyze {FileName {OptionalCommands ""}} {
   variable VerilogAnalyzeOptions
   variable CoverageAnalyzeOptions
   variable ExtendedAnalyzeOptions
+  variable AnalyzeOptions
 
   CheckWorkingDir
   CheckLibraryExists
 
-  EchoOsvvmCmd "analyze $FileName"
+  puts "analyze $FileName"                        ; # EchoOsvvmCmd
 
 #  set NormFileName  [file normalize ${CurrentWorkingDirectory}/${FileName}]
   set NormFileName  [ReducePath [file join ${CurrentWorkingDirectory} ${FileName}]]
@@ -878,18 +855,18 @@ proc LocalAnalyze {FileName {OptionalCommands ""}} {
 
   if {$FileExtension eq ".vhd" || $FileExtension eq ".vhdl"} {
     if {[info exists CoverageAnalyzeEnable]} {
-      set AllOptionalCommands [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$OptionalCommands]
+      set AnalyzeOptions [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$args]
     } else {
-      set AllOptionalCommands [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$OptionalCommands]
+      set AnalyzeOptions [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$args]
     }
-    vendor_analyze_vhdl ${VhdlWorkingLibrary} ${NormFileName} ${AllOptionalCommands}
+    vendor_analyze_vhdl ${VhdlWorkingLibrary} ${NormFileName} ${AnalyzeOptions}
   } elseif {$FileExtension eq ".v" || $FileExtension eq ".sv"} {
     if {[info exists CoverageAnalyzeEnable]} {
-      set AllOptionalCommands [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$OptionalCommands]
+      set AnalyzeOptions [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$args]
     } else {
-      set AllOptionalCommands [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$OptionalCommands]
+      set AnalyzeOptions [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$args]
     }
-    vendor_analyze_verilog ${VhdlWorkingLibrary} ${NormFileName} ${AllOptionalCommands}
+    vendor_analyze_verilog ${VhdlWorkingLibrary} ${NormFileName} ${AnalyzeOptions}
   } elseif {$FileExtension eq ".lib"} {
     #  for handling older deprecated file format
     library [file rootname $FileName]
@@ -961,7 +938,8 @@ proc LocalSimulate {LibraryUnit args} {
   variable RanSimulationWithCoverage
   variable SimulateStartTime
   variable SimulateStartTimeMs
-  
+  variable SimulateOptions
+
 
   if {![info exists TestCaseName]} {
     TestCase $LibraryUnit
@@ -981,7 +959,7 @@ proc LocalSimulate {LibraryUnit args} {
   set SimulateStartTime   [clock seconds]
   set SimulateStartTimeMs [clock milliseconds]
 
-  EchoOsvvmCmd "simulate $LibraryUnit $args"
+  puts "simulate $LibraryUnit $args"              ; # EchoOsvvmCmd
 
   if {[info exists CoverageSimulateEnable]} {
     set RanSimulationWithCoverage "true"
@@ -1122,7 +1100,7 @@ proc TestSuite {SuiteName} {
   variable TestSuiteName
   variable TestSuiteStartTimeMs
 
-  EchoOsvvmCmd "TestSuite $SuiteName"
+  puts "TestSuite $SuiteName"                     ; # EchoOsvvmCmd
   
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
@@ -1181,7 +1159,7 @@ proc TestCase {TestName} {
 proc RunTest {FileName {SimName ""}} {
   variable CompoundCommand
 
-  EchoOsvvmCmd "RunTest $FileName $SimName"
+  puts "RunTest $FileName $SimName"               ; # EchoOsvvmCmd
   set CompoundCommand TRUE
 
 	if {$SimName eq ""} {
