@@ -97,7 +97,8 @@ namespace eval ::osvvm {
   # CurrentWorkingDirectory is a relative path to the scripts currently running 
   variable CurrentWorkingDirectory ""
   # CurrentSimulationDirectory is an absolute path to the simulation directory (for reports and such)
-  variable CurrentSimulationDirectory ""
+  variable CurrentSimulationDirectory [pwd]
+#  variable CurrentSimulationDirectory ""
   
   # When a build is started, run include instead of build
   variable BuildStarted "false"
