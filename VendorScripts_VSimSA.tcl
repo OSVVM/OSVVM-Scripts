@@ -140,14 +140,13 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable CoverageAnalyzeEnable
   variable CoverageSimulateEnable
   
-  # For now, do not use -dbg flag with coverage.   
-  if {[info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
-    puts "vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}"
-         vcom -${VhdlVersion} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-  } else {
-    puts "vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}"
-         vcom -${VhdlVersion} -dbg -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}
-  }
+  # For now, do not use -dbg flag with coverage.
+  set DebugOptions ""
+  
+  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  
+  puts "vcom $AnalyzeOptions"
+        vcom {*}$AnalyzeOptions
 }
 
 proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {

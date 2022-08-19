@@ -181,7 +181,7 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
     filevhdloptions -${VhdlVersion} ${FileName}
   }
   
-  if {$::osvvm::NoGui || [info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
+  if {$::osvvm::NoGui || !($::osvvm::Debug) || [info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
     set DebugOptions ""
   } else {
     set DebugOptions "-dbg"

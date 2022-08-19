@@ -176,6 +176,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable CoverageSimulateEnable
   variable TestSuiteName
   variable TestCaseFileName
+  variable SimulateOptions
 
   set SimulateOptions [concat {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
 

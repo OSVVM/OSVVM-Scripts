@@ -167,8 +167,10 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
 #
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlVersion
-#  puts "vcom -${VhdlVersion} -work ${LibraryName} {*}${OptionalCommands} ${FileName} "
-        vcom -${VhdlVersion} -work ${LibraryName} {*}${OptionalCommands} ${FileName}
+  
+  set  AnalyzeOptions [concat -${VhdlVersion} -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+#  puts "vcom $AnalyzeOptions"
+        vcom {*}$AnalyzeOptions
 }
 
 proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
