@@ -1547,6 +1547,17 @@ proc DirectoryExists {DirInQuestion} {
   return [file exists [file join ${LocalWorkingDirectory} ${DirInQuestion}]]
 }
 
+proc FileExists {FileName} {
+  variable CurrentWorkingDirectory
+
+  if {[info exists CurrentWorkingDirectory]} {
+    set LocalWorkingDirectory $CurrentWorkingDirectory
+  } else {
+    set LocalWorkingDirectory "."
+  }
+  return [file exists [file join ${LocalWorkingDirectory} ${FileName}]]
+}
+
 
 # Don't export the following due to conflicts with Tcl built-ins
 # map
@@ -1558,7 +1569,7 @@ namespace export RemoveAllLibraries RemoveLocalLibraries CreateDirectory
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory SetTranscriptType GetTranscriptType
 namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries
-namespace export DirectoryExists
+namespace export FileExists DirectoryExists
 namespace export SetExtendedAnalyzeOptions GetExtendedAnalyzeOptions
 namespace export SetExtendedSimulateOptions GetExtendedSimulateOptions
 namespace export SetVhdlAnalyzeOptions GetVhdlAnalyzeOptions SetVerilogAnalyzeOptions GetVerilogAnalyzeOptions 
