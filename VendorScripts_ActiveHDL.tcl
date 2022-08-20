@@ -243,8 +243,10 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   SimulateRunScripts ${LibraryUnit}
 
 
-  log -rec [env]/*
-  cd $MY_START_DIR
+  if {$::osvvm::LogSignals} {
+    log -rec [env]/*
+    cd $MY_START_DIR
+  }
   run -all 
   cd $MY_START_DIR
   

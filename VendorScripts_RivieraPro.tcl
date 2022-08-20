@@ -185,7 +185,9 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
         
   SimulateRunScripts ${LibraryUnit}
 
-  log -rec [env]/*
+  if {$::osvvm::LogSignals} {
+    log -rec [env]/*
+  }
   run -all 
   
   # Save Coverage Information 

@@ -66,11 +66,8 @@
   }
   variable simulator   $ToolName ; # Deprecated 
   
-  if {$argv eq "-c"} {
-    variable ToolArgs "-c"
-    variable NoGui true
-  } elseif {[lindex $argv 1] eq "-batch"} {
-    variable ToolArgs "-batch"
+  if {[batch_mode]} {
+    variable ToolArgs $argv
     variable NoGui true
   } else {
     variable ToolArgs "-gui"
@@ -81,7 +78,8 @@
   puts $ToolNameVersion
   
   if {$ToolVersion >= 2020.01} {
-    variable DebugOptions "-debug,cell"
+#    variable DebugOptions "-debug,cell"
+    variable DebugOptions "+acc"
   } else {
     variable DebugOptions "+acc"
   }
@@ -218,7 +216,7 @@ proc vendor_end_previous_simulation {} {
 # The VHDL LRM-compliant value it propagates to higher-level connected signals may 
 # not be what is desired.  In particular, this behavior might not correspond to 
 # the synthesis view of initialization.  The vsim switch "-defaultstdlogicinittoz" 
-# or "-forcestdlogicinittoz"may be useful in this situation.
+# or "-forcestdlogicinittoz" may be useful in this situation.
 # 
 # OSVVM Analysis of Message # 8683
 # ------------------------------------------ 
@@ -288,9 +286,9 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   
   SimulateRunScripts ${LibraryUnit}
   
-  # Removed.  Desirable, but causes crashes if no signals in testbench.
-#  add log -r [env]/*
-#  run 1 ns 
+  if {$::osvvm::LogSignals} {
+    add log -r [env]/*
+  }
   run -all 
   
   if {[info exists CoverageSimulateEnable]} {

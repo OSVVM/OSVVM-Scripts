@@ -178,6 +178,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   
   SimulateRunScripts ${LibraryUnit}
 
+#  VSimSA is a batch simulator
 #  add log -r /*
   run -all 
   
