@@ -112,11 +112,11 @@ namespace eval ::osvvm {
   variable SaveWaves "false"
   variable SimulateInteractive "false"
   
-  variable SimulateInteractive "true"
+  variable SimulateInteractive "false"
   variable DebugIsSet          "false"
-  variable Debug               "true"
+  variable Debug               "false"
   variable LogSignalsIsSet     "false"
-  variable LogSignals          "true"
+  variable LogSignals          "false"
   
   #
   # Second Top
