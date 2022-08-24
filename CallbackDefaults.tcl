@@ -186,7 +186,7 @@ namespace eval ::osvvm {
   proc LocalOnError_BuildReports {ProcName FileName errmsg} {
     set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
 
-    puts "ReportError: $ProcName 'Log File: $LogFile ' failed: $errmsg"
+    puts "ReportError: $ProcName 'File Name: $FileName ' failed: $errmsg"
 
     # For no traceback information use this
 #     puts "For tcl errorInfo, puts \$::osvvm::${ProcName}ErrorInfo"
@@ -196,7 +196,7 @@ namespace eval ::osvvm {
     puts $::errorInfo
     
     # Pass the error information up to Build - recommended
-    error "$ProcName 'Log File: $LogFile ' failed: $errmsg"
+    error "$ProcName 'File Name: $FileName ' failed: $errmsg"
   }  
 
   proc CallbackOnError_Report2Html {FileName errmsg} {

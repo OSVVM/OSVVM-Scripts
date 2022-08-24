@@ -55,7 +55,7 @@ proc Report2Html {ReportFile} {
   close $ResultsFile
 
   if {$ErrorCode} {
-    CallbackOnError_Report2Junit $ReportFile $errmsg
+    CallbackOnError_Report2Html $ReportFile $errmsg
   }
 }
 
