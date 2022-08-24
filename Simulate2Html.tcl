@@ -55,7 +55,7 @@ proc Simulate2Html {TestCaseName TestSuiteName TestCaseFileName} {
   set TestSuiteDirectory [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
   CreateDirectory $TestSuiteDirectory
   
-  CreateSimulationReportFile ${TestCaseName} ${TestSuiteName}
+  Simulate2HtmlHeader ${TestCaseName} ${TestSuiteName}
   
   if {[file exists ${AlertYamlFile}]} {
     Alert2Html ${TestCaseName} ${TestSuiteName} ${AlertYamlFile}
