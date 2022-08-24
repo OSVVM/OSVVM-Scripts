@@ -93,25 +93,21 @@ proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
   set ResultsFile [open ${FileName} a]
 }
 
-proc CreateSimulationReportFile {TestCaseName TestSuiteName} {
+proc Simulate2HtmlHeader {TestCaseName TestSuiteName} {
   variable ResultsFile
 
   OpenSimulationReportFile   ${TestCaseName} ${TestSuiteName} 1
 
-  set ErrorCode [catch {LocalCreateSimulationReportFile $TestCaseName $TestSuiteName} errmsg]
+  set ErrorCode [catch {LocalSimulate2HtmlHeader $TestCaseName $TestSuiteName} errmsg]
   
   close $ResultsFile
 
   if {$ErrorCode} {
-    set ::osvvm::Simulate2HtmlErrorInfo $::errorInfo
-    set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
-
-    puts "# ** Error: CreateSimulationReportFile  For tcl errorInfo, puts \$::osvvm::Simulate2HtmlErrorInfo"
-    error "ReportError: CreateSimulationReportFile 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName ' failed: $errmsg"
+    CallbackOnError_Simulate2HtmlHeader $TestSuiteName $TestCaseName $errmsg
   }
 }
 
-proc LocalCreateSimulationReportFile {TestCaseName TestSuiteName} {
+proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName} {
   variable ResultsFile
   variable CurrentTranscript
   variable AlertYamlFile 

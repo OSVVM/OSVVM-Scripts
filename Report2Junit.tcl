@@ -53,12 +53,7 @@ proc Report2Junit {ReportFile} {
   close $ResultsFile
 
   if {$ErrorCode} {
-    set ::osvvm::Report2JunitErrorInfo $::errorInfo
-#    Report2Junit errors are caught Build
-#    set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
-
-    puts "# ** Error: Report2Junit  For tcl errorInfo, puts \$::osvvm::Report2JunitErrorInfo"
-    error "ReportError: Report2Junit 'Report File: $ReportFile ' failed: $errmsg"
+    CallbackOnError_Report2Junit $ReportFile $errmsg
   }
 }
 

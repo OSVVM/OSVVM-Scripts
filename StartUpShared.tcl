@@ -91,18 +91,18 @@ source ${::osvvm::SCRIPT_DIR}/Log2Osvvm.tcl
 
 
 # Set OSVVM Script Defaults - defaults may call scripts
-source ${::osvvm::SCRIPT_DIR}/CallBacksDefaults.tcl
+source ${::osvvm::SCRIPT_DIR}/CallbackDefaults.tcl
 # Override common actions here
 #   While intended for call back feature, can be used to replace any
 #   previously defined procedure
-if {[file exists ${::osvvm::SCRIPT_DIR}/LocalCallBacks.tcl]} {
-  source ${::osvvm::SCRIPT_DIR}/LocalCallBacks.tcl
+if {[file exists ${::osvvm::SCRIPT_DIR}/LocalCallbacks.tcl]} {
+  source ${::osvvm::SCRIPT_DIR}/LocalCallbacks.tcl
 }
 # Override simulator specific actions here
 #   While intended for call back feature, can be used to replace any
 #   previously defined procedure - such as vendor_SetCoverageAnalyzeDefaults
-if {[file exists ${::osvvm::SCRIPT_DIR}/CallBacks_${::osvvm::ScriptBaseName}.tcl]} {
-  source ${::osvvm::SCRIPT_DIR}/CallBacks_${::osvvm::ScriptBaseName}.tcl
+if {[file exists ${::osvvm::SCRIPT_DIR}/Callbacks_${::osvvm::ScriptBaseName}.tcl]} {
+  source ${::osvvm::SCRIPT_DIR}/Callbacks_${::osvvm::ScriptBaseName}.tcl
 }
 
 #

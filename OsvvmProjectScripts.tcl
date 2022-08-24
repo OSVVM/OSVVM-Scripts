@@ -5,7 +5,7 @@
 #  Maintainer:        Jim Lewis      email:  jim@synthworks.com
 #  Contributor(s):
 #     Jim Lewis           email:  jim@synthworks.com
-#     Markus Ferringer    Patterns for error handling
+#     Markus Ferringer    Patterns for error handling and callbacks
 #
 #  Description
 #    Tcl procedures with the intent of making running
@@ -117,6 +117,7 @@ proc include {Path_Or_File} {
   variable CurrentWorkingDirectory
   variable VhdlWorkingLibrary
 
+  CallbackBefore_Include $Path_Or_File
   puts "include $Path_Or_File"                    ; # EchoOsvvmCmd
 
 # probably remove.  Redundant with analyze and simulate
@@ -127,11 +128,6 @@ proc include {Path_Or_File} {
   }
   set StartingPath ${CurrentWorkingDirectory}
 
-#  if {[file pathtype $Path_Or_File] eq "absolute"} {
-#    set NormName [file normalize $Path_Or_File]
-#  } else {
-#    set NormName [file normalize ${StartingPath}/${Path_Or_File}]
-#  }
   set JoinName [file join ${StartingPath} ${Path_Or_File}]
   set NormName [ReducePath $JoinName]
   set RootDir  [file dirname $NormName]
@@ -205,7 +201,9 @@ proc include {Path_Or_File} {
       set FoundActivity 1
     }
     if {$FoundActivity == 0} {
-      error "Build / Include did not find anything to execute for ${Path_Or_File}"
+      CallbackOnError_Include $Path_Or_File
+    } else {
+      CallbackAfter_Include $Path_Or_File
     }
   }
 #  puts "set CurrentWorkingDirectory ${StartingPath} Ending Include"
@@ -316,52 +314,11 @@ proc build {{Path_Or_File "."}} {
     set Log2ErrorInfo $::errorInfo
     
     if {$BuildErrorCode != 0 || $AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
-      set ::osvvm::BuildErrorInfo $LocalBuildErrorInfo
-      set ErrorSource ""
-      if {$BuildErrorCode != 0} {
-        set ErrorSource "BuildErrorCode = $BuildErrorCode. "
-      }
-      if {$AnalyzeErrorCount > 0} {
-        set ErrorSource "${ErrorSource}AnalyzeErrorCount  = $AnalyzeErrorCount. "
-      }
-      if {$SimulateErrorCount > 0} {
-        set ErrorSource "${ErrorSource}SimulateErrorCount  = $SimulateErrorCount. "
-      }
-      if {$::osvvm::FailOnBuildErrors} {
-        puts  "Error:  Build failed with ${ErrorSource}."
-        error "For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
-      } else {
-        puts "Error:  Build failed with ${ErrorSource}."
-        puts "Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
-      }
+      CallbackOnError_Build $Path_Or_File $BuildErrorCode $LocalBuildErrorInfo 
+      
     } 
-    if {$ReportErrorCode != 0} {  
-      set ::osvvm::BuildReportErrorInfo $LocalReportErrorInfo 
-      if {$::osvvm::FailOnReportErrors} {
-        puts  "Error: Failed during AfterBuildReports.  Please include your simulator version in any issue reports"
-        error "For tcl errorInfo, puts \$::osvvm::BuildReportErrorInfo"
-      } else {
-        puts  "Error: Failed during AfterBuildReports.  Please include your simulator version in any issue reports"
-        puts  "Error: For tcl errorInfo, puts \$::osvvm::BuildReportErrorInfo"
-      }
-    } 
-    if {$Log2ErrorCode != 0} {  
-      if {$::osvvm::FailOnReportErrors} {
-        puts  "Error: Failed during Log2Osvvm.  Please include your simulator version in any issue reports"
-        error "For tcl errorInfo, puts \$::osvvm::Log2OsvvmErrorInfo"
-      } else {
-        puts  "Error: Failed during Log2Osvvm.  Please include your simulator version in any issue reports"
-        puts  "Error: For tcl errorInfo, puts \$::osvvm::Log2OsvvmErrorInfo"
-      }
-    } 
-    if {$ScriptErrorCount != 0} {  
-      if {$::osvvm::FailOnReportErrors} {
-        puts  "Error: Failed during Simulate2Html.  Please include your simulator version in any issue reports"
-        error "For tcl errorInfo, puts \$::osvvm::Simulate2HtmlErrorInfo"
-      } else {
-        puts  "Error: Failed during Simulate2Html.  Please include your simulator version in any issue reports"
-        puts  "Error: For tcl errorInfo, puts \$::osvvm::Simulate2HtmlErrorInfo"
-      }
+    if {($ReportErrorCode != 0) || ($Log2ErrorCode != 0) || ($ScriptErrorCount != 0)} {  
+      CallbackOnError_AfterBuildReports $LocalReportErrorInfo
     } 
     if {($::osvvm::BuildStatus eq "FAILED") && ($::osvvm::FailOnTestCaseErrors)} {
         error "Test Finished with Test Case Errors"
@@ -393,7 +350,9 @@ proc LocalBuild {BuildName Path_Or_File} {
 #  puts  $RunFile "  Date: [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   close $RunFile
 
+  CallbackBefore_Build ${Path_Or_File}
   include ${Path_Or_File}
+  CallbackAfter_Build ${Path_Or_File}
 
   # Print Elapsed time for last TestSuite (if any ran) and the entire build
   set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} a]
@@ -719,6 +678,7 @@ proc library {LibraryName {PathToLib ""}} {
   set LowerLibraryName [string tolower $LibraryName]
 
   if  {![file isdirectory $ResolvedPathToLib]} {
+    puts "Error: library $LibraryName ${PathToLib} : Library directory does not exist."
     error "library $LibraryName ${PathToLib} : Library directory does not exist."
   }
   # Needs to be here to activate library (ActiveHDL)
@@ -729,7 +689,14 @@ proc library {LibraryName {PathToLib ""}} {
     set ResolvedPathToLib [lreplace $item 0 0]
   }
   puts "library $LibraryName $ResolvedPathToLib"  ; # EchoOsvvmCmd
-  vendor_library $LowerLibraryName $ResolvedPathToLib
+  CallbackBefore_Library ${LibraryName} ${PathToLib}
+  set LibraryErrorCode [catch {vendor_library $LowerLibraryName $ResolvedPathToLib} LibraryErrMsg]
+  
+  if {$LibraryErrorCode != 0} {
+    CallbackOnError_Library ${LibraryName} ${PathToLib}
+  } else {
+    CallbackAfter_Library ${LibraryName} ${PathToLib}
+  }
 
   set VhdlWorkingLibrary  $LibraryName
 }
@@ -753,6 +720,7 @@ proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
       vendor_LinkLibrary $LowerLibraryName $ResolvedPathToLib
     }
   } else {
+    puts "Error: LinkLibrary $LibraryName ${PathToLib} : Library directory does not exist."
     error "LinkLibrary $LibraryName ${PathToLib} : Library directory does not exist."
   }
 }
@@ -815,20 +783,11 @@ proc LinkCurrentLibraries {} {
 #
 proc analyze {FileName args} {
   variable AnalyzeErrorCount 
-  variable ConsecutiveAnalyzeErrors 
   variable AnalyzeErrorStopCount
+  variable ConsecutiveAnalyzeErrors 
    
   if {[catch {LocalAnalyze $FileName {*}$args} errmsg]} {
-    set AnalyzeErrorCount            [expr $AnalyzeErrorCount+1]
-    set ConsecutiveAnalyzeErrors [expr $ConsecutiveAnalyzeErrors+1]
-    set ::osvvm::AnalyzeErrorInfo $::errorInfo
-    puts "# ** Error: analyze  For tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
-    
-    if {$AnalyzeErrorStopCount != 0 && $AnalyzeErrorCount >= $AnalyzeErrorStopCount } {
-      error "AnalyzeError: analyze '$FileName $args' failed: $errmsg"
-    } else {
-      puts  "AnalyzeError: analyze '$FileName $args' failed: $errmsg"
-    }
+    CallbackOnError_Analyze $FileName $args
   } else {
     set ConsecutiveAnalyzeErrors 0 
   }
@@ -859,14 +818,18 @@ proc LocalAnalyze {FileName args} {
     } else {
       set AnalyzeOptions [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$args]
     }
+    CallbackBefore_Analyze $FileName $args
     vendor_analyze_vhdl ${VhdlWorkingLibrary} ${NormFileName} ${AnalyzeOptions}
+    CallbackAfter_Analyze $FileName $args
   } elseif {$FileExtension eq ".v" || $FileExtension eq ".sv"} {
     if {[info exists CoverageAnalyzeEnable]} {
       set AnalyzeOptions [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$args]
     } else {
       set AnalyzeOptions [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$args]
     }
+    CallbackBefore_Analyze $FileName $args
     vendor_analyze_verilog ${VhdlWorkingLibrary} ${NormFileName} ${AnalyzeOptions}
+    CallbackAfter_Analyze $FileName $args
   } elseif {$FileExtension eq ".lib"} {
     #  for handling older deprecated file format
     library [file rootname $FileName]
@@ -877,9 +840,6 @@ proc LocalAnalyze {FileName args} {
 # Simulate
 #
 proc simulate {LibraryUnit args} {
-  variable SimulateErrorCount 
-  variable ConsecutiveSimulateErrors 
-  variable SimulateErrorStopCount
   
   set SavedInteractive [GetInteractive] 
   if {!($::osvvm::BuildStarted)} {
@@ -901,29 +861,13 @@ proc simulate {LibraryUnit args} {
   set ::osvvm::GenericNames ""
   
   if {$SimulateErrorCode != 0} {
-    set ::osvvm::SimulateErrorInfo $LocalSimulateErrorInfo
-    set SimulateErrorCount            [expr $SimulateErrorCount+1]
-    set ConsecutiveSimulateErrors [expr $ConsecutiveSimulateErrors+1]
-    puts "# ** Error: simulate  For tcl errorInfo, puts \$::osvvm::SimulateErrorInfo"
-
-    if {$SimulateErrorStopCount != 0 && $SimulateErrorCount >= $SimulateErrorStopCount } {
-      error "SimulateError: '$LibraryUnit $args' failed: $errmsg"
-    } else {
-      puts  "SimulateError: '$LibraryUnit $args' failed: $errmsg"
-    }
+    CallBackOnError_Simulate $LocalSimulateErrorInfo $LibraryUnit $args
   } else {
-    set ConsecutiveSimulateErrors 0 
+    set ::osvvm::ConsecutiveSimulateErrors 0 
   }
 
   if {$ReportErrorCode != 0} {  
-    set ::osvvm::SimulateReportErrorInfo $LocalReportErrorInfo 
-    if {$::osvvm::FailOnReportErrors} {
-      puts  "Error: Failed during AfterSimulateReports.  Please include your simulator version in any issue reports"
-      error "For tcl errorInfo, puts \$::osvvm::SimulateReportErrorInfo"
-    } else {
-      puts  "Error: Failed during AfterSimulateReports.  Please include your simulator version in any issue reports"
-      puts  "Error: For tcl errorInfo, puts \$::osvvm::SimulateReportErrorInfo"
-    }
+    CallbackOnError_AfterSimulateReports $LocalReportErrorInfo
   } 
 }
 
@@ -970,8 +914,9 @@ proc LocalSimulate {LibraryUnit args} {
 
   puts "Simulation Start time [clock format $SimulateStartTime -format %T]"
 
+  CallbackBefore_Simulate $LibraryUnit $args
   vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} ${SimulateOptions}
-
+  CallbackAfter_Simulate  $LibraryUnit $args
 }
 
 proc AfterSimulateReports {} {

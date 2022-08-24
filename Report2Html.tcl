@@ -55,12 +55,7 @@ proc Report2Html {ReportFile} {
   close $ResultsFile
 
   if {$ErrorCode} {
-    set ::osvvm::Report2HtmlErrorInfo $::errorInfo
-#   Report2Html errors are caught Build
-#    set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
-
-    puts "# ** Error: Report2Html  For tcl errorInfo, puts \$::osvvm::Report2HtmlErrorInfo"
-    error "ReportError: Report2Html 'Report File: $ReportFile ' failed: $errmsg"
+    CallbackOnError_Report2Junit $ReportFile $errmsg
   }
 }
 

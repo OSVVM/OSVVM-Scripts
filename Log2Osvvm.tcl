@@ -78,11 +78,7 @@ namespace eval ::osvvm {
     }
     
     if {$ErrorCode} {
-      set ::osvvm::Log2OsvvmErrorInfo $::errorInfo
-      set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
-
-      puts "# ** Error: Log2Osvvm  For tcl errorInfo, puts \$::osvvm::Log2OsvvmErrorInfo"
-      error "ReportError: Log2Osvvm 'Log File: $LogFile ' failed: $errmsg"
+      CallbackOnError_Log2Osvvm $LogFile $errmsg
     }
   }
 
@@ -133,7 +129,7 @@ namespace eval ::osvvm {
     } elseif {[regexp {^RunTest} $LineOfLogFile] } {
       set InRunTest 1
       puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
-    } elseif {[regexp {^AnalyzeError:|^SimulateError:|^ScriptError:|^ReportError:} $LineOfLogFile] } {
+    } elseif {[regexp {^AnalyzeError:|^SimulateError:|^ScriptError:|^ReportError:|^LibraryError:|^BuildError} $LineOfLogFile] } {
         puts $HtmlFileHandle "</details><details><summary style=color:#FF0000>$LineOfLogFile</summary>"
     } elseif {[regexp {^analyze} $LineOfLogFile] } {
       if {! $InRunTest} {
