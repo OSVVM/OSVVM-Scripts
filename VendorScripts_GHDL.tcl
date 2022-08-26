@@ -148,9 +148,12 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable GHDL_WORKING_LIBRARY_PATH
   variable CoverageSimulateEnable
 
-  puts "ghdl -a --std=${VhdlShortVersion} -Wno-library -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}"
-  set results [exec ghdl -a --std=${VhdlShortVersion} -Wno-library -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}]
-  puts $results  
+  set  AnalyzeOptions [concat --std=${VhdlShortVersion} -Wno-library -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}]
+  puts "ghdl -a $AnalyzeOptions"
+  if {[catch {exec ghdl -a {*}$AnalyzeOptions} AnalyzeError]} {
+    puts $AnalyzeError
+    error "Failed: analyze $FileName"
+  }
 }
 
 proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
@@ -193,12 +196,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   }
   
 # format for select file  
-
-  puts "ghdl --elab-run {*}${LocalElaborateOptions} ${LibraryUnit} {*}${ExtendedRunOptions}" 
-  if { [catch {exec ghdl --elab-run {*}${LocalElaborateOptions} ${LibraryUnit} {*}${ExtendedRunOptions}} SimResults]} { 
-    error "ghdl --elab-run ended with error $SimResults"
-  } else {
-    puts $SimResults
+  set SimulateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit} {*}${LocalRunOptions}]
+  puts "ghdl --elab-run ${SimulateOptions}" 
+  if { [catch {exec ghdl --elab-run {*}${SimulateOptions}} SimError]} { 
+    puts $SimError
+    error "Failed: simulate $LibraryUnit"
   }
   
   # Save Coverage Information

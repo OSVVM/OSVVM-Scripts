@@ -92,26 +92,12 @@ namespace eval ::osvvm {
 # CallbackOnError_Xxx
 #   Defines how all OSVVM functionality handles errors
 #
-  proc CallbackOnError_Build {Path_Or_File BuildErrorCode LocalBuildErrorInfo} {
-    variable AnalyzeErrorCount 
-    variable SimulateErrorCount
-    
+  proc CallbackOnError_Build {Path_Or_File BuildErrorCode LocalBuildErrorInfo} {    
     set ::osvvm::BuildErrorInfo $LocalBuildErrorInfo
-    set ErrorSource ""
-    if {$BuildErrorCode != 0} {
-      set ErrorSource "BuildErrorCode = $BuildErrorCode. "
-    }
-    if {$AnalyzeErrorCount > 0} {
-      set ErrorSource "${ErrorSource}AnalyzeErrorCount  = $AnalyzeErrorCount. "
-    }
-    if {$SimulateErrorCount > 0} {
-      set ErrorSource "${ErrorSource}SimulateErrorCount  = $SimulateErrorCount. "
-    }
-
-    puts "BuildError:  Build ${Path_Or_File} failed with ${ErrorSource}."
-    puts "Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
     if {$::osvvm::FailOnBuildErrors} {
-      error "Build ${Path_Or_File} failed with ${ErrorSource}."
+      error "For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
+    } else {
+      puts "Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
     }
   }
   
@@ -127,7 +113,7 @@ namespace eval ::osvvm {
     error "library $LibraryName ${PathToLib} failed"
   }
   
-  proc CallbackOnError_Analyze {FileName args} {
+  proc CallbackOnError_Analyze {ErrMsg args} {
     variable AnalyzeErrorCount 
     variable AnalyzeErrorStopCount
 #    variable ConsecutiveAnalyzeErrors 
@@ -137,17 +123,16 @@ namespace eval ::osvvm {
     
     set AnalyzeErrorCount            [expr $AnalyzeErrorCount+1]
 #    set ConsecutiveAnalyzeErrors [expr $ConsecutiveAnalyzeErrors+1]
-    puts "# ** Error: analyze  For tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
+    puts  "AnalyzeError: analyze $args"
+    puts  "# ** Error: analyze  For tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
     
     # These settings are in OsvvmDefaultSettings.  Override them in LocalScriptDefaults.tcl
     if {$AnalyzeErrorStopCount != 0 && $AnalyzeErrorCount >= $AnalyzeErrorStopCount } {
-      error "AnalyzeError: analyze '$FileName $args' failed: $errmsg"
-    } else {
-      puts  "AnalyzeError: analyze '$FileName $args' failed: $errmsg"
+      error "AnalyzeError: analyze $args"
     }
   }
   
-  proc CallbackOnError_Simulate {LocalSimulateErrorInfo LibraryUnit args} {
+  proc CallbackOnError_Simulate {ErrMsg LocalSimulateErrorInfo args} {
     variable SimulateErrorCount 
     variable SimulateErrorStopCount
 #    variable ConsecutiveSimulateErrors 
@@ -155,15 +140,13 @@ namespace eval ::osvvm {
     set ::osvvm::SimulateErrorInfo    $LocalSimulateErrorInfo
     set SimulateErrorCount            [expr $SimulateErrorCount+1]
 #    set ConsecutiveSimulateErrors     [expr $ConsecutiveSimulateErrors+1]
+    puts  "SimulateError: simulate $args"
     puts "# ** Error: simulate  For tcl errorInfo, puts \$::osvvm::SimulateErrorInfo"
 
     # These settings are in OsvvmDefaultSettings.  Override them in LocalScriptDefaults.tcl
     if {$SimulateErrorStopCount != 0 && $SimulateErrorCount >= $SimulateErrorStopCount } {
       # This stops the build
-      error "SimulateError: '$LibraryUnit $args' failed: $errmsg"
-    } else {
-      # This allows the build to continue
-      puts  "SimulateError: '$LibraryUnit $args' failed: $errmsg"
+      error "SimulateError: simulate $args"
     }
   }
   
@@ -217,7 +200,7 @@ namespace eval ::osvvm {
   #
   #  Handling errors in generating Simulate Reports
   #
-  proc CallbackOnError_AfterSimulateReports {LocalReportErrorInfo} {
+  proc CallbackOnError_AfterSimulateReports {ErrMsg LocalReportErrorInfo} {
     set ::osvvm::SimulateReportErrorInfo $LocalReportErrorInfo 
     # Continue current build
     puts "ReportError: Simulate2Html failed.  See previous messages"

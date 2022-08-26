@@ -285,6 +285,7 @@ proc build {{Path_Or_File "."}} {
   variable BuildStarted
   variable TranscriptExtension
   variable BuildName
+  variable BuildErrorCode 0
   
   if {$BuildStarted} {
     include $Path_Or_File
@@ -683,6 +684,7 @@ proc library {LibraryName {PathToLib ""}} {
   }
   # Needs to be here to activate library (ActiveHDL)
   set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+  # Policy:  If library is already in library list, then use that directory
   if {$found >= 0} {
     # Lookup Existing Library Directory
     set item [lindex $LibraryList $found]
@@ -716,9 +718,14 @@ proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
   set LowerLibraryName [string tolower $LibraryName]
 
   if  {[file isdirectory $ResolvedPathToLib]} {
-    if {[AddLibraryToList $LowerLibraryName $ResolvedPathToLib] < 0} {
-      vendor_LinkLibrary $LowerLibraryName $ResolvedPathToLib
+    set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+    # Policy:  If library is already in library list, then use that directory
+    if {$found >= 0} {
+      # Lookup Existing Library Directory
+      set item [lindex $LibraryList $found]
+      set ResolvedPathToLib [lreplace $item 0 0]
     }
+    vendor_LinkLibrary $LowerLibraryName $ResolvedPathToLib
   } else {
     puts "Error: LinkLibrary $LibraryName ${PathToLib} : Library directory does not exist."
     error "LinkLibrary $LibraryName ${PathToLib} : Library directory does not exist."
@@ -787,7 +794,7 @@ proc analyze {FileName args} {
   variable ConsecutiveAnalyzeErrors 
    
   if {[catch {LocalAnalyze $FileName {*}$args} errmsg]} {
-    CallbackOnError_Analyze $FileName $args
+    CallbackOnError_Analyze $errmsg [concat $FileName $args]
   } else {
     set ConsecutiveAnalyzeErrors 0 
   }
@@ -846,11 +853,11 @@ proc simulate {LibraryUnit args} {
     SetInteractive "true"
   }
 
-  set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} errmsg]
+  set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
   set LocalSimulateErrorInfo $::errorInfo
   SetInteractive $SavedInteractive  ; # Restore original value
   
-  set ReportErrorCode [catch {AfterSimulateReports} errmsg]
+  set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
   set LocalReportErrorInfo $::errorInfo
 
   if {[info exists ::osvvm::TestCaseName]} {
@@ -861,13 +868,13 @@ proc simulate {LibraryUnit args} {
   set ::osvvm::GenericNames ""
   
   if {$SimulateErrorCode != 0} {
-    CallBackOnError_Simulate $LocalSimulateErrorInfo $LibraryUnit $args
+    CallbackOnError_Simulate $SimErrMsg $LocalSimulateErrorInfo [concat $LibraryUnit $args]
   } else {
     set ::osvvm::ConsecutiveSimulateErrors 0 
   }
 
   if {$ReportErrorCode != 0} {  
-    CallbackOnError_AfterSimulateReports $LocalReportErrorInfo
+    CallbackOnError_AfterSimulateReports $ReportErrMsg $LocalReportErrorInfo
   } 
 }
 

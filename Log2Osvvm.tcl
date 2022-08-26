@@ -129,8 +129,10 @@ namespace eval ::osvvm {
     } elseif {[regexp {^RunTest} $LineOfLogFile] } {
       set InRunTest 1
       puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
-    } elseif {[regexp {^AnalyzeError:|^SimulateError:|^ScriptError:|^ReportError:|^LibraryError:|^BuildError} $LineOfLogFile] } {
+    } elseif {[regexp {^AnalyzeError:|^SimulateError:|^ScriptError:|^ReportError:|^LibraryError:|^BuildError:} $LineOfLogFile] } {
         puts $HtmlFileHandle "</details><details><summary style=color:#FF0000>$LineOfLogFile</summary>"
+    } elseif {[regexp {^Build:} $LineOfLogFile] } {
+        puts $HtmlFileHandle "</details><details><summary style=color:#00C000>$LineOfLogFile</summary>"
     } elseif {[regexp {^analyze} $LineOfLogFile] } {
       if {! $InRunTest} {
         puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"

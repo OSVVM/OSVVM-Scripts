@@ -83,8 +83,13 @@ proc ReportBuildStatus {} {
   variable TestCasesSkipped 
   variable TestCasesRun 
   variable BuildName
+  variable BuildErrorCode
   
-  puts "Build: ${BuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${AnalyzeErrorCount},  Simulate Errors: ${SimulateErrorCount} "
+  if {$BuildStatus eq "PASSED"} {
+    puts "Build: ${BuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${AnalyzeErrorCount},  Simulate Errors: ${SimulateErrorCount}"
+  } else {
+    puts "BuildError: ${BuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${AnalyzeErrorCount},  Simulate Errors: ${SimulateErrorCount},  Build Error Code: $BuildErrorCode"
+  }
 }
 
 proc ReportElaborateStatus {TestDict} {
@@ -92,6 +97,7 @@ proc ReportElaborateStatus {TestDict} {
   variable BuildTranscript
   variable AnalyzeErrorCount
   variable SimulateErrorCount
+  variable BuildErrorCode
   variable BuildStatus "PASSED"
   variable TestCasesPassed 0
   variable TestCasesFailed 0
@@ -106,7 +112,7 @@ proc ReportElaborateStatus {TestDict} {
 #  set TestCasesFailed 0
 #  set TestCasesSkipped 0
 #  set TestCasesRun 0
-  if {$AnalyzeErrorCount || $SimulateErrorCount} {
+  if {($BuildErrorCode != 0) || $AnalyzeErrorCount || $SimulateErrorCount} {
     set BuildStatus "FAILED"
   }
   
