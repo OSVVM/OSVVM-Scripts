@@ -618,29 +618,23 @@ proc CreateLibraryPath {PathToLib} {
     # Use existing library directory
     set ResolvedPathToLib ${VhdlLibraryFullPath}
   } else {
-    set FullName [file join $PathToLib ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
-    set LibsName [file join $PathToLib ${::osvvm::VhdlLibrarySubdirectory}]
-    if      {[file isdirectory $FullName]} {
-      set ResolvedPathToLib [file normalize $FullName]
-    } elseif {[file isdirectory $LibsName]} {
-      if {[glob -nocomplain -directory $LibsName] ne ""} {
-        set ResolvedPathToLib [file normalize $LibsName]
-      } else {
-        set ResolvedPathToLib [file normalize $FullName]
-      }
-    } elseif {[file isdirectory $PathToLib]} {
-      # if PathToLib directory has stuff in it, then use it
-      if {[glob -nocomplain -directory $LibsName] ne ""} {
-        set ResolvedPathToLib [file normalize $PathToLib]
-      } else {
-        set ResolvedPathToLib [file normalize $FullName]
-      }
+    # Make sure $PathToLib ends with VhdlLibraryDirectory/VhdlLibrarySubdirectory
+    # If it does not, fix it so it does.
+    set AddPathSuffix "" 
+    set TailPathToLib [file tail $PathToLib]
+    if {$TailPathToLib ne $::osvvm::VhdlLibrarySubdirectory} {
+      set AddPathSuffix $::osvvm::VhdlLibrarySubdirectory
     } else {
-      set ResolvedPathToLib [file normalize $FullName]
+      set $TailPathToLib [file tail [file dirname $PathToLib]
     }
+    if {$TailPathToLib ne $::osvvm::VhdlLibraryDirectory} {
+      set AddPathSuffix [file join $::osvvm::VhdlLibraryDirectory $AddPathSuffix]
+    }
+    set ResolvedPathToLib [file normalize [file join $PathToLib $AddPathSuffix]]    
   }
   return $ResolvedPathToLib
 }
+
 proc FindLibraryPath {PathToLib} {
   variable VhdlLibraryFullPath
 
