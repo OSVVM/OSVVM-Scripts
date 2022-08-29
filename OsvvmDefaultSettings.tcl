@@ -43,6 +43,15 @@
 
 # OSVVM Variable Defaults
 namespace eval ::osvvm {
+  #
+  #  Initialize internal settings
+  #
+  # CurrentWorkingDirectory is a relative path to the scripts currently running 
+  variable CurrentWorkingDirectory ""
+  # CurrentSimulationDirectory is an absolute path to the simulation directory (for reports and such)
+  variable CurrentSimulationDirectory [pwd]
+#  variable CurrentSimulationDirectory ""
+  
 
   # Directory and Results file management
   variable OutputBaseDirectory        ""  
@@ -65,12 +74,16 @@ namespace eval ::osvvm {
     variable FailOnBuildErrors        "true"
   }
   if {![info exists FailOnReportErrors]} {
-    variable FailOnReportErrors       "true"
+    variable FailOnReportErrors       "false"
   }
   if {![info exists FailOnTestCaseErrors]} {
     variable FailOnTestCaseErrors     "false"
   }
-
+  if {![info exists RemoveLibraryDirectoryDeletesDirectory]} {
+    variable RemoveLibraryDirectoryDeletesDirectory "true"
+  }
+  
+  variable RemoveUnmappedLibraries    "false"
   
   # Also change with SetTranscriptType html 
   variable TranscriptExtension      "html"     ; # Set Transcripts to be html by default
@@ -102,14 +115,14 @@ namespace eval ::osvvm {
   # 
   # Extended Analyze and Simulate Options
   #
-  variable VhdlAnalyzeOptions       ""
-  variable VerilogAnalyzeOptions    ""
-  variable ExtendedAnalyzeOptions   ""
-  variable ExtendedSimulateOptions  ""
+  variable VhdlAnalyzeOptions        ""
+  variable VerilogAnalyzeOptions     ""
+  variable ExtendedAnalyzeOptions    ""
+  variable ExtendedSimulateOptions   ""
   variable ExtendedElaborateOptions  ""
-  variable ExtendedRunOptions  ""
+  variable ExtendedRunOptions        ""
   
-  variable SaveWaves "false"
+  variable SaveWaves           "false"
   variable SimulateInteractive "false"
   
   variable SimulateInteractive "false"

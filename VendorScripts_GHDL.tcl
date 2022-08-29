@@ -134,6 +134,20 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
   }
 }
 
+proc vendor_UnlinkLibrary {LibraryName PathToLib} {
+  variable VHDL_RESOURCE_LIBRARY_PATHS
+  variable LibraryList
+  
+  # Was last library in directory deleted?
+  if {[lsearch $LibraryList "* ${PathToLib}"] < 0} {
+    # Remove it from GHDL Library Paths
+    set found [lsearch $VHDL_RESOURCE_LIBRARY_PATHS "-P$PathToLib"]
+    if {$found >= 0} {
+      set VHDL_RESOURCE_LIBRARY_PATHS [lreplace $VHDL_RESOURCE_LIBRARY_PATHS $found $found]
+    }
+  }
+}
+
 
 # -------------------------------------------------
 # analyze
@@ -238,7 +252,10 @@ proc vendor_generic {Name Value} {
 #
 proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
 #  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
-#  acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join [glob ${CoverageDirectory}/${TestSuiteName}/*.acdb] " -i "]
+#  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
+#  if {$CovFiles ne ""} {
+#    acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join $CovFiles " -i "]
+#  }
 }
 
 proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 

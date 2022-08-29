@@ -160,6 +160,10 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
        vmap    $LibraryName  ${ResolvedLib}
 }
 
+proc vendor_UnlinkLibrary {LibraryName PathToLib} {
+  vmap -del ${LibraryName}
+}
+
 # -------------------------------------------------
 # analyze
 #
@@ -308,7 +312,10 @@ proc vendor_generic {Name Value} {
 #
 proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
   set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
-  vcover merge ${CoverageFileBaseName}.ucdb {*}[glob ${CoverageDirectory}/${TestSuiteName}/*.ucdb]
+  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.ucdb]
+  if {$CovFiles ne ""} {
+    vcover merge ${CoverageFileBaseName}.ucdb {*}$CovFiles
+  }
 }
 
 proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} { 

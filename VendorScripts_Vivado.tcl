@@ -102,7 +102,8 @@ proc vendor_SetCoverageSimulateDefaults {} {
 # Vivado doesn't maintain library files per se, so there's nothing to do.
 
 proc vendor_library {LibraryName PathToLib} {}
-proc vendor_map {LibraryName PathToLib} {}
+proc vendor_LinkLibrary {LibraryName PathToLib} {}
+proc vendor_UnlinkLibrary {LibraryName PathToLib} {}
 
 # -------------------------------------------------
 # analyze
@@ -155,7 +156,10 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {}
 #
 proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
 #  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
-#  acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join [glob ${CoverageDirectory}/${TestSuiteName}/*.acdb] " -i "]
+#  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
+#  if {$CovFiles ne ""} {
+#    acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join $CovFiles " -i "]
+#  }
 }
 
 proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 

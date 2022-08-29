@@ -106,11 +106,11 @@ namespace eval ::osvvm {
     error "Build / Include did not find anything to execute for ${Path_Or_File}"
   }
   
-  proc CallbackOnError_Library {LibraryName PathToLib} {
+  proc CallbackOnError_Library {Message} {
     set ::osvvm::LibraryErrorInfo $::errorInfo
-    puts "LibraryError: library $LibraryName ${PathToLib} failed"
+    puts "LibraryError: $Message"
     puts "Error:  For tcl errorInfo, puts \$::osvvm::LibraryErrorInfo"
-    error "library $LibraryName ${PathToLib} failed"
+    error "$Message"
   }
   
   proc CallbackOnError_Analyze {ErrMsg args} {

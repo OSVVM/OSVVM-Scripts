@@ -131,6 +131,9 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
        vmap    $LibraryName  ${ResolvedLib}
 }
 
+proc vendor_UnlinkLibrary {LibraryName PathToLib} {
+  vmap -del ${LibraryName}
+}
 
 # -------------------------------------------------
 # analyze
@@ -199,7 +202,10 @@ proc vendor_generic {Name Value} {
 #
 proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
   set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
-  acdb merge        -o ${CoverageFileBaseName}.acdb -i {*}[join [glob ${CoverageDirectory}/${TestSuiteName}/*.acdb] " -i "]
+  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
+  if {$CovFiles ne ""} {
+    acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join $CovFiles " -i "]
+  }
 }
 
 proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} { 

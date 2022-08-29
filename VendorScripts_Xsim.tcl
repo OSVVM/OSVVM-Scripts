@@ -110,19 +110,8 @@ proc vendor_library {LibraryName PathToLib} {
 #  }
 }
 
-proc vendor_map {LibraryName PathToLib} {
-#  set PathAndLib ${PathToLib}/${LibraryName}.lib
-#
-#  if {![file exists ${PathAndLib}]} {
-#    error "Map:  Creating library ${PathAndLib} since it does not exist.  "
-#    puts vlib    ${PathAndLib}
-#    eval vlib    ${PathAndLib}
-#  }
-#  if {![file exists ./compile/${LibraryName}.epr]} {
-#    puts vmap    $LibraryName  ${PathAndLib}
-#    eval vmap    $LibraryName  ${PathAndLib}
-#  }
-}
+proc vendor_LinkLibrary {LibraryName PathToLib} {}
+proc vendor_UnlinkLibrary {LibraryName PathToLib} {}
 
 # -------------------------------------------------
 # analyze
@@ -189,7 +178,10 @@ proc vendor_generic {Name Value} {
 #
 proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
 #  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
-#  acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join [glob ${CoverageDirectory}/${TestSuiteName}/*.acdb] " -i "]
+#  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
+#  if {$CovFiles ne ""} {
+#    acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join $CovFiles " -i "]
+#  }
 }
 
 proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 

@@ -69,6 +69,7 @@
     variable NoGui false
   }
   variable FailOnBuildErrors        "false"
+  variable RemoveLibraryDirectoryDeletesDirectory "false"
 
 
 # -------------------------------------------------
@@ -157,6 +158,15 @@ proc vendor_LinkLibrary {LibraryName RelativePathToLib} {
   }
   cd $MY_START_DIR
 }
+
+proc vendor_UnlinkLibrary {LibraryName PathToLib} {
+# Does the design also need to be closed?
+# The intent is to delete the library so it can be recreated
+# so it should be ok not closing the design
+#  vmap -del -re ${LibraryName}
+  design detach ${LibraryName}
+}
+
 
 # -------------------------------------------------
 # analyze
@@ -267,7 +277,10 @@ proc vendor_generic {Name Value} {
 #
 proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
   set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
-  acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join [glob ${CoverageDirectory}/${TestSuiteName}/*.acdb] " -i "]
+  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
+  if {$CovFiles ne ""} {
+    acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join $CovFiles " -i "]
+  }
 }
 
 proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} { 

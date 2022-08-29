@@ -112,11 +112,9 @@ proc vendor_library {LibraryName PathToLib} {
 }
 
 proc vendor_LinkLibrary {LibraryName PathToLib} {
-#  set PathAndLib ${PathToLib}/${LibraryName}
-#
-#  if {![file exists ${PathAndLib}]} {
-#    error "LinkLibrary: ${PathAndLib} does not exist."
-#  }
+}
+
+proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 }
 
 # -------------------------------------------------
@@ -128,7 +126,7 @@ proc CreateToolSetup {} {
   
   foreach item $LibraryList {
     set LibraryName [lindex $item 0]
-    set PathToLib   [lindex $item 1]
+    set PathToLib   [lreplace $item 0 0]
     puts $SetupFile "${LibraryName} : ${PathToLib}/${LibraryName}"
   }
   close $SetupFile
@@ -243,7 +241,10 @@ proc vendor_generic {Name Value} {
 #
 proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
 #  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
-#  acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join [glob ${CoverageDirectory}/${TestSuiteName}/*.acdb] " -i "]
+#  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
+#  if {$CovFiles ne ""} {
+#    acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join $CovFiles " -i "]
+#  }
 }
 
 proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 

@@ -610,6 +610,37 @@ proc EndSimulation {} {
 #
 
 # -------------------------------------------------
+proc CreateLibraryPath {PathToLib} {
+  variable VhdlLibraryFullPath
+
+  set ResolvedPathToLib ""
+  if {$PathToLib eq ""} {
+    # Use existing library directory
+    set ResolvedPathToLib ${VhdlLibraryFullPath}
+  } else {
+    set FullName [file join $PathToLib ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
+    set LibsName [file join $PathToLib ${::osvvm::VhdlLibrarySubdirectory}]
+    if      {[file isdirectory $FullName]} {
+      set ResolvedPathToLib [file normalize $FullName]
+    } elseif {[file isdirectory $LibsName]} {
+      if {[glob -nocomplain -directory $LibsName] ne ""} {
+        set ResolvedPathToLib [file normalize $LibsName]
+      } else {
+        set ResolvedPathToLib [file normalize $FullName]
+      }
+    } elseif {[file isdirectory $PathToLib]} {
+      # if PathToLib directory has stuff in it, then use it
+      if {[glob -nocomplain -directory $LibsName] ne ""} {
+        set ResolvedPathToLib [file normalize $PathToLib]
+      } else {
+        set ResolvedPathToLib [file normalize $FullName]
+      }
+    } else {
+      set ResolvedPathToLib [file normalize $FullName]
+    }
+  }
+  return $ResolvedPathToLib
+}
 proc FindLibraryPath {PathToLib} {
   variable VhdlLibraryFullPath
 
@@ -626,6 +657,8 @@ proc FindLibraryPath {PathToLib} {
       set ResolvedPathToLib [file normalize $LibsName]
     } elseif {[file isdirectory $PathToLib]} {
       set ResolvedPathToLib [file normalize $PathToLib]
+    } else {
+      set ResolvedPathToLib [file normalize $FullName]
     }
   }
   return $ResolvedPathToLib
@@ -673,15 +706,15 @@ proc library {LibraryName {PathToLib ""}} {
 
   CheckWorkingDir
   CheckLibraryInit
-  CreateDirectory $VhdlLibraryFullPath    ; # Make library directory if it does not exist
+# Now created after ResolvedPathToLib is set
+#  CreateDirectory $VhdlLibraryFullPath    ; # Create library directory if it does not exist
 
-  set ResolvedPathToLib [FindLibraryPath $PathToLib]
+  set ResolvedPathToLib [CreateLibraryPath $PathToLib]
   set LowerLibraryName [string tolower $LibraryName]
 
-  if  {![file isdirectory $ResolvedPathToLib]} {
-    puts "Error: library $LibraryName ${PathToLib} : Library directory does not exist."
-    error "library $LibraryName ${PathToLib} : Library directory does not exist."
-  }
+  # Create library directory if it does not exist
+  CreateDirectory $ResolvedPathToLib 
+
   # Needs to be here to activate library (ActiveHDL)
   set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
   # Policy:  If library is already in library list, then use that directory
@@ -692,10 +725,9 @@ proc library {LibraryName {PathToLib ""}} {
   }
   puts "library $LibraryName $ResolvedPathToLib"  ; # EchoOsvvmCmd
   CallbackBefore_Library ${LibraryName} ${PathToLib}
-  set LibraryErrorCode [catch {vendor_library $LowerLibraryName $ResolvedPathToLib} LibraryErrMsg]
   
-  if {$LibraryErrorCode != 0} {
-    CallbackOnError_Library ${LibraryName} ${PathToLib}
+  if {[catch {vendor_library $LowerLibraryName $ResolvedPathToLib} LibraryErrMsg]} {
+    CallbackOnError_Library "library ${LibraryName} ${PathToLib} failed in call to vendor_library"
   } else {
     CallbackAfter_Library ${LibraryName} ${PathToLib}
   }
@@ -709,10 +741,11 @@ proc library {LibraryName {PathToLib ""}} {
 proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
   variable VhdlWorkingLibrary
   variable VhdlLibraryFullPath
+  variable LibraryList
 
   CheckWorkingDir
   CheckLibraryInit
-  CreateDirectory $VhdlLibraryFullPath    ; # Make library directory if it does not exist
+#  CreateDirectory $VhdlLibraryFullPath    ; # Make library directory if it does not exist
 
   set ResolvedPathToLib [FindLibraryPath $PathToLib]
   set LowerLibraryName [string tolower $LibraryName]
@@ -725,10 +758,11 @@ proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
       set item [lindex $LibraryList $found]
       set ResolvedPathToLib [lreplace $item 0 0]
     }
-    vendor_LinkLibrary $LowerLibraryName $ResolvedPathToLib
+    if {[catch {vendor_LinkLibrary $LowerLibraryName $ResolvedPathToLib} LibraryErrMsg]} {
+      CallbackOnError_Library "LinkLibrary ${LibraryName} ${PathToLib} failed in call to vendor_LinkLibrary"
+    }
   } else {
-    puts "Error: LinkLibrary $LibraryName ${PathToLib} : Library directory does not exist."
-    error "LinkLibrary $LibraryName ${PathToLib} : Library directory does not exist."
+    CallbackOnError_Library "LinkLibrary ${LibraryName} ${PathToLib} failed.  $ResolvedPathToLib is not a directory."
   }
 }
 
@@ -750,12 +784,10 @@ proc LinkLibraryDirectory {{LibraryDirectory ""}} {
 
   set ResolvedLibraryDirectory [FindLibraryPath $LibraryDirectory]
   if  {[file isdirectory $ResolvedLibraryDirectory]} {
-    if {![catch {glob -directory $ResolvedLibraryDirectory *} ErrNum]} {
-      foreach item [glob -directory $ResolvedLibraryDirectory *] {
-        if {[file isdirectory $item]} {
-          set LibraryName [file rootname [file tail $item]]
-          LocalLinkLibrary $LibraryName $ResolvedLibraryDirectory
-        }
+    foreach item [glob -nocomplain -directory $ResolvedLibraryDirectory *] {
+      if {[file isdirectory $item]} {
+        set LibraryName [file rootname [file tail $item]]
+        LocalLinkLibrary $LibraryName $ResolvedLibraryDirectory
       }
     }
   } else {
@@ -780,7 +812,7 @@ proc LinkCurrentLibraries {} {
 
   foreach item $OldLibraryList {
     set LibraryName [lindex $item 0]
-    set PathToLib   [lindex $item 1]
+    set PathToLib   [lreplace $item 0 0]    ; # handles spaces in path
     LinkLibrary ${LibraryName} ${PathToLib}
   }
 }
@@ -1448,27 +1480,126 @@ proc GetLibraryDirectory {} {
 }
 
 # -------------------------------------------------
-# RemoveLocalLibraries
-#
-proc RemoveLocalLibraries {} {
-  variable LibraryDirectoryList
-  variable LibraryList
-  variable VhdlWorkingLibrary
-  variable VhdlLibraryFullPath
+# RemoveLibrary
+#   Find name in LibraryList, remove corresponding directory and library mapping
+# 
+proc UnlinkAndDeleteLibrary {LowerLibraryName ResolvedPathToLib} {
 
-  if {[info exists VhdlLibraryFullPath]} {
-    file delete -force -- $VhdlLibraryFullPath
+  # Unlink Library from Vendor mapping
+  if {[catch {vendor_UnlinkLibrary $LowerLibraryName $ResolvedPathToLib} UnlinkErrMsg]} {
+    puts "LibraryError: Unable to unlink $LowerLibraryName"
   }
-  if {[info exists VhdlWorkingLibrary]} {
-    unset VhdlWorkingLibrary
-  }
-##!! TODO:  Remove libraries whose directory is VhdlLibraryFullPath
-  if {[info exists LibraryList]} {
-    unset LibraryList
-    unset LibraryDirectoryList
+  set LibraryPathAndName [file join $ResolvedPathToLib $LowerLibraryName]
+  if {[catch {file delete -force $LibraryPathAndName} ErrMsg]} {
+    puts "LibraryError: Unable to remove $LibraryPathAndName"
   }
 }
 
+proc RemoveLibrary {LibraryName {PathToLib ""}} {
+  variable VhdlWorkingLibrary
+  variable LibraryList
+  variable LibraryDirectoryList
+  variable VhdlLibraryFullPath
+  variable RemoveUnmappedLibraries
+
+  CheckWorkingDir
+  CheckLibraryInit
+
+  set ResolvedPathToLib  [FindLibraryPath $PathToLib]
+  set LowerLibraryName   [string tolower $LibraryName]
+  
+  # Remove Library from OSVVM list if it exists
+  # Update ResolvedPathToLib if it exists in list
+  if {[info exists LibraryList]} {
+    # Remove Library from Osvvm List
+    set found [lsearch $LibraryList "${LowerLibraryName} *"]
+    if {$found >= 0} {
+      # Lookup Existing Library Directory
+      set item [lindex $LibraryList $found]
+      set ResolvedPathToLib [lreplace $item 0 0]
+      # Remove it
+      set LibraryList [lreplace $LibraryList $found $found]
+#      
+# Leave LibraryDirectoryList s.t. RemoveLibraryDirectory can check it and remove it.
+#      # If directory no longer in LibraryList 
+#      set FoundDir [lsearch $LibraryList "* ${ResolvedPathToLib}"]
+#      if {$FoundDir < 0} {
+#        # Remove directory from LibraryDirectoryList 
+#        set FoundDir [lsearch $LibraryDirectoryList "${ResolvedPathToLib}"]
+#        if {$FoundDir >= 0} {
+#          set LibraryDirectoryList [lreplace $LibraryDirectoryList $FoundDir $FoundDir]
+#        }
+#      }
+    }
+  } else {
+    set found -1
+  }
+
+  # if it is the current working library, unset VhdlWorkingLibrary
+  if {[info exists VhdlWorkingLibrary] && $VhdlWorkingLibrary eq $LowerLibraryName} {
+    unset VhdlWorkingLibrary
+  }
+
+  if {($found >= 0) || $RemoveUnmappedLibraries} {
+    # handles case where $ResolvedPathToLib does not exist
+    UnlinkAndDeleteLibrary $LowerLibraryName $ResolvedPathToLib
+  }
+}
+
+# -------------------------------------------------
+# RemoveLibraryDirectory
+#
+proc RemoveLibraryDirectory {{PathToLib ""}} {
+  variable VhdlLibraryParentDirectory
+  variable LibraryList
+  variable LibraryDirectoryList
+  
+  CheckWorkingDir
+  CheckLibraryInit
+
+  set ResolvedPathToLib [FindLibraryPath $PathToLib]
+  
+  if  {[file isdirectory $ResolvedPathToLib]} {
+    # Remove Libraries OSVVM knows about in $ResolvedPathToLib
+    if {[info exists LibraryList]} {
+      foreach LibraryName $LibraryList {
+        if {[regexp $ResolvedPathToLib $LibraryName]} {
+#          puts "RemoveLibrary [lindex $LibraryName 0] $ResolvedPathToLib"
+          RemoveLibrary [lindex $LibraryName 0] $ResolvedPathToLib
+        }
+      }
+    }
+    
+    # Remove directory from LibraryDirectoryList 
+    set FoundDir [lsearch $LibraryDirectoryList "${ResolvedPathToLib}"]
+    if {$FoundDir >= 0} {
+#      puts "LibraryDirectoryList $LibraryDirectoryList"
+      set LibraryDirectoryList [lreplace $LibraryDirectoryList $FoundDir $FoundDir]
+    
+      if {$::osvvm::RemoveLibraryDirectoryDeletesDirectory} {
+        # Remove Stray Directories - Libraries not registered with OSVVM
+        foreach LibraryPathName [glob -nocomplain -directory $ResolvedPathToLib -types d *] {
+          UnlinkAndDeleteLibrary [file tail $LibraryPathName] $ResolvedPathToLib
+        }
+#        # Remove Library Directory
+#        if {[catch {file delete -force $ResolvedPathToLib} ErrMsg]} {
+#          puts "LibraryError: Unable to remove $ResolvedPathToLib"
+#        }
+      }
+    }
+  } else {
+    CallbackOnError_Library "RemoveLibraryDirectory ${PathToLib} failed.  $ResolvedPathToLib is not a directory."
+  }
+}
+
+# RemoveLocalLibraries deprecated and replaced by RemoveLibraryDirectory 
+proc RemoveLocalLibraries {} {
+  RemoveLibraryDirectory
+}
+
+# -------------------------------------------------
+# RemoveAllLibraries
+#
 proc RemoveAllLibraries {} {
   variable LibraryDirectoryList
   variable LibraryList
@@ -1476,7 +1607,7 @@ proc RemoveAllLibraries {} {
 
   if {[info exists LibraryDirectoryList]} {
     foreach LibraryDir $LibraryDirectoryList {
-      file delete -force -- $LibraryDir
+      RemoveLibraryDirectory $LibraryDir 
     }
   }
   if {[info exists VhdlWorkingLibrary]} {
@@ -1484,6 +1615,8 @@ proc RemoveAllLibraries {} {
   }
   if {[info exists LibraryList]} {
     unset LibraryList
+  }
+  if {[info exists LibraryDirectoryList]} {
     unset LibraryDirectoryList
   }
 }
@@ -1517,7 +1650,8 @@ proc FileExists {FileName} {
 namespace export analyze simulate build include library RunTest SkipTest TestSuite TestCase
 namespace export generic
 namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
-namespace export RemoveAllLibraries RemoveLocalLibraries CreateDirectory
+namespace export RemoveLibrary RemoveLibraryDirectory RemoveAllLibraries RemoveLocalLibraries 
+namespace export CreateDirectory
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory SetTranscriptType GetTranscriptType
 namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries
