@@ -610,6 +610,23 @@ proc EndSimulation {} {
 #
 
 # -------------------------------------------------
+proc OsvvmLibraryPath {PathToLib} {
+  # Make sure $PathToLib ends with VhdlLibraryDirectory/VhdlLibrarySubdirectory
+  # If it does not, fix it so it does.
+  set AddPathSuffix "" 
+  set TailPathToLib [file tail $PathToLib]
+  if {$TailPathToLib ne $::osvvm::VhdlLibrarySubdirectory} {
+    set AddPathSuffix $::osvvm::VhdlLibrarySubdirectory
+  } else {
+    set $TailPathToLib [file tail [file dirname $PathToLib]
+  }
+  if {$TailPathToLib ne $::osvvm::VhdlLibraryDirectory} {
+    set AddPathSuffix [file join $::osvvm::VhdlLibraryDirectory $AddPathSuffix]
+  }
+  set ResolvedPathToLib [file normalize [file join $PathToLib $AddPathSuffix]]    
+  return $ResolvedPathToLib
+}
+
 proc CreateLibraryPath {PathToLib} {
   variable VhdlLibraryFullPath
 
@@ -618,19 +635,10 @@ proc CreateLibraryPath {PathToLib} {
     # Use existing library directory
     set ResolvedPathToLib ${VhdlLibraryFullPath}
   } else {
-    # Make sure $PathToLib ends with VhdlLibraryDirectory/VhdlLibrarySubdirectory
-    # If it does not, fix it so it does.
-    set AddPathSuffix "" 
-    set TailPathToLib [file tail $PathToLib]
-    if {$TailPathToLib ne $::osvvm::VhdlLibrarySubdirectory} {
-      set AddPathSuffix $::osvvm::VhdlLibrarySubdirectory
-    } else {
-      set $TailPathToLib [file tail [file dirname $PathToLib]
-    }
-    if {$TailPathToLib ne $::osvvm::VhdlLibraryDirectory} {
-      set AddPathSuffix [file join $::osvvm::VhdlLibraryDirectory $AddPathSuffix]
-    }
-    set ResolvedPathToLib [file normalize [file join $PathToLib $AddPathSuffix]]    
+    # Use specified path directly
+    # User can call library LibName [OsvvmLibraryPath LibPath]
+    set ResolvedPathToLib [file normalize $PathToLib]
+#    set ResolvedPathToLib [OsvvmLibraryPath $PathToLib]
   }
   return $ResolvedPathToLib
 }
@@ -874,14 +882,14 @@ proc LocalAnalyze {FileName args} {
 #
 proc simulate {LibraryUnit args} {
   
-  set SavedInteractive [GetInteractive] 
+  set SavedInteractive [GetInteractiveMode] 
   if {!($::osvvm::BuildStarted)} {
-    SetInteractive "true"
+    SetInteractiveMode "true"
   }
 
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
   set LocalSimulateErrorInfo $::errorInfo
-  SetInteractive $SavedInteractive  ; # Restore original value
+  SetInteractiveMode $SavedInteractive  ; # Restore original value
   
   set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
   set LocalReportErrorInfo $::errorInfo
@@ -1308,9 +1316,9 @@ proc GetSaveWaves {} {
 }
 
 # -------------------------------------------------
-# SetInteractive, SetDebug, SetLogSignals
+# SetInteractiveMode, SetDebugMode, SetLogSignals
 #
-proc SetInteractive {{Options "true"}} {
+proc SetInteractiveMode {{Options "true"}} {
   variable SimulateInteractive
   set SimulateInteractive $Options
   if {! $::osvvm::DebugIsSet} {
@@ -1320,16 +1328,16 @@ proc SetInteractive {{Options "true"}} {
     set ::osvvm::LogSignals $Options
   }
 }
-proc GetInteractive {} {
+proc GetInteractiveMode {} {
   variable SimulateInteractive
   return $SimulateInteractive
 }
 
-proc SetDebug {{Options "true"}} {
+proc SetDebugMode {{Options "true"}} {
   set ::osvvm::DebugIsSet "true"
   set ::osvvm::Debug $Options
 }
-proc GetDebug {} {
+proc GetDebugMode {} {
   return $::osvvm::Debug
 }
 
@@ -1575,10 +1583,10 @@ proc RemoveLibraryDirectory {{PathToLib ""}} {
         foreach LibraryPathName [glob -nocomplain -directory $ResolvedPathToLib -types d *] {
           UnlinkAndDeleteLibrary [file tail $LibraryPathName] $ResolvedPathToLib
         }
-#        # Remove Library Directory
-#        if {[catch {file delete -force $ResolvedPathToLib} ErrMsg]} {
-#          puts "LibraryError: Unable to remove $ResolvedPathToLib"
-#        }
+        # Remove Library Directory
+        if {[catch {file delete -force $ResolvedPathToLib} ErrMsg]} {
+          puts "LibraryError: Unable to remove $ResolvedPathToLib"
+        }
       }
     }
   } else {
@@ -1660,14 +1668,15 @@ namespace export SetCoverageSimulateEnable GetCoverageSimulateEnable
 namespace export SetExtendedElaborateOptions GetExtendedElaborateOptions
 namespace export SetExtendedRunOptions GetExtendedRunOptions
 namespace export SetSaveWaves GetSaveWaves
-namespace export SetInteractive GetInteractive
-namespace export SetDebug GetDebug
+namespace export SetInteractiveMode GetInteractiveMode
+namespace export SetDebugMode GetDebugMode
 namespace export SetLogSignals GetLogSignals
 namespace export SetSecondSimulationTopLevel GetSecondSimulationTopLevel
 namespace export MergeCoverage
+namespace export OsvvmLibraryPath
 
 # Exported only for tesing purposes
-namespace export FindLibraryPath EndSimulation LocalAnalyze
+namespace export FindLibraryPath CreateLibraryPath EndSimulation LocalAnalyze
 
 
 
