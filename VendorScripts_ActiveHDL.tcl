@@ -59,7 +59,7 @@
   variable ToolName    "ActiveHDL"
   variable simulator   $ToolName ; # Deprecated  
   variable ToolNameVersion ${ToolName}-${version}
-  puts $ToolNameVersion
+#   puts $ToolNameVersion
   # Allow variable OSVVM library to be updated
   setlibrarymode -rw osvvm
 
@@ -116,15 +116,31 @@ proc vendor_library {LibraryName RelativePathToLib} {
   variable vendor_simulate_started
   global sim_working_folder
 
+  set sim_working_folder $::osvvm::CurrentSimulationDirectory ; # ActiveHDL Global variable
+
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
-  set sim_working_folder $::osvvm::CurrentSimulationDirectory
   set MY_START_DIR $::osvvm::CurrentSimulationDirectory
   set PathToLib [file normalize $RelativePathToLib]
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
+#    if {[glob -nocomplain -directory $PathToLib *] eq ""} {
+#      echo design create -a  project ${PathToLib}
+#      design create -a  project ${PathToLib}
+#    }
+#    if {![file exists ${::osvvm::CurrentSimulationDirectory}/project]} {
+#      CreateDirectory ${::osvvm::CurrentSimulationDirectory}/project
+#      echo "workspace create  ${::osvvm::CurrentSimulationDirectory}/project/project"
+#      workspace create  ${::osvvm::CurrentSimulationDirectory}/project/project
+##      design create -a do_not_use ${::osvvm::CurrentSimulationDirectory}/project
+#    }
+#    if {[glob -nocomplain -directory $PathToLib *] eq ""} {
+#      echo "workspace create  ${PathToLib}/project/project"
+#      workspace create  ${PathToLib}/project/project
+##      design create -a do_not_use ${PathToLib}/project
+#    }
     echo design create -a  $LibraryName ${PathToLib}
     design create -a  $LibraryName ${PathToLib}
   }
@@ -140,10 +156,11 @@ proc vendor_LinkLibrary {LibraryName RelativePathToLib} {
   variable vendor_simulate_started
   global sim_working_folder
 
+  set sim_working_folder $::osvvm::CurrentSimulationDirectory
+
   if {[info exists vendor_simulate_started]} {
     endsim
   }  
-  set sim_working_folder $::osvvm::CurrentSimulationDirectory
   set MY_START_DIR $::osvvm::CurrentSimulationDirectory
   set PathToLib [file normalize $RelativePathToLib]
   set PathAndLib ${PathToLib}/${LibraryName}
@@ -164,7 +181,12 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 # The intent is to delete the library so it can be recreated
 # so it should be ok not closing the design
 #  vmap -del -re ${LibraryName}
-  design detach ${LibraryName}
+#  design detach ${LibraryName}
+  global sim_working_folder
+
+  set sim_working_folder $::osvvm::CurrentSimulationDirectory
+  puts "vdel -lib ${LibraryName} -all"
+  vdel -lib ${LibraryName} -all
 }
 
 

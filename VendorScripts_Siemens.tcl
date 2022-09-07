@@ -75,7 +75,7 @@
   }
   variable ToolVersion [vsimVersion]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
-  puts $ToolNameVersion
+#   puts $ToolNameVersion
   
   if {$ToolVersion >= 2020.01} {
 #    variable DebugOptions "-debug,cell"

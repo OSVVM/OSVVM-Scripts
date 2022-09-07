@@ -51,7 +51,7 @@
   variable ToolName    "Xcelium"
   variable ToolSupportsGenericPackages false
   variable ToolNameVersion ${ToolName}-[lindex [exec xmvhdl -version] 2] 
-  puts $ToolNameVersion
+#   puts $ToolNameVersion
 
   variable simulator   $ToolName ; # Deprecated 
 

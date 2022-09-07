@@ -50,7 +50,7 @@
   variable ToolName   "XSIM"
   variable simulator   $ToolName ; # Deprecated 
   variable ToolNameVersion "xsim_22_1"
-  puts $ToolNameVersion
+#   puts $ToolNameVersion
 
 
 # -------------------------------------------------

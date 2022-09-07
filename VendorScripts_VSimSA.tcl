@@ -58,7 +58,7 @@
   variable ToolName    "VSimSA"
   variable simulator   $ToolName ; # Deprecated 
   variable ToolNameVersion ${ToolName}-[lindex [split $version] [llength $version]-1]
-  puts $ToolNameVersion
+#   puts $ToolNameVersion
 
   if {[batch_mode]} {
     variable NoGui true

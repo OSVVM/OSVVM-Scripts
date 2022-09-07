@@ -63,7 +63,7 @@
   
   regexp {GHDL\s+\d+\.\d+\S*} [exec ghdl --version] VersionString
   variable ToolNameVersion [regsub {\s+} $VersionString -]
-  puts $ToolNameVersion
+#   puts $ToolNameVersion
 
 # -------------------------------------------------
 # StartTranscript / StopTranscript
@@ -164,6 +164,7 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
 
   set  AnalyzeOptions [concat --std=${VhdlShortVersion} -Wno-library -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}]
   puts "ghdl -a $AnalyzeOptions"
+#  exec ghdl -a {*}$AnalyzeOptions
   if {[catch {exec ghdl -a {*}$AnalyzeOptions} AnalyzeError]} {
     puts $AnalyzeError
     error "Failed: analyze $FileName"

@@ -60,7 +60,7 @@
   variable simulator   $ToolName ; # Deprecated 
   #  Could differentiate between RivieraPRO and VSimSA
   variable ToolNameVersion ${ToolName}-[asimVersion]
-  puts $ToolNameVersion
+#   puts $ToolNameVersion
 
   if {[batch_mode]} {
     variable NoGui true

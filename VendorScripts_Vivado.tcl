@@ -42,7 +42,7 @@
   variable ToolName    "Vivado"
   variable simulator   $ToolName ; # Deprecated 
   variable ToolNameVersion "${ToolName}-[version -short]"
-  puts $ToolNameVersion
+#   puts $ToolNameVersion
   
   # Quite unfortunately, much of Vivado doesn't support VHDL-2008 properly.
   # Therefore the default assumption has to be for VHDL-2002

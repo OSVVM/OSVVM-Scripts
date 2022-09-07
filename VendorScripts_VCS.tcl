@@ -51,7 +51,7 @@
   variable ToolName    "VCS"
   variable simulator   $ToolName ; # Deprecated 
   variable ToolNameVersion "${ToolName}-R2020_12"
-  puts $ToolNameVersion
+#   puts $ToolNameVersion
 
 
 # -------------------------------------------------
