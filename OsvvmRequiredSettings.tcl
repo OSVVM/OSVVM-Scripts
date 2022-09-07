@@ -49,6 +49,8 @@
 
 namespace eval ::osvvm {
 
+
+  variable OsvvmVersion 2022.09
   #
   # Extended TCL information about errors - for debugging
   #   TCL's errorInfo is saved to these as build finishes
