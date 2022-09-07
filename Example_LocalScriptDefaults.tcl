@@ -47,6 +47,11 @@ namespace eval ::osvvm {
 # NOTE, SETTING variables only works in the context of LocalScriptDefaults
 # IF YOU CHANGE these variables after running build, they may not work properly.
 
+#  if {$ToolVendor eq "Siemens"} {
+#    SetExtendedAnalyzeOptions  "-quiet"
+#    SetExtendedSimulateOptions "-quiet"
+#  } 
+
 
     # Directory for all Ouput
 #    variable OutputBaseDirectory        ""                          ;# default value
