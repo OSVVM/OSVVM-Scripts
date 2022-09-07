@@ -109,8 +109,11 @@ namespace eval ::osvvm {
   #   Value 0 is special to mean, don't stop
   #   Otherwise Errors >= ErrorsStopCount, stop the build.
   #
-  variable AnalyzeErrorStopCount  0
-  variable SimulateErrorStopCount 0
+  variable AnalyzeErrorStopCount       0
+  variable SimulateErrorStopCount      0
+  variable HaveSavedErrorStopCounts    "false"   ; # Used by SetInteractiveMode
+  variable SavedAnalyzeErrorStopCount  0
+  variable SavedSimulateErrorStopCount 0
   
   # 
   # Extended Analyze and Simulate Options
