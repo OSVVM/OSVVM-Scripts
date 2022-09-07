@@ -342,7 +342,7 @@ proc LocalBuild {BuildName Path_Or_File} {
   puts "Starting Build at time [clock format $BuildStartTime -format %T]"
 
   set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} w]
-  puts  $RunFile "Version: 1.0"
+  puts  $RunFile "Version: $::osvvm::OsvvmVersion"
   puts  $RunFile "Build:"
   puts  $RunFile "  Name: $BuildName"
   puts  $RunFile "  Date: [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
@@ -729,7 +729,7 @@ proc library {LibraryName {PathToLib ""}} {
   CallbackBefore_Library ${LibraryName} ${PathToLib}
   
   if {[catch {vendor_library $LowerLibraryName $ResolvedPathToLib} LibraryErrMsg]} {
-    CallbackOnError_Library "library ${LibraryName} ${PathToLib} failed in call to vendor_library"
+    CallbackOnError_Library "library ${LibraryName} path to lib ${ResolvedPathToLib} failed in call to vendor_library"
   } else {
     CallbackAfter_Library ${LibraryName} ${PathToLib}
   }
@@ -986,7 +986,7 @@ proc AfterSimulateReports {} {
   }
 }
 
-proc RunIfExists {ScriptToRun} {
+proc RunIfFileExists {ScriptToRun} {
   if {[file exists $ScriptToRun]} {
     source ${ScriptToRun}
   }
@@ -995,17 +995,17 @@ proc RunIfExists {ScriptToRun} {
 proc SimulateRunDesignScripts {TestName Directory} {
   variable ToolName
   
-  RunIfExists [file join ${Directory} ${TestName}.tcl]
-  RunIfExists [file join ${Directory} ${TestName}_${ToolName}.tcl]
+  RunIfFileExists [file join ${Directory} ${TestName}.tcl]
+  RunIfFileExists [file join ${Directory} ${TestName}_${ToolName}.tcl]
 }
 
 proc SimulateRunSubScripts {LibraryUnit Directory} {
   variable ToolVendor
   variable ToolName
   
-  RunIfExists [file join ${Directory} ${ToolVendor}.tcl]
-  RunIfExists [file join ${Directory} ${ToolName}.tcl]
-  RunIfExists [file join ${Directory} wave.do]
+  RunIfFileExists [file join ${Directory} ${ToolVendor}.tcl]
+  RunIfFileExists [file join ${Directory} ${ToolName}.tcl]
+  RunIfFileExists [file join ${Directory} wave.do]
   SimulateRunDesignScripts ${LibraryUnit} ${Directory}
 }
 
@@ -1320,7 +1320,30 @@ proc GetSaveWaves {} {
 #
 proc SetInteractiveMode {{Options "true"}} {
   variable SimulateInteractive
+  variable AnalyzeErrorStopCount 
+  variable SimulateErrorStopCount
+  variable HaveSavedErrorStopCounts 
+  variable SavedAnalyzeErrorStopCount 
+  variable SavedSimulateErrorStopCount
+
   set SimulateInteractive $Options
+  
+  if {$SimulateInteractive} {
+    # When running interactive, set ErrorStopCounts to 1
+    set SavedAnalyzeErrorStopCount  $AnalyzeErrorStopCount
+    set SavedSimulateErrorStopCount $SimulateErrorStopCount
+    set HaveSavedErrorStopCounts "true"
+    set AnalyzeErrorStopCount  1
+    set SimulateErrorStopCount 1
+  } else {
+    if {$HaveSavedErrorStopCounts} {
+      set AnalyzeErrorStopCount  $SavedAnalyzeErrorStopCount 
+      set SimulateErrorStopCount $SavedSimulateErrorStopCount
+    } else {
+      set AnalyzeErrorStopCount  0
+      set SimulateErrorStopCount 0
+    }
+  }
   if {! $::osvvm::DebugIsSet} {
     set ::osvvm::Debug $Options
   }
@@ -1328,6 +1351,12 @@ proc SetInteractiveMode {{Options "true"}} {
     set ::osvvm::LogSignals $Options
   }
 }
+# SetInteractive is deprecated.   
+proc SetInteractive {{Options "true"}} {
+  puts "SetInteractive is deprecated.  Use SetInteractiveMode instead"
+  SetInteractiveMode $Options 
+}
+
 proc GetInteractiveMode {} {
   variable SimulateInteractive
   return $SimulateInteractive
@@ -1491,9 +1520,13 @@ proc UnlinkAndDeleteLibrary {LowerLibraryName ResolvedPathToLib} {
   if {[catch {vendor_UnlinkLibrary $LowerLibraryName $ResolvedPathToLib} UnlinkErrMsg]} {
     puts "LibraryError: Unable to unlink $LowerLibraryName"
   }
-  set LibraryPathAndName [file join $ResolvedPathToLib $LowerLibraryName]
-  if {[catch {file delete -force $LibraryPathAndName} ErrMsg]} {
-    puts "LibraryError: Unable to remove $LibraryPathAndName"
+  
+  if {$::osvvm::RemoveLibraryDirectoryDeletesDirectory} {
+    # All tools except ActiveHDL
+    set LibraryPathAndName [file join $ResolvedPathToLib $LowerLibraryName]
+    if {[catch {file delete -force $LibraryPathAndName} ErrMsg]} {
+      puts "LibraryError: Unable to remove $LibraryPathAndName"
+    }
   }
 }
 
@@ -1583,9 +1616,10 @@ proc RemoveLibraryDirectory {{PathToLib ""}} {
         foreach LibraryPathName [glob -nocomplain -directory $ResolvedPathToLib -types d *] {
           UnlinkAndDeleteLibrary [file tail $LibraryPathName] $ResolvedPathToLib
         }
-        # Remove Library Directory
+      
+        # Remove Library Directory - All tools except ActiveHDL
         if {[catch {file delete -force $ResolvedPathToLib} ErrMsg]} {
-          puts "LibraryError: Unable to remove $ResolvedPathToLib"
+          puts "LibraryError: RemoveLibraryDirectory - Unable to remove $ResolvedPathToLib"
         }
       }
     }
