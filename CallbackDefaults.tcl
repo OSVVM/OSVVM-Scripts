@@ -124,6 +124,7 @@ namespace eval ::osvvm {
     set AnalyzeErrorCount            [expr $AnalyzeErrorCount+1]
 #    set ConsecutiveAnalyzeErrors [expr $ConsecutiveAnalyzeErrors+1]
     puts  "AnalyzeError: analyze $args"
+#    puts  "Error Message $ErrMsg"
     puts  "# ** Error: analyze  For tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
     
     # These settings are in OsvvmDefaultSettings.  Override them in LocalScriptDefaults.tcl
