@@ -102,3 +102,6 @@ namespace eval ::osvvm {
 source ${::osvvm::SCRIPT_DIR}/StartUpShared.tcl
 
 set ::osvvm::OsvvmInitialized "true"
+
+# puts "OSVVM Script Version:  $::osvvm::OsvvmVersion"
+puts "Simulator Version:     $::osvvm::ToolNameVersion"

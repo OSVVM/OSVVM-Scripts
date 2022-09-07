@@ -115,3 +115,7 @@ if {${::osvvm::ToolName} ne "XSIM"} {
      variable ::osvvm::GotTee true
   }
 }
+
+puts "OSVVM Script Version:  $::osvvm::OsvvmVersion"
+
+
