@@ -102,7 +102,7 @@ namespace eval ::osvvm {
   }
   
   proc CallbackOnError_Include {Path_Or_File} {
-    puts "Build / Include did not find anything to execute for ${Path_Or_File}"
+    puts "Error: Build/Include did not find anything to execute for ${Path_Or_File}"
     error "Build / Include did not find anything to execute for ${Path_Or_File}"
   }
   

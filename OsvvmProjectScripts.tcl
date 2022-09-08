@@ -887,6 +887,9 @@ proc LocalAnalyze {FileName args} {
   } elseif {$FileExtension eq ".lib"} {
     #  for handling older deprecated file format
     library [file rootname $FileName]
+  } else {
+    puts "Error: $FileName has unknown extension"
+    error "Analyze $FileName unknown extension" 
   }
 }
 
