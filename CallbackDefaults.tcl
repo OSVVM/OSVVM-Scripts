@@ -108,8 +108,8 @@ namespace eval ::osvvm {
   
   proc CallbackOnError_Library {Message} {
     set ::osvvm::LibraryErrorInfo $::errorInfo
-    puts "LibraryError: $Message"
-    puts "Error:  For tcl errorInfo, puts \$::osvvm::LibraryErrorInfo"
+    puts "LibraryError: $Message   See messages above"
+    puts "For tcl errorInfo, puts \$::osvvm::LibraryErrorInfo"
     error "$Message"
   }
   
@@ -123,9 +123,8 @@ namespace eval ::osvvm {
     
     set AnalyzeErrorCount            [expr $AnalyzeErrorCount+1]
 #    set ConsecutiveAnalyzeErrors [expr $ConsecutiveAnalyzeErrors+1]
-    puts  "AnalyzeError: analyze $args"
-#    puts  "Error Message $ErrMsg"
-    puts  "# ** Error: analyze  For tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
+    puts  "AnalyzeError: See messages above in \"analyze $args\""
+    puts  "For tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
     
     # These settings are in OsvvmDefaultSettings.  Override them in LocalScriptDefaults.tcl
     if {$AnalyzeErrorStopCount != 0 && $AnalyzeErrorCount >= $AnalyzeErrorStopCount } {
@@ -141,8 +140,8 @@ namespace eval ::osvvm {
     set ::osvvm::SimulateErrorInfo    $LocalSimulateErrorInfo
     set SimulateErrorCount            [expr $SimulateErrorCount+1]
 #    set ConsecutiveSimulateErrors     [expr $ConsecutiveSimulateErrors+1]
-    puts  "SimulateError: simulate $args"
-    puts "# ** Error: simulate  For tcl errorInfo, puts \$::osvvm::SimulateErrorInfo"
+    puts  "SimulateError: See messages above in \"simulate $args\""
+    puts  "For tcl errorInfo, puts \$::osvvm::SimulateErrorInfo"
 
     # These settings are in OsvvmDefaultSettings.  Override them in LocalScriptDefaults.tcl
     if {$SimulateErrorStopCount != 0 && $SimulateErrorCount >= $SimulateErrorStopCount } {
@@ -157,7 +156,7 @@ namespace eval ::osvvm {
   proc CallbackOnError_AfterBuildReports {LocalReportErrorInfo} {
     set ::osvvm::BuildReportErrorInfo $LocalReportErrorInfo 
     # Continue current build
-    puts  "ReportError: during AfterBuildReports.  See previous messages."
+    puts  "ReportError: during AfterBuildReports.  See messages in previous build."
     puts  "Please include your simulator version in any issue reports"
     puts  "For tcl errorInfo, puts \$::osvvm::BuildReportErrorInfo"
     
@@ -170,7 +169,7 @@ namespace eval ::osvvm {
   proc LocalOnError_BuildReports {ProcName FileName errmsg} {
     set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
 
-    puts "ReportError: $ProcName 'File Name: $FileName ' failed: $errmsg"
+    puts "ReportError: during $ProcName 'File Name: $FileName ' failed: $errmsg"
 
     # For no traceback information use this
 #     puts "For tcl errorInfo, puts \$::osvvm::${ProcName}ErrorInfo"
@@ -204,7 +203,7 @@ namespace eval ::osvvm {
   proc CallbackOnError_AfterSimulateReports {ErrMsg LocalReportErrorInfo} {
     set ::osvvm::SimulateReportErrorInfo $LocalReportErrorInfo 
     # Continue current build
-    puts "ReportError: Simulate2Html failed.  See previous messages"
+    puts "ReportError: Simulate2Html failed.  See previous messages in simulate"
     
     # end current build
     # error "ReportError: Simulate2Html failed.  See previous messages"
@@ -214,7 +213,7 @@ namespace eval ::osvvm {
     set ::osvvm::Simulate2HtmlErrorInfo $::errorInfo
     set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
 
-    puts "ReportError: $ProcName 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName ' failed: $errmsg"
+    puts "ReportError: during $ProcName 'Test Suite: $TestSuiteName,  TestCase: $TestCaseName ' failed: $errmsg"
     
     # For no traceback information use this
 #     puts "For tcl errorInfo, puts \$::osvvm::Simulate2HtmlErrorInfo"

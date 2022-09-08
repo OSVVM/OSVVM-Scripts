@@ -109,6 +109,19 @@ proc IterateFile {FileWithNames ActionForName} {
   }
 }
 
+proc PrintWithPrefix {Prefix RawMessageList} {
+  foreach Message [split $RawMessageList \n] {
+    # Remove Prefix if already exists
+#    set NoPrefixMessage [regsub -nocase "^$Prefix " $Message ""]
+#    puts "$Prefix $NoPrefixMessage"
+    if {[regexp -nocase "$Prefix" $Message]} {
+      puts "$Message"
+    } else {
+      puts "$Prefix $Message"
+    }
+  }
+}
+
 # -------------------------------------------------
 # include
 #   finds and sources a project file

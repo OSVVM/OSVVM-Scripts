@@ -86,9 +86,8 @@ namespace eval ::osvvm {
     variable LogFileHandle
     variable LineOfLogFile
     variable InRunTest 0
-    variable FirstFind 1
     variable TestSuiteName Default
-    variable PrintPrefix "<pre><details>"
+    variable PrintPrefix "<pre>"
 
     while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
       set LineOfLogFile [regsub {^KERNEL: %%} [regsub {^# } $RawLineOfLogFile ""] "%%"]
@@ -109,48 +108,54 @@ namespace eval ::osvvm {
     variable HtmlFileHandle
     variable LineOfLogFile
     variable InRunTest
-    variable FirstFind
     variable TestSuiteName 
     variable TestCaseName 
     variable PrintPrefix 
     
     if {[regexp {^Build Start} $LineOfLogFile] } {
-      puts $HtmlFileHandle "</details>"
-      puts $HtmlFileHandle $LineOfLogFile
+      puts $HtmlFileHandle "${PrintPrefix}$LineOfLogFile"
+      set PrintPrefix ""
     } elseif {[regexp {^build|^include} $LineOfLogFile] } {
-      puts $HtmlFileHandle "${PrintPrefix}<summary>${LineOfLogFile}</summary>"
-      if {$FirstFind} {
-        set PrintPrefix "</details><details>"
-        set FirstFind 0
-      } 
+      puts $HtmlFileHandle "${PrintPrefix}<details><summary>${LineOfLogFile}</summary>"
+      set PrintPrefix "</details>"
     } elseif {[regexp {^TestSuite} $LineOfLogFile] } {
       set TestSuiteName [lindex $LineOfLogFile 1]
-      puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
+      puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary>"
+      set PrintPrefix "</details>"
     } elseif {[regexp {^RunTest} $LineOfLogFile] } {
       set InRunTest 1
-      puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
+      puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary>"
+      set PrintPrefix "</details>"
     } elseif {[regexp {^AnalyzeError:|^SimulateError:|^ScriptError:|^ReportError:|^LibraryError:|^BuildError:} $LineOfLogFile] } {
-        puts $HtmlFileHandle "</details><details><summary style=color:#FF0000>$LineOfLogFile</summary>"
+      puts $HtmlFileHandle "${PrintPrefix}<span style=color:#FF0000>$LineOfLogFile</span>"
+      set PrintPrefix ""
     } elseif {[regexp {^Build:} $LineOfLogFile] } {
-        puts $HtmlFileHandle "</details><details><summary style=color:#00C000>$LineOfLogFile</summary>"
+      puts $HtmlFileHandle "${PrintPrefix}<span style=color:#00C000>$LineOfLogFile</span>"
+      set PrintPrefix ""
     } elseif {[regexp {^analyze} $LineOfLogFile] } {
       if {! $InRunTest} {
-        puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary>"
+        puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary>"
+        set PrintPrefix "</details>"
       } else {
         puts $HtmlFileHandle $LineOfLogFile
       }
     } elseif {[regexp {^simulate} $LineOfLogFile] } {
       if {! $InRunTest} {
-        puts $HtmlFileHandle "</details><details><summary>$LineOfLogFile</summary> <div id=\"${TestSuiteName}_${TestCaseName}\" />"
+        puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary><span id=\"${TestSuiteName}_${TestCaseName}\" />"
+        set PrintPrefix "</details>"
       } else {
-        puts $HtmlFileHandle "$LineOfLogFile <div id=\"${TestSuiteName}_${TestCaseName}\" />"
+        puts $HtmlFileHandle "$LineOfLogFile <span id=\"${TestSuiteName}_${TestCaseName}\" />"
       }
       set InRunTest 0
     } else {
       if {[regexp {^TestCase} $LineOfLogFile] } {
         set TestCaseName [lindex $LineOfLogFile 1]
       }
-      puts $HtmlFileHandle $LineOfLogFile
+      if {[regexp {Error:|error:} $LineOfLogFile] } {
+        puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
+      } else {
+        puts $HtmlFileHandle $LineOfLogFile
+      }
     }
   }
 
