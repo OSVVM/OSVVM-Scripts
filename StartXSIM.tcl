@@ -55,4 +55,4 @@ source ${::osvvm::SCRIPT_DIR}/StartUpShared.tcl
 
 set ::osvvm::OsvvmInitialized "true"
 
-puts "Simulator Version:     $::osvvm::ToolNameVersion"
+puts -nonewline ""  ; # suppress printing of true from above line

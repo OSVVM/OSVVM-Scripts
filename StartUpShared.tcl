@@ -117,5 +117,6 @@ if {${::osvvm::ToolName} ne "XSIM"} {
 }
 
 puts "OSVVM Script Version:  $::osvvm::OsvvmVersion"
+puts "Simulator Version:     $::osvvm::ToolNameVersion"
 
 
