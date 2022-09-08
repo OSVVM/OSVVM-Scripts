@@ -165,8 +165,8 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   set  AnalyzeOptions [concat --std=${VhdlShortVersion} -Wno-library -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}]
   puts "ghdl -a $AnalyzeOptions"
 #  exec ghdl -a {*}$AnalyzeOptions
-  if {[catch {exec ghdl -a {*}$AnalyzeOptions} AnalyzeError]} {
-    puts $AnalyzeError
+  if {[catch {exec ghdl -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
+    PrintWithPrefix "Error:" $AnalyzeErrorMessage
     error "Failed: analyze $FileName"
   }
 }
@@ -213,8 +213,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 # format for select file  
   set SimulateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit} {*}${LocalRunOptions}]
   puts "ghdl --elab-run ${SimulateOptions}" 
-  if { [catch {exec ghdl --elab-run {*}${SimulateOptions}} SimError]} { 
-    puts $SimError
+  if { [catch {exec ghdl --elab-run {*}${SimulateOptions}} SimulateErrorMessage]} { 
+    PrintWithPrefix "Error:" $SimulateErrorMessage
     error "Failed: simulate $LibraryUnit"
   }
   
