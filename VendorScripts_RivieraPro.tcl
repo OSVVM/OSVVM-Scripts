@@ -144,10 +144,11 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 #
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlVersion
-  variable CoverageAnalyzeEnable
-  variable CoverageSimulateEnable
   
-  if {$::osvvm::NoGui || !($::osvvm::Debug) || [info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
+  set EffectiveCoverageAnalyzeEnable    [expr $::osvvm::CoverageEnable && $::osvvm::CoverageAnalyzeEnable]
+  set EffectiveCoverageSimulateEnable   [expr $::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable]
+
+  if {$::osvvm::NoGui || !($::osvvm::Debug) || $EffectiveCoverageAnalyzeEnable || $EffectiveCoverageSimulateEnable} {
     set DebugOptions ""
   } else {
     set DebugOptions "-dbg"
@@ -177,7 +178,6 @@ proc vendor_end_previous_simulation {} {
 #
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SimulateTimeUnits
-  variable CoverageSimulateEnable
   variable TestSuiteName
   variable TestCaseFileName
   variable SimulateOptions
@@ -195,7 +195,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   run -all 
   
   # Save Coverage Information 
-  if {[info exists CoverageSimulateEnable]} {
+  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.acdb -testname ${TestCaseFileName}
   }
 }

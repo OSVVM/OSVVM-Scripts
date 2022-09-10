@@ -185,7 +185,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable ToolVendor
   variable ToolName
 #  variable VENDOR_TRANSCRIPT_FILE
-  variable CoverageSimulateEnable
 
   CreateToolSetup
 
@@ -227,7 +226,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   puts  $RunFile "run" 
 
   # Save Coverage Information
-  if {[info exists CoverageSimulateEnable]} {
+  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
 #   puts $RunFile "Save Coverage Information Command Goes here"
   }
   

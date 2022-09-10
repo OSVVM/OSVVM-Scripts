@@ -268,7 +268,6 @@ proc vendor_end_previous_simulation {} {
 proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
-  variable CoverageSimulateEnable
   variable TestSuiteName
   variable TestCaseFileName
   
@@ -295,7 +294,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   }
   run -all 
   
-  if {[info exists CoverageSimulateEnable]} {
+  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     coverage save ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.ucdb 
   }
 }

@@ -118,8 +118,6 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {}
 #
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlVersion
-  variable CoverageAnalyzeEnable
-  variable CoverageSimulateEnable
   variable VhdlLibraryFullPath
   
   set DebugOptions ""
@@ -150,7 +148,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor
-  variable CoverageSimulateEnable
 
   set  ElaborateOptions "-timeprecision_vhdl 1${SimulateTimeUnits} -mt off  ${LibraryName}.${LibraryUnit} -runall"
   puts "xelab {*}$ElaborateOptions"

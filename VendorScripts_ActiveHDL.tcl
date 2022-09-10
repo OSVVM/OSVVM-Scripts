@@ -196,8 +196,6 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
   variable VhdlVersion
   variable VhdlLibraryFullPath
-  variable CoverageAnalyzeEnable
-  variable CoverageSimulateEnable
   global sim_working_folder
 
   set sim_working_folder $::osvvm::CurrentSimulationDirectory
@@ -213,7 +211,10 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
     filevhdloptions -${VhdlVersion} ${FileName}
   }
   
-  if {$::osvvm::NoGui || !($::osvvm::Debug) || [info exists CoverageAnalyzeEnable] || [info exists CoverageSimulateEnable]} {
+  set EffectiveCoverageAnalyzeEnable    [expr $::osvvm::CoverageEnable && $::osvvm::CoverageAnalyzeEnable]
+  set EffectiveCoverageSimulateEnable   [expr $::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable]
+
+  if {$::osvvm::NoGui || !($::osvvm::Debug) || $EffectiveCoverageAnalyzeEnable || $EffectiveCoverageSimulateEnable} {
     set DebugOptions ""
   } else {
     set DebugOptions "-dbg"
@@ -256,7 +257,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor
-  variable CoverageSimulateEnable
   variable TestSuiteName
   variable TestCaseFileName
   global sim_working_folder
@@ -285,7 +285,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   cd $MY_START_DIR
   
   # Save Coverage Information 
-  if {[info exists CoverageSimulateEnable]} {
+  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.acdb -testname ${TestCaseFileName}
   }
 }

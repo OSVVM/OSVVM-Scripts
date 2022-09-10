@@ -160,7 +160,6 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable VhdlLibraryFullPath
   variable GHDL_WORKING_LIBRARY_PATH
-  variable CoverageSimulateEnable
 
   set  AnalyzeOptions [concat --std=${VhdlShortVersion} -Wno-library -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}]
   puts "ghdl -a $AnalyzeOptions"
@@ -219,7 +218,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   }
   
   # Save Coverage Information
-  if {[info exists CoverageSimulateEnable]} {
+  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
 #    acdb save -o ${LibraryUnit}.acdb -testname ${LibraryUnit}
   }
 }

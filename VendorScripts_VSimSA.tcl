@@ -140,8 +140,6 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 #
 proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlVersion
-  variable CoverageAnalyzeEnable
-  variable CoverageSimulateEnable
   
   # For now, do not use -dbg flag with coverage.
   set DebugOptions ""
@@ -172,7 +170,6 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor
-  variable CoverageSimulateEnable
   variable TestSuiteName
   variable TestCaseFileName
 
@@ -188,7 +185,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   run -all 
   
   # Save Coverage Information 
-  if {[info exists CoverageSimulateEnable]} {
+  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.acdb -testname ${TestCaseFileName}
   }
 }
