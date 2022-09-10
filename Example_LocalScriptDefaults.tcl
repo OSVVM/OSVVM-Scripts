@@ -40,49 +40,136 @@
 #
 
 
-# Copy this file to:   OsvvmLibraries/Scripts/LocalScriptDefaults.tcl 
+
+#
+#   This file is a template for OSVVM initial variable settings go in 
+#   Copy this file to OsvvmLibraries/Scripts/LocalScriptDefaults.tcl
+#   Uncomment and customize the below settings
+#
+
+
 namespace eval ::osvvm {
 
+  #
+  # Directory structure and results file management
+  #
 
-# NOTE, SETTING variables only works in the context of LocalScriptDefaults
-# IF YOU CHANGE these variables after running build, they may not work properly.
+    #  Base directory for other OSVVM created directories 
+    #  variable OutputBaseDirectory        ""                          ;# put output in $CurrentSimulationDirectory
+    #  variable OutputBaseDirectory        "osvvm"                     ;# put output in $CurrentSimulationDirectory/osvvm
 
-#  if {$ToolVendor eq "Siemens"} {
-#    SetExtendedAnalyzeOptions  "-quiet"
-#    SetExtendedSimulateOptions "-quiet"
-#  } 
+    #  Directory for log files = $OutputBaseDirectory/$LogSubdirectory
+    #    Contains simulator transcript in text and optionally html
+    #    ToolNameVersion = <ToolName>-<Version>
+    #  variable LogSubdirectory            "logs/${ToolNameVersion}"   ;# default value
+    #  variable LogSubdirectory            "logs"                      ;# log directory without tool information
+
+    #  Directory for OSVVM generated reports = $OutputBaseDirectory/$ReportsSubdirectory
+    #    Contains Test Case Report with Alerts, Functional Coverage, and Scoreboards
+    #  variable ReportsSubdirectory        "reports"                   ;# default value
+
+    #  Directory for OSVVM transcripts =  $ResultsSubdirectory/<test suite name>/<FileName>.html
+    #    Contains files created by AlertLogPkg.TranscriptOpen
+    #  variable ResultsSubdirectory        "results"                   ;# default value
+
+    # Code Coverage Directory = $OutputBaseDirectory/$CoverageSubdirectory
+    #    Code coverage collected by the simulator
+    #  variable CoverageSubdirectory       "CodeCoverage"              ;# default value
+
+    #  Library Directory structure is defined by
+    #  [file join $VhdlLibraryParentDirectory $OutputBaseDirectory $VhdlLibraryDirectory $VhdlLibrarySubdirectory]
+    #
+    #  Library Parent Directory
+    #    If "", use $OutputBaseDirectory as base
+    #    If has an absolute path, use the absolute path as the library parent directory
+    #  variable VhdlLibraryParentDirectory ""                          ;# default value
+    #  variable VhdlLibraryParentDirectory  "C:/tools/sim_temp"        ;# put libraries in temp space
+
+    #  Library Directory
+    #    variable VhdlLibraryDirectory        ""                       ;# good with above alternative
+    #    variable VhdlLibraryDirectory       "VHDL_LIBS"               ;# default value
+    
+    #  Library Subdirectory
+    #    variable VhdlLibrarySubdirectory    "${ToolNameVersion}"      ;# default value
+
+  #
+  #  TCL Error signaling during a build 
+  #
+    #   variable FailOnBuildErrors        "true"
+    #   variable FailOnReportErrors       "false"
+    #   variable FailOnTestCaseErrors     "false"
+  
+  #
+  #  Generate HTML transcripts if TranscriptExtension = "html".  
+  #    Text based log files are always created  
+  #
+    #  variable TranscriptExtension      "html"    ;# default value. Generate log and html transcripts
+    #  variable TranscriptExtension      "log"     ;# Only generate log transcripts
+    #  variable CreateSimScripts         "true"
+    #  variable CreateOsvvmOutput        "true"
+
+  #
+  # VHDL Simulation Settings 
+  #
+    #  variable DefaultVHDLVersion     "2008"      ; # OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
+    #  variable SimulateTimeUnits      "ps"
+    #  variable DefaultLibraryName     "default"
+
+  # 
+  # Default Coverage Options
+  #
+    #  variable CoverageEnable           "true"
+    #  variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults] 
+    #  variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
+
+  #
+  # Stop Counts for Failures seen by Analyze and Simulate
+  #   Value 0 is special to mean, don't stop
+  #   Otherwise Errors >= ErrorsStopCount, stop the build.
+  #
+    #  variable AnalyzeErrorStopCount       0
+    #  variable SimulateErrorStopCount      0
+
+  #
+  #  Simulation Controls
+  #
+    #  variable SimulateInteractive "false"
+    #  variable DebugIsSet          "false"
+    #  variable Debug               "false"
+    #  variable LogSignalsIsSet     "false"
+    #  variable LogSignals          "false"
+
+  # 
+  # Extended Analyze and Simulate Options
+  #
+    #  variable VhdlAnalyzeOptions        ""
+    #  variable VerilogAnalyzeOptions     ""
+    #  variable ExtendedAnalyzeOptions    ""
+    #  variable ExtendedSimulateOptions   ""
+    #  if {$ToolVendor eq "Siemens"} {
+    #    variable ExtendedAnalyzeOptions   "-quiet"
+    #    variable ExtendedSimulateOptions  "-quiet"
+    #  } 
+
+  #
+  #  GHDL Analyze and Simulate Options
+  #
+    #  variable ExtendedElaborateOptions  ""
+    #  variable ExtendedRunOptions        ""
+    #  variable SaveWaves                 "false"
+    #  variable SimulateInteractive       "false"
+  
+  #
+  # Second Top
+  #
+    #  variable SecondSimulationTopLevel ""
 
 
-    # Directory for all Ouput
-#    variable OutputBaseDirectory        ""                          ;# default value
-#    variable OutputBaseDirectory        "osvvm"                     ;# puts output in a directory named osvvm
+  #  RemoveLibrary / RemoveLibraryDirectory Controls.  Only set to false.  Do not set to true.
+  #    Currently both must be false for ActiveHDL
+    #  variable RemoveLibraryDirectoryDeletesDirectory  "false"
+    #  variable RemoveUnmappedLibraries                 "false"
 
-    # Directory for logs 
-    # ToolNameVersion = <ToolName>-<Version>
-#    variable LogSubdirectory            "logs/${ToolNameVersion}"   ;# default value
-#    variable LogSubdirectory            "logs"                      ;# log directory without tool information
-
-    # Directory for Reports (Test Case *.html)
-#    variable ReportsSubdirectory        "reports"                   ;# default value
-
-    # Directory for Reports (VHDL Code generated)
-#    variable ResultsSubdirectory        "results"                   ;# default value
-
-    # VHDL Library Directories
-#    variable VhdlLibraryParentDirectory ""                          ;# default value
-#    variable VhdlLibraryDirectory       "VHDL_LIBS"                 ;# default value
-#    variable VhdlLibrarySubdirectory    "${ToolNameVersion}"        ;# default value
-
-#    variable VhdlLibraryParentDirectory  "C:/tools/sim_temp"        ;# put libraries in temp space
-#    variable VhdlLibraryDirectory        ""                         ;# good with above alternative
-
-
-    # Code Coverage Directory
-#    variable CoverageSubdirectory       "CodeCoverage"              ;# default value
-
-  # TranscriptType:  html vs. log.   
-#  variable TranscriptExtension      "html"                          ;# default value
-#  variable TranscriptExtension      "log"                           ;# if you prefer plain text
 
 }
 
