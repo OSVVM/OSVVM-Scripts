@@ -101,8 +101,8 @@ if {[file exists ${::osvvm::SCRIPT_DIR}/LocalCallbacks.tcl]} {
 # Override simulator specific actions here
 #   While intended for call back feature, can be used to replace any
 #   previously defined procedure - such as vendor_SetCoverageAnalyzeDefaults
-if {[file exists ${::osvvm::SCRIPT_DIR}/Callbacks_${::osvvm::ScriptBaseName}.tcl]} {
-  source ${::osvvm::SCRIPT_DIR}/Callbacks_${::osvvm::ScriptBaseName}.tcl
+if {[file exists ${::osvvm::SCRIPT_DIR}/LocalCallbacks_${::osvvm::ScriptBaseName}.tcl]} {
+  source ${::osvvm::SCRIPT_DIR}/LocalCallbacks_${::osvvm::ScriptBaseName}.tcl
 }
 
 #
