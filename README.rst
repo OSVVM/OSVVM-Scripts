@@ -236,8 +236,23 @@ If you were to open testbench_MultipleMemory.pro, you would find
 that RunTest is used instead as it is an abbreviation for the
 analyze, TestCase and simulate when the names are the same.
 
-Adding Scripts to Simulate
+Simulating with Generics
 --------------------------
+Every simulator has their own format for specifying generics.
+OSVVM makes this simulator independent by calling the TCL 
+function generic that provides the proper format for your simulator.
+
+.. code:: tcl
+
+   library  default
+   simulate Tb [generic WIDTH 8]
+   simulate Tb [generic G1 5] [generic G2 7]
+   
+Release 2022.09 removed the necessity to put quotes around the options specified with simulate.
+
+
+Scripts that Run during Simulate if they exist
+----------------------------------------------------
 Often with simulations, we want to add a custom waveform file. 
 This may be for all designs or just one particular design.
 We may also need specific actions to be done when running
@@ -780,19 +795,32 @@ The following are general commands.
 - LinkCurrentLibraries
    - If you use ``cd``, then use LinkCurrentLibraries immediately after
      to map all libraries in the current directory
-- RemoveAllLibraries
-   - Delete all of the working libraries.
 - SetLibraryDirectory [LibraryDirectory]
    - Set the directory in which the libraries will be created.
      If ``LibraryDirectory`` is not specified, the current directory is used.
      By default, libraries are created in ``<LibraryDirectory>/VHDL_LIBS/<tool version>/``.
 - GetLibraryDirectory
    - Get the Library Directory.
-- analyze [<path>/]<name>
+- RemoveLibrary LibraryName [<path>]
+   - Remove the named library.
+     Path is only used to find and delete libraries that have not been mapped in OSVVM.
+- RemoveLibraryDirectory [<path>]
+   - Remove the Library specified in path.
+     If path is not specified, use the current LibraryDirectory as defined by SetLibraryDirectory
+- RemoveAllLibraries
+   - Call RemoveLibraryDirectory on all library directories known to OSVVM.
+- analyze [<path>/]<name> [options]
    - Analyze (aka compile) the design into the active library.
-     Name must be a file with an extension that is either *.vhd or *.vhdl.
-- simulate <test-name>
+     Name must be a file with an extension that is *.vhd or *.vhdl for vhdl, *.v for verilog, or *.sv for SystemVerilog.
+- simulate <TestName> [options]
    - Simulate (aka elaborate + run) the design using the active library.
+   - TestName is a library unit (entity or configuration)
+   - options may be one or more options to the simulator or see generic.
+- generic <name> <value>
+   - called in the options part of simulate as ``simulate tb1 [generic width 5]``
+- SetSecondSimulationTopLevel <library>.<TestName>
+   - Sets the name of a second library unit to use during simulation. 
+   - Called before simulate.   
 - TestCase <test-name>
    - Identify the TestCase that is active. 
      Must match name in the testbench call to SetAlertLogName.
@@ -829,30 +857,33 @@ The following commands set options for analyze and simulate.
    - Set Simulator Resolution. Any value supported by the simulator is ok.
 - GetSimulatorResolution
    - Return the current Simulator Resolution.
-- SetCoverageAnalyzeEnable <value>
-   - If ``value`` is true, enable coverage during analyze,
-   - otherwise, if the ``value`` is "", set the enable to the specified by SetCoverageEnable,
-   - otherwise, disable coverage during analyze.
+- SetCoverageAnalyzeEnable [true|false]
+   - If true, enable coverage during analyze,
+   - If false, disable coverage during analyze.
+   - If not specified, use the value specified by SetCoverageEnable.
+   - Initialized to false (so simulations run faster)
 - GetCoverageAnalyzeEnable
    - Returns the setting for coverage during analyze.
 - SetCoverageAnalyzeOptions <options>
    - Use the string specified in ``options`` as the coverage options during analyze. 
 - GetCoverageAnalyzeOptions 
    - Return the coverage options for analyze.
-- SetCoverageSimulateEnable <value>
-   - If ``value`` is true, enable coverage during simulate,
-   - otherwise, if the ``value`` is "", set the enable to the specified by SetCoverageEnable,
-   - otherwise, disable coverage during simulate.
+- SetCoverageSimulateEnable [true|false]
+   - If true, enable coverage during simulate,
+   - If false, disable coverage during simulate.
+   - If not specified, use the value specified by SetCoverageEnable.
+   - Initialized to false (so simulations run faster)
 - GetCoverageSimulateEnable
    - Returns the setting for coverage during simulate.
 - SetCoverageSimulateOptions <options>
    - Use the string specified in ``options`` as the coverage options during simulate. 
 - GetCoverageSimulateOptions 
    - Return the coverage options for simulate.
-- SetCoverageEnable <value>
-   - If ``value`` is true, set coverage enable to true,
-   - otherwise, set coverage enable to false.
-   - The default value is "true"
+- SetCoverageEnable [true|false]
+   - If true, set coverage enable to true,
+   - If false, set coverage enable to false.
+   - If not specified, true is the default.
+   - Initialized to false (so simulations run faster)
 - GetCoverageEnable
    - Get the CoverageEnable value. 
 - SetVhdlAnalyzeOptions <options>
@@ -871,10 +902,57 @@ The following commands set options for analyze and simulate.
    - Set extended (additional) options for simulate to ``options``.
 - GetExtendedSimulateOptions
    - Get extended (additional) options for simulate.
+- SetDebugMode [true|false]
+   - If true, add debugging options during analyze and simulate.
+   - If false, do not add debugging options during analyze and simulate.
+   - If not specified, true is the default.
+   - Initialized to false (so simulations run faster)
+- GetDebugMode
+   - Returns the state of DebugMode.
+- SetLogSignals [true|false]
+   - If true, log signals during simulate.
+   - If false, do not log signals during simulate.
+   - If not specified, true is the default.
+   - Initialized to false (so simulations run faster)
+- GetLogSignals
+   - Returns the state of LogSignals.
+- SetInteractiveMode [true|false]
+   - If DebugMode was not set with SetDebugMode, then set it using this value
+   - If LogSignals was not set with SetLogSignals, then set it using this value.
+   - If true, sets variables AnalyzeErrorStopCount and SimulateErrorStopCount to 1
+   - If false, sets variables AnalyzeErrorStopCount and SimulateErrorStopCount to previous value
+   - If not specified, true is the default.
+   - Initialized to false (so simulations run faster)
+- GetDebugMode
+   - Returns the state of DebugMode.
+
 
 The values for a commands ``options`` value are typically simulator dependent.
 To keep a set of scripts simulator independent, be sure to call these
 at a high level, such as in ``LocalScriptDefaults.tcl``.
+
+The following are options currently only for GHDL.
+
+- SetExtendedElaborateOptions <options>
+   - Set extended (additional) options for simulate to ``options``.
+- GetExtendedElaborateOptions
+   - Get extended (additional) options for simulate.
+- SetExtendedRunOptions <options>
+   - Set extended (additional) options for simulate to ``options``.
+- GetExtendedRunOptions
+   - Get extended (additional) options for simulate.
+- SetSaveWaves [true|false]
+   - If true, save waveforms during simulate.
+     If not specified, true is the default.
+     Initialized to false (so simulations run faster)
+- GetSaveWaves
+   - Returns the state of LogSignals.
+
+Helper functions - used to minimize the amount of TCL used in PRO scripts
+- FileExists <name>
+   - if file name exists, return true otherwise false.
+- DirectoryExists <name>
+   - if directory name exists, return true otherwise false.
 
 Caution any undocumented commands are experimental and may change or be removed in a future revision.
 
