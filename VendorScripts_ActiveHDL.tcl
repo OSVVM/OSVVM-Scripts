@@ -68,7 +68,7 @@
   } else {
     variable NoGui false
   }
-  variable FailOnBuildErrors        "false"
+  variable RemoveUnmappedLibraries                "false"
   variable RemoveLibraryDirectoryDeletesDirectory "false"
 
 
@@ -266,9 +266,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   # With sim_working_folder setting should no longer need MY_START_DIR
   set MY_START_DIR $::osvvm::CurrentSimulationDirectory
   
-  puts "asim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}" 
-        asim {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}  
-  
+  set SimulateOptions [concat {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
+
+  puts "asim ${SimulateOptions}"
+        asim {*}${SimulateOptions}
+
   # ActiveHDL changes the directory, so change it back to the OSVVM run directory
   cd $MY_START_DIR
   

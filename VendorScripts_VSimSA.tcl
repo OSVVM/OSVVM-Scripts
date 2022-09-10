@@ -176,9 +176,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable TestSuiteName
   variable TestCaseFileName
 
-  puts "vsim ${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}"
-  eval  vsim ${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} 
-  
+  set SimulateOptions [concat {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
+
+  puts "vsim ${SimulateOptions}"
+        vsim {*}${SimulateOptions}
+        
   SimulateRunScripts ${LibraryUnit}
 
 #  VSimSA is a batch simulator

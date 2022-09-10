@@ -273,15 +273,15 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable TestCaseFileName
   
   if {($::osvvm::NoGui) || !($::osvvm::Debug)} {
-    set VsimOptions ""
+    set SimulateOptions ""
   } else {
-    set VsimOptions "-voptargs=$::osvvm::DebugOptions"
+    set SimulateOptions "-voptargs=$::osvvm::DebugOptions"
   }
 
-  set VsimOptions "$VsimOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${OptionalCommands} -suppress 8683 -suppress 8684"
-  
-#  puts "vsim {*}${VsimOptions}"
-  vsim {*}${VsimOptions}
+  set SimulateOptions "$SimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} ${OptionalCommands} -suppress 8683 -suppress 8684"
+
+#  puts "vsim {*}${SimulateOptions}"
+  vsim {*}${SimulateOptions}
   
   # Historical name.  Must be run with "do" for actions to work
   if {[file exists ${SCRIPT_DIR}/Siemens.do]} {
