@@ -128,7 +128,6 @@ proc PrintWithPrefix {Prefix RawMessageList} {
 #
 proc include {Path_Or_File} {
   variable CurrentWorkingDirectory
-  variable VhdlWorkingLibrary
 
   CallbackBefore_Include $Path_Or_File
   puts "include $Path_Or_File"                    ; # EchoOsvvmCmd
@@ -136,9 +135,8 @@ proc include {Path_Or_File} {
 # probably remove.  Redundant with analyze and simulate
 #  puts "set StartingPath ${CurrentWorkingDirectory} Starting Include"
   # If a library does not exist, then create the default
-  if {![info exists VhdlWorkingLibrary]} {
-    library default
-  }
+  CheckLibraryExists
+
   set StartingPath ${CurrentWorkingDirectory}
 
   set JoinName [file join ${StartingPath} ${Path_Or_File}]
@@ -472,7 +470,7 @@ proc CheckLibraryExists {} {
   variable VhdlWorkingLibrary
 
   if {![info exists VhdlWorkingLibrary]} {
-    library default
+    library $DefaultLibraryName
   }
 }
 
@@ -1338,27 +1336,21 @@ proc SetInteractiveMode {{Options "true"}} {
   variable SimulateInteractive
   variable AnalyzeErrorStopCount 
   variable SimulateErrorStopCount
-  variable HaveSavedErrorStopCounts 
   variable SavedAnalyzeErrorStopCount 
   variable SavedSimulateErrorStopCount
 
+  set PreviousSimulateInteractive $SimulateInteractive
   set SimulateInteractive $Options
   
-  if {$SimulateInteractive} {
+  if {($SimulateInteractive) && !($PreviousSimulateInteractive)} {
     # When running interactive, set ErrorStopCounts to 1
     set SavedAnalyzeErrorStopCount  $AnalyzeErrorStopCount
     set SavedSimulateErrorStopCount $SimulateErrorStopCount
-    set HaveSavedErrorStopCounts "true"
     set AnalyzeErrorStopCount  1
     set SimulateErrorStopCount 1
   } else {
-    if {$HaveSavedErrorStopCounts} {
-      set AnalyzeErrorStopCount  $SavedAnalyzeErrorStopCount 
-      set SimulateErrorStopCount $SavedSimulateErrorStopCount
-    } else {
-      set AnalyzeErrorStopCount  0
-      set SimulateErrorStopCount 0
-    }
+    set AnalyzeErrorStopCount  $SavedAnalyzeErrorStopCount 
+    set SimulateErrorStopCount $SavedSimulateErrorStopCount
   }
   if {! $::osvvm::DebugIsSet} {
     set ::osvvm::Debug $Options
