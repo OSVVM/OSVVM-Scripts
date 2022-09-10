@@ -786,7 +786,9 @@ The following are general commands.
       
 - library <library> [<path>]
    - Make this library the active library. Create it if it does not exist.
-     Libraries are created in the path specified by VhdlLibraryDirectory in Scripts/OsvvmScriptDefaults.tcl. 
+   - If path is specified, libraries are created there.
+   - If path is not specified, libraries are created in the path specified by SetLibraryDirectory and library variable settings 
+   - To find an OSVVM created library use: ``library <library> [OsvvmLibraryPath <path>]``
 - LinkLibrary <library> [<path>]
    - Create a mapping to a library that was already created.
 - LinkLibraryDirectory [LibraryDirectory]
@@ -844,8 +846,9 @@ The following are general commands.
    - Get the Transcript file type (either html or log).
 
 In all commands that accept a path, relative paths (including no path) is
-relative to the directory in which the current script is running.  
-
+relative to the directory in which the current script is running. 
+With the command name, "[]" indicates a parameter is optional. 
+If shown in a highlighted code example ``[generic G1 5]`` then the code must contain the "[]".
 
 The following commands set options for analyze and simulate.
 
@@ -858,9 +861,10 @@ The following commands set options for analyze and simulate.
 - GetSimulatorResolution
    - Return the current Simulator Resolution.
 - SetCoverageAnalyzeEnable [true|false]
+   - To collect coverage for a design, SetCoverageEnable and SetCoverageAnalyzeEnable must be enabled when it is analyzed. 
    - If true, enable coverage during analyze,
    - If false, disable coverage during analyze.
-   - If not specified, use the value specified by SetCoverageEnable.
+   - If not specified, true is the default.
    - Initialized to false (so simulations run faster)
 - GetCoverageAnalyzeEnable
    - Returns the setting for coverage during analyze.
@@ -869,9 +873,10 @@ The following commands set options for analyze and simulate.
 - GetCoverageAnalyzeOptions 
    - Return the coverage options for analyze.
 - SetCoverageSimulateEnable [true|false]
+   - To collect coverage during a simulation, SetCoverageEnable and SetCoverageSimulateEnable must be enabled the simulation is started. 
    - If true, enable coverage during simulate,
    - If false, disable coverage during simulate.
-   - If not specified, use the value specified by SetCoverageEnable.
+   - If not specified, true is the default.
    - Initialized to false (so simulations run faster)
 - GetCoverageSimulateEnable
    - Returns the setting for coverage during simulate.
@@ -880,10 +885,10 @@ The following commands set options for analyze and simulate.
 - GetCoverageSimulateOptions 
    - Return the coverage options for simulate.
 - SetCoverageEnable [true|false]
-   - If true, set coverage enable to true,
+   - If true, set coverage enable to true.
    - If false, set coverage enable to false.
    - If not specified, true is the default.
-   - Initialized to false (so simulations run faster)
+   - Initialized to true.
 - GetCoverageEnable
    - Get the CoverageEnable value. 
 - SetVhdlAnalyzeOptions <options>
@@ -1034,94 +1039,49 @@ in the table below.
       - Vivado
       - synthesis
       - Currently supports analyze
-
-Variables used to configure OSVVM
------------------------------------------- 
-Variables that the user can customize for OSVVM are in the
-file, OsvvmDefaultSettings.tcl. 
-If you wish to change these, copy OsvvmDefaultSettings to 
-LocalScriptDefaults.tcl and edit them there. 
-
-.. list-table:: 
-    :widths: 10 40
-    :header-rows: 1
-    
-    * - Variable Name
-      - Description
-    * - Controlling Directories
-      - 
-    * - OutputBaseDirectory
-      - Directory that holds OSVVM output files and separates them from other stuff.
-    * - LogSubdirectory
-      - Contains simulator transcripts in html or log format
-    * - ReportsSubdirectory
-      - Test case detailed reports (Alerts, Functional Coverage, Scoreboard) are stored 
-        in the subdirectory, <TestSuiteName>.
-        Must not include any path indicators.  Maybe empty string "".
-    * - ResultsSubdirectory
-      - Files printed by TranscriptOpen are stored 
-        in the subdirectory, <TestSuiteName>.
-    * - CoverageSubdirectory
-      - Code coverage output for simulators that support it
-    * - VhdlLibraryParentDirectory
-      - Specify a directory here to put library in a different parent directory - such as c:/temp/sim
-    * - VhdlLibraryDirectory
-      - Primary directory when library is in $OutputBaseDirectory.
-    * - VhdlLibrarySubdirectory
-      - Subdirectory for libraries.  Default is "<ToolNameVersion>".
-    * - 
-      - 
-    * - Simulator Settings
-      - 
-    * - DefaultVHDLVersion
-      - OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
-    * - SimulateTimeUnits
-      - ps, ns, us, ms, ...
-    * - TranscriptExtension
-      - Either html or log 
-    * - VhdlAnalyzeOptions
-      - Additional options for analyze
-    * - VerilogAnalyzeOptions
-      - Additional options for analyze
-    * - ExtendedAnalyzeOptions
-      - Additional options for analyze
-    * - ExtendedSimulateOptions
-      - Additional options for simulate
-    * - 
-      - 
-    * - Coverage Settings
-      - 
-    * - CoverageAnalyzeOptions
-      - Default coverage options for analyze 
-    * - CoverageSimulateOptions
-      - Default coverage options for simulate 
       
 
-Example LocalScriptDefaults.tcl
------------------------------------------- 
-LocalScriptDefaults is not in the OSVVM release.   
-It is a file you create.  
-This way it does not get destroyed when you do
-a pull on the OsvvmLibraries git repository.
+These variables can be used to do tool specific actions in scripts.   I use the following in my LocalScriptDefaults.tcl (see next section) file.   
 
 .. code:: tcl
 
-    namespace eval ::osvvm {
-      variable OutputBaseDirectory         "OSVVM" ;              # Put output in a Subdirectory
-      variable VhdlLibraryParentDirectory  "C:/tools/sim_temp" ;  # put libraries somewhere else
-      variable VhdlLibraryDirectory        ""  ;                  # only use VhdlLibrarySubdirectory
-    } 
+   if {$::osvvm::ToolVendor eq "Siemens"} {
+       SetExtendedAnalyzeOptions  "-quiet"
+       SetExtendedSimulateOptions "-quiet"
+   } 
+
+
+Variables used to configure OSVVM
+------------------------------------------ 
+OSVVM sets variables in the file OsvvmDefaultSettings.tcl.
+Do not change this file.   Instead, create a LocalScriptsDefaults.tcl.
+An easy way to do this is to copy Example_LocalScriptDefaults.tcl
+to LocalScriptDefaults.tcl.  LocalScriptDefaults.tcl is not
+in the OSVVM release - which allows you to modify it and 
+not have it overwritten when you update your release.
+
+Complete documentation for each variable is in the 
+Example_LocalScriptDefaults.tcl file.    
+
+Using LocalSdriptDefaults, you can change things such as
+   - OSVVM created directories with reports, results, and libraries.
+   - TCL Error signaling
+   - Generate html transcript
+   - Generate a single tcl script for everything run
+
+Note that some of the OSVVM commands are can also be 
+set using variables.   
 
 
 Script File Summary 
 ==================================
 
 - StartUp.tcl  
-   - StartUp script for ActiveHDL, GHDL, Mentor, RivieraPro, and VSimSA (ActiveHDL)   
+   - StartUp script for running ActiveHDL, GHDL, Mentor, RivieraPro, and VSimSA (ActiveHDL)   
    - Detects the simulator running and calls the VendorScript_vendor-name.tcl.
      Also calls OsvvmProjectScripts.tcl and OsvvmScriptDefaults.tcl 
 
-- StartVCS.tcl  
+- StartVCS.tcl
    - StartUp script for Synopsys VCS.  Does what StartUp.tcl does except is specific to VCS  
       
 - StartXcelium.tcl  
@@ -1131,25 +1091,64 @@ Script File Summary
    - StartUp script for Xilinx XSIM.  Does what StartUp.tcl does except is specific to Xsim
    - Note, XSIM is currently a alpha level, experimental release.
       
+- OsvvmProjectScripts.tcl  
+   - TCL procedures that do common simulator and project build tasks.
+   - Called by StartUpShared.tcl
+
 - VendorScript_tool-name.tcl  
    - TCL procedures that do simulator specific actions.
    - "tool-name" = one of (ActiveHDL, GHDL, Mentor, RivieraPro, VSimSA, VCS, Xcelium, Xsim)
    - VSimSA is the one associated with ActiveHDL.
-   - Called by StartUp.tcl 
+   - Called by StartUpShared.tcl 
 
-- OsvvmProjectScripts.tcl  
-   - TCL procedures that do common simulator and project build tasks.
-   - Called by StartUp.tcl
-
-- OsvvmScriptDefaults.tcl  
-   - Default settings for the OSVVM Script environment.
-   - Called by StartUp.tcl
+- OsvvmDefaultSettings.tcl  
+   - Default variable settings for the OSVVM Script environment.
+   - Do not modify this file, instead modify LocalScriptDefaults.tcl
+   - Called by StartUpShared.tcl
    
 - LocalScriptDefaults.tcl  
    - User default settings for the OSVVM Script environment.
-   - Not in OSVVM repository so it will not be replaced on OSVVM updates
-   - If it exists, called by StartUp.tcl
+   - See previous section for directions on creating this file.  
+   - If it exists, called by StartUpShared.tcl
 
+- OsvvmRequiredSettings.tcl  
+   - Private settings for OSVVM.   
+   - Called by StartUpShared.tcl
+
+- CallbackDefaults.tcl  
+   - Callbacks for modifying OSVVM commands and error handling   
+   - Do not modify this file, instead modify LocalCallbacks.tcl
+   - Called by StartUpShared.tcl
+
+- LocalCallbacks.tcl  
+   - User overloading of OSVVM CallbackDefaults.tcl   
+   - If it exists, called by StartUpShared.tcl
+
+- LocalCallbacks_tool-name.tcl  
+   - Simulator specific user overloading of OSVVM CallbackDefaults.tcl
+   - If it exists, called by StartUpShared.tcl
+
+
+Generating Reports when a Simulation or Build Ends in Error
+====================================================================
+If a simulation crashed and there are no test case reports, they can be created
+by calling Simulate2Html as follows.  
+
+.. code:: tcl
+
+   Simulate2Html <TestCaseName> <TestSuiteName> <TestCaseFileName>
+   
+If no generics are set, then TestCaseFileName is the same as TestCaseName.  
+If generics are set, TestCaseFileName is TestCaseName_GenericName_Value.
+
+If the build failed, use Report2Html to create the build summary report
+from the YAML file and use Log2Osvvm to create the HTML log file from 
+the text base log file.
+
+.. code:: tcl
+
+		Report2Html <YamlFileName>
+ 		Log2Osvvm  <LogFileName>
 
 Note on Scripts for Siemens
 ==================================
