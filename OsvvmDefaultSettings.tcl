@@ -41,101 +41,120 @@
 #
 
 
+#
+#   Do not change these settings here.   This file is overwritten with each new release.
+#   Instead, create a LocalScriptDefaults.tcl and change them there.
+#   See the templage file Example_LocalScriptDefaults.tcl
+#
+
+
 # OSVVM Variable Defaults
 namespace eval ::osvvm {
   #
-  #  Initialize internal settings
+  #  Initialize internal settings -- Do not change these
   #
-  # CurrentWorkingDirectory is a relative path to the scripts currently running 
-  variable CurrentWorkingDirectory ""
-  # CurrentSimulationDirectory is an absolute path to the simulation directory (for reports and such)
-  variable CurrentSimulationDirectory [pwd]
-#  variable CurrentSimulationDirectory ""
+    # CurrentWorkingDirectory is a relative path to the scripts currently running 
+    variable CurrentWorkingDirectory ""
+    # CurrentSimulationDirectory is an absolute path to the simulation directory (for reports and such)
+    variable CurrentSimulationDirectory [pwd]
   
-
-  # Directory and Results file management
-  variable OutputBaseDirectory        ""  
-  variable LogSubdirectory            "logs/${ToolNameVersion}"
-  variable ReportsSubdirectory        "reports"  ; # Directory scripts put reports into.
-  variable ResultsSubdirectory        "results"  ; # Directory for files opened by TranscriptOpen
-  variable CoverageSubdirectory       "CodeCoverage"
-  variable VhdlLibraryDirectory       "VHDL_LIBS"
-  variable VhdlLibrarySubdirectory    "${ToolNameVersion}"
-  variable VhdlLibraryParentDirectory [pwd]      ; # use local directory
+  #
+  # Directory structure and results file management
+  #
+    variable OutputBaseDirectory        ""  
+    variable LogSubdirectory            "logs/${ToolNameVersion}"
+    variable ReportsSubdirectory        "reports"  ; # Directory scripts put reports into.
+    variable ResultsSubdirectory        "results"  ; # Directory for files opened by TranscriptOpen
+    variable CoverageSubdirectory       "CodeCoverage"
+    variable VhdlLibraryDirectory       "VHDL_LIBS"
+    variable VhdlLibrarySubdirectory    "${ToolNameVersion}"
+    variable VhdlLibraryParentDirectory [pwd]      ; # use local directory
   
-  variable CreateSimScripts  0
-  variable CreateOsvvmOutput 0
-
   # 
-  # If Reports Fail, produce an error message
-  #    For CI jobs, set this to "false" so the CI error reporter will attempt to run
+  # TCL Error signaling during a build 
   #
-  if {![info exists FailOnBuildErrors]} {
-    variable FailOnBuildErrors        "true"
-  }
-  if {![info exists FailOnReportErrors]} {
-    variable FailOnReportErrors       "false"
-  }
-  if {![info exists FailOnTestCaseErrors]} {
-    variable FailOnTestCaseErrors     "false"
-  }
-  if {![info exists RemoveLibraryDirectoryDeletesDirectory]} {
-    variable RemoveLibraryDirectoryDeletesDirectory "true"
+    if {![info exists FailOnBuildErrors]} {
+      variable FailOnBuildErrors        "true"
+    }
+    if {![info exists FailOnReportErrors]} {
+      variable FailOnReportErrors       "false"
+    }
+    if {![info exists FailOnTestCaseErrors]} {
+      variable FailOnTestCaseErrors     "false"
   }
   
-  variable RemoveUnmappedLibraries    "false"
-  
-  # Also change with SetTranscriptType html 
-  variable TranscriptExtension      "html"     ; # Set Transcripts to be html by default
-#   if {!($ToolVendor eq "Siemens" || $ToolVendor eq "Aldec" || $ToolName eq "GHDL") } {
-#     variable TranscriptExtension      "log"     ; # html currently supported for Aldec and Siemens simulators
-#   } 
-  
+  #
+  #  Generate HTML transcripts if TranscriptExtension = "html".  
+  #    Text based log files are always created  
+  #
+    variable TranscriptExtension      "html"     ; # Generate log and html transcripts
+    variable CreateSimScripts         "false"
+    variable CreateOsvvmOutput        "false"
 
-  # Settings 
-  variable DefaultVHDLVersion     "2008"     ; # OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
-  variable SimulateTimeUnits      "ps"
-#  variable DefaultLibraryName     "default"
+
+  #
+  # VHDL Simulation Settings 
+  #
+    variable DefaultVHDLVersion     "2008"     ; # OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
+    variable SimulateTimeUnits      "ps"
+    variable DefaultLibraryName     "default"
   
   # 
   # Default Coverage Options
   #
-  variable CoverageEnable           "true"
-  variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults] 
-  variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
+    variable CoverageEnable           "true"
+    variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults] 
+    variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
 
   #
   # Stop Counts for Failures seen by Analyze and Simulate
   #   Value 0 is special to mean, don't stop
   #   Otherwise Errors >= ErrorsStopCount, stop the build.
   #
-  variable AnalyzeErrorStopCount       0
-  variable SimulateErrorStopCount      0
-  variable HaveSavedErrorStopCounts    "false"   ; # Used by SetInteractiveMode
-  variable SavedAnalyzeErrorStopCount  0
-  variable SavedSimulateErrorStopCount 0
+    variable AnalyzeErrorStopCount       0
+    variable SimulateErrorStopCount      0
   
+  #
+  #  Simulation Controls
+  #
+    variable SimulateInteractive "false"
+    variable DebugIsSet          "false"
+    variable Debug               "false"
+    variable LogSignalsIsSet     "false"
+    variable LogSignals          "false"
+
   # 
   # Extended Analyze and Simulate Options
   #
-  variable VhdlAnalyzeOptions        ""
-  variable VerilogAnalyzeOptions     ""
-  variable ExtendedAnalyzeOptions    ""
-  variable ExtendedSimulateOptions   ""
-  variable ExtendedElaborateOptions  ""
-  variable ExtendedRunOptions        ""
-  
-  variable SaveWaves           "false"
-  variable SimulateInteractive "false"
-  
-  variable SimulateInteractive "false"
-  variable DebugIsSet          "false"
-  variable Debug               "false"
-  variable LogSignalsIsSet     "false"
-  variable LogSignals          "false"
+    variable VhdlAnalyzeOptions        ""
+    variable VerilogAnalyzeOptions     ""
+    variable ExtendedAnalyzeOptions    ""
+    variable ExtendedSimulateOptions   ""
+    
+  #
+  #  GHDL Analyze and Simulate Options
+  #
+    variable ExtendedElaborateOptions  ""
+    variable ExtendedRunOptions        ""
+    variable SaveWaves                 "false"
+    variable SimulateInteractive       "false"
   
   #
   # Second Top
   #
-  variable SecondSimulationTopLevel ""
+    variable SecondSimulationTopLevel ""
+  
+  #
+  # RemoveLibrary / RemoveLibraryDirectory Controls. 
+  #    Also set by by VendorScripts_ActiveHDL.  
+  #    Currently both must be false for ActiveHDL
+  #
+    if {![info exists RemoveLibraryDirectoryDeletesDirectory]} {
+      variable RemoveLibraryDirectoryDeletesDirectory "true"
+    }
+    
+    if {![info exists RemoveUnmappedLibraries]} {
+      variable RemoveUnmappedLibraries    "true"
+    }
+  
 }

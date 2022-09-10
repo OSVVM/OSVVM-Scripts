@@ -65,6 +65,7 @@ namespace eval ::osvvm {
   variable Report2JunitErrorInfo     ""
   variable Log2OsvvmErrorInfo        ""
 
+
   #
   # Variables set by VendorScripts_***.tcl
   #
@@ -120,5 +121,9 @@ namespace eval ::osvvm {
   variable ScriptErrorCount 0 
 
   variable GotTee false
+
+  # Initial saved values for ErrorStopCounts
+  variable SavedAnalyzeErrorStopCount  $AnalyzeErrorStopCount
+  variable SavedSimulateErrorStopCount $SimulateErrorStopCount
   
 }
