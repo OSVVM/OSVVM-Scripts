@@ -42,9 +42,11 @@
 
 
 #
-#   Do not change these settings here.   This file is overwritten with each new release.
+# DO NOT CHANGE THESE SETTINGS
+#   This file is overwritten with each new release.
 #   Instead, create a LocalScriptDefaults.tcl and change them there.
-#   See the templage file Example_LocalScriptDefaults.tcl
+#   If you do not have a LocalScriptDefaults.tcl, 
+#   copy Example_LocalScriptDefaults.tcl to LocalScriptDefaults.tcl
 #
 
 
@@ -87,10 +89,9 @@ namespace eval ::osvvm {
   #  Generate HTML transcripts if TranscriptExtension = "html".  
   #    Text based log files are always created  
   #
-    variable TranscriptExtension      "html"     ; # Generate log and html transcripts
-    variable CreateSimScripts         "false"
-    variable CreateOsvvmOutput        "false"
-
+    variable TranscriptExtension      "html"     ;# Generate log and html transcripts
+    variable CreateSimScripts         "false"    ;# Create a script with every simulator command run during this session
+    variable CreateOsvvmOutput        "false"    ;# Text file with just OSVVM output
 
   #
   # VHDL Simulation Settings 
@@ -103,6 +104,8 @@ namespace eval ::osvvm {
   # Default Coverage Options
   #
     variable CoverageEnable           "true"
+    variable CoverageAnalyzeEnable    "false"
+    variable CoverageSimulateEnable   "false"
     variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults] 
     variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
 

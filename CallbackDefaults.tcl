@@ -7,8 +7,7 @@
 #     Jim Lewis      email:  jim@synthworks.com   
 # 
 #  Description
-#    Defines a void set of CallBacks
-#    This way they exist and can be replaced
+#    Defines a default set of Callbacks for OSVVM
 #    
 #  Developed by: 
 #        SynthWorks Design Inc. 
@@ -41,12 +40,15 @@
 
 
 #
-#  To customize the callbacks, copy this file to either:
-#     LocalCallBacks.tcl - if you are just working with one vendor
-#     CallBacks_${::osvvm::ScriptBaseName}.tcl - for a specific vendor
+# DO NOT CHANGE THIS FILE
+#   This file is overwritten with each new release.
+#   Instead, create
+#     LocalCallBacks.tcl - if your adaptations apply to all vendors
+#     CallBacks_${::osvvm::ScriptBaseName}.tcl - for a specific vendor adaptations
+#   In these files create a proc with the same calling parameters as defined here
+#   and it will replace the one defined here.
 #
-#  Do not change this file as it will be overwritten
-#
+
 
 # Callbacks to be added as they are defined
 namespace eval ::osvvm {
@@ -155,8 +157,11 @@ namespace eval ::osvvm {
   #
   proc CallbackOnError_AfterBuildReports {LocalReportErrorInfo} {
     set ::osvvm::BuildReportErrorInfo $LocalReportErrorInfo 
+    
+# Todo: Is this extra?  Already printing info below
+
     # Continue current build
-    puts  "ReportError: during AfterBuildReports.  See messages in previous build."
+    puts  "ReportError: during build.  See previous messages for details."
     puts  "Please include your simulator version in any issue reports"
     puts  "For tcl errorInfo, puts \$::osvvm::BuildReportErrorInfo"
     
@@ -203,7 +208,7 @@ namespace eval ::osvvm {
   proc CallbackOnError_AfterSimulateReports {ErrMsg LocalReportErrorInfo} {
     set ::osvvm::SimulateReportErrorInfo $LocalReportErrorInfo 
     # Continue current build
-    puts "ReportError: Simulate2Html failed.  See previous messages in simulate"
+    puts "ReportError: Simulate2Html failed.  See previous messages for details"
     
     # end current build
     # error "ReportError: Simulate2Html failed.  See previous messages"

@@ -105,8 +105,8 @@ namespace eval ::osvvm {
   #
     #  variable TranscriptExtension      "html"    ;# default value. Generate log and html transcripts
     #  variable TranscriptExtension      "log"     ;# Only generate log transcripts
-    #  variable CreateSimScripts         "true"
-    #  variable CreateOsvvmOutput        "true"
+    #  variable CreateSimScripts         "true"    ;# Create a script with every simulator command run during this session
+    #  variable CreateOsvvmOutput        "true"    ;# Text file with just OSVVM output
 
   #
   # VHDL Simulation Settings 
@@ -119,6 +119,8 @@ namespace eval ::osvvm {
   # Default Coverage Options
   #
     #  variable CoverageEnable           "true"
+    #  variable CoverageAnalyzeEnable    "false"
+    #  variable CoverageSimulateEnable   "false"
     #  variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults] 
     #  variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
 
@@ -170,6 +172,18 @@ namespace eval ::osvvm {
     #  variable RemoveLibraryDirectoryDeletesDirectory  "false"
     #  variable RemoveUnmappedLibraries                 "false"
 
+
+  #
+  #  Variables set by VendorScripts_***.tcl (or OsvvmRequiredSettings)
+  #    Don't set these here, but you can use them in your scripts
+  #
+    #  variable ToolType    
+    #  variable ToolVendor  
+    #  variable ToolName   
+    #  variable ToolNameVersion 
+    #  variable ToolArgs 
+    #  variable NoGui 
+    #  variable ToolSupportsGenericPackages 
 
 }
 

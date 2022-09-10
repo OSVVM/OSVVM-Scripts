@@ -20,6 +20,10 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    09/2022   2022.09    Added RemoveLibrary, RemoveLibraryDirectory, OsvvmLibraryPath
+#                         Added SetVhdlAnalyzeOptions, SetExtendedAnalyzeOptions, SetExtendedSimulateOptions
+#                         Added (for GHDL) SetSaveWaves, SetExtendedElaborateOptions, SetExtendedRunOptions
+#                         Added SetInteractiveMode, SetDebugMode, SetLogSignals
 #    08/2022   2022.08    Added handling for Analyze with Verilog Libraries.  
 #                         Added SetSecondSimulationTopLevel, GetSecondSimulationTopLevel
 #    06/2022   2022.06    Generic handling.  Fixed spaces in library path.
@@ -470,7 +474,7 @@ proc CheckLibraryExists {} {
   variable VhdlWorkingLibrary
 
   if {![info exists VhdlWorkingLibrary]} {
-    library $DefaultLibraryName
+    library $::osvvm::DefaultLibraryName
   }
 }
 
@@ -484,7 +488,7 @@ proc CheckSimulationDirs {} {
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ResultsDirectory}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ReportsDirectory}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::VhdlReportsDirectory}]
-  if {[info exists ::osvvm::CoverageSimulateEnable]} {
+  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     CreateDirectory [file join $CurrentSimulationDirectory $::osvvm::CoverageDirectory $::osvvm::TestSuiteName]
   }
 }
@@ -848,7 +852,6 @@ proc analyze {FileName args} {
 proc LocalAnalyze {FileName args} {
   variable VhdlWorkingLibrary
   variable CurrentWorkingDirectory
-  variable CoverageAnalyzeEnable
   variable VhdlAnalyzeOptions
   variable VerilogAnalyzeOptions
   variable CoverageAnalyzeOptions
@@ -857,6 +860,8 @@ proc LocalAnalyze {FileName args} {
 
   CheckWorkingDir
   CheckLibraryExists
+  
+  set EffectiveCoverageAnalyzeEnable [expr $::osvvm::CoverageEnable && $::osvvm::CoverageAnalyzeEnable]
 
   puts "analyze $FileName"                        ; # EchoOsvvmCmd
 
@@ -865,7 +870,7 @@ proc LocalAnalyze {FileName args} {
   set FileExtension [file extension $FileName]
 
   if {$FileExtension eq ".vhd" || $FileExtension eq ".vhdl"} {
-    if {[info exists CoverageAnalyzeEnable]} {
+    if {$EffectiveCoverageAnalyzeEnable} {
       set AnalyzeOptions [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$args]
     } else {
       set AnalyzeOptions [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$args]
@@ -874,7 +879,7 @@ proc LocalAnalyze {FileName args} {
     vendor_analyze_vhdl ${VhdlWorkingLibrary} ${NormFileName} ${AnalyzeOptions}
     CallbackAfter_Analyze $FileName $args
   } elseif {$FileExtension eq ".v" || $FileExtension eq ".sv"} {
-    if {[info exists CoverageAnalyzeEnable]} {
+    if {$EffectiveCoverageAnalyzeEnable} {
       set AnalyzeOptions [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$args]
     } else {
       set AnalyzeOptions [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$args]
@@ -931,7 +936,6 @@ proc LocalSimulate {LibraryUnit args} {
   variable vendor_simulate_started
   variable TestCaseName
   variable TestCaseFileName
-  variable CoverageSimulateEnable
   variable CoverageSimulateOptions
   variable ExtendedSimulateOptions
   variable RanSimulationWithCoverage
@@ -960,7 +964,7 @@ proc LocalSimulate {LibraryUnit args} {
 
   puts "simulate $LibraryUnit $args"              ; # EchoOsvvmCmd
 
-  if {[info exists CoverageSimulateEnable]} {
+  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     set RanSimulationWithCoverage "true"
     set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
   } else {
@@ -1136,7 +1140,7 @@ proc TestCase {TestName} {
     if {[info exists VhdlWorkingLibrary]} {
       TestSuite $::osvvm::VhdlWorkingLibrary
     } else {
-      TestSuite Default
+      TestSuite $::osvvm::DefaultLibraryName
     }
   }
 
@@ -1410,6 +1414,7 @@ proc SetCoverageEnable {{Enable "true"}} {
   } else {
     set CoverageEnable "false"
   }
+  puts "SetCoverageEnable $CoverageEnable"
 }
 proc GetCoverageEnable {} {
   variable CoverageEnable
@@ -1420,68 +1425,47 @@ proc GetCoverageEnable {} {
 # SetCoverageAnalyzeOptions, SetCoverageAnalyzeEnable
 #
 proc SetCoverageAnalyzeOptions {{Options ""}} {
-  variable CoverageAnalyzeOptions
-  set CoverageAnalyzeOptions $Options
+  set ::osvvm::CoverageAnalyzeOptions $Options
 }
 proc GetCoverageAnalyzeOptions {} {
-  variable CoverageAnalyzeOptions
-  return $CoverageAnalyzeOptions
+  return $::osvvm::CoverageAnalyzeOptions
 }
 
-proc SetCoverageAnalyzeEnable {{Enable ""}} {
+proc SetCoverageAnalyzeEnable {{Enable "true"}} {
   variable CoverageAnalyzeEnable
-  variable CoverageEnable
-#  if {[llength [info level 0]] < 3} { } ; # does not detect input ""
-  if {$Enable eq ""} {
-    set Enable $CoverageEnable
-  }
   if {[string tolower $Enable] eq "true"} {
-    set CoverageAnalyzeEnable "true" ;
-  } elseif {[info exists CoverageAnalyzeEnable]} {
-    unset CoverageAnalyzeEnable
-  }
-}
-proc GetCoverageAnalyzeEnable {} {
-  variable CoverageAnalyzeEnable
-  if {[info exists CoverageAnalyzeEnable]} {
-    return $CoverageAnalyzeEnable
+    set CoverageAnalyzeEnable "true" 
   } else {
-    return "false"
+    set CoverageAnalyzeEnable "false" 
   }
+  puts "SetCoverageAnalyzeEnable $CoverageAnalyzeEnable"
+}
+
+proc GetCoverageAnalyzeEnable {} {
+  return $::osvvm::CoverageAnalyzeEnable
 }
 
 # -------------------------------------------------
 # SetCoverageSimulateOptions, SetCoverageSimulateEnable
 #
 proc SetCoverageSimulateOptions {{Options ""}} {
-  variable CoverageSimulateOptions
-  set CoverageSimulateOptions $Options ;
+  set ::osvvm::CoverageSimulateOptions $Options
 }
 proc GetCoverageSimulateOptions {} {
-  variable CoverageSimulateOptions
-  return $CoverageSimulateOptions
+  return $::osvvm::CoverageSimulateOptions
 }
 
-proc SetCoverageSimulateEnable {{Enable ""}} {
+proc SetCoverageSimulateEnable {{Enable "true"}} {
   variable CoverageSimulateEnable
-  variable CoverageEnable
-#  if {[llength [info level 0]] < 3} { } ; # does not detect input ""
-  if {$Enable eq ""} {
-    set Enable $CoverageEnable
-  }
   if {[string tolower $Enable] eq "true"} {
     set CoverageSimulateEnable "true" ;
-  } elseif {[info exists CoverageSimulateEnable]} {
-    unset CoverageSimulateEnable
+  } else {
+    set CoverageSimulateEnable "false" ;
   }
+  puts "SetCoverageSimulateEnable $CoverageSimulateEnable"
 }
 proc GetCoverageSimulateEnable {} {
-  variable CoverageSimulateEnable
-  if {[info exists CoverageSimulateEnable]} {
-    return $CoverageSimulateEnable
-  } else {
-    return "false"
-  }
+  return $::osvvm::CoverageSimulateEnable
 }
 
 # -------------------------------------------------
@@ -1703,6 +1687,7 @@ namespace export FileExists DirectoryExists
 namespace export SetExtendedAnalyzeOptions GetExtendedAnalyzeOptions
 namespace export SetExtendedSimulateOptions GetExtendedSimulateOptions
 namespace export SetVhdlAnalyzeOptions GetVhdlAnalyzeOptions SetVerilogAnalyzeOptions GetVerilogAnalyzeOptions 
+namespace export SetCoverageEnable GetCoverageEnable
 namespace export SetCoverageAnalyzeOptions GetCoverageAnalyzeOptions
 namespace export SetCoverageAnalyzeEnable GetCoverageAnalyzeEnable
 namespace export SetCoverageSimulateOptions GetCoverageSimulateOptions

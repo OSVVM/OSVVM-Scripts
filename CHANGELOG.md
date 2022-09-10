@@ -2,6 +2,12 @@
 
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                          | 
 |---------------|--------------------|-------------------------------------------------------------------------------| 
+| 2022.09       | September 2022     | Added RemoveLibrary, RemoveLibraryDirectory, OsvvmLibraryPath                 |
+|               |                    | Added SetVhdlAnalyzeOptions, SetExtendedAnalyzeOptions, SetExtendedSimulateOptions |
+|               |                    | Added (for GHDL) SetSaveWaves, SetExtendedElaborateOptions, SetExtendedRunOptions |
+|               |                    | Added SetInteractiveMode, SetDebugMode, SetLogSignals                         |
+| 2022.08       | August 2022        | Added handling for Analyze with Verilog Libraries.                            |
+|               |                    | Added SetSecondSimulationTopLevel, GetSecondSimulationTopLevel                |
 | 2022.06       | June 2022          | Added Generic handling.                                                       |
 |               |                    | Support for printing Coverage PASSED/FAILED                                   |
 |               |                    | Fixed handling of spaces in library path.                                     |

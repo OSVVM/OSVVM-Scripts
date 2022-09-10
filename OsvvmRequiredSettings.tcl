@@ -44,86 +44,92 @@
 #
 # DO NOT CHANGE THESE SETTINGS
 #   These settings are required by OSVVM to function properly
-#   For things users can change, see OsvvmDefaultSettings.tcl
+#   For user settings use LocalScriptDefaults.tcl.
+#   If you do not have a LocalScriptDefaults.tcl, 
+#   copy Example_LocalScriptDefaults.tcl to LocalScriptDefaults.tcl
 #
 
 namespace eval ::osvvm {
 
-
   variable OsvvmVersion 2022.09
-  #
-  # Extended TCL information about errors - for debugging
-  #   TCL's errorInfo is saved to these as build finishes
-  #
-  variable AnalyzeErrorInfo          ""
-  variable SimulateErrorInfo         ""
-  variable BuildErrorInfo            ""
-  variable BuildReportErrorInfo      ""
-  variable SimulateReportErrorInfo   ""
-  variable Simulate2HtmlErrorInfo    ""
-  variable Report2HtmlErrorInfo      ""
-  variable Report2JunitErrorInfo     ""
-  variable Log2OsvvmErrorInfo        ""
-
-
-  #
-  # Variables set by VendorScripts_***.tcl
-  #
-  #  variable ToolType    
-  #  variable ToolVendor  
-  #  variable ToolName   
-  #  variable simulator    ; # Deprecated use ToolName instead
-  #  variable ToolNameVersion 
-  if {![info exists ToolArgs]} {
-    variable ToolArgs ""
-  }
-  if {![info exists NoGui]} {
-    variable NoGui true
-  }
-  if {![info exists ToolSupportsGenericPackages]} {
-    variable ToolSupportsGenericPackages true
-  }
-
+  
   
   # 
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
   #    Call OSVVM functions to do parameter checking and normalization
-  SetVHDLVersion         $DefaultVHDLVersion
-  SetSimulatorResolution $SimulateTimeUnits
-  SetTranscriptType      $TranscriptExtension
-  SetLibraryDirectory    $VhdlLibraryParentDirectory 
+  #
+    SetVHDLVersion         $DefaultVHDLVersion
+    SetSimulatorResolution $SimulateTimeUnits
+    SetTranscriptType      $TranscriptExtension
+    SetLibraryDirectory    $VhdlLibraryParentDirectory 
   
+  #
+  # Variables set by VendorScripts_***.tcl
+  #    Initialize values that were conditionally initialized
+  #
+    if {![info exists ToolArgs]} {
+      variable ToolArgs ""
+    }
+    if {![info exists NoGui]} {
+      variable NoGui "true"
+    }
+    if {![info exists ToolSupportsGenericPackages]} {
+      variable ToolSupportsGenericPackages "true"
+    }
   
-  # When a build is started, run include instead of build
-  variable BuildStarted "false"
-  variable GenericList  ""
-  variable GenericNames ""
+  #
+  # Create derived directory paths
+  #
+    variable ReportsDirectory          [file join ${OutputBaseDirectory} ${ReportsSubdirectory}]
+    variable ResultsDirectory          [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
+    variable CoverageDirectory         [file join ${OutputBaseDirectory} ${CoverageSubdirectory}]
+  
 
-  # Directory and Results file management
-  variable ReportsDirectory          [file join ${OutputBaseDirectory} ${ReportsSubdirectory}]
-  variable ResultsDirectory          [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
-  variable CoverageDirectory         [file join ${OutputBaseDirectory} ${CoverageSubdirectory}]
+  #
+  #  Initialize OSVVM Internals
+  #
   
-  # VhdlReportsDirectory:  OSVVM temporary location for yml.  Moved to ${ReportsDirectory}/${TestSuiteName}
-  variable VhdlReportsDirectory     "" ;  
-  
-  # OsvvmYamlResultsFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${BuildName}.yaml
-  variable OsvvmYamlResultsFile     "OsvvmRun.yml" ;  
-  
-  #  TranscriptYamlFile: temporary file that contains set of files used in TranscriptOpen.  Deleted by scripts.
-  variable TranscriptYamlFile       "OSVVM_transcript.yml" ;  
-  
-  # Error handling
-  variable AnalyzeErrorCount 0
-  variable ConsecutiveAnalyzeErrors 0
-  variable SimulateErrorCount 0
-  variable ConsecutiveSimulateErrors 0
-  variable ScriptErrorCount 0 
+    #
+    # Extended TCL information about errors - for debugging
+    #   TCL's errorInfo is saved to these as build finishes
+    #
+    variable AnalyzeErrorInfo          ""
+    variable SimulateErrorInfo         ""
+    variable BuildErrorInfo            ""
+    variable BuildReportErrorInfo      ""
+    variable SimulateReportErrorInfo   ""
+    variable Simulate2HtmlErrorInfo    ""
+    variable Report2HtmlErrorInfo      ""
+    variable Report2JunitErrorInfo     ""
+    variable Log2OsvvmErrorInfo        ""
 
-  variable GotTee false
 
-  # Initial saved values for ErrorStopCounts
-  variable SavedAnalyzeErrorStopCount  $AnalyzeErrorStopCount
-  variable SavedSimulateErrorStopCount $SimulateErrorStopCount
-  
+    
+    # When a build is started, run include instead of build
+    variable BuildStarted "false"
+    variable GenericList  ""
+    variable GenericNames ""
+
+    # VhdlReportsDirectory:  OSVVM temporary location for yml.  Moved to ${ReportsDirectory}/${TestSuiteName}
+    variable VhdlReportsDirectory     "" ;  
+    
+    # OsvvmYamlResultsFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${BuildName}.yaml
+    variable OsvvmYamlResultsFile     "OsvvmRun.yml" ;  
+    
+    #  TranscriptYamlFile: temporary file that contains set of files used in TranscriptOpen.  Deleted by scripts.
+    variable TranscriptYamlFile       "OSVVM_transcript.yml" ;  
+    
+    # Error handling
+    variable AnalyzeErrorCount 0
+    variable ConsecutiveAnalyzeErrors 0
+    variable SimulateErrorCount 0
+    variable ConsecutiveSimulateErrors 0
+    variable ScriptErrorCount 0 
+
+    variable GotTee false
+
+    # Initial saved values for ErrorStopCounts
+    variable SavedAnalyzeErrorStopCount  $AnalyzeErrorStopCount
+    variable SavedSimulateErrorStopCount $SimulateErrorStopCount
+    
 }
