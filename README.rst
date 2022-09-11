@@ -496,7 +496,15 @@ contains consists of the following information:
 - Link to this test case in HTML based simulator transcript  
 
 After running one of the regressions, open one of the HTML files 
-in the directory ./reports/<test-suite-name>. 
+in the directory ./reports/<test-suite-name>.  An example one is shown below.
+
+.. figure:: images/DemoTestCaseDetailedReport.png
+  :name: TestCaseDetailedFig
+  :scale: 50 %
+  :align: center
+  
+  Test Information Link Table
+
 
 Note that any place in the report there is a triangle preceding text,
 pressing on the triangle will rotate it and either hide or reveal
