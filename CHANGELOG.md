@@ -3,6 +3,7 @@
 | **Revision**  | **Revision Date**  |  **Release Summary**                                                          | 
 |---------------|--------------------|-------------------------------------------------------------------------------| 
 | 2022.09       | September 2022     | Added RemoveLibrary, RemoveLibraryDirectory, OsvvmLibraryPath                 |
+|               |                    | Updated each scoreboard report to be a single line in a table                 |
 |               |                    | Added SetVhdlAnalyzeOptions, SetExtendedAnalyzeOptions, SetExtendedSimulateOptions |
 |               |                    | Added (for GHDL) SetSaveWaves, SetExtendedElaborateOptions, SetExtendedRunOptions |
 |               |                    | Added SetInteractiveMode, SetDebugMode, SetLogSignals                         |
