@@ -1510,7 +1510,7 @@ proc UnlinkAndDeleteLibrary {LowerLibraryName ResolvedPathToLib} {
 
   # Unlink Library from Vendor mapping
   if {[catch {vendor_UnlinkLibrary $LowerLibraryName $ResolvedPathToLib} UnlinkErrMsg]} {
-    puts "LibraryError: Unable to unlink $LowerLibraryName"
+    puts "LibraryError: Unable to unlink $LowerLibraryName $UnlinkErrMsg"
   }
   
   if {$::osvvm::RemoveLibraryDirectoryDeletesDirectory} {
@@ -1576,45 +1576,60 @@ proc RemoveLibrary {LibraryName {PathToLib ""}} {
 # -------------------------------------------------
 # RemoveLibraryDirectory
 #
-proc RemoveLibraryDirectory {{PathToLib ""}} {
+proc LocalRemoveLibraryDirectory {PathToLib} {
   variable VhdlLibraryParentDirectory
   variable LibraryList
   variable LibraryDirectoryList
   
+  set ResolvedPathToLib $PathToLib
+  
+  # Remove Libraries OSVVM knows about in $ResolvedPathToLib
+  if {[info exists LibraryList]} {
+    foreach LibraryName $LibraryList {
+      set CurrentPathToLib [lreplace $LibraryName 0 0]
+      if {$ResolvedPathToLib eq $CurrentPathToLib} {
+        RemoveLibrary [lindex $LibraryName 0] $ResolvedPathToLib
+      }
+    }
+  }
+    
+  # Remove directory from LibraryDirectoryList 
+  set FoundDir [lsearch $LibraryDirectoryList "${ResolvedPathToLib}"]
+  if {$FoundDir >= 0} {
+#      puts "LibraryDirectoryList $LibraryDirectoryList"
+    set LibraryDirectoryList [lreplace $LibraryDirectoryList $FoundDir $FoundDir]
+  
+    if {$::osvvm::RemoveLibraryDirectoryDeletesDirectory} {
+#   Original policy, delete stray directories within a library
+#      # Remove Stray Directories - Libraries not registered with OSVVM
+#      foreach LibraryPathName [glob -nocomplain -directory $ResolvedPathToLib -types d *] {
+##        UnlinkAndDeleteLibrary [file tail $LibraryPathName] $ResolvedPathToLib
+#        RemoveLibrary [file tail $LibraryPathName] $ResolvedPathToLib
+#      }
+
+#  Current Policy, do not delete library directory if it still has stuff in it.
+#    Concern, a library parent directory can be anywhere, and hence have source in it.
+      set RemainingFiles [glob -nocomplain -directory $ResolvedPathToLib *]
+      if {$RemainingFiles eq ""} {
+        # Remove Library Directory - All tools except ActiveHDL
+        if {[catch {file delete -force $ResolvedPathToLib} ErrMsg]} {
+          puts "LibraryError: RemoveLibraryDirectory - Unable to remove $ResolvedPathToLib"
+        }
+      } else {
+        puts "Warning: RemoveLibraryDirectory, directory not empty.  Did not delete."
+      }
+    }
+  }
+}
+
+proc RemoveLibraryDirectory {{PathToLib ""}} {
   CheckWorkingDir
   CheckLibraryInit
 
   set ResolvedPathToLib [FindLibraryPath $PathToLib]
   
   if  {[file isdirectory $ResolvedPathToLib]} {
-    # Remove Libraries OSVVM knows about in $ResolvedPathToLib
-    if {[info exists LibraryList]} {
-      foreach LibraryName $LibraryList {
-        if {[regexp $ResolvedPathToLib $LibraryName]} {
-#          puts "RemoveLibrary [lindex $LibraryName 0] $ResolvedPathToLib"
-          RemoveLibrary [lindex $LibraryName 0] $ResolvedPathToLib
-        }
-      }
-    }
-    
-    # Remove directory from LibraryDirectoryList 
-    set FoundDir [lsearch $LibraryDirectoryList "${ResolvedPathToLib}"]
-    if {$FoundDir >= 0} {
-#      puts "LibraryDirectoryList $LibraryDirectoryList"
-      set LibraryDirectoryList [lreplace $LibraryDirectoryList $FoundDir $FoundDir]
-    
-      if {$::osvvm::RemoveLibraryDirectoryDeletesDirectory} {
-        # Remove Stray Directories - Libraries not registered with OSVVM
-        foreach LibraryPathName [glob -nocomplain -directory $ResolvedPathToLib -types d *] {
-          UnlinkAndDeleteLibrary [file tail $LibraryPathName] $ResolvedPathToLib
-        }
-      
-        # Remove Library Directory - All tools except ActiveHDL
-        if {[catch {file delete -force $ResolvedPathToLib} ErrMsg]} {
-          puts "LibraryError: RemoveLibraryDirectory - Unable to remove $ResolvedPathToLib"
-        }
-      }
-    }
+    LocalRemoveLibraryDirectory $ResolvedPathToLib
   } else {
     CallbackOnError_Library "RemoveLibraryDirectory ${PathToLib} failed.  $ResolvedPathToLib is not a directory."
   }
@@ -1633,9 +1648,16 @@ proc RemoveAllLibraries {} {
   variable LibraryList
   variable VhdlWorkingLibrary
 
+#  # Remove Libraries First - handles nested libraries
+#  if {[info exists LibraryList]} {
+#    foreach LibraryName $LibraryList {
+#      RemoveLibrary [lindex $LibraryName 0] ""
+#    }
+#  }
+  # Remove Library Directories
   if {[info exists LibraryDirectoryList]} {
     foreach LibraryDir $LibraryDirectoryList {
-      RemoveLibraryDirectory $LibraryDir 
+      LocalRemoveLibraryDirectory $LibraryDir 
     }
   }
   if {[info exists VhdlWorkingLibrary]} {
