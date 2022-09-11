@@ -56,7 +56,7 @@
   variable simulator   $ToolName ; # Deprecated 
 
 # -------------------------------------------------
-# StartTranscript / StopTranscxript
+# StartTranscript / StopTranscript
 #
 
 # 
