@@ -503,7 +503,7 @@ in the directory ./reports/<test-suite-name>.  An example one is shown below.
   :scale: 50 %
   :align: center
   
-  Test Information Link Table
+  Test Case Detailed Report
 
 
 Note that any place in the report there is a triangle preceding text,
@@ -532,7 +532,8 @@ and a link to any transcript files opened by OSVVM.
 Alert Report
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The Alert Report, shown below, provides detailed information for each AlertLogID
-that is used in a test case.   
+that is used in a test case.  Note that in the case of expected errors, the errors
+still show up as FAILED in the Alert Report and are rectified in the total error count.
 
 .. figure:: images/DemoAlertReport.png
   :name: AlertFig
@@ -544,7 +545,7 @@ that is used in a test case.
 
 Functional Coverage Report(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The Test Case Detailed Reportcontains a 
+The Test Case Detailed Report contains a 
 Functional Coverage Report, shown below, for each 
 functional coverage model used in the test case.
 Note this report is not from the demo.
@@ -559,7 +560,8 @@ Note this report is not from the demo.
 Scoreboard Report(s)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 The Test Case Detailed Report contains a 
-Scoreboard Report, shown below,  for each 
+Scoreboard Report, shown below. There is
+a row in the table for each
 scoreboard model used in the test case.
 
 .. figure:: images/DemoScoreboardReport.png
