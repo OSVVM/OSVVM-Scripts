@@ -136,8 +136,12 @@ Initialize the OSVVM Script environment by doing:
    rlwrap tclsh
    source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartXcelium.tcl
 
-To simplify this, put ``source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartXcelium.tcl`` 
-in the ``.tclshrc`` file.
+To simplify this, add the following line to the ``.tclshrc`` file.
+
+.. code:: tcl
+
+   source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartXcelium.tcl
+ 
 In bash, add ``alias ssim='rlwrap tclsh'`` to your ``.bashrc``.
 
 Xilinx XSIM
@@ -938,8 +942,8 @@ The following commands set options for analyze and simulate.
    - If false, sets variables AnalyzeErrorStopCount and SimulateErrorStopCount to previous value
    - If not specified, true is the default.
    - Initialized to false (so simulations run faster)
-- GetDebugMode
-   - Returns the state of DebugMode.
+- GetInteractiveMode
+   - Returns the state of InteractiveMode.
 
 
 The values for a commands ``options`` value are typically simulator dependent.
