@@ -1368,7 +1368,7 @@ proc SetInteractiveMode {{Options "true"}} {
   set SimulateInteractive $Options
   
   if {($SimulateInteractive) && !($PreviousSimulateInteractive)} {
-    # When running interactive, set ErrorStopCounts to 1
+    # Only save ErrorStopCounts when options change from FALSE to TRUE
     set SavedAnalyzeErrorStopCount  $AnalyzeErrorStopCount
     set SavedSimulateErrorStopCount $SimulateErrorStopCount
   }
