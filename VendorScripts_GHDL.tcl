@@ -167,6 +167,8 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   if {[catch {exec ghdl -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
     PrintWithPrefix "Error:" $AnalyzeErrorMessage
     error "Failed: analyze $FileName"
+  } else {
+    puts $AnalyzeErrorMessage
   }
 }
 
@@ -215,6 +217,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   if { [catch {exec ghdl --elab-run {*}${SimulateOptions}} SimulateErrorMessage]} { 
     PrintWithPrefix "Error:" $SimulateErrorMessage
     error "Failed: simulate $LibraryUnit"
+  } else {
+    puts $SimulateErrorMessage
   }
   
   # Save Coverage Information
