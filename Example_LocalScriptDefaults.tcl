@@ -100,6 +100,14 @@ namespace eval ::osvvm {
     #   variable FailOnTestCaseErrors     "false"
   
   #
+  # Stop Counts for Failures seen by Analyze and Simulate
+  #   Value 0 is special to mean, don't stop
+  #   Otherwise Errors >= ErrorsStopCount, stop the build.
+  #
+    #  variable AnalyzeErrorStopCount       0
+    #  variable SimulateErrorStopCount      0
+
+  #
   #  Generate HTML transcripts if TranscriptExtension = "html".  
   #    Text based log files are always created  
   #
@@ -123,14 +131,6 @@ namespace eval ::osvvm {
     #  variable CoverageSimulateEnable   "false"
     #  variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults] 
     #  variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
-
-  #
-  # Stop Counts for Failures seen by Analyze and Simulate
-  #   Value 0 is special to mean, don't stop
-  #   Otherwise Errors >= ErrorsStopCount, stop the build.
-  #
-    #  variable AnalyzeErrorStopCount       0
-    #  variable SimulateErrorStopCount      0
 
   #
   #  Simulation Controls
