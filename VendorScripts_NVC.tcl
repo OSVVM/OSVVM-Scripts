@@ -107,7 +107,7 @@ proc vendor_library {LibraryName PathToLib} {
   set  GlobalOptions [concat --std=${VhdlShortVersion} --work=${LibraryName}:${PathAndLib}]
   puts "nvc ${GlobalOptions} --init"
   if {[catch {exec nvc {*}${GlobalOptions} --init} InitErrorMessage]} {
-    PrintWithPrefix "Error:" $InitErrorMessage
+    puts $InitErrorMessage
     error "Failed: library init $LibraryName ($PathAndLib)"
   }
 
@@ -164,7 +164,7 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   set  AnalyzeOptions [concat {*}${OptionalCommands} ${FileName}]
   puts "nvc ${GlobalOptions} -a $AnalyzeOptions"
   if {[catch {exec nvc {*}${GlobalOptions} -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
-    PrintWithPrefix "Error:" $AnalyzeErrorMessage
+    puts $AnalyzeErrorMessage
     error "Failed: analyze $FileName"
   }
 }
@@ -208,12 +208,12 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   set RunOptions [concat {*}${LocalRunOptions} ${LibraryUnit}]
   puts "nvc ${GlobalOptions} -e ${ElaborateOptions}" 
   if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions}} ElaborateErrorMessage]} { 
-    PrintWithPrefix "Error:" $ElaborateErrorMessage
+    puts $ElaborateErrorMessage
     error "Failed: simulate $LibraryUnit"
   }
   puts "nvc ${GlobalOptions} -r ${RunOptions}" 
   if { [catch {exec nvc {*}${GlobalOptions} -r {*}${RunOptions}} RunErrorMessage]} { 
-    PrintWithPrefix "Error:" $RunErrorMessage
+    puts $RunErrorMessage
     error "Failed: simulate $LibraryUnit"
   }
   
