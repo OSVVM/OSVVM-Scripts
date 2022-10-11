@@ -212,11 +212,8 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     error "Failed: simulate $LibraryUnit"
   }
   puts "nvc ${GlobalOptions} -r ${RunOptions}" 
-  if { [catch {exec -ignorestderr nvc {*}${GlobalOptions} -r {*}${RunOptions} 2>&1} RunOutput]} {
-    puts $RunOutput
+  if { [catch {exec nvc {*}${GlobalOptions} -r {*}${RunOptions} >@ stdout 2>@ stdout}]} {
     error "Failed: simulate $LibraryUnit"
-  } else {
-    puts $RunOutput
   }
   
   # Save Coverage Information
