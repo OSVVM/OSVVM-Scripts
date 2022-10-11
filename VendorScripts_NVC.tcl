@@ -196,10 +196,9 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
 
   set LocalReportDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
 
+  set LocalRunOptions [concat "--ieee-warnings=off" {*}${ExtendedRunOptions}]
   if {$::osvvm::SaveWaves} {
-    set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.fst ]
-  } else {
-    set LocalRunOptions ${ExtendedRunOptions}
+    set LocalRunOptions [concat {*}${LocalRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.fst ]
   }
   
 # format for select file  
