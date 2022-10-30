@@ -90,7 +90,8 @@ namespace eval ::osvvm {
     variable PrintPrefix "<pre>"
 
     while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
-      set LineOfLogFile [regsub {^KERNEL: %%} [regsub {^# } $RawLineOfLogFile ""] "%%"]
+#      set LineOfLogFile [regsub {^KERNEL: %%} [regsub {^# } $RawLineOfLogFile ""] "%%"]
+      set LineOfLogFile [regsub {^KERNEL: } [regsub {^# } $RawLineOfLogFile ""] ""]
         
       if {$::osvvm::TranscriptExtension eq "html"} {
         Log2Html  
@@ -153,7 +154,7 @@ namespace eval ::osvvm {
       }
       if {[regexp {Error:|error:} $LineOfLogFile] } {
         puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
-      } elseif {[regexp {%% DONE   FAILED} $LineOfLogFile]} {
+      } elseif {[regexp {DONE   FAILED} $LineOfLogFile]} {
         set PrintPrefix "${PrintPrefix}<span style=color:#FF0000>$LineOfLogFile</span>"
         puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
       } else {
@@ -175,7 +176,7 @@ namespace eval ::osvvm {
     variable OsvvmFileHandle
     variable LineOfLogFile
 
-    if {[regexp {^%%|^simulate } $LineOfLogFile] } {
+    if {[regexp {^%%|^simulate |^TestCase } $LineOfLogFile] } {
       puts $OsvvmFileHandle $LineOfLogFile
     }
   }
