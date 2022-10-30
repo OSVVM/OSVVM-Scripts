@@ -343,7 +343,6 @@ proc build {{Path_Or_File "."}} {
 }
 
 proc LocalBuild {BuildName Path_Or_File} {
-  variable CurrentWorkingDirectory
   variable TestSuiteStartTimeMs
   variable TranscriptExtension
   variable RanSimulationWithCoverage 
@@ -1709,6 +1708,15 @@ proc FileExists {FileName} {
   return [file exists [file join ${LocalWorkingDirectory} ${FileName}]]
 }
 
+proc JoinWorkingDirectory {Directory} {
+  variable CurrentWorkingDirectory
+  return [file join $CurrentWorkingDirectory $Directory]
+}
+
+proc ChangeWorkingDirectory {Directory} {
+  variable CurrentWorkingDirectory
+  set CurrentWorkingDirectory [file join $CurrentWorkingDirectory $Directory]
+}
 
 # Don't export the following due to conflicts with Tcl built-ins
 # map
@@ -1739,6 +1747,7 @@ namespace export SetLogSignals GetLogSignals
 namespace export SetSecondSimulationTopLevel GetSecondSimulationTopLevel
 namespace export MergeCoverage
 namespace export OsvvmLibraryPath
+namespace export JoinWorkingDirectory ChangeWorkingDirectory
 
 # Exported only for tesing purposes
 namespace export FindLibraryPath CreateLibraryPath EndSimulation FindExistingLibraryPath
