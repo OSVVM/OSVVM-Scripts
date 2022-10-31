@@ -176,13 +176,14 @@ proc vendor_end_previous_simulation {} {
 # -------------------------------------------------
 # Simulate
 #
-proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SimulateTimeUnits
   variable TestSuiteName
   variable TestCaseFileName
   variable SimulateOptions
 
-  set SimulateOptions [concat {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
+#  puts "vendor_simulate  LibraryName: $LibraryName    LibraryUnit:  $LibraryUnit   args:  $args"
+  set SimulateOptions [concat -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args}]
 
   puts "vsim ${SimulateOptions}"
         vsim {*}${SimulateOptions}

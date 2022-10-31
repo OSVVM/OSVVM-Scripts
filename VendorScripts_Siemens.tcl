@@ -265,7 +265,7 @@ proc vendor_end_previous_simulation {} {
 # std_logic_vector.   ResolutionPkg supports a richer set of types, such as 
 # integer_max, real_max, ...
 #
-proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable TestSuiteName
@@ -277,7 +277,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
     set SimulateOptions "-voptargs=$::osvvm::DebugOptions"
   }
 
-  set SimulateOptions "$SimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} ${OptionalCommands} -suppress 8683 -suppress 8684"
+  set SimulateOptions "$SimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} ${args} -suppress 8683 -suppress 8684"
 
 #  puts "vsim {*}${SimulateOptions}"
   vsim {*}${SimulateOptions}

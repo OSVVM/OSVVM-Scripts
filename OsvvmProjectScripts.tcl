@@ -1038,17 +1038,23 @@ proc SimulateRunDesignScripts {TestName Directory} {
 }
 
 proc SimulateRunSubScripts {LibraryUnit Directory} {
-  variable ToolVendor
-  variable ToolName
+  variable TestCaseName 
+  variable ToolVendor 
+  variable ToolName 
+  variable NoGui 
   
   RunIfFileExists [file join ${Directory} ${ToolVendor}.tcl]
   RunIfFileExists [file join ${Directory} ${ToolName}.tcl]
-  RunIfFileExists [file join ${Directory} wave.do]
+  if {! $NoGui} {
+    RunIfFileExists [file join ${Directory} wave.do]
+  }
   SimulateRunDesignScripts ${LibraryUnit} ${Directory}
+  if {$TestCaseName ne $LibraryUnit} {
+    SimulateRunDesignScripts ${TestCaseName} ${Directory}
+  }
 }
 
 proc SimulateRunScripts {LibraryUnit} {
-  variable TestCaseName 
   variable  SCRIPT_DIR
   variable  CurrentSimulationDirectory
   variable  CurrentWorkingDirectory
@@ -1059,15 +1065,6 @@ proc SimulateRunScripts {LibraryUnit} {
   }
   if {(${SCRIPT_DIR} ne ${CurrentWorkingDirectory}) && (${SCRIPT_DIR} ne ${CurrentSimulationDirectory})} {
     SimulateRunSubScripts ${LibraryUnit} ${SCRIPT_DIR}
-  }
-  if {$TestCaseName ne $LibraryUnit} {
-    SimulateRunDesignScripts ${TestCaseName} ${CurrentWorkingDirectory}
-    if {${CurrentSimulationDirectory} ne ${CurrentWorkingDirectory}} {
-      SimulateRunDesignScripts ${TestCaseName} ${CurrentSimulationDirectory}
-    }
-    if {(${SCRIPT_DIR} ne ${CurrentWorkingDirectory}) && (${SCRIPT_DIR} ne ${CurrentSimulationDirectory})} {
-      SimulateRunDesignScripts ${TestCaseName} ${SCRIPT_DIR}
-    }
   }
 }
 
