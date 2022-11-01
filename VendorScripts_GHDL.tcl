@@ -65,6 +65,9 @@
   variable ToolNameVersion [regsub {\s+} $VersionString -]
 #   puts $ToolNameVersion
 
+  variable GhdlRunOptions ""
+
+
 # -------------------------------------------------
 # StartTranscript / StopTranscript
 #
@@ -187,14 +190,15 @@ proc vendor_end_previous_simulation {} {
 # -------------------------------------------------
 # Simulate
 #
-proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+proc vendor_simulate {LibraryName LibraryUnit args} {
   variable VhdlShortVersion
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable GHDL_WORKING_LIBRARY_PATH
   variable ExtendedElaborateOptions  ""
   variable ExtendedRunOptions  ""
+  variable GhdlRunOptions
 
-  set LocalElaborateOptions [concat --std=${VhdlShortVersion} --syn-binding {*}${ExtendedElaborateOptions} --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands}]
+  set LocalElaborateOptions [concat --std=${VhdlShortVersion} --syn-binding {*}${ExtendedElaborateOptions} --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${args}]
 
   set LocalReportDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
 
@@ -206,10 +210,11 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   }
   
   if {$::osvvm::SaveWaves} {
-    set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.ghw ${SignalSelectionOptions} ]
+    set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.ghw ${SignalSelectionOptions} ${GhdlRunOptions} ]
   } else {
-    set LocalRunOptions ${ExtendedRunOptions}
+    set LocalRunOptions [concat {*}${ExtendedRunOptions} ${GhdlRunOptions}]
   }
+  set GhdlRunOptions ""
   
 # format for select file  
   set SimulateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit} {*}${LocalRunOptions}]
@@ -246,8 +251,12 @@ proc FindFirstFile {Name} {
 
 # -------------------------------------------------
 proc vendor_generic {Name Value} {
+  variable GhdlRunOptions
   
-  return "-g${Name}=${Value}"
+  append GhdlRunOptions "-g${Name}=${Value} "
+  
+#  return "-g${Name}=${Value}"
+  return ""
 }
 
 
