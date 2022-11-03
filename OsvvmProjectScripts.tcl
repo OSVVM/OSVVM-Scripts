@@ -994,7 +994,7 @@ proc LocalSimulate {LibraryUnit args} {
   puts "Simulation Start time [clock format $SimulateStartTime -format %T]"
 
   CallbackBefore_Simulate $LibraryUnit $args
-  vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} ${SimulateOptions}
+  vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} {*}${SimulateOptions}
   CallbackAfter_Simulate  $LibraryUnit $args
 }
 
@@ -1079,6 +1079,22 @@ proc generic {Name Value} {
 #   return "-g${Name}=${Value}"
   return [vendor_generic ${Name} ${Value}]
 }
+
+# -------------------------------------------------
+proc DoWaves {args} {
+  if {![catch {info body vendor_DoWaves} err]} {
+    return [vendor_DoWaves {*}$args]
+  } else {
+    set WaveOptions ""
+    if {$args ne ""} {
+      foreach wave {*}$args {
+        append WaveOptions "-do $wave " 
+      }
+    }
+    return $WaveOptions
+  } 
+}
+
 
 # -------------------------------------------------
 proc CreateVerilogLibraryParams {prefix} {
@@ -1719,7 +1735,7 @@ proc ChangeWorkingDirectory {Directory} {
 # map
 
 namespace export analyze simulate build include library RunTest SkipTest TestSuite TestCase
-namespace export generic
+namespace export generic DoWaves
 namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
 namespace export RemoveLibrary RemoveLibraryDirectory RemoveAllLibraries RemoveLocalLibraries 
 namespace export CreateDirectory
@@ -1748,7 +1764,6 @@ namespace export JoinWorkingDirectory ChangeWorkingDirectory
 
 # Exported only for tesing purposes
 namespace export FindLibraryPath CreateLibraryPath EndSimulation FindExistingLibraryPath
-
 
 
 # end namespace ::osvvm
