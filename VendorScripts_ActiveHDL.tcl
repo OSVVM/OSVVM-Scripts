@@ -253,7 +253,7 @@ proc vendor_end_previous_simulation {} {
 # -------------------------------------------------
 # Simulate
 #
-proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor
@@ -266,7 +266,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   # With sim_working_folder setting should no longer need MY_START_DIR
   set MY_START_DIR $::osvvm::CurrentSimulationDirectory
   
-  set SimulateOptions [concat {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
+  set SimulateOptions [concat {*}${args} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
 
   puts "asim ${SimulateOptions}"
         asim {*}${SimulateOptions}
