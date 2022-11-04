@@ -138,20 +138,20 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlVersion
   
   # For now, do not use -dbg flag with coverage.
   set DebugOptions ""
   
-  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${args} ${FileName}]
   
   puts "vcom $AnalyzeOptions"
         vcom {*}$AnalyzeOptions
 }
 
-proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
-  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+proc vendor_analyze_verilog {LibraryName FileName args} {
+  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${args} ${FileName}]
   puts "vlog $AnalyzeOptions"
         vlog {*}$AnalyzeOptions
 }
@@ -166,17 +166,18 @@ proc vendor_end_previous_simulation {} {
 # -------------------------------------------------
 # Simulate
 #
-proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor
   variable TestSuiteName
   variable TestCaseFileName
 
-  set SimulateOptions [concat {*}${OptionalCommands} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
+  puts "vendor simulate LN=$LibraryName LU=$LibraryUnit A=$args"
+  set SimulateOptions [concat {*}${args} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
 
   puts "vsim ${SimulateOptions}"
-        vsim {*}${SimulateOptions}
+  eval  vsim {*}${SimulateOptions}
         
   SimulateRunScripts ${LibraryUnit}
 
