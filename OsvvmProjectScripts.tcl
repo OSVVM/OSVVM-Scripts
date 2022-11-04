@@ -1012,10 +1012,13 @@ proc SimulateRunDesignScripts {TestName Directory} {
 proc SimulateRunSubScripts {LibraryUnit Directory} {
   variable ToolVendor
   variable ToolName
+  variable NoGui
   
   RunIfFileExists [file join ${Directory} ${ToolVendor}.tcl]
   RunIfFileExists [file join ${Directory} ${ToolName}.tcl]
-  RunIfFileExists [file join ${Directory} wave.do]
+  if {! $NoGui} {
+    RunIfFileExists [file join ${Directory} wave.do]
+  }
   SimulateRunDesignScripts ${LibraryUnit} ${Directory}
 }
 
