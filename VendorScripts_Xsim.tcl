@@ -116,18 +116,18 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {}
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlVersion
   variable VhdlLibraryFullPath
   
   set DebugOptions ""
   
-  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -work ${LibraryName} {*}${args} ${FileName}]
   puts "xvhdl {*}$AnalyzeOptions"
   exec  xvhdl {*}$AnalyzeOptions
 }
 
-proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_verilog {LibraryName FileName args} {
 #  Untested branch for Verilog - will need adjustment
    puts "Verilog is not supported for now"
 #   eval vlog -work ${LibraryName} ${FileName}
@@ -144,7 +144,7 @@ proc vendor_end_previous_simulation {} {
 # -------------------------------------------------
 # Simulate
 #
-proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor

@@ -146,7 +146,7 @@ proc CreateToolSetup {} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlShortVersion
   variable VhdlLibraryFullPath
 #  variable VENDOR_TRANSCRIPT_FILE
@@ -160,7 +160,7 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
 }
 
 
-proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_verilog {LibraryName FileName args} {
 #  Untested branch for Verilog - will need adjustment
   CreateToolSetup
 
@@ -179,7 +179,7 @@ proc vendor_end_previous_simulation {} {
 # -------------------------------------------------
 # Simulate
 #
-proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor
@@ -233,7 +233,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   puts  $RunFile "exit" 
   close $RunFile
 
-  # removed $OptionalCommands
+  # removed $args
   puts  "xmelab  ${LibraryName}.${LibraryUnit}"
   eval  exec xmelab  ${LibraryName}.${LibraryUnit}  
 #  eval  exec xmelab  ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 

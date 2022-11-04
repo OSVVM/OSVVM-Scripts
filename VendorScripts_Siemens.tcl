@@ -167,16 +167,16 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlVersion
   
-  set  AnalyzeOptions [concat -${VhdlVersion} -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  set  AnalyzeOptions [concat -${VhdlVersion} -work ${LibraryName} {*}${args} ${FileName}]
 #  puts "vcom $AnalyzeOptions"
         vcom {*}$AnalyzeOptions
 }
 
-proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
-  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+proc vendor_analyze_verilog {LibraryName FileName args} {
+  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${args} ${FileName}]
   puts "vlog $AnalyzeOptions"
         vlog {*}$AnalyzeOptions
 }

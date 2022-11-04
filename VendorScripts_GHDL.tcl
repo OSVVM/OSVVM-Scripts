@@ -155,7 +155,7 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlShortVersion
   variable ghdl 
 ##  variable console
@@ -164,7 +164,7 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable VhdlLibraryFullPath
   variable GHDL_WORKING_LIBRARY_PATH
 
-  set  AnalyzeOptions [concat --std=${VhdlShortVersion} -Wno-library -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${OptionalCommands} ${FileName}]
+  set  AnalyzeOptions [concat --std=${VhdlShortVersion} -Wno-library -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${args} ${FileName}]
   puts "ghdl -a $AnalyzeOptions"
 #  exec ghdl -a {*}$AnalyzeOptions
   if {[catch {exec ghdl -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
@@ -175,7 +175,7 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   }
 }
 
-proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_verilog {LibraryName FileName args} {
 
   puts "Analyzing verilog files not supported by GHDL" 
 }

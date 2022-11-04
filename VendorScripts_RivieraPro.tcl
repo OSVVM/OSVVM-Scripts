@@ -142,7 +142,7 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlVersion
   
   set EffectiveCoverageAnalyzeEnable    [expr $::osvvm::CoverageEnable && $::osvvm::CoverageAnalyzeEnable]
@@ -154,13 +154,13 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
     set DebugOptions "-dbg"
   }
   
-  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${args} ${FileName}]
   puts "vcom $AnalyzeOptions"
         vcom {*}$AnalyzeOptions
 }
 
-proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
-  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+proc vendor_analyze_verilog {LibraryName FileName args} {
+  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${args} ${FileName}]
   puts "vlog $AnalyzeOptions"
         vlog {*}$AnalyzeOptions
 }

@@ -136,7 +136,7 @@ proc CreateToolSetup {} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlShortVersion
   variable VhdlLibraryFullPath
 #  variable VENDOR_TRANSCRIPT_FILE
@@ -149,7 +149,7 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
 ##  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -kdb -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
 }
 
-proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_verilog {LibraryName FileName args} {
 #  Untested branch for Verilog - will need adjustment
    puts "Verilog is not supported for now"
 }
@@ -165,7 +165,7 @@ proc vendor_end_previous_simulation {} {
 # -------------------------------------------------
 # Simulate
 #
-proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SCRIPT_DIR
   variable SimulateTimeUnits
   variable ToolVendor

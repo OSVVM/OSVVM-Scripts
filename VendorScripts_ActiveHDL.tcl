@@ -193,7 +193,7 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
+proc vendor_analyze_vhdl {LibraryName RelativePathToFile args} {
   variable VhdlVersion
   variable VhdlLibraryFullPath
   global sim_working_folder
@@ -220,7 +220,7 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
     set DebugOptions "-dbg"
   }
   
-  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${args} ${FileName}]
   
   echo "vcom {*}$AnalyzeOptions" > ${FileAlreadyAdded}
 #  puts "vcom {*}$AnalyzeOptions"
@@ -229,7 +229,7 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile OptionalCommands} {
   cd $MY_START_DIR
 }
 
-proc vendor_analyze_verilog {LibraryName File_Relative_Path OptionalCommands} {
+proc vendor_analyze_verilog {LibraryName File_Relative_Path args} {
   global sim_working_folder
 
   set sim_working_folder $::osvvm::CurrentSimulationDirectory
@@ -237,7 +237,7 @@ proc vendor_analyze_verilog {LibraryName File_Relative_Path OptionalCommands} {
   
   set FileName [file normalize $File_Relative_Path]
 
-  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${OptionalCommands} ${FileName}]
+  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${args} ${FileName}]
   puts "vlog $AnalyzeOptions"
         vlog {*}$AnalyzeOptions
   cd $MY_START_DIR

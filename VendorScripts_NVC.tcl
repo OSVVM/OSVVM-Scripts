@@ -152,7 +152,7 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 # -------------------------------------------------
 # analyze
 #
-proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlShortVersion
 ##  variable console
 ##  variable NVC_TRANSCRIPT_FILE
@@ -161,7 +161,7 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   variable NVC_WORKING_LIBRARY_PATH
 
   set  GlobalOptions [concat --std=${VhdlShortVersion} -H 128m --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
-  set  AnalyzeOptions [concat {*}${OptionalCommands} ${FileName}]
+  set  AnalyzeOptions [concat {*}${args} ${FileName}]
   puts "nvc ${GlobalOptions} -a $AnalyzeOptions"
   if {[catch {exec nvc {*}${GlobalOptions} -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
     puts $AnalyzeErrorMessage
@@ -169,7 +169,7 @@ proc vendor_analyze_vhdl {LibraryName FileName OptionalCommands} {
   }
 }
 
-proc vendor_analyze_verilog {LibraryName FileName OptionalCommands} {
+proc vendor_analyze_verilog {LibraryName FileName args} {
 
   puts "Analyzing verilog files not supported by NVC" 
 }
@@ -184,7 +184,7 @@ proc vendor_end_previous_simulation {} {
 # -------------------------------------------------
 # Simulate
 #
-proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
+proc vendor_simulate {LibraryName LibraryUnit args} {
   variable VhdlShortVersion
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable NVC_WORKING_LIBRARY_PATH
@@ -192,7 +192,7 @@ proc vendor_simulate {LibraryName LibraryUnit OptionalCommands} {
   variable ExtendedRunOptions  ""
 
   set LocalGlobalOptions [concat --std=${VhdlShortVersion} -H 128m --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
-  set LocalElaborateOptions [concat {*}${ExtendedElaborateOptions} {*}${OptionalCommands}]
+  set LocalElaborateOptions [concat {*}${ExtendedElaborateOptions} {*}${args}]
 
   set LocalReportDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
 
