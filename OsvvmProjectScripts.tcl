@@ -1737,14 +1737,14 @@ proc FileExists {FileName} {
   return [file exists [file join ${LocalWorkingDirectory} ${FileName}]]
 }
 
-proc JoinWorkingDirectory {Directory} {
+proc JoinWorkingDirectory {RelativePath} {
   variable CurrentWorkingDirectory
-  return [file join $CurrentWorkingDirectory $Directory]
+  return [file join $CurrentWorkingDirectory $RelativePath]
 }
 
-proc ChangeWorkingDirectory {Directory} {
+proc ChangeWorkingDirectory {RelativePath} {
   variable CurrentWorkingDirectory
-  set CurrentWorkingDirectory [file join $CurrentWorkingDirectory $Directory]
+  set CurrentWorkingDirectory [file join $CurrentWorkingDirectory $RelativePath]
 }
 
 # Don't export the following due to conflicts with Tcl built-ins
