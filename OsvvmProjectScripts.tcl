@@ -5,7 +5,7 @@
 #  Maintainer:        Jim Lewis      email:  jim@synthworks.com
 #  Contributor(s):
 #     Jim Lewis           email:  jim@synthworks.com
-#     Markus Ferringer    Patterns for error handling and callbacks
+#     Markus Ferringer    Patterns for error handling and callbacks, ...
 #
 #  Description
 #    Tcl procedures with the intent of making running
@@ -310,35 +310,45 @@ proc build {{Path_Or_File "."}} {
     
     set BuildStarted "true"
     set BuildName [SetBuildName $Path_Or_File]
-        
+
     set LogFileName ${BuildName}.log ; #${TranscriptExtension}
 
     StartTranscript ${LogFileName}
-        
+
     #  Catch any errors from the build and handle them below
     set BuildErrorCode [catch {LocalBuild $BuildName $Path_Or_File} BuildErrMsg]
     set LocalBuildErrorInfo $::errorInfo
     set BuildStarted "false"
-    
+
     # Try to create reports, even if the build failed
     set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
     set LocalReportErrorInfo $::errorInfo
-    
-    StopTranscript ${LogFileName}
-    
-    set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
-    set Log2ErrorInfo $::errorInfo
-    
-    if {$BuildErrorCode != 0 || $AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
-      CallbackOnError_Build $Path_Or_File $BuildErrorCode $LocalBuildErrorInfo 
-      
-    } 
-    if {($ReportErrorCode != 0) || ($Log2ErrorCode != 0) || ($ScriptErrorCount != 0)} {  
+
+    if {($ReportErrorCode != 0) || ($ScriptErrorCount != 0)} {  
       CallbackOnError_AfterBuildReports $LocalReportErrorInfo
     } 
+
+    StopTranscript ${LogFileName}
+
+    # Cannot generate html log files until transcript is closed - previous step
+    set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
+    set Log2ErrorInfo $::errorInfo
+
+
+    if {$BuildErrorCode != 0 || $AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
+      CallbackOnError_Build $Path_Or_File $BuildErrorCode $LocalBuildErrorInfo 
+    } 
+    # Fail on Test Case Errors
     if {($::osvvm::BuildStatus eq "FAILED") && ($::osvvm::FailOnTestCaseErrors)} {
-        error "Test Finished with Test Case Errors"
+        error "Test finished with Test Case Errors"
     }
+    # Fail on Report / Script Errors?
+    if {($ReportErrorCode != 0) || ($Log2ErrorCode != 0) || ($ScriptErrorCount != 0)} {  
+      # End Simulation with errors
+      if {$::osvvm::FailOnReportErrors} {
+        error "Test finished with either Report or Script (wave.do) errors."
+      }
+    } 
   }
 }
 
@@ -1046,7 +1056,9 @@ proc SimulateRunSubScripts {LibraryUnit Directory} {
   RunIfFileExists [file join ${Directory} ${ToolVendor}.tcl]
   RunIfFileExists [file join ${Directory} ${ToolName}.tcl]
   if {! $NoGui} {
-    RunIfFileExists [file join ${Directory} wave.do]
+    if {[catch {RunIfFileExists [file join ${Directory} wave.do]} errorMsg]} {
+      CallbackOnError_WaveDo $errorMsg $::errorInfo $Directory $LibraryUnit  
+    }
   }
   SimulateRunDesignScripts ${LibraryUnit} ${Directory}
   if {$TestCaseName ne $LibraryUnit} {
@@ -1059,11 +1071,15 @@ proc SimulateRunScripts {LibraryUnit} {
   variable  CurrentSimulationDirectory
   variable  CurrentWorkingDirectory
   
+  set NormalizedSimulationDirectory [file normalize $CurrentSimulationDirectory]
+  set NormalizedWorkingDirectory    [file normalize $CurrentWorkingDirectory]
+  set NormalizedScriptDirectory     [file normalize $SCRIPT_DIR]
+  
   SimulateRunSubScripts ${LibraryUnit} ${CurrentWorkingDirectory}
-  if {${CurrentSimulationDirectory} ne ${CurrentWorkingDirectory}} {
+  if {${NormalizedSimulationDirectory} ne ${NormalizedWorkingDirectory}} {
     SimulateRunSubScripts ${LibraryUnit} ${CurrentSimulationDirectory}
   }
-  if {(${SCRIPT_DIR} ne ${CurrentWorkingDirectory}) && (${SCRIPT_DIR} ne ${CurrentSimulationDirectory})} {
+  if {(${NormalizedScriptDirectory} ne ${NormalizedWorkingDirectory}) && (${NormalizedScriptDirectory} ne ${NormalizedSimulationDirectory})} {
     SimulateRunSubScripts ${LibraryUnit} ${SCRIPT_DIR}
   }
 }

@@ -95,6 +95,7 @@ namespace eval ::osvvm {
     #
     variable AnalyzeErrorInfo          ""
     variable SimulateErrorInfo         ""
+    variable WaveErrorInfo             ""
     variable BuildErrorInfo            ""
     variable BuildReportErrorInfo      ""
     variable SimulateReportErrorInfo   ""

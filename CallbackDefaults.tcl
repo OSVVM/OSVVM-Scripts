@@ -151,6 +151,17 @@ namespace eval ::osvvm {
       error "SimulateError: simulate $args"
     }
   }
+
+  proc CallbackOnError_WaveDo {ErrMsg LocalErrorInfo Directory LibraryUnit} {
+    set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
+    
+    set ::osvvm::WaveErrorInfo    $LocalErrorInfo
+
+    puts "WaveError: Error while doing source $Directory/wave.do during simulate $LibraryUnit: $ErrMsg"
+    puts "For tcl errorInfo, puts \$::osvvm::WaveErrorInfo"
+    
+    # No errors are signaled here
+  }
   
   #
   #  Handling errors in generating Build Reports
@@ -161,14 +172,11 @@ namespace eval ::osvvm {
 # Todo: Is this extra?  Already printing info below
 
     # Continue current build
-    puts  "ReportError: during build.  See previous messages for details."
+    puts  "ScriptError: during build.  See previous messages for details."
     puts  "Please include your simulator version in any issue reports"
     puts  "For tcl errorInfo, puts \$::osvvm::BuildReportErrorInfo"
     
-    # End Simulation with errors
-    if {$::osvvm::FailOnReportErrors} {
-      error "Build failed during AfterBuildReports."
-    }
+    # Errors are signaled later in the build
   }  
 
   proc LocalOnError_BuildReports {ProcName FileName errmsg} {

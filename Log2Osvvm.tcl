@@ -152,10 +152,12 @@ namespace eval ::osvvm {
       if {[regexp {^TestCase} $LineOfLogFile] } {
         set TestCaseName [lindex $LineOfLogFile 1]
       }
-      if {[regexp {Error:|error:} $LineOfLogFile] } {
-        puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
-      } elseif {[regexp {DONE   FAILED} $LineOfLogFile]} {
+      if {[regexp {DONE   FAILED} $LineOfLogFile]} {
         set PrintPrefix "${PrintPrefix}<span style=color:#FF0000>$LineOfLogFile</span>"
+        puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
+      } elseif {[regexp {^WaveError:} $LineOfLogFile] } {
+        puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
+      } elseif {[regexp {^Error:|^error:} $LineOfLogFile] } {
         puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
       } else {
         puts $HtmlFileHandle $LineOfLogFile
