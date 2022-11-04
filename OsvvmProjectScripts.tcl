@@ -1017,7 +1017,9 @@ proc SimulateRunSubScripts {LibraryUnit Directory} {
   RunIfFileExists [file join ${Directory} ${ToolVendor}.tcl]
   RunIfFileExists [file join ${Directory} ${ToolName}.tcl]
   if {! $NoGui} {
-    RunIfFileExists [file join ${Directory} wave.do]
+    if {[catch {RunIfFileExists [file join ${Directory} wave.do]} errorMsg]} {
+      puts "Error loading wave.do: $errorMsg"
+    }
   }
   SimulateRunDesignScripts ${LibraryUnit} ${Directory}
 }
