@@ -144,7 +144,7 @@ proc include {Path_Or_File} {
   set StartingPath ${CurrentWorkingDirectory}
 
   set JoinName [file join ${StartingPath} ${Path_Or_File}]
-  set NormName [ReducePath $JoinName]
+  set NormName [file normalize $JoinName]
   set RootDir  [file dirname $NormName]
   # Normalize to handle ".." and "."
   set NameToHandle [file tail [file normalize $NormName]]
@@ -491,35 +491,6 @@ proc CheckSimulationDirs {} {
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     CreateDirectory [file join $CurrentSimulationDirectory $::osvvm::CoverageDirectory $::osvvm::TestSuiteName]
   }
-}
-
-# -------------------------------------------------
-# ReducePath
-#   Remove "." and ".." from path
-#
-proc ReducePath {PathIn} {
-
-  set CharCount 0
-  set NewPath {}
-  foreach item [file split $PathIn] {
-    if {$item ne ".."}  {
-      if {$item ne "."}  {
-        lappend NewPath $item
-        incr CharCount 1
-      }
-    } else {
-      if {$CharCount >= 1} {
-        set NewPath [lreplace $NewPath end end]
-        incr CharCount -1
-      } else {
-        lappend NewPath $item
-      }
-    }
-  }
-  if {$NewPath eq ""} {
-    set NewPath "."
-  }
-  return [eval file join $NewPath]
 }
 
 # -------------------------------------------------
@@ -887,7 +858,7 @@ proc LocalAnalyze {FileName args} {
   puts "analyze $FileName"                        ; # EchoOsvvmCmd
 
 #  set NormFileName  [file normalize ${CurrentWorkingDirectory}/${FileName}]
-  set NormFileName  [ReducePath [file join ${CurrentWorkingDirectory} ${FileName}]]
+  set NormFileName  [file normalize [file join ${CurrentWorkingDirectory} ${FileName}]]
   set FileExtension [file extension $FileName]
 
   if {$FileExtension eq ".vhd" || $FileExtension eq ".vhdl"} {
