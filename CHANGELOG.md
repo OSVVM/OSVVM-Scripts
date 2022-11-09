@@ -2,6 +2,8 @@
 
 | **Revision**  |   **Release Summary**                                                          | 
 |---------------|--------------------------------------------------------------------------------| 
+| 2022.11       |  TestName deprecated TestCase (supported for backward compatibility)           |
+|               |  Scripts now find all scoreboard YAML reports
 | 2022.10       |  Added ChangeWorkingDirectory and JoinWorkingDirectory.                        |
 |               |  Fixed GHDL log files. Fixed GHDL Generic Handling.                            |
 |               |  Updated reporting to better flag errors in _log.html - Updated Log2Osvvm      |
