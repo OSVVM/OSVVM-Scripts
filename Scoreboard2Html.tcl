@@ -60,11 +60,11 @@ proc LocalScoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
   
   puts $ResultsFile "<hr>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
-  puts $ResultsFile "<h2 id=\"${SbName}\">$TestCaseName Scoreboard Report</h2>"
+  puts $ResultsFile "<h2 id=\"${SbName}\">$TestCaseName Scoreboard Report for ${SbName}</h2>"
 
   set TestDict [::yaml::yaml2dict -file ${SbYamlFile}]
   set VersionNum  [dict get $TestDict Version]
-  puts $ResultsFile "<br><br>"
+  puts $ResultsFile "<br>"
   puts $ResultsFile "  <div  style=\"margin: 10px 20px;\">"
   puts $ResultsFile "    <table>"
   

@@ -49,6 +49,7 @@ proc Simulate2Html {TestCaseName TestSuiteName TestCaseFileName} {
   variable VhdlReportsDirectory
   variable AlertYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_alerts.yml]
   variable CovYamlFile   [file join $VhdlReportsDirectory ${TestCaseName}_cov.yml]
+  variable SbBaseYamlFile ${TestCaseName}_sb_
   variable SbSlvYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_sb_slv.yml]
   variable SbIntYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_sb_int.yml]
 
@@ -67,15 +68,26 @@ proc Simulate2Html {TestCaseName TestSuiteName TestCaseFileName} {
     file rename -force ${CovYamlFile}     [file join ${TestSuiteDirectory} ${TestCaseFileName}_cov.yml]
   }
   
-  if {[file exists ${SbSlvYamlFile}]} {
-    Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbSlvYamlFile} Scoreboard_slv
-    file rename -force ${SbSlvYamlFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_slv.yml]
+  set SbFiles [glob -nocomplain ${SbBaseYamlFile}*.yml]
+  if {$SbFiles ne ""} {
+    foreach SbFile ${SbFiles} {
+      set SbName [regsub ${SbBaseYamlFile} [file rootname $SbFile] ""]
+      Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbFile} Scoreboard_${SbName}
+      # TestCaseFileName includes generics, where SbFile does not
+      file rename -force ${SbFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_${SbName}.yml]
+    }
   }
-  
-  if {[file exists ${SbIntYamlFile}]} {
-    Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbIntYamlFile} Scoreboard_int
-    file rename -force ${SbIntYamlFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_int.yml]
-  }
+
+# Only handles slv and int, not custom named SB
+#  if {[file exists ${SbSlvYamlFile}]} {
+#    Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbSlvYamlFile} Scoreboard_slv
+#    file rename -force ${SbSlvYamlFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_slv.yml]
+#  }
+#  
+#  if {[file exists ${SbIntYamlFile}]} {
+#    Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbIntYamlFile} Scoreboard_int
+#    file rename -force ${SbIntYamlFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_int.yml]
+#  }
   
   FinalizeSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
@@ -112,8 +124,9 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName} {
   variable CurrentTranscript
   variable AlertYamlFile 
   variable CovYamlFile   
-  variable SbSlvYamlFile 
-  variable SbIntYamlFile 
+  variable SbBaseYamlFile 
+#  variable SbSlvYamlFile 
+#  variable SbIntYamlFile 
   variable TranscriptYamlFile
   variable BuildName
     
@@ -136,12 +149,22 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName} {
   if {[file exists ${CovYamlFile}]} {
     puts $ResultsFile "  <tr><td><a href=\"#FunctionalCoverage\">Functional Coverage Report(s)</a></td></tr>"
   }
-  if {[file exists ${SbSlvYamlFile}]} {
-    puts $ResultsFile "  <tr><td><a href=\"#Scoreboard_slv\">ScoreboardPkg_slv Report(s)</a></td></tr>"
+  
+  set SbFiles [glob -nocomplain ${SbBaseYamlFile}*.yml]
+  if {$SbFiles ne ""} {
+    foreach SbFile ${SbFiles} {
+      set SbName [regsub ${SbBaseYamlFile} [file rootname $SbFile] ""]
+      puts $ResultsFile "  <tr><td><a href=\"#Scoreboard_${SbName}\">ScoreboardPkg_${SbName} Report(s)</a></td></tr>"
+    }
   }
-  if {[file exists ${SbIntYamlFile}]} {
-    puts $ResultsFile "  <tr><td><a href=\"#Scoreboard_int\">ScoreboardPkg_int Report(s)</a></td></tr>"
-  }
+  
+#  if {[file exists ${SbSlvYamlFile}]} {
+#    puts $ResultsFile "  <tr><td><a href=\"#Scoreboard_slv\">ScoreboardPkg_slv Report(s)</a></td></tr>"
+#  }
+#  if {[file exists ${SbIntYamlFile}]} {
+#    puts $ResultsFile "  <tr><td><a href=\"#Scoreboard_int\">ScoreboardPkg_int Report(s)</a></td></tr>"
+#  }
+  
   if {${::osvvm::ReportsSubdirectory} eq ""} {
     set ReportsPrefix ".."
   } else {
