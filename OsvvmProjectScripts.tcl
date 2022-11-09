@@ -975,7 +975,7 @@ proc LocalSimulate {LibraryUnit args} {
 
 
   if {![info exists TestCaseName]} {
-    TestCase $LibraryUnit
+    TestName $LibraryUnit
   }
   # Generics are not finalized until the call to Simulate.  TestCaseName may be set before.
   set TestCaseFileName ${TestCaseName}${::osvvm::GenericNames}
@@ -1179,9 +1179,8 @@ proc TestSuite {SuiteName} {
   set TestSuiteStartTimeMs   [clock milliseconds]
 }
 
-
 # -------------------------------------------------
-proc TestCase {TestName} {
+proc TestName {Name} {
   variable TestCaseName
   variable TestSuiteName
 
@@ -1193,16 +1192,21 @@ proc TestCase {TestName} {
     }
   }
 
-  puts "TestCase $TestName"
-  set TestCaseName $TestName
+  puts "TestName $Name"
+  set TestCaseName $Name
 
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
   } else {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
   }
-  puts  $RunFile "      - TestCaseName: $TestName"
+  puts  $RunFile "      - TestCaseName: $Name"
   close $RunFile
+}
+
+# Maintain backward compatibility
+proc TestCase {Name} {
+  TestName $Name
 }
 
 
@@ -1217,10 +1221,10 @@ proc RunTest {FileName {SimName ""}} {
 
 	if {$SimName eq ""} {
     set SimName [file rootname [file tail $FileName]]
-    TestCase $SimName
+    TestName $SimName
   } else {
     set ShortFileName [file rootname [file tail $FileName]]
-    TestCase "${SimName}(${ShortFileName})"
+    TestName "${SimName}(${ShortFileName})"
   }
 
   analyze   ${FileName}
@@ -1750,7 +1754,7 @@ proc ChangeWorkingDirectory {RelativePath} {
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
-namespace export analyze simulate build include library RunTest SkipTest TestSuite TestCase
+namespace export analyze simulate build include library RunTest SkipTest TestSuite TestName TestCase
 namespace export generic DoWaves
 namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
 namespace export RemoveLibrary RemoveLibraryDirectory RemoveAllLibraries RemoveLocalLibraries 

@@ -87,6 +87,7 @@ namespace eval ::osvvm {
     variable LineOfLogFile
     variable InRunTest 0
     variable TestSuiteName Default
+    variable TestCaseName  Default
     variable PrintPrefix "<pre>"
 
     while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
@@ -149,7 +150,7 @@ namespace eval ::osvvm {
       }
       set InRunTest 0
     } else {
-      if {[regexp {^TestCase} $LineOfLogFile] } {
+      if {[regexp {^TestName} $LineOfLogFile] } {
         set TestCaseName [lindex $LineOfLogFile 1]
       }
       if {[regexp {DONE   FAILED} $LineOfLogFile]} {
