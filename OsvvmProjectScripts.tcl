@@ -361,6 +361,7 @@ proc LocalBuild {BuildName Path_Or_File} {
 
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
+  ##!!TODO Refactor into StartBuildYaml
   set  BuildStartTime    [clock seconds]
   set  BuildStartTimeMs  [clock milliseconds]
   puts "Starting Build at time [clock format $BuildStartTime -format %T]"
@@ -379,10 +380,12 @@ proc LocalBuild {BuildName Path_Or_File} {
   include ${Path_Or_File}
   CallbackAfter_Build ${Path_Or_File}
 
+
   # Print Elapsed time for last TestSuite (if any ran) and the entire build
   set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} a]
 
   if {[info exists TestSuiteName]} {
+    ##!!TODO Refactor into FinishTestSuiteBuildYaml
     puts  $RunFile "    ElapsedTime: [ElapsedTimeMs $TestSuiteStartTimeMs]"
     FinalizeTestSuite $TestSuiteName
     unset TestSuiteName
@@ -392,6 +395,8 @@ proc LocalBuild {BuildName Path_Or_File} {
     vendor_MergeCodeCoverage  $BuildName $::osvvm::CoverageDirectory ""
     vendor_ReportCodeCoverage $BuildName $::osvvm::CoverageDirectory
   }
+
+  ##!!TODO Refactor into FinishBuildYaml
 
   set   BuildFinishTime     [clock seconds]
   set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
@@ -1025,6 +1030,7 @@ proc AfterSimulateReports {} {
 
   puts "Simulation Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
 
+  ##!!TODO Refactor into AfterSimulateBuildYaml
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
     puts  $RunFile "        TestCaseFileName: $TestCaseFileName"
@@ -1161,12 +1167,15 @@ proc TestSuite {SuiteName} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
   }
   if {![info exists TestSuiteName]} {
+    ##!!TODO Refactor into FirstTestSuiteBuildYaml
     puts  $RunFile "TestSuites: "
   } else {
+    ##!!TODO Refactor into FinishTestSuiteBuildYaml
     puts  $RunFile "    ElapsedTime: [ElapsedTimeMs $TestSuiteStartTimeMs]"
     FinalizeTestSuite $TestSuiteName
   }
   set   TestSuiteName $SuiteName
+  ##!!TODO Refactor into StartTestSuiteBuildYaml
   puts  $RunFile "  - Name: $TestSuiteName"
   puts  $RunFile "    TestCases:"
   close $RunFile
@@ -1195,6 +1204,7 @@ proc TestName {Name} {
   puts "TestName $Name"
   set TestCaseName $Name
 
+  ##!!TODO Refactor into StartTestCaseBuildYaml
   if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
     set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
   } else {
