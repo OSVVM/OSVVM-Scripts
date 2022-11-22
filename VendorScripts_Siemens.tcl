@@ -58,7 +58,7 @@
   if {[info exists ::ToolName]} {
     variable ToolName $::ToolName
   } else {
-    if {[lindex [split [vsim -version]] 2] eq "ModelSim"} {
+    if {[lindex [split [vsimVersionString]] 2] eq "ModelSim"} {
       variable ToolName   "ModelSim"
     } else {
       variable ToolName   "QuestaSim"
