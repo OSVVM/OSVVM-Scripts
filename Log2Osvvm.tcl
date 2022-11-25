@@ -158,7 +158,7 @@ namespace eval ::osvvm {
         puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
       } elseif {[regexp {^WaveError:} $LineOfLogFile] } {
         puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
-      } elseif {[regexp {^Error:|^error:} $LineOfLogFile] } {
+      } elseif {[regexp {^Error:|^error:|Alert  ERROR} $LineOfLogFile] } {
         puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
       } else {
         puts $HtmlFileHandle $LineOfLogFile
