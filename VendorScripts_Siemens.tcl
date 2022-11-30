@@ -64,7 +64,7 @@
       variable ToolName   "QuestaSim"
     }
   }
-  variable simulator   $ToolName ; # Deprecated 
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   
   if {[batch_mode]} {
     variable ToolArgs $argv

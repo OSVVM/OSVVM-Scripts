@@ -48,7 +48,7 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Xilinx"
   variable ToolName   "XSIM"
-  variable simulator   $ToolName ; # Deprecated 
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   variable ToolNameVersion "xsim_22_1"
 #   puts $ToolNameVersion
 

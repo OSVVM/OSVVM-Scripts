@@ -56,7 +56,7 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Aldec"
   variable ToolName    "VSimSA"
-  variable simulator   $ToolName ; # Deprecated 
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   variable ToolNameVersion ${ToolName}-[lindex [split $version] [llength $version]-1]
 #   puts $ToolNameVersion
 

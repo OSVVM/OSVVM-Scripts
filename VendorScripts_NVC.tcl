@@ -46,7 +46,7 @@
   variable ToolType   "simulator"
   variable ToolVendor "NVC"
   variable ToolName   "NVC"
-  variable simulator   $ToolName ; # Deprecated 
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   
   # required for mintty
   if {[file writable "/dev/pty0" ]} {
@@ -188,8 +188,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable VhdlShortVersion
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable NVC_WORKING_LIBRARY_PATH
-  variable ExtendedElaborateOptions  ""
-  variable ExtendedRunOptions  ""
+  variable ExtendedElaborateOptions
+  variable ExtendedRunOptions
 
   set LocalGlobalOptions [concat --std=${VhdlShortVersion} -H 128m --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
   set LocalElaborateOptions [concat {*}${ExtendedElaborateOptions} {*}${args}]

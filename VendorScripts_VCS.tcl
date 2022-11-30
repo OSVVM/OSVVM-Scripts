@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    12/2022   2022.12    Updated StartTranscript, StopTranscript, Analyze, Simulate
 #    05/2022   2022.05    Updated naming
 #     2/2022   2022.02    Added template of procedures needed for coverage support
 #    12/2021   2021.12    Updated to use relative paths.
@@ -49,32 +50,23 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Synopsys"
   variable ToolName    "VCS"
-  variable simulator   $ToolName ; # Deprecated 
-  variable ToolNameVersion "${ToolName}-R2020_12"
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
+  variable ToolNameVersion "${ToolName}-T2022.06"
 #   puts $ToolNameVersion
 
 
 # -------------------------------------------------
-# StartTranscript / StopTranscxript
+# StartTranscript / StopTranscript
 #
 
-# 
-#  Uses DefaultVendor_StartTranscript and DefaultVendor_StopTranscript
 #
+#  Comment out these if TCL version is >= 8.6
+#
+proc vendor_StartTranscript {FileName} {
+}
 
-# proc vendor_StartTranscript {FileName} {
-#   variable VENDOR_TRANSCRIPT_FILE
-#    
-#   if {[info exists VENDOR_TRANSCRIPT_FILE]} {
-#     unset VENDOR_TRANSCRIPT_FILE 
-#   }
-#   set VENDOR_TRANSCRIPT_FILE $FileName
-#   exec echo "Stop Time [clock format [clock seconds] -format %T]" >> $VENDOR_TRANSCRIPT_FILE
-# }
-# 
-# proc vendor_StopTranscript {FileName} {
-# #  transcript file -close $FileName
-# }
+proc vendor_StopTranscript {FileName} {
+}
 
 # -------------------------------------------------
 # IsVendorCommand
@@ -143,10 +135,19 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
 
   CreateToolSetup
 
-  exec echo "vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName}"
-  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName} 
-#   exec       vhdlan -full64 -vhdl${VhdlShortVersion}      -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
-##  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -kdb -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
+##  exec echo "vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName}"
+##  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName} 
+###   exec       vhdlan -full64 -vhdl${VhdlShortVersion}      -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
+####  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -kdb -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
+
+  set  AnalyzeOptions [concat -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} {*}${args} ${FileName}]
+  puts "vhdlan $AnalyzeOptions"
+  if {[catch {exec vhdlan {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
+    PrintWithPrefix "Error:" $AnalyzeErrorMessage
+    error "Failed: analyze $FileName"
+  } else {
+    puts $AnalyzeErrorMessage
+  }
 }
 
 proc vendor_analyze_verilog {LibraryName FileName args} {
@@ -170,6 +171,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SimulateTimeUnits
   variable ToolVendor
   variable ToolName
+  variable ExtendedElaborateOptions
+  variable ExtendedRunOptions
 #  variable VENDOR_TRANSCRIPT_FILE
 
   CreateToolSetup
@@ -220,13 +223,39 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   # removed $OptionalCommands
 #  puts "exec vcs -full64 -a ${VENDOR_TRANSCRIPT_FILE} -R -sim_res=${SimulateTimeUnits} +vhdllib+${LibraryName} ${LibraryUnit}"
 # caution there is a performance impact of -debug_access+all
-  puts      "vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit}"
-  eval  exec vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} 
-#  eval  exec vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
-##  eval  exec vcs -full64 -kdb -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
-  puts "./simv -ucli -do temp_Synopsys_run.tcl"
-  exec  ./simv -ucli -do temp_Synopsys_run.tcl  
-#  exec  ./simv -ucli -do temp_Synopsys_run.tcl |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+##  puts      "vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit}"
+##  eval  exec vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} 
+###  eval  exec vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+####  eval  exec vcs -full64 -kdb -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+
+  if {$::osvvm::NoGui || !($::osvvm::Debug)} {
+    set DebugOptions ""
+  } else {
+    set DebugOptions "-debug_access+all"
+  }
+
+  set ElaborateOptions [concat -full64 -time $SimulateTimeUnits ${DebugOptions} {*}${ExtendedElaborateOptions} ${LibraryName}.${LibraryUnit}]
+  puts "vcs ${ElaborateOptions}" 
+  if { [catch {exec vcs {*}${ElaborateOptions}} SimulateErrorMessage]} { 
+    PrintWithPrefix "Error:" $SimulateErrorMessage
+    error "Failed: simulate $LibraryUnit during vcs"
+  } else {
+    puts $SimulateErrorMessage
+  }
+  
+
+##  puts "./simv -ucli -do temp_Synopsys_run.tcl"
+##  exec  ./simv -ucli -do temp_Synopsys_run.tcl  
+###  exec  ./simv -ucli -do temp_Synopsys_run.tcl |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+
+  set SimulateOptions [concat {*}${ExtendedRunOptions} -ucli -do temp_Synopsys_run.tcl]
+  puts "./simv ${SimulateOptions}" 
+  if { [catch {exec ./simv {*}${SimulateOptions}} SimulateErrorMessage]} { 
+    PrintWithPrefix "Error:" $SimulateErrorMessage
+    error "Failed: simulate $LibraryUnit during simv"
+  } else {
+    puts $SimulateErrorMessage
+  }
 }
 
 # -------------------------------------------------

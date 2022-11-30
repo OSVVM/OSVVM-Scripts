@@ -57,7 +57,7 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Aldec"
   variable ToolName    "RivieraPRO"
-  variable simulator   $ToolName ; # Deprecated 
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   #  Could differentiate between RivieraPRO and VSimSA
   variable ToolNameVersion ${ToolName}-[asimVersion]
 #   puts $ToolNameVersion

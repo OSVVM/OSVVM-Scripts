@@ -194,8 +194,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable VhdlShortVersion
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable GHDL_WORKING_LIBRARY_PATH
-  variable ExtendedElaborateOptions  ""
-  variable ExtendedRunOptions  ""
+  variable ExtendedElaborateOptions
+  variable ExtendedRunOptions
   variable GhdlRunOptions
 
   set LocalElaborateOptions [concat --std=${VhdlShortVersion} --syn-binding {*}${ExtendedElaborateOptions} --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${args}]
