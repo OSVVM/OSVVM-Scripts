@@ -59,14 +59,14 @@
 # StartTranscript / StopTranscript
 #
 
-#
-#  Comment out these if TCL version is >= 8.6
-#
-proc vendor_StartTranscript {FileName} {
-}
-
-proc vendor_StopTranscript {FileName} {
-}
+# #
+# #  Comment out these if TCL version is >= 8.6
+# #
+# proc vendor_StartTranscript {FileName} {
+# }
+# 
+# proc vendor_StopTranscript {FileName} {
+# }
 
 # -------------------------------------------------
 # IsVendorCommand
@@ -135,19 +135,19 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
 
   CreateToolSetup
 
-##  exec echo "vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName}"
-##  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} ${FileName} 
-###   exec       vhdlan -full64 -vhdl${VhdlShortVersion}      -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
-####  exec       vhdlan -full64 -vhdl${VhdlShortVersion} -kdb -verbose -nc -work ${LibraryName} ${FileName} |& tee -a ${VENDOR_TRANSCRIPT_FILE}
-
-  set  AnalyzeOptions [concat -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} {*}${args} ${FileName}]
+#  set  AnalyzeOptions [concat -full64 -vhdl${VhdlShortVersion} -verbose -nc -work ${LibraryName} {*}${args} ${FileName}]
+  set  AnalyzeOptions [concat -full64 -vhdl${VhdlShortVersion} -nc -work ${LibraryName} {*}${args} ${FileName}]
   puts "vhdlan $AnalyzeOptions"
-  if {[catch {exec vhdlan {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
-    PrintWithPrefix "Error:" $AnalyzeErrorMessage
-    error "Failed: analyze $FileName"
-  } else {
-    puts $AnalyzeErrorMessage
-  }
+  set AnalyzeErrorCode [catch {exec vhdlan {*}$AnalyzeOptions} AnalyzeErrorMessage]
+##    puts "AnalyzeErrorCode $AnalyzeErrorCode" ;# returns 1 on success
+  puts "$AnalyzeErrorMessage"
+##!! TODO:  Need vhdlan error codes for proper handling
+#  if {[catch {exec vhdlan {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
+#    PrintWithPrefix "Error:" $AnalyzeErrorMessage
+#    error "Failed: analyze $FileName"
+#  } else {
+#    puts $AnalyzeErrorMessage
+#  }
 }
 
 proc vendor_analyze_verilog {LibraryName FileName args} {
@@ -171,9 +171,9 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SimulateTimeUnits
   variable ToolVendor
   variable ToolName
+#  variable VENDOR_TRANSCRIPT_FILE
   variable ExtendedElaborateOptions
   variable ExtendedRunOptions
-#  variable VENDOR_TRANSCRIPT_FILE
 
   CreateToolSetup
 
@@ -220,14 +220,6 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   puts  $SynFile "quit" 
   close $SynFile
 
-  # removed $OptionalCommands
-#  puts "exec vcs -full64 -a ${VENDOR_TRANSCRIPT_FILE} -R -sim_res=${SimulateTimeUnits} +vhdllib+${LibraryName} ${LibraryUnit}"
-# caution there is a performance impact of -debug_access+all
-##  puts      "vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit}"
-##  eval  exec vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} 
-###  eval  exec vcs -full64 -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
-####  eval  exec vcs -full64 -kdb -time $SimulateTimeUnits -debug_access+all ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
-
   if {$::osvvm::NoGui || !($::osvvm::Debug)} {
     set DebugOptions ""
   } else {
@@ -236,26 +228,30 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   set ElaborateOptions [concat -full64 -time $SimulateTimeUnits ${DebugOptions} {*}${ExtendedElaborateOptions} ${LibraryName}.${LibraryUnit}]
   puts "vcs ${ElaborateOptions}" 
-  if { [catch {exec vcs {*}${ElaborateOptions}} SimulateErrorMessage]} { 
-    PrintWithPrefix "Error:" $SimulateErrorMessage
-    error "Failed: simulate $LibraryUnit during vcs"
-  } else {
-    puts $SimulateErrorMessage
-  }
+  set VcsErrorCode [catch {exec vcs {*}${ElaborateOptions}} SimulateErrorMessage]
+#  puts "VcsErrorCode $VcsErrorCode" ;# returns 1 on success
+  puts "$SimulateErrorMessage" 
+##!! TODO:  Need vcs error codes for proper handling
+#  if { [catch {exec vcs {*}${ElaborateOptions}} SimulateErrorMessage]} { 
+#    PrintWithPrefix "Error:" $SimulateErrorMessage
+#    error "Failed: simulate $LibraryUnit during vcs"
+#  } else {
+#    puts $SimulateErrorMessage
+#  }
   
-
-##  puts "./simv -ucli -do temp_Synopsys_run.tcl"
-##  exec  ./simv -ucli -do temp_Synopsys_run.tcl  
-###  exec  ./simv -ucli -do temp_Synopsys_run.tcl |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
-
   set SimulateOptions [concat {*}${ExtendedRunOptions} -ucli -do temp_Synopsys_run.tcl]
   puts "./simv ${SimulateOptions}" 
-  if { [catch {exec ./simv {*}${SimulateOptions}} SimulateErrorMessage]} { 
-    PrintWithPrefix "Error:" $SimulateErrorMessage
-    error "Failed: simulate $LibraryUnit during simv"
-  } else {
-    puts $SimulateErrorMessage
-  }
+  set SimVErrorCode [catch {exec ./simv {*}${SimulateOptions}} SimulateErrorMessage]
+#  puts "SimVErrorCode $SimVErrorCode" ; # returns 0 on success
+  puts "$SimulateErrorMessage" 
+
+##!! TODO:  Need simv error codes
+#  if { [catch {exec ./simv {*}${SimulateOptions}} SimulateErrorMessage]} { 
+#    PrintWithPrefix "Error:" $SimulateErrorMessage
+#    error "Failed: simulate $LibraryUnit during simv"
+#  } else {
+#    puts $SimulateErrorMessage
+#  }
 }
 
 # -------------------------------------------------

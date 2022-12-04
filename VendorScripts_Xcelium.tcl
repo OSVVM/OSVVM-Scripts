@@ -67,14 +67,14 @@
 # StartTranscript / StopTranscript
 #
 
-#
-#  Comment out these if TCL version is >= 8.6
-#
-proc vendor_StartTranscript {FileName} {
-}
-
-proc vendor_StopTranscript {FileName} {
-}
+# #
+# #  Comment out these if TCL version is >= 8.6
+# #
+# proc vendor_StartTranscript {FileName} {
+# }
+# 
+# proc vendor_StopTranscript {FileName} {
+# }
 
 # -------------------------------------------------
 # IsVendorCommand

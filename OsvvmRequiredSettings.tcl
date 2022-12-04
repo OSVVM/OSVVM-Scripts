@@ -113,10 +113,13 @@ namespace eval ::osvvm {
 
     # VhdlReportsDirectory:  OSVVM temporary location for yml.  Moved to ${ReportsDirectory}/${TestSuiteName}
     variable VhdlReportsDirectory     "" ;  
-    
+
     # OsvvmYamlResultsFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${BuildName}.yaml
     variable OsvvmYamlResultsFile     "OsvvmRun.yml" ;  
-    
+
+    # OsvvmBuildFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${LogSubDirectory}/${BuildName}.log
+    variable OsvvmBuildFile           "OsvvmBuild.log" ;  
+
     #  TranscriptYamlFile: temporary file that contains set of files used in TranscriptOpen.  Deleted by scripts.
     variable TranscriptYamlFile       "OSVVM_transcript.yml" ;  
     

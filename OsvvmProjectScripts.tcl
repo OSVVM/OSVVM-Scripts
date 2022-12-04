@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    12/2022   2022.12    Minor update to StartUp
 #    09/2022   2022.09    Added RemoveLibrary, RemoveLibraryDirectory, OsvvmLibraryPath
 #                         Added SetVhdlAnalyzeOptions, SetExtendedAnalyzeOptions, SetExtendedSimulateOptions
 #                         Added (for GHDL) SetSaveWaves, SetExtendedElaborateOptions, SetExtendedRunOptions
@@ -74,8 +75,8 @@
 #   re-run the startup scripts, this program included
 #
 proc StartUp {} {
-  puts "source $::osvvm::SCRIPT_DIR/StartUp.tcl"
-  eval "source $::osvvm::SCRIPT_DIR/StartUp.tcl"
+  puts "source $::osvvm::SCRIPT_DIR/StartUpShared.tcl"
+  eval "source $::osvvm::SCRIPT_DIR/StartUpShared.tcl"
 }
 
 
@@ -125,6 +126,7 @@ proc PrintWithPrefix {Prefix RawMessageList} {
     }
   }
 }
+
 
 # -------------------------------------------------
 # include
@@ -536,44 +538,35 @@ proc ReducePath {PathIn} {
   return [eval file join $NewPath]
 }
 
+
 # -------------------------------------------------
 # StartTranscript
 #   Used by build
 #
 proc StartTranscript {FileBaseName} {
+  variable LogDirectory
   variable CurrentTranscript
   variable BuildTranscript
-  variable LogDirectory
-  variable CurrentSimulationDirectory
-  variable FirstEchoCmd
-  variable TranscriptFileName
 
   CheckWorkingDir
 
-  if {($FileBaseName ne "NONE.log") && (![info exists CurrentTranscript])} {
-    set LogDirectory   [file join ${CurrentSimulationDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
-    # Create directories if they do not exist
-    set TranscriptFileName [file join $LogDirectory $FileBaseName]
-    CreateDirectory [file dirname $TranscriptFileName]
-    set CurrentTranscript $FileBaseName
-    set BuildTranscript   $CurrentTranscript
-    if {![catch {info body vendor_StartTranscript} err]} {
-      vendor_StartTranscript $TranscriptFileName
-    } else {
-      DefaultVendor_StartTranscript $TranscriptFileName
-    }
-    if {[info exists FirstEchoCmd]} {
-      # nothing in transcript yet.
-      unset FirstEchoCmd
-    }
+  set LogDirectory      [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
+  CreateDirectory       $LogDirectory
+  set CurrentTranscript $FileBaseName
+  set BuildTranscript   $CurrentTranscript
+  
+  set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildFile}]
+  
+  if {![catch {info body vendor_StartTranscript} err]} {
+    vendor_StartTranscript $TempTranscriptName
+  } else {
+    DefaultVendor_StartTranscript $TempTranscriptName
   }
 }
 
 proc DefaultVendor_StartTranscript {FileName} { 
 
   if {$::osvvm::GotTee} {
-  # #    chan configure $LogFile -encoding ascii
-    # TEE stdout to stdout and transcript
     set LogFile  [open ${FileName} w]
     tee channel stderr $LogFile
     tee channel stdout $LogFile
@@ -585,32 +578,36 @@ proc DefaultVendor_StartTranscript {FileName} {
 #   Used by build
 #
 proc StopTranscript {{FileBaseName ""}} {
-  variable CurrentTranscript
   variable LogDirectory
+  variable CurrentTranscript
+  variable TranscriptFileName
 
   flush stdout
 
-  # Stop only if it is the transcript that is open
-  if {($FileBaseName eq $CurrentTranscript)} {
-    # FileName used within the STOP_TRANSCRIPT variable if required
-    set FileName [file join $LogDirectory $FileBaseName]
-    if {![catch {info body vendor_StopTranscript} err]} {
-      vendor_StopTranscript $FileName
+  set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildFile}]
+  set TranscriptFileName [file join ${LogDirectory} ${CurrentTranscript}]
+  if {![catch {info body vendor_StopTranscript} err]} {
+    vendor_StopTranscript $TempTranscriptName
+    file rename -force ${TempTranscriptName} ${TranscriptFileName}
+
+  } else {
+    DefaultVendor_StopTranscript $TempTranscriptName
+    if {$::osvvm::GotTee} {
+      file rename -force ${TempTranscriptName} ${TranscriptFileName}
     } else {
-      DefaultVendor_StopTranscript $FileName
-    }
-    unset CurrentTranscript
-    if {[info exists FirstEchoCmd]} {
-      unset FirstEchoCmd
+      file copy   -force ${TempTranscriptName} ${TranscriptFileName}
     }
   }
 }
 
+
 proc DefaultVendor_StopTranscript {{FileBaseName ""}} {
 
-  # Restore stdout 
-  chan pop stdout
-  chan pop stderr
+  if {$::osvvm::GotTee} {
+    # Restore stdout 
+    chan pop stdout
+    chan pop stderr
+  }
 }
 
 # -------------------------------------------------

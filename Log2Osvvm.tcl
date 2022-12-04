@@ -186,5 +186,6 @@ namespace eval ::osvvm {
   
 namespace export Log2Osvvm
 
+# end namespace ::osvvm
 }
 
