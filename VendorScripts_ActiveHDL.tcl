@@ -82,7 +82,7 @@ proc vendor_StartTranscript {FileName} {
 }
 
 proc vendor_StopTranscript {FileName} {
-  transcript off
+  transcript to -off
 }
 
 # -------------------------------------------------
