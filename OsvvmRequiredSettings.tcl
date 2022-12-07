@@ -80,10 +80,10 @@ namespace eval ::osvvm {
   #
   # Create derived directory paths
   #
-    variable ReportsDirectory          [file join ${OutputBaseDirectory} ${ReportsSubdirectory}]
-    variable ResultsDirectory          [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
-    variable CoverageDirectory         [file join ${OutputBaseDirectory} ${CoverageSubdirectory}]
-  
+    variable ReportsDirectory     [file join ${OutputBaseDirectory} ${ReportsSubdirectory}]
+    variable ResultsDirectory     [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
+    variable CoverageDirectory    [file join ${OutputBaseDirectory} ${CoverageSubdirectory}]
+    variable LogDirectory         [file join ${OutputBaseDirectory} ${LogSubdirectory}]
 
   #
   #  Initialize OSVVM Internals

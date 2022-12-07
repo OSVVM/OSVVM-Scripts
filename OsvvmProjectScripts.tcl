@@ -250,8 +250,8 @@ proc BeforeBuildCleanUp {} {
   if {[info exists TestSuiteName]} {
     unset TestSuiteName
   }
-  # If Transcript Open, then Close it
-  TerminateTranscript
+  # If Files Open, then Close them
+  # CloseAllFiles  ; # oddly Questa has a number of files open already
 
   # End simulations if started - only set by simulate
   if {[info exists vendor_simulate_started]} {
@@ -462,6 +462,7 @@ proc CheckWorkingDir {} {
     }
     puts "set CurrentSimulationDirectory $CurrentDir"
     set CurrentSimulationDirectory $CurrentDir
+    CreateDirectory ${::osvvm::OutputBaseDirectory}
   }
 }
 
@@ -544,16 +545,11 @@ proc ReducePath {PathIn} {
 #   Used by build
 #
 proc StartTranscript {FileBaseName} {
-  variable LogDirectory
   variable CurrentTranscript
-  variable BuildTranscript
 
   CheckWorkingDir
 
-  set LogDirectory      [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
-  CreateDirectory       $LogDirectory
   set CurrentTranscript $FileBaseName
-  set BuildTranscript   $CurrentTranscript
   
   set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildFile}]
   
@@ -583,9 +579,12 @@ proc StopTranscript {{FileBaseName ""}} {
   variable TranscriptFileName
 
   flush stdout
+  
+  set FullPathLogDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${LogDirectory}]
+  CreateDirectory          $FullPathLogDirectory
 
   set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildFile}]
-  set TranscriptFileName [file join ${LogDirectory} ${CurrentTranscript}]
+  set TranscriptFileName [file join ${FullPathLogDirectory} ${CurrentTranscript}]
   if {![catch {info body vendor_StopTranscript} err]} {
     vendor_StopTranscript $TempTranscriptName
     file rename -force ${TempTranscriptName} ${TranscriptFileName}
@@ -611,13 +610,12 @@ proc DefaultVendor_StopTranscript {{FileBaseName ""}} {
 }
 
 # -------------------------------------------------
-# TerminateTranscript
+# CloseAllFiles
 #   Used by build
 #
-proc TerminateTranscript {} {
-  variable CurrentTranscript
-  if {[info exists CurrentTranscript]} {
-    unset CurrentTranscript
+proc CloseAllFiles {} {
+  foreach channel [file channels "file*"] {
+      close $channel
   }
 }
 
@@ -1763,7 +1761,7 @@ proc ChangeWorkingDirectory {RelativePath} {
 
 namespace export analyze simulate build include library RunTest SkipTest TestSuite TestName TestCase
 namespace export generic DoWaves
-namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
+namespace export IterateFile StartTranscript StopTranscript 
 namespace export RemoveLibrary RemoveLibraryDirectory RemoveAllLibraries RemoveLocalLibraries 
 namespace export CreateDirectory
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution

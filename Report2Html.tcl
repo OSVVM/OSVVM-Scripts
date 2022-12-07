@@ -94,7 +94,6 @@ proc ReportBuildStatus {} {
 
 proc ReportElaborateStatus {TestDict} {
   variable ResultsFile
-  variable BuildTranscript
   variable AnalyzeErrorCount
   variable SimulateErrorCount
   variable BuildErrorCode
@@ -243,36 +242,29 @@ proc ReportElaborateStatus {TestDict} {
   puts $ResultsFile "<h2>$BuildName Build Summary Report</h2>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
   puts $ResultsFile "<table>"
-  puts $ResultsFile "  <tr style=\"height:40px\"><th>Build</th><th>$BuildName</th></tr>"
+  puts $ResultsFile "  <tr style=\"height:40px\"><th>Build</th>         <th>$BuildName</th></tr>"
   puts $ResultsFile "  <tr style=color:${StatusColor}><td>Status</td>   <td>$BuildStatus</td></tr>"
-  puts $ResultsFile "  <tr style=color:${PassedColor}><td>PASSED</td>  <td>$TestCasesPassed</td></tr>"
-  puts $ResultsFile "  <tr style=color:${FailedColor}><td>FAILED</td>  <td>$TestCasesFailed</td></tr>"
+  puts $ResultsFile "  <tr style=color:${PassedColor}><td>PASSED</td>   <td>$TestCasesPassed</td></tr>"
+  puts $ResultsFile "  <tr style=color:${FailedColor}><td>FAILED</td>   <td>$TestCasesFailed</td></tr>"
   puts $ResultsFile "  <tr style=color:${SkippedColor}><td>SKIPPED</td> <td>$TestCasesSkipped</td></tr>"
-  puts $ResultsFile "  <tr style=color:${AnalyzeColor}><td>Analyze Failures</td> <td>$AnalyzeErrorCount</td></tr>"
+  puts $ResultsFile "  <tr style=color:${AnalyzeColor}><td>Analyze Failures</td>   <td>$AnalyzeErrorCount</td></tr>"
   puts $ResultsFile "  <tr style=color:${SimulateColor}><td>Simulate Failures</td> <td>$SimulateErrorCount</td></tr>"
-  puts $ResultsFile "  <tr><td>Elapsed Time (h:m:s)</td>              <td>$ElapsedTimeHms</td></tr>"
-  puts $ResultsFile "  <tr><td>Elapsed Time (seconds)</td>            <td>$ElapsedTimeSeconds</td></tr>"
-  puts $ResultsFile "  <tr><td>Date</td>                              <td>[dict get $BuildInfo Date]</td></tr>"
-  puts $ResultsFile "  <tr><td>Simulator</td>                         <td>[dict get $BuildInfo Simulator]</td></tr>"
-  puts $ResultsFile "  <tr><td>Version</td>                           <td>[dict get $BuildInfo Version]</td></tr>"
-  puts $ResultsFile "  <tr><td>OSVVM YAML Version</td>                <td>[dict get $TestDict Version]</td></tr>"
+  puts $ResultsFile "  <tr><td>Elapsed Time (h:m:s)</td>                <td>$ElapsedTimeHms</td></tr>"
+  puts $ResultsFile "  <tr><td>Elapsed Time (seconds)</td>              <td>$ElapsedTimeSeconds</td></tr>"
+  puts $ResultsFile "  <tr><td>Date</td>                                <td>[dict get $BuildInfo Date]</td></tr>"
+  puts $ResultsFile "  <tr><td>Simulator</td>                           <td>[dict get $BuildInfo Simulator]</td></tr>"
+  puts $ResultsFile "  <tr><td>Version</td>                             <td>[dict get $BuildInfo Version]</td></tr>"
+  puts $ResultsFile "  <tr><td>OSVVM YAML Version</td>                  <td>[dict get $TestDict Version]</td></tr>"
   
-  if {[info exists BuildTranscript]} {
-    set BuildTranscriptPath [file join ${::osvvm::LogDirectory} ${BuildTranscript}]
-    if {[file exists ${BuildTranscriptPath}]} {
-      puts $ResultsFile "  <tr><td>Simulation Transcript</td>         <td><a href=\"${BuildTranscriptPath}\">${BuildTranscript}</a></td></tr>"
-    }
-    set HtmlTranscript [file rootname $BuildTranscript]_log.html
-    set HtmlTranscriptPath [file join ${::osvvm::LogDirectory} ${HtmlTranscript}]
-    if {$::osvvm::TranscriptExtension eq "html"} {
-      puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td>         <td><a href=\"${HtmlTranscriptPath}\">${HtmlTranscript}</a></td></tr>"
-    }
+  set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${BuildName}]
+  puts $ResultsFile   "  <tr><td>Simulation Transcript</td>               <td><a href=\"${BuildTranscriptLinkPathPrefix}.log\">${BuildName}.log</a></td></tr>"
+  if {$::osvvm::TranscriptExtension eq "html"} {
+    puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td>          <td><a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${BuildName}_log.html</a></td></tr>"
   }
 
   set resolvedCoverageDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::CoverageDirectory}]
   set CodeCoverageFile [vendor_GetCoverageFileName ${BuildName}]
   if {[file exists ${resolvedCoverageDirectory}/${CodeCoverageFile}] && $::osvvm::RanSimulationWithCoverage eq "true"} {
-#    puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${resolvedCoverageDirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
     puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
   }
 
