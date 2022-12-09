@@ -50,8 +50,8 @@ proc Simulate2Html {TestCaseName TestSuiteName TestCaseFileName} {
   variable AlertYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_alerts.yml]
   variable CovYamlFile   [file join $VhdlReportsDirectory ${TestCaseName}_cov.yml]
   variable SbBaseYamlFile ${TestCaseName}_sb_
-  variable SbSlvYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_sb_slv.yml]
-  variable SbIntYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_sb_int.yml]
+#  variable SbSlvYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_sb_slv.yml]
+#  variable SbIntYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_sb_int.yml]
 
   set TestSuiteDirectory [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
   CreateDirectory $TestSuiteDirectory
@@ -77,17 +77,6 @@ proc Simulate2Html {TestCaseName TestSuiteName TestCaseFileName} {
       file rename -force ${SbFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_${SbName}.yml]
     }
   }
-
-# Only handles slv and int, not custom named SB
-#  if {[file exists ${SbSlvYamlFile}]} {
-#    Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbSlvYamlFile} Scoreboard_slv
-#    file rename -force ${SbSlvYamlFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_slv.yml]
-#  }
-#  
-#  if {[file exists ${SbIntYamlFile}]} {
-#    Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbIntYamlFile} Scoreboard_int
-#    file rename -force ${SbIntYamlFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_int.yml]
-#  }
   
   FinalizeSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
@@ -222,6 +211,3 @@ proc FinalizeSimulationReportFile {TestCaseName TestSuiteName} {
   puts $ResultsFile "</html>"
   close $ResultsFile
 }
-
-
-

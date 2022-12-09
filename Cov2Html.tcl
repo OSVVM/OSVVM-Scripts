@@ -44,13 +44,13 @@
 
 package require yaml
 
-proc GetCov {TestCaseName} {
-  set CovFile ${::osvvm::ReportsDirectory}/${TestCaseName}_cov.yml
-  set TestDict [::yaml::yaml2dict -file ${CovFile}]
-  set Coverage    [dict get $TestDict Coverage]
-  
-  return $Coverage
-}
+#proc GetCov {TestCaseName} {
+#  set CovFile ${::osvvm::ReportsDirectory}/${TestCaseName}_cov.yml
+#  set TestDict [::yaml::yaml2dict -file ${CovFile}]
+#  set Coverage    [dict get $TestDict Coverage]
+#  
+#  return $Coverage
+#}
 
 proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
   variable ResultsFile
@@ -68,8 +68,6 @@ proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
 
 proc LocalCov2Html {TestCaseName TestSuiteName CovYamlFile} {
   variable ResultsFile
-    
-#  set CovFile ${::osvvm::ReportsDirectory}/${TestCaseName}_cov.yml
 
   puts $ResultsFile "<hr>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"

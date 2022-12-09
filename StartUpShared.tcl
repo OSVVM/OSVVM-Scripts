@@ -56,6 +56,7 @@
 
 
 # Load Base OSVVM Project Scripts and Vendor Specific Scripts
+source ${::osvvm::SCRIPT_DIR}/CreateBuildYamlReports.tcl
 source ${::osvvm::SCRIPT_DIR}/OsvvmProjectScripts.tcl
 namespace eval ::osvvm {
   source ${::osvvm::SCRIPT_DIR}/VendorScripts_${::osvvm::ScriptBaseName}.tcl

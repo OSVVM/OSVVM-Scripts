@@ -363,33 +363,15 @@ proc LocalBuild {BuildName Path_Or_File} {
 
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
-  ##!!TODO Refactor into StartBuildYaml
-  set  BuildStartTime    [clock seconds]
-  set  BuildStartTimeMs  [clock milliseconds]
-  puts "Starting Build at time [clock format $BuildStartTime -format %T]"
-
-  set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} w]
-  puts  $RunFile "Version: $::osvvm::OsvvmVersion"
-  puts  $RunFile "Build:"
-  puts  $RunFile "  Name: $BuildName"
-  puts  $RunFile "  Date: [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
-  puts  $RunFile "  Simulator: \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
-  puts  $RunFile "  Version: $::osvvm::ToolNameVersion"
-#  puts  $RunFile "  Date: [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
-  close $RunFile
-
+  StartBuildYaml $BuildName
+  
   CallbackBefore_Build ${Path_Or_File}
   include ${Path_Or_File}
   CallbackAfter_Build ${Path_Or_File}
 
-
-  # Print Elapsed time for last TestSuite (if any ran) and the entire build
-  set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} a]
-
   if {[info exists TestSuiteName]} {
-    ##!!TODO Refactor into FinishTestSuiteBuildYaml
-    puts  $RunFile "    ElapsedTime: [ElapsedTimeMs $TestSuiteStartTimeMs]"
     FinalizeTestSuite $TestSuiteName
+    FinishTestSuiteBuildYaml
     unset TestSuiteName
   }
 
@@ -398,18 +380,7 @@ proc LocalBuild {BuildName Path_Or_File} {
     vendor_ReportCodeCoverage $BuildName $::osvvm::CoverageDirectory
   }
 
-  ##!!TODO Refactor into FinishBuildYaml
-
-  set   BuildFinishTime     [clock seconds]
-  set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
-  puts  $RunFile "Run:"
-  puts  $RunFile "  Start:    [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
-  puts  $RunFile "  Finish:   [clock format $BuildFinishTime -format {%Y-%m-%dT%H:%M%z}]"
-  puts  $RunFile "  Elapsed:  [ElapsedTimeMs $BuildStartTimeMs]"
-  close $RunFile
-
-  puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
-  puts "Build Finish time [clock format $BuildFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
+  FinishBuildYaml $BuildName
 }
 
 proc AfterBuildReports {BuildName} {
@@ -462,7 +433,9 @@ proc CheckWorkingDir {} {
     }
     puts "set CurrentSimulationDirectory $CurrentDir"
     set CurrentSimulationDirectory $CurrentDir
-    CreateDirectory ${::osvvm::OutputBaseDirectory}
+    if {${::osvvm::OutputBaseDirectory} ne ""} {
+      CreateDirectory ${::osvvm::OutputBaseDirectory}
+    }
   }
 }
 
@@ -989,8 +962,7 @@ proc LocalSimulate {LibraryUnit args} {
   }
   set vendor_simulate_started 1
 
-  set SimulateStartTime   [clock seconds]
-  set SimulateStartTimeMs [clock milliseconds]
+  StartSimulateBuildYaml $TestCaseName
 
   puts "simulate $LibraryUnit $args"              ; # EchoOsvvmCmd
 
@@ -1000,8 +972,6 @@ proc LocalSimulate {LibraryUnit args} {
   } else {
     set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions]
   }
-
-  puts "Simulation Start time [clock format $SimulateStartTime -format %T]"
 
   CallbackBefore_Simulate $LibraryUnit $args
   vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} {*}${SimulateOptions}
@@ -1016,23 +986,9 @@ proc AfterSimulateReports {} {
   variable SimulateStartTimeMs
 
   Simulate2Html $TestCaseName $TestSuiteName $TestCaseFileName
+  
+  FinishSimulateBuildYaml 
 
-  #puts "Start time  [clock format $SimulateStartTime -format %T]"
-  set  SimulateFinishTime    [clock seconds]
-  set  SimulateElapsedTime   [expr ($SimulateFinishTime - $SimulateStartTime)]
-  set  SimulateFinishTimeMs  [clock milliseconds]
-  set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
-
-  puts "Simulation Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
-
-  ##!!TODO Refactor into AfterSimulateBuildYaml
-  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
-    puts  $RunFile "        TestCaseFileName: $TestCaseFileName"
-    puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericList\""
-    puts  $RunFile "        ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
-    close $RunFile
-  }
 }
 
 proc RunIfFileExists {ScriptToRun} {
@@ -1152,35 +1108,24 @@ proc FinalizeTestSuite {SuiteName} {
 # -------------------------------------------------
 proc TestSuite {SuiteName} {
   variable TestSuiteName
-  variable TestSuiteStartTimeMs
 
   puts "TestSuite $SuiteName"                     ; # EchoOsvvmCmd
   
-  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
-  } else {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
-  }
-  if {![info exists TestSuiteName]} {
-    ##!!TODO Refactor into FirstTestSuiteBuildYaml
-    puts  $RunFile "TestSuites: "
-  } else {
-    ##!!TODO Refactor into FinishTestSuiteBuildYaml
-    puts  $RunFile "    ElapsedTime: [ElapsedTimeMs $TestSuiteStartTimeMs]"
+
+  set FirstRun [expr ![info exists TestSuiteName]]
+  if {! $FirstRun} {
+    # Finish previous test suite before ending current one
     FinalizeTestSuite $TestSuiteName
+    FinishTestSuiteBuildYaml
   }
+  StartTestSuiteBuildYaml $SuiteName $FirstRun
+  
   set   TestSuiteName $SuiteName
-  ##!!TODO Refactor into StartTestSuiteBuildYaml
-  puts  $RunFile "  - Name: $TestSuiteName"
-  puts  $RunFile "    TestCases:"
-  close $RunFile
 
   CheckSimulationDirs
   CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${TestSuiteName}]
   CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ResultsDirectory} ${TestSuiteName}]
 
-  # Starting a Test Suite here
-  set TestSuiteStartTimeMs   [clock milliseconds]
 }
 
 # -------------------------------------------------
@@ -1198,15 +1143,6 @@ proc TestName {Name} {
 
   puts "TestName $Name"
   set TestCaseName $Name
-
-  ##!!TODO Refactor into StartTestCaseBuildYaml
-  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
-  } else {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
-  }
-  puts  $RunFile "      - TestCaseName: $Name"
-  close $RunFile
 }
 
 # Maintain backward compatibility
@@ -1245,17 +1181,8 @@ proc SkipTest {FileName Reason} {
   set SimName [file rootname [file tail $FileName]]
 
   puts "SkipTest $FileName $Reason"
-
-  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
-  } else {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
-  }
-  puts  $RunFile "      - TestCaseName: $SimName"
-  puts  $RunFile "        Name: $SimName"
-  puts  $RunFile "        Status: SKIPPED"
-  puts  $RunFile "        Results: {Reason: \"$Reason\"}"
-  close $RunFile
+  
+  SkipTestBuildYaml $SimName $Reason
 }
 
 
