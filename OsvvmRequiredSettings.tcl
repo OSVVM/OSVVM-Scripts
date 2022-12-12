@@ -107,9 +107,10 @@ namespace eval ::osvvm {
 
     
     # When a build is started, run include instead of build
-    variable BuildStarted "false"
-    variable GenericList  ""
-    variable GenericNames ""
+    variable BuildStarted   "false"
+    variable GenericList    ""
+    variable GenericNames   ""
+    variable GenericOptions ""
 
     # VhdlReportsDirectory:  OSVVM temporary location for yml.  Moved to ${ReportsDirectory}/${TestSuiteName}
     variable VhdlReportsDirectory     "" ;  

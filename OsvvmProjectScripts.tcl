@@ -313,9 +313,10 @@ proc build {{Path_Or_File "."}} {
     set BuildStarted "true"
     set BuildName [SetBuildName $Path_Or_File]
 
-    set LogFileName ${BuildName}.log ; #${TranscriptExtension}
+#    set LogFileName ${BuildName}.log ; #${TranscriptExtension}
+#    StartTranscript ${LogFileName}
 
-    StartTranscript ${LogFileName}
+    StartTranscript ${BuildName}
 
     #  Catch any errors from the build and handle them below
     set BuildErrorCode [catch {LocalBuild $BuildName $Path_Or_File} BuildErrMsg]
@@ -330,7 +331,8 @@ proc build {{Path_Or_File "."}} {
       CallbackOnError_AfterBuildReports $LocalReportErrorInfo
     } 
 
-    StopTranscript ${LogFileName}
+#    StopTranscript ${LogFileName}
+    StopTranscript ${BuildName}
 
     # Cannot generate html log files until transcript is closed - previous step
     set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
@@ -518,11 +520,8 @@ proc ReducePath {PathIn} {
 #   Used by build
 #
 proc StartTranscript {FileBaseName} {
-  variable CurrentTranscript
 
   CheckWorkingDir
-
-  set CurrentTranscript $FileBaseName
   
   set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildFile}]
   
@@ -547,17 +546,15 @@ proc DefaultVendor_StartTranscript {FileName} {
 #   Used by build
 #
 proc StopTranscript {{FileBaseName ""}} {
-  variable LogDirectory
-  variable CurrentTranscript
   variable TranscriptFileName
 
   flush stdout
   
-  set FullPathLogDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${LogDirectory}]
+  set FullPathLogDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
   CreateDirectory          $FullPathLogDirectory
 
   set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildFile}]
-  set TranscriptFileName [file join ${FullPathLogDirectory} ${CurrentTranscript}]
+  set TranscriptFileName [file join ${FullPathLogDirectory} ${FileBaseName}.log]
   if {![catch {info body vendor_StopTranscript} err]} {
     vendor_StopTranscript $TempTranscriptName
     file rename -force ${TempTranscriptName} ${TranscriptFileName}
@@ -920,8 +917,9 @@ proc simulate {LibraryUnit args} {
     unset ::osvvm::TestCaseName
   }
   # Remove Generics
-  set ::osvvm::GenericList ""
-  set ::osvvm::GenericNames ""
+  set ::osvvm::GenericList    ""
+  set ::osvvm::GenericNames   ""
+  set ::osvvm::GenericOptions ""
   
   if {$SimulateErrorCode != 0} {
     CallbackOnError_Simulate $SimErrMsg $LocalSimulateErrorInfo [concat $LibraryUnit $args]
@@ -963,8 +961,11 @@ proc LocalSimulate {LibraryUnit args} {
   set vendor_simulate_started 1
 
   StartSimulateBuildYaml $TestCaseName
-
-  puts "simulate $LibraryUnit $args"              ; # EchoOsvvmCmd
+  set SimArgs [concat $LibraryUnit {*}$args]
+  if {$::osvvm::GenericList ne ""} {
+    set SimArgs "$SimArgs [ToGenericCommand $::osvvm::GenericList]"
+  }
+  puts "simulate $SimArgs"              ; # EchoOsvvmCmd
 
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     set RanSimulationWithCoverage "true"
@@ -979,16 +980,10 @@ proc LocalSimulate {LibraryUnit args} {
 }
 
 proc AfterSimulateReports {} {
-  variable TestCaseName
-  variable TestSuiteName
-  variable TestCaseFileName
-  variable SimulateStartTime
-  variable SimulateStartTimeMs
 
-  Simulate2Html $TestCaseName $TestSuiteName $TestCaseFileName
+  Simulate2Html ${::osvvm::TestCaseName} ${::osvvm::TestSuiteName} ${::osvvm::BuildName} ${::osvvm::GenericList}
   
   FinishSimulateBuildYaml 
-
 }
 
 proc RunIfFileExists {ScriptToRun} {
@@ -1045,12 +1040,32 @@ proc SimulateRunScripts {LibraryUnit} {
 proc generic {Name Value} {
   variable GenericList
   variable GenericNames
+  variable GenericOptions
   
   lappend GenericList "$Name $Value"
   set GenericNames ${GenericNames}_${Name}_${Value}
+  lappend GenericOptions [vendor_generic ${Name} ${Value}]
   
 #   return "-g${Name}=${Value}"
-  return [vendor_generic ${Name} ${Value}]
+#  return [vendor_generic ${Name} ${Value}]
+  return ""
+}
+
+#--------------------------------------------------------------
+proc ToGenericCommand {GenericList} {
+
+  set Commands ""
+  if {${GenericList} ne ""} {
+    foreach GenericName $GenericList {
+      set NewCommand "\[generic [lindex $GenericName 0] [lindex $GenericName 1]\]"
+      if {$Commands eq ""} {
+        set Commands "$NewCommand"
+      } else {
+        set Commands "$Commands $NewCommand"
+      }
+    }
+  }
+  return $Commands
 }
 
 # -------------------------------------------------
@@ -1067,7 +1082,6 @@ proc DoWaves {args} {
     return $WaveOptions
   } 
 }
-
 
 # -------------------------------------------------
 proc CreateVerilogLibraryParams {prefix} {
@@ -1098,10 +1112,9 @@ proc FinalizeTestSuite {SuiteName} {
   
   # Merge Code Coverage for the Test Suite if it exists
   if {$::osvvm::RanSimulationWithCoverage eq "true"} {
-    set BuildName [file rootname ${::osvvm::CurrentTranscript}]
-    CreateDirectory ${::osvvm::CoverageDirectory}/${BuildName}
+    CreateDirectory ${::osvvm::CoverageDirectory}/${::osvvm::BuildName}
     CreateDirectory ${::osvvm::CoverageDirectory}/${SuiteName}
-    vendor_MergeCodeCoverage $SuiteName ${::osvvm::CoverageDirectory} ${BuildName}
+    vendor_MergeCodeCoverage $SuiteName ${::osvvm::CoverageDirectory} ${::osvvm::BuildName}
   }
 }
 
@@ -1154,10 +1167,14 @@ proc TestCase {Name} {
 # -------------------------------------------------
 # RunTest
 #
-proc RunTest {FileName {SimName ""}} {
+proc RunTest {FileName {SimName ""} args} {
   variable CompoundCommand
 
-  puts "RunTest $FileName $SimName"               ; # EchoOsvvmCmd
+  set RunArgs [concat $FileName $SimName]
+  if {$::osvvm::GenericList ne ""} {
+    set RunArgs "$RunArgs [ToGenericCommand $::osvvm::GenericList]"
+  }
+  puts "RunTest $RunArgs"               ; # EchoOsvvmCmd
   set CompoundCommand TRUE
 
 	if {$SimName eq ""} {
@@ -1683,6 +1700,13 @@ proc ChangeWorkingDirectory {RelativePath} {
   set CurrentWorkingDirectory [file join $CurrentWorkingDirectory $RelativePath]
 }
 
+proc TimeIt {args} {
+
+  set StartTimeMs [clock milliseconds]
+  eval $args
+  puts  "Time:  [ElapsedTimeMs $StartTimeMs]"
+}
+
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
@@ -1715,7 +1739,7 @@ namespace export OsvvmLibraryPath
 namespace export JoinWorkingDirectory ChangeWorkingDirectory
 
 # Exported only for tesing purposes
-namespace export FindLibraryPath CreateLibraryPath EndSimulation FindExistingLibraryPath
+namespace export FindLibraryPath CreateLibraryPath EndSimulation FindExistingLibraryPath TimeIt
 
 
 # end namespace ::osvvm
