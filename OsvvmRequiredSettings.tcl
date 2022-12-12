@@ -105,12 +105,11 @@ namespace eval ::osvvm {
     variable Log2OsvvmErrorInfo        ""
 
 
-    
-    # When a build is started, run include instead of build
-    variable BuildStarted   "false"
+    variable BuildStarted   "false"   ; # Detects if build is running and if build is called, call include instead
     variable GenericList    ""
     variable GenericNames   ""
     variable GenericOptions ""
+    variable RanSimulationWithCoverage "false"
 
     # VhdlReportsDirectory:  OSVVM temporary location for yml.  Moved to ${ReportsDirectory}/${TestSuiteName}
     variable VhdlReportsDirectory     "" ;  
