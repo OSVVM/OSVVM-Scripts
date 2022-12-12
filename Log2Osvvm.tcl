@@ -45,35 +45,48 @@ namespace eval ::osvvm {
     variable HtmlFileHandle
     variable SimFileHandle
     variable OsvvmFileHandle
+    variable LocalLogType           "html"
+    variable LocalCreateSimScripts  "false"
+    variable LocalCreateOsvvmOutput "false"
+    
+    if {[info exists ::osvvm::TranscriptExtension]} {
+      set LocalLogType $::osvvm::TranscriptExtension
+    }
+    if {[info exists ::osvvm::CreateSimScripts]} {
+      set LocalCreateSimScripts $::osvvm::CreateSimScripts
+    }
+    if {[info exists ::osvvm::CreateOsvvmOutput]} {
+      set LocalCreateOsvvmOutput $::osvvm::CreateOsvvmOutput
+    }
     
     set LogFileHandle [open $LogFile r]
     set LogDir  [file dirname $LogFile]
     set LogName [file rootname [file tail $LogFile]]
     
-    if {$::osvvm::TranscriptExtension eq "html"} {
+    if {$LocalLogType eq "html"} {
       set HtmlFile [file join ${LogDir} ${LogName}_log.html]
       set HtmlFileHandle [open $HtmlFile w]
     }
-    if {$::osvvm::CreateSimScripts} {
+    if {$LocalCreateSimScripts} {
       set SimFile [file join ${LogDir} ${LogName}_sim.tcl]
       set SimFileHandle [open $SimFile w]
     }
-    if {$::osvvm::CreateOsvvmOutput} {
+    if {$LocalCreateOsvvmOutput} {
       set OsvvmFile [file join ${LogDir} ${LogName}_osvvm.log]
       set OsvvmFileHandle [open $OsvvmFile w]
     }
     
-    set ErrorCode [catch {LocalLog2Osvvm $LogFile} errmsg]
+    set ErrorCode [catch {LocalLog2Osvvm $LogFile $LocalLogType $LocalCreateSimScripts $LocalCreateOsvvmOutput} errmsg]
     
     close $LogFileHandle 
     
-    if {$::osvvm::TranscriptExtension eq "html"} {
+    if {$LocalLogType eq "html"} {
       close $HtmlFileHandle 
     }
-    if {$::osvvm::CreateSimScripts} {
+    if {$LocalCreateSimScripts} {
       close $SimFileHandle 
     }
-    if {$::osvvm::CreateOsvvmOutput} {
+    if {$LocalCreateOsvvmOutput} {
       close $OsvvmFileHandle 
     }
     
@@ -82,7 +95,7 @@ namespace eval ::osvvm {
     }
   }
 
-  proc LocalLog2Osvvm {LogFile} {
+  proc LocalLog2Osvvm {LogFile LocalLogType LocalCreateSimScripts LocalCreateOsvvmOutput} {
     variable LogFileHandle
     variable LineOfLogFile
     variable InRunTest 0
@@ -90,17 +103,20 @@ namespace eval ::osvvm {
     variable TestCaseName  Default
     variable PrintPrefix "<pre>"
 
-    while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
-#      set LineOfLogFile [regsub {^KERNEL: %%} [regsub {^# } $RawLineOfLogFile ""] "%%"]
+    # Read line by line - For OSVVM regressions, this is 50 to 100 ms slower
+    #   while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {  } ; 
+    
+    # Read whole file and split it into lines
+    foreach RawLineOfLogFile [split [read $LogFileHandle] \n] {
       set LineOfLogFile [regsub {^KERNEL: } [regsub {^# } $RawLineOfLogFile ""] ""]
         
-      if {$::osvvm::TranscriptExtension eq "html"} {
+      if {$LocalLogType eq "html"} {
         Log2Html  
       }
-      if {$::osvvm::CreateSimScripts} {
+      if {$LocalCreateSimScripts} {
         Log2Sim 
       }
-      if {$::osvvm::CreateOsvvmOutput} {
+      if {$LocalCreateOsvvmOutput} {
         Log2OsvvmOutput  
       }
     }
@@ -142,11 +158,18 @@ namespace eval ::osvvm {
         puts $HtmlFileHandle $LineOfLogFile
       }
     } elseif {[regexp {^simulate} $LineOfLogFile] } {
+      set GenericNames ""
+      if {[regexp {generic} $LineOfLogFile] } {
+        set GenericList [regsub {\].*} [regsub -all {[^\[]*\[generic ([^\]]*)} $LineOfLogFile {\1 }] ""]
+        foreach {name val} $GenericList {
+          set GenericNames ${GenericNames}_${name}_${val}
+        }
+      }
       if {! $InRunTest} {
-        puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary><span id=\"${TestSuiteName}_${TestCaseName}\" />"
+        puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary><span id=\"${TestSuiteName}_${TestCaseName}${GenericNames}\" />"
         set PrintPrefix "</details>"
       } else {
-        puts $HtmlFileHandle "$LineOfLogFile <span id=\"${TestSuiteName}_${TestCaseName}\" />"
+        puts $HtmlFileHandle "$LineOfLogFile <span id=\"${TestSuiteName}_${TestCaseName}${GenericNames}\" />"
       }
       set InRunTest 0
     } else {

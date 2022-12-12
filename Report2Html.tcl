@@ -48,13 +48,14 @@ proc Report2Html {ReportFile} {
 
   set FileName  [file rootname ${ReportFile}].html
   set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
-  if {[dict exists $Report2HtmlDict ReportHeaderHtmlFile]} {
-    set ReportHeaderHtmlFile  [dict get $Report2HtmlDict ReportHeaderHtmlFile]
+#  if {[dict exists $Report2HtmlDict ReportHeaderHtmlFile]} {
+#    set ReportHeaderHtmlFile  [dict get $Report2HtmlDict ReportHeaderHtmlFile]
+    set ReportHeaderHtmlFile [file join ${::osvvm::SCRIPT_DIR} summary_header_report.html]
     file copy -force ${ReportHeaderHtmlFile} ${FileName}
     set ResultsFile [open ${FileName} a]
-  } else {
-    set ResultsFile [open ${FileName} w]
-  }
+#  } else {
+#    set ResultsFile [open ${FileName} w]
+#  }
   set ErrorCode [catch {LocalReport2Html $Report2HtmlDict} errmsg]
   
   close $ResultsFile
@@ -272,6 +273,15 @@ proc ReportElaborateStatus {TestDict} {
       puts $ResultsFile "  <tr><td>$key</td><td>$val</td></tr>"
     }
   }
+  set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${ReportBuildName}]
+  puts $ResultsFile "  <tr><td>Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}.log\">${ReportBuildName}.log</a></td></tr>"
+  if {$::osvvm::TranscriptExtension eq "html"} {
+    puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${ReportBuildName}_log.html</a></td></tr>"
+  }
+  set CodeCoverageFile [vendor_GetCoverageFileName ${ReportBuildName}]
+  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
+    puts $ResultsFile "  <tr><td>Code Coverage</td><td><a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
+  }
   # Print OptionalInfo
   if { [dict exists $TestDict OptionalInfo] } {
     set OptionalInfo  [dict get $TestDict OptionalInfo]
@@ -354,11 +364,12 @@ proc ReportTestSuites {TestDict} {
       puts $ResultsFile "      <th rowspan=\"2\">Elapsed<br>Time</th>"
       puts $ResultsFile "  </tr>"
       puts $ResultsFile "  <tr></tr>"
-      if { [dict exists $TestSuite ReportsDirectory] } {
-        set ReportsDirectory [dict get $TestSuite ReportsDirectory]
-      } else {
-        set ReportsDirectory ""
-      }
+#      if { [dict exists $TestSuite ReportsDirectory] } {
+#        set ReportsDirectory [dict get $TestSuite ReportsDirectory]
+#      } else {
+#        set ReportsDirectory ""
+#      }
+      set ReportsDirectory [file join $::osvvm::ReportsSubdirectory $SuiteName]
 
       foreach TestCase [dict get $TestSuite TestCases] {
         set TestName     [dict get $TestCase TestCaseName]

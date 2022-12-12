@@ -69,16 +69,16 @@ proc StartBuildYaml {BuildName} {
   puts  $RunFile "BuildName: $BuildName"
   puts  $RunFile "Version: $::osvvm::OsvvmVersion"
   puts  $RunFile "Date: $StartTime"
-  set   ReportHeaderHtmlFile [file join ${::osvvm::SCRIPT_DIR} summary_header_report.html]
+#  set   ReportHeaderHtmlFile [file join ${::osvvm::SCRIPT_DIR} summary_header_report.html]
+#  puts  $RunFile "ReportHeaderHtmlFile: $ReportHeaderHtmlFile"
 #  puts  $RunFile "ReportsDirectory: ${::osvvm::ReportsSubdirectory}"
-  puts  $RunFile "ReportHeaderHtmlFile: $ReportHeaderHtmlFile"
   puts  $RunFile "BuildInfo:"
   puts  $RunFile "  Start Time: $StartTime"
   puts  $RunFile "  Simulator: \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
   puts  $RunFile "  Simulator Version: $::osvvm::ToolNameVersion"
   puts  $RunFile "  OSVVM Version: $::osvvm::OsvvmVersion"
-  set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${BuildName}]
-  puts  $RunFile "  Simulation Transcript: <a href=\"${BuildTranscriptLinkPathPrefix}.log\">${BuildName}.log</a>"
+#  set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${BuildName}]
+#  puts  $RunFile "  Simulation Transcript: <a href=\"${BuildTranscriptLinkPathPrefix}.log\">${BuildName}.log</a>"
   close $RunFile
 }
 
@@ -96,23 +96,21 @@ proc FinishBuildYaml {BuildName} {
   set   BuildFinishTime     [clock seconds]
   set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
   puts  $RunFile "OptionalInfo:"
-  # OptionalInfo is not known until simulation finishes
-  if {$::osvvm::TranscriptExtension eq "html"} {
-    set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${BuildName}]
-    puts $RunFile "  HTML Simulation Transcript: <a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${BuildName}_log.html</a>"
-  }
-  set CodeCoverageFile [vendor_GetCoverageFileName ${BuildName}]
-  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
-    puts $RunFile "  Code Coverage: <a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a>"
-  }
+#  # OptionalInfo is not known until simulation finishes
+#  if {$::osvvm::TranscriptExtension eq "html"} {
+#    set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${BuildName}]
+#    puts $RunFile "  HTML Simulation Transcript: <a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${BuildName}_log.html</a>"
+#  }
+#  set CodeCoverageFile [vendor_GetCoverageFileName ${BuildName}]
+#  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
+#    puts $RunFile "  Code Coverage: <a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a>"
+#  }
   puts  $RunFile "  Finish Time: [clock format $BuildFinishTime -format {%Y-%m-%dT%H:%M%z}]"
   
   puts  $RunFile "Run:"
   puts  $RunFile "  BuildErrorCode:       $BuildErrorCode"
   puts  $RunFile "  AnalyzeErrorCount:    $AnalyzeErrorCount"
   puts  $RunFile "  SimulateErrorCount:   $BuildErrorCode"
-#  puts  $RunFile "  Start:    [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
-#  puts  $RunFile "  Finish:   [clock format $BuildFinishTime -format {%Y-%m-%dT%H:%M%z}]"
   puts  $RunFile "  Elapsed:  [ElapsedTimeMs $BuildStartTimeMs]"
   close $RunFile
 
@@ -133,7 +131,7 @@ proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
   }
 
   puts  $RunFile "  - Name: $SuiteName"
-  puts  $RunFile "    ReportsDirectory: [file join ${::osvvm::ReportsSubdirectory} $SuiteName]"
+#  puts  $RunFile "    ReportsDirectory: [file join ${::osvvm::ReportsSubdirectory} $SuiteName]"
   puts  $RunFile "    TestCases:"
   close $RunFile
   
@@ -182,13 +180,11 @@ proc FinishSimulateBuildYaml {} {
   set  SimulateFinishTimeMs  [clock milliseconds]
   set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
   
-  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
-    puts  $RunFile "        TestCaseFileName: $TestCaseFileName"
-    puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericList\""
-    puts  $RunFile "        ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
-    close $RunFile
-  }
+  set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
+  puts  $RunFile "        TestCaseFileName: $TestCaseFileName"
+  puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericList\""
+  puts  $RunFile "        ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
+  close $RunFile
 }
 
 # -------------------------------------------------
