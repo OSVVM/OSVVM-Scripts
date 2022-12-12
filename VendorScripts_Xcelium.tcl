@@ -196,6 +196,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ExtendedRunOptions
 #  variable VENDOR_TRANSCRIPT_FILE
 
+#!!TODO:   Where do generics get applied:   {*}${::osvvm::GenericOptions}
+
   CreateToolSetup
 
   # Building the temp_Cadence_run.tcl Script
@@ -243,7 +245,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   puts  $RunFile "exit" 
   close $RunFile
 
-##  # removed $args
+##  # removed $args  {*}${::osvvm::GenericOptions}
 ##  puts  "xmelab  ${LibraryName}.${LibraryUnit}"
 ##  eval  exec xmelab  ${LibraryName}.${LibraryUnit}  
 ###  eval  exec xmelab  ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 

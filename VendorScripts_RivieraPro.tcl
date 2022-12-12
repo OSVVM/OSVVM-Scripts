@@ -183,7 +183,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SimulateOptions
 
 #  puts "vendor_simulate  LibraryName: $LibraryName    LibraryUnit:  $LibraryUnit   args:  $args"
-  set SimulateOptions [concat -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args}]
+  set SimulateOptions [concat -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions}]
 
   puts "vsim ${SimulateOptions}"
         vsim {*}${SimulateOptions}

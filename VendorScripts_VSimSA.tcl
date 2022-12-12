@@ -174,7 +174,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestCaseFileName
 
   puts "vendor simulate LN=$LibraryName LU=$LibraryUnit A=$args"
-  set SimulateOptions [concat {*}${args} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
+  set SimulateOptions [concat {*}${args} {*}${::osvvm::GenericOptions} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
 
   puts "vsim ${SimulateOptions}"
   eval  vsim {*}${SimulateOptions}

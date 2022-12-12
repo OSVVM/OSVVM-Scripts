@@ -65,7 +65,7 @@
   variable ToolNameVersion [regsub {\s+} $VersionString -]
 #   puts $ToolNameVersion
 
-  variable GhdlRunOptions ""
+#  variable GhdlRunOptions ""
 
 
 # -------------------------------------------------
@@ -196,7 +196,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable GHDL_WORKING_LIBRARY_PATH
   variable ExtendedElaborateOptions
   variable ExtendedRunOptions
-  variable GhdlRunOptions
+#  variable GhdlRunOptions
 
   set LocalElaborateOptions [concat --std=${VhdlShortVersion} --syn-binding {*}${ExtendedElaborateOptions} --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${args}]
 
@@ -210,11 +210,13 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   }
   
   if {$::osvvm::SaveWaves} {
-    set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.ghw ${SignalSelectionOptions} ${GhdlRunOptions} ]
+#    set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.ghw ${SignalSelectionOptions} ${GhdlRunOptions} ]
+    set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.ghw ${SignalSelectionOptions} {*}${::osvvm::GenericOptions} ]
   } else {
-    set LocalRunOptions [concat {*}${ExtendedRunOptions} ${GhdlRunOptions}]
+#    set LocalRunOptions [concat {*}${ExtendedRunOptions} ${GhdlRunOptions}]
+    set LocalRunOptions [concat {*}${ExtendedRunOptions} {*}${::osvvm::GenericOptions}]
   }
-  set GhdlRunOptions ""
+#  set GhdlRunOptions ""
   
 # format for select file  
   set SimulateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit} {*}${LocalRunOptions}]
@@ -251,12 +253,12 @@ proc FindFirstFile {Name} {
 
 # -------------------------------------------------
 proc vendor_generic {Name Value} {
-  variable GhdlRunOptions
+#  variable GhdlRunOptions
   
-  append GhdlRunOptions "-g${Name}=${Value} "
+#  append GhdlRunOptions "-g${Name}=${Value} "
   
-#  return "-g${Name}=${Value}"
-  return ""
+  return "-g${Name}=${Value}"
+#  return ""
 }
 
 

@@ -175,6 +175,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ExtendedElaborateOptions
   variable ExtendedRunOptions
 
+#!!TODO:   Where do generics get applied:   {*}${::osvvm::GenericOptions}
+
   CreateToolSetup
 
   # Building the Synopsys_run.tcl Script

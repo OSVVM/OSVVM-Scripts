@@ -277,7 +277,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
     set SimulateOptions "-voptargs=$::osvvm::DebugOptions"
   }
 
-  set SimulateOptions [concat $SimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} -suppress 8683 -suppress 8684]
+  set SimulateOptions [concat $SimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
 
 #  puts "vsim {*}${SimulateOptions}"
   vsim {*}${SimulateOptions}
