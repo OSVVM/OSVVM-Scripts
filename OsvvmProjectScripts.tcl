@@ -300,7 +300,6 @@ proc build {{Path_Or_File "."}} {
   variable BuildErrorInfo
   variable Log2ErrorInfo
   variable BuildStarted
-  variable TranscriptExtension
   variable BuildName
   variable BuildErrorCode 0
   
@@ -312,9 +311,6 @@ proc build {{Path_Or_File "."}} {
     
     set BuildStarted "true"
     set BuildName [SetBuildName $Path_Or_File]
-
-#    set LogFileName ${BuildName}.log ; #${TranscriptExtension}
-#    StartTranscript ${LogFileName}
 
     StartTranscript ${BuildName}
 
@@ -358,7 +354,6 @@ proc build {{Path_Or_File "."}} {
 
 proc LocalBuild {BuildName Path_Or_File} {
   variable TestSuiteStartTimeMs
-  variable TranscriptExtension
   variable RanSimulationWithCoverage 
   variable TestSuiteName
   variable OutputBaseDirectory
@@ -1101,13 +1096,6 @@ proc MergeCoverage {SuiteName MergeName} {
 }
 
 # -------------------------------------------------
-proc  ElapsedTimeMs {StartTimeMs} {
-  set   FinishTimeMs  [clock milliseconds]
-  set   ElapsedTimeMs [expr ($FinishTimeMs - $StartTimeMs)]
-  return [format %.3f [expr ${ElapsedTimeMs}/1000.0]]
-}
-
-# -------------------------------------------------
 proc FinalizeTestSuite {SuiteName} {
   
   # Merge Code Coverage for the Test Suite if it exists
@@ -1244,9 +1232,8 @@ proc SetTranscriptType {{TranscriptType "html"}} {
 
   set lowerTranscriptType [string tolower $TranscriptType]
 
-  if {$lowerTranscriptType eq "html"} {
-    set TranscriptExtension "html"
-  } else {
+  set TranscriptExtension $lowerTranscriptType
+  if {($lowerTranscriptType ne "html") && ($lowerTranscriptType ne "none")} {
     set TranscriptExtension "log"
   }
 }

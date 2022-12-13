@@ -45,8 +45,8 @@ namespace eval ::osvvm {
 # -------------------------------------------------
 proc  ElapsedTimeMs {StartTimeMs} {
   set   FinishTimeMs  [clock milliseconds]
-  set   ElapsedTimeMs [expr ($FinishTimeMs - $StartTimeMs)]
-  return [format %.3f [expr ${ElapsedTimeMs}/1000.0]]
+  set   Elapsed [expr ($FinishTimeMs - $StartTimeMs)]
+  return [format %.3f [expr ${Elapsed}/1000.0]]
 }
 
 # -------------------------------------------------
@@ -66,7 +66,7 @@ proc StartBuildYaml {BuildName} {
   puts "Starting Build at time [clock format $BuildStartTime -format %T]"
 
   set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} w]
-  puts  $RunFile "BuildName: $BuildName"
+#  puts  $RunFile "BuildName: $BuildName"
   puts  $RunFile "Version: $::osvvm::OsvvmVersion"
   puts  $RunFile "Date: $StartTime"
 #  set   ReportHeaderHtmlFile [file join ${::osvvm::SCRIPT_DIR} summary_header_report.html]

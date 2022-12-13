@@ -19,6 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    12/2022   2022.12    Refactored to only use static OSVVM information
 #    05/2022   2022.05    Updated directory handling
 #    02/2022   2022.02    Added links for code coverage.
 #    10/2021   Initial    Initial Revision
@@ -45,8 +46,12 @@ package require yaml
 
 proc Report2Html {ReportFile} {
   variable ResultsFile
+  variable ReportBuildName
 
-  set FileName  [file rootname ${ReportFile}].html
+  set ReportFileRoot  [file rootname $ReportFile]
+  set ReportBuildName [file tail $ReportFileRoot]
+  set FileName ${ReportFileRoot}.html
+  
   set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
 #  if {[dict exists $Report2HtmlDict ReportHeaderHtmlFile]} {
 #    set ReportHeaderHtmlFile  [dict get $Report2HtmlDict ReportHeaderHtmlFile]
@@ -112,8 +117,9 @@ proc ReportElaborateStatus {TestDict} {
   if {[info exists ReportTestSuiteSummary]} {
     unset ReportTestSuiteSummary
   }
-#  set BuildInfo [dict get $TestDict BuildInfo]
-  set ReportBuildName [dict get $TestDict BuildName]
+
+#  set ReportBuildName [dict get $TestDict BuildName] ; # now comes from FileName
+
   if { [dict exists $TestDict Run] } {
     set RunInfo   [dict get $TestDict Run] 
   } else {
@@ -273,15 +279,19 @@ proc ReportElaborateStatus {TestDict} {
       puts $ResultsFile "  <tr><td>$key</td><td>$val</td></tr>"
     }
   }
-  set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${ReportBuildName}]
-  puts $ResultsFile "  <tr><td>Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}.log\">${ReportBuildName}.log</a></td></tr>"
-  if {$::osvvm::TranscriptExtension eq "html"} {
-    puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${ReportBuildName}_log.html</a></td></tr>"
+  
+  if {$::osvvm::TranscriptExtension ne "none"} {
+    set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${ReportBuildName}]
+    puts $ResultsFile "  <tr><td>Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}.log\">${ReportBuildName}.log</a></td></tr>"
+    if {$::osvvm::TranscriptExtension eq "html"} {
+      puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${ReportBuildName}_log.html</a></td></tr>"
+    }
+    set CodeCoverageFile [vendor_GetCoverageFileName ${ReportBuildName}]
+    if {$::osvvm::RanSimulationWithCoverage eq "true"} {
+      puts $ResultsFile "  <tr><td>Code Coverage</td><td><a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
+    }
   }
-  set CodeCoverageFile [vendor_GetCoverageFileName ${ReportBuildName}]
-  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
-    puts $ResultsFile "  <tr><td>Code Coverage</td><td><a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
-  }
+  
   # Print OptionalInfo
   if { [dict exists $TestDict OptionalInfo] } {
     set OptionalInfo  [dict get $TestDict OptionalInfo]
