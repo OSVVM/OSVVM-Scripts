@@ -197,6 +197,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ExtendedElaborateOptions  ""
   variable ExtendedRunOptions  ""
   variable GhdlRunOptions
+  variable GhdlRunCmd
 
   set LocalElaborateOptions [concat --std=${VhdlShortVersion} --syn-binding {*}${ExtendedElaborateOptions} --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${args}]
 
@@ -214,12 +215,18 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   } else {
     set LocalRunOptions [concat {*}${ExtendedRunOptions} ${GhdlRunOptions}]
   }
+  
+  if {[info exists GhdlRunCmd]} {
+    set runcmd $GhdlRunCmd
+  } else {
+    set runcmd "--elab-run"
+  }
   set GhdlRunOptions ""
   
 # format for select file  
   set SimulateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit} {*}${LocalRunOptions}]
-  puts "ghdl --elab-run ${SimulateOptions}" 
-  if { [catch {exec ghdl --elab-run {*}${SimulateOptions}} SimulateErrorMessage]} { 
+  puts "ghdl ${runcmd} ${SimulateOptions}" 
+  if { [catch {exec ghdl ${runcmd} {*}${SimulateOptions}} SimulateErrorMessage]} { 
     PrintWithPrefix "Error:" $SimulateErrorMessage
     error "Failed: simulate $LibraryUnit"
   } else {
