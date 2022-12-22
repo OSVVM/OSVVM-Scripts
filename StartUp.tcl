@@ -95,7 +95,9 @@ namespace eval ::osvvm {
 
   } else {
     variable ScriptBaseName "GHDL"
-
+    if {[info exists ::env(OSVVM_TOOL)]} {
+      variable ScriptBaseName $::env(OSVVM_TOOL)
+    }
   }
 }
 

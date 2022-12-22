@@ -40,7 +40,7 @@
   variable ToolType    "synthesis"
   variable ToolVendor  "Xilinx"
   variable ToolName    "Vivado"
-  variable simulator   $ToolName ; # Deprecated 
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   variable ToolNameVersion "${ToolName}-[version -short]"
 #   puts $ToolNameVersion
   

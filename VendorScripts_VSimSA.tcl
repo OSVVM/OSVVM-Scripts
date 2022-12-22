@@ -56,7 +56,7 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Aldec"
   variable ToolName    "VSimSA"
-  variable simulator   $ToolName ; # Deprecated 
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   variable ToolNameVersion ${ToolName}-[lindex [split $version] [llength $version]-1]
 #   puts $ToolNameVersion
 
@@ -76,7 +76,7 @@ proc vendor_StartTranscript {FileName} {
 }
 
 proc vendor_StopTranscript {FileName} {
-  transcript off
+  transcript to -off
 }
 
 # -------------------------------------------------
@@ -174,7 +174,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestCaseFileName
 
   puts "vendor simulate LN=$LibraryName LU=$LibraryUnit A=$args"
-  set SimulateOptions [concat {*}${args} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
+  set SimulateOptions [concat {*}${args} {*}${::osvvm::GenericOptions} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
 
   puts "vsim ${SimulateOptions}"
   eval  vsim {*}${SimulateOptions}

@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    12/2022   2022.12    Refactored to only use static OSVVM information
 #    10/2021   Initial    Initial Revision
 #
 #
@@ -44,8 +45,12 @@ package require yaml
 
 proc Report2Junit {ReportFile} {
   variable ResultsFile
+  variable ReportBuildName
 
-  set FileName  [file rootname ${ReportFile}].xml
+  set ReportFileRoot  [file rootname $ReportFile]
+  set ReportBuildName [file tail $ReportFileRoot]
+  set FileName ${ReportFileRoot}.xml
+
   set ResultsFile [open ${FileName} w]
 
   set ErrorCode [catch {LocalReport2Junit $ReportFile} errmsg]
@@ -76,8 +81,7 @@ proc LocalReport2Junit {ReportFile} {
 proc JunitCreateSummary {TestDict} {
   variable ResultsFile
   variable ReportTestSuiteSummary
-  variable AnalyzeErrorCount
-  variable SimulateErrorCount
+  variable ReportBuildName
 
   if {[info exists ReportTestSuiteSummary]} {
     unset ReportTestSuiteSummary
@@ -91,7 +95,43 @@ proc JunitCreateSummary {TestDict} {
   set TestCasesFailed 0
   set TestCasesSkipped 0
   set TestCasesRun 0
-  if {$AnalyzeErrorCount || $SimulateErrorCount} {
+#  set ReportBuildName [dict get $TestDict BuildName] ; now derived from FileName
+  if { [dict exists $TestDict Version] } {
+    set Version   [dict get $TestDict Version] 
+  } else {
+    set Version   "Not Specified"
+  }
+  set StartTime "Not Specified"
+  if { [dict exists $TestDict Date] } {
+    set StartTime [dict get $TestDict Date]
+  }
+  if { [dict exists $TestDict Run] } {
+    set RunInfo   [dict get $TestDict Run] 
+  } else {
+    set RunInfo   [dict create BuildErrorCode 1]
+  }
+  if {[dict exists $RunInfo BuildErrorCode]} {
+    set ReportBuildErrorCode [dict get $RunInfo BuildErrorCode]
+  } else {
+    set ReportBuildErrorCode 1
+  }
+  if {[dict exists $RunInfo AnalyzeErrorCount]} {
+    set ReportAnalyzeErrorCount [dict get $RunInfo AnalyzeErrorCount]
+  } else {
+    set ReportAnalyzeErrorCount 0
+  }
+  if {[dict exists $RunInfo SimulateErrorCount]} {
+    set ReportSimulateErrorCount [dict get $RunInfo SimulateErrorCount]
+  } else {
+    set ReportSimulateErrorCount 0
+  }
+  if {[dict exists $RunInfo Elapsed]} {
+    set ElapsedTimeSeconds [dict get $RunInfo Elapsed]
+  } else {
+    set ElapsedTimeSeconds 0.0
+  }
+
+  if {($ReportBuildErrorCode != 0) || $ReportAnalyzeErrorCount || $ReportSimulateErrorCount} {
     set BuildStatus "FAILED"
   }
 
@@ -171,17 +211,13 @@ proc JunitCreateSummary {TestDict} {
   }
   # Print Initial Build Summary
   #  <testsuites name="Build" time="25.0" tests="20" failures="5" errors="0" skipped="2">
-  set BuildInfo [dict get $TestDict Build]
-  if { [dict exists $TestDict Run] } {
-    set BuildRun   [dict get $TestDict Run] 
-  } else {
-    set BuildRun   [dict create Start NONE Finish NONE Elapsed 0.0]
-  }
   puts $ResultsFile "<testsuites "
-  puts $ResultsFile "   name=\"[dict get $BuildInfo Name]\""
-  puts $ResultsFile "   timestamp=\"[dict get $BuildInfo Date]\""
-  puts $ResultsFile "   id=\"[dict get $BuildInfo Version]\""
-  puts $ResultsFile "   time=\"[dict get $BuildRun Elapsed]\""
+  puts $ResultsFile "   name=\"$ReportBuildName\""
+#  puts $ResultsFile "   timestamp=\"[dict get $BuildInfo Date]\""
+  puts $ResultsFile "   timestamp=\"$StartTime\""
+#  puts $ResultsFile "   id=\"[dict get $BuildInfo Version]\""
+  puts $ResultsFile "   id=\"$Version\""
+  puts $ResultsFile "   time=\"$ElapsedTimeSeconds\""
   puts $ResultsFile "   tests=\"$TestCasesRun\""
   puts $ResultsFile "   failures=\"$TestCasesFailed\""
   puts $ResultsFile "   errors=\"0\""

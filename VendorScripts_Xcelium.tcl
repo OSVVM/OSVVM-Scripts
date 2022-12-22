@@ -19,7 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#    05/2022   2022.05    Updated naming
+#    12/2022   2022.12    Updated StartTranscript, StopTranscript, Analyze, Simulate
 #     2/2022   2022.02    Added template of procedures needed for coverage support
 #    12/2021   2021.12    Updated to use relative paths.
 #     9/2021   2021.09    Created from VendorScripts_xxx.tcl
@@ -53,7 +53,7 @@
   variable ToolNameVersion ${ToolName}-[lindex [exec xmvhdl -version] 2] 
 #   puts $ToolNameVersion
 
-  variable simulator   $ToolName ; # Deprecated 
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
 
 # -------------------------------------------------
 # StartTranscript / StopTranscript
@@ -63,18 +63,17 @@
 #  Uses DefaultVendor_StartTranscript and DefaultVendor_StopTranscript
 #
 
+# -------------------------------------------------
+# StartTranscript / StopTranscript
+#
+
+# #
+# #  Comment out these if TCL version is >= 8.6
+# #
 # proc vendor_StartTranscript {FileName} {
-#   variable VENDOR_TRANSCRIPT_FILE
-#    
-#   if {[info exists VENDOR_TRANSCRIPT_FILE]} {
-#     unset VENDOR_TRANSCRIPT_FILE 
-#   }
-#   set VENDOR_TRANSCRIPT_FILE $FileName
-#   exec echo "Stop Time [clock format [clock seconds] -format %T]" >> $VENDOR_TRANSCRIPT_FILE
 # }
 # 
 # proc vendor_StopTranscript {FileName} {
-# #  transcript file -close $FileName
 # }
 
 # -------------------------------------------------
@@ -153,10 +152,19 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
 
   CreateToolSetup
 
-  exec echo "xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}"
-  exec       xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName} 
-#  exec       xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
-##  exec       xmvhdl -CDSLIB cds.lib -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
+##  exec echo "xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}"
+##  exec       xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName} 
+###  exec       xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
+####  exec       xmvhdl -CDSLIB cds.lib -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
+
+  set  AnalyzeOptions [concat -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update {*}${args} ${FileName}]
+  puts "xmvhdl $AnalyzeOptions"
+  if {[catch {exec xmvhdl {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
+    PrintWithPrefix "Error:" $AnalyzeErrorMessage
+    error "Failed: analyze $FileName"
+  } else {
+    puts $AnalyzeErrorMessage
+  }
 }
 
 
@@ -184,7 +192,11 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SimulateTimeUnits
   variable ToolVendor
   variable ToolName
+  variable ExtendedElaborateOptions
+  variable ExtendedRunOptions
 #  variable VENDOR_TRANSCRIPT_FILE
+
+#!!TODO:   Where do generics get applied:   {*}${::osvvm::GenericOptions}
 
   CreateToolSetup
 
@@ -233,15 +245,35 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   puts  $RunFile "exit" 
   close $RunFile
 
-  # removed $args
-  puts  "xmelab  ${LibraryName}.${LibraryUnit}"
-  eval  exec xmelab  ${LibraryName}.${LibraryUnit}  
-#  eval  exec xmelab  ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
-  puts  "xmsim  ${LibraryName}.${LibraryUnit}"
-  exec  xmsim  -input temp_Cadence_run.tcl ${LibraryName}.${LibraryUnit}  
-#  exec  xmsim  -input temp_Cadence_run.tcl ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
-#  run 
-#  exit
+##  # removed $args  {*}${::osvvm::GenericOptions}
+##  puts  "xmelab  ${LibraryName}.${LibraryUnit}"
+##  eval  exec xmelab  ${LibraryName}.${LibraryUnit}  
+###  eval  exec xmelab  ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+
+  set ElaborateOptions [concat {*}${ExtendedElaborateOptions} ${LibraryName}.${LibraryUnit}]
+  puts "xmelab ${ElaborateOptions}" 
+  if { [catch {exec xmelab {*}${ElaborateOptions}} SimulateErrorMessage]} { 
+    PrintWithPrefix "Error:" $SimulateErrorMessage
+    error "Failed: simulate $LibraryUnit during xmelab"
+  } else {
+    puts $SimulateErrorMessage
+  }
+
+##  puts  "xmsim  -input temp_Cadence_run.tcl ${LibraryName}.${LibraryUnit}"
+##  exec  xmsim  -input temp_Cadence_run.tcl ${LibraryName}.${LibraryUnit}  
+###  exec  xmsim  -input temp_Cadence_run.tcl ${LibraryName}.${LibraryUnit} |& tee -a ${VENDOR_TRANSCRIPT_FILE} 
+###  run 
+###  exit
+
+  set SimulateOptions [concat {*}${ExtendedRunOptions} -input temp_Cadence_run.tcl ${LibraryName}.${LibraryUnit}]
+  puts "xmsim ${SimulateOptions}" 
+  if { [catch {exec xmsim {*}${SimulateOptions}} SimulateErrorMessage]} { 
+    PrintWithPrefix "Error:" $SimulateErrorMessage
+    error "Failed: simulate $LibraryUnit during xmsim"
+  } else {
+    puts $SimulateErrorMessage
+  }
+
 }
 
 # -------------------------------------------------

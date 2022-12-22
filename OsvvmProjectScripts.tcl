@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    12/2022   2022.12    Minor update to StartUp
 #    09/2022   2022.09    Added RemoveLibrary, RemoveLibraryDirectory, OsvvmLibraryPath
 #                         Added SetVhdlAnalyzeOptions, SetExtendedAnalyzeOptions, SetExtendedSimulateOptions
 #                         Added (for GHDL) SetSaveWaves, SetExtendedElaborateOptions, SetExtendedRunOptions
@@ -74,8 +75,8 @@
 #   re-run the startup scripts, this program included
 #
 proc StartUp {} {
-  puts "source $::osvvm::SCRIPT_DIR/StartUp.tcl"
-  eval "source $::osvvm::SCRIPT_DIR/StartUp.tcl"
+  puts "source $::osvvm::SCRIPT_DIR/StartUpShared.tcl"
+  eval "source $::osvvm::SCRIPT_DIR/StartUpShared.tcl"
 }
 
 
@@ -125,6 +126,7 @@ proc PrintWithPrefix {Prefix RawMessageList} {
     }
   }
 }
+
 
 # -------------------------------------------------
 # include
@@ -248,8 +250,8 @@ proc BeforeBuildCleanUp {} {
   if {[info exists TestSuiteName]} {
     unset TestSuiteName
   }
-  # If Transcript Open, then Close it
-  TerminateTranscript
+  # If Files Open, then Close them
+  # CloseAllFiles  ; # oddly Questa has a number of files open already
 
   # End simulations if started - only set by simulate
   if {[info exists vendor_simulate_started]} {
@@ -298,7 +300,6 @@ proc build {{Path_Or_File "."}} {
   variable BuildErrorInfo
   variable Log2ErrorInfo
   variable BuildStarted
-  variable TranscriptExtension
   variable BuildName
   variable BuildErrorCode 0
   
@@ -311,9 +312,7 @@ proc build {{Path_Or_File "."}} {
     set BuildStarted "true"
     set BuildName [SetBuildName $Path_Or_File]
 
-    set LogFileName ${BuildName}.log ; #${TranscriptExtension}
-
-    StartTranscript ${LogFileName}
+    StartTranscript ${BuildName}
 
     #  Catch any errors from the build and handle them below
     set BuildErrorCode [catch {LocalBuild $BuildName $Path_Or_File} BuildErrMsg]
@@ -328,7 +327,8 @@ proc build {{Path_Or_File "."}} {
       CallbackOnError_AfterBuildReports $LocalReportErrorInfo
     } 
 
-    StopTranscript ${LogFileName}
+#    StopTranscript ${LogFileName}
+    StopTranscript ${BuildName}
 
     # Cannot generate html log files until transcript is closed - previous step
     set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
@@ -354,40 +354,21 @@ proc build {{Path_Or_File "."}} {
 
 proc LocalBuild {BuildName Path_Or_File} {
   variable TestSuiteStartTimeMs
-  variable TranscriptExtension
   variable RanSimulationWithCoverage 
   variable TestSuiteName
   variable OutputBaseDirectory
 
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
-  ##!!TODO Refactor into StartBuildYaml
-  set  BuildStartTime    [clock seconds]
-  set  BuildStartTimeMs  [clock milliseconds]
-  puts "Starting Build at time [clock format $BuildStartTime -format %T]"
-
-  set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} w]
-  puts  $RunFile "Version: $::osvvm::OsvvmVersion"
-  puts  $RunFile "Build:"
-  puts  $RunFile "  Name: $BuildName"
-  puts  $RunFile "  Date: [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
-  puts  $RunFile "  Simulator: \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
-  puts  $RunFile "  Version: $::osvvm::ToolNameVersion"
-#  puts  $RunFile "  Date: [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
-  close $RunFile
-
+  StartBuildYaml $BuildName
+  
   CallbackBefore_Build ${Path_Or_File}
   include ${Path_Or_File}
   CallbackAfter_Build ${Path_Or_File}
 
-
-  # Print Elapsed time for last TestSuite (if any ran) and the entire build
-  set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} a]
-
   if {[info exists TestSuiteName]} {
-    ##!!TODO Refactor into FinishTestSuiteBuildYaml
-    puts  $RunFile "    ElapsedTime: [ElapsedTimeMs $TestSuiteStartTimeMs]"
     FinalizeTestSuite $TestSuiteName
+    FinishTestSuiteBuildYaml
     unset TestSuiteName
   }
 
@@ -396,18 +377,7 @@ proc LocalBuild {BuildName Path_Or_File} {
     vendor_ReportCodeCoverage $BuildName $::osvvm::CoverageDirectory
   }
 
-  ##!!TODO Refactor into FinishBuildYaml
-
-  set   BuildFinishTime     [clock seconds]
-  set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
-  puts  $RunFile "Run:"
-  puts  $RunFile "  Start:    [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]"
-  puts  $RunFile "  Finish:   [clock format $BuildFinishTime -format {%Y-%m-%dT%H:%M%z}]"
-  puts  $RunFile "  Elapsed:  [ElapsedTimeMs $BuildStartTimeMs]"
-  close $RunFile
-
-  puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
-  puts "Build Finish time [clock format $BuildFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
+  FinishBuildYaml $BuildName
 }
 
 proc AfterBuildReports {BuildName} {
@@ -460,6 +430,9 @@ proc CheckWorkingDir {} {
     }
     puts "set CurrentSimulationDirectory $CurrentDir"
     set CurrentSimulationDirectory $CurrentDir
+    if {${::osvvm::OutputBaseDirectory} ne ""} {
+      CreateDirectory ${::osvvm::OutputBaseDirectory}
+    }
   }
 }
 
@@ -536,44 +509,27 @@ proc ReducePath {PathIn} {
   return [eval file join $NewPath]
 }
 
+
 # -------------------------------------------------
 # StartTranscript
 #   Used by build
 #
 proc StartTranscript {FileBaseName} {
-  variable CurrentTranscript
-  variable BuildTranscript
-  variable LogDirectory
-  variable CurrentSimulationDirectory
-  variable FirstEchoCmd
-  variable TranscriptFileName
 
   CheckWorkingDir
-
-  if {($FileBaseName ne "NONE.log") && (![info exists CurrentTranscript])} {
-    set LogDirectory   [file join ${CurrentSimulationDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
-    # Create directories if they do not exist
-    set TranscriptFileName [file join $LogDirectory $FileBaseName]
-    CreateDirectory [file dirname $TranscriptFileName]
-    set CurrentTranscript $FileBaseName
-    set BuildTranscript   $CurrentTranscript
-    if {![catch {info body vendor_StartTranscript} err]} {
-      vendor_StartTranscript $TranscriptFileName
-    } else {
-      DefaultVendor_StartTranscript $TranscriptFileName
-    }
-    if {[info exists FirstEchoCmd]} {
-      # nothing in transcript yet.
-      unset FirstEchoCmd
-    }
+  
+  set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildFile}]
+  
+  if {![catch {info body vendor_StartTranscript} err]} {
+    vendor_StartTranscript $TempTranscriptName
+  } else {
+    DefaultVendor_StartTranscript $TempTranscriptName
   }
 }
 
 proc DefaultVendor_StartTranscript {FileName} { 
 
   if {$::osvvm::GotTee} {
-  # #    chan configure $LogFile -encoding ascii
-    # TEE stdout to stdout and transcript
     set LogFile  [open ${FileName} w]
     tee channel stderr $LogFile
     tee channel stdout $LogFile
@@ -585,42 +541,46 @@ proc DefaultVendor_StartTranscript {FileName} {
 #   Used by build
 #
 proc StopTranscript {{FileBaseName ""}} {
-  variable CurrentTranscript
-  variable LogDirectory
+  variable TranscriptFileName
 
   flush stdout
+  
+  set FullPathLogDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
+  CreateDirectory          $FullPathLogDirectory
 
-  # Stop only if it is the transcript that is open
-  if {($FileBaseName eq $CurrentTranscript)} {
-    # FileName used within the STOP_TRANSCRIPT variable if required
-    set FileName [file join $LogDirectory $FileBaseName]
-    if {![catch {info body vendor_StopTranscript} err]} {
-      vendor_StopTranscript $FileName
+  set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildFile}]
+  set TranscriptFileName [file join ${FullPathLogDirectory} ${FileBaseName}.log]
+  if {![catch {info body vendor_StopTranscript} err]} {
+    vendor_StopTranscript $TempTranscriptName
+    file rename -force ${TempTranscriptName} ${TranscriptFileName}
+
+  } else {
+    DefaultVendor_StopTranscript $TempTranscriptName
+    if {$::osvvm::GotTee} {
+      file rename -force ${TempTranscriptName} ${TranscriptFileName}
     } else {
-      DefaultVendor_StopTranscript $FileName
-    }
-    unset CurrentTranscript
-    if {[info exists FirstEchoCmd]} {
-      unset FirstEchoCmd
+      file copy   -force ${TempTranscriptName} ${TranscriptFileName}
     }
   }
 }
 
+
 proc DefaultVendor_StopTranscript {{FileBaseName ""}} {
 
-  # Restore stdout 
-  chan pop stdout
-  chan pop stderr
+  if {$::osvvm::GotTee} {
+    # Restore stdout 
+    chan pop stdout
+    chan pop stderr
+  }
 }
 
 # -------------------------------------------------
-# TerminateTranscript
+# CloseAllFiles
 #   Used by build
 #
-proc TerminateTranscript {} {
-  variable CurrentTranscript
-  if {[info exists CurrentTranscript]} {
-    unset CurrentTranscript
+proc CloseAllFiles {} {
+  foreach channel [file channels "file*"] {
+      close $channel
   }
 }
 
@@ -952,8 +912,9 @@ proc simulate {LibraryUnit args} {
     unset ::osvvm::TestCaseName
   }
   # Remove Generics
-  set ::osvvm::GenericList ""
-  set ::osvvm::GenericNames ""
+  set ::osvvm::GenericList    ""
+  set ::osvvm::GenericNames   ""
+  set ::osvvm::GenericOptions ""
   
   if {$SimulateErrorCode != 0} {
     CallbackOnError_Simulate $SimErrMsg $LocalSimulateErrorInfo [concat $LibraryUnit $args]
@@ -994,10 +955,12 @@ proc LocalSimulate {LibraryUnit args} {
   }
   set vendor_simulate_started 1
 
-  set SimulateStartTime   [clock seconds]
-  set SimulateStartTimeMs [clock milliseconds]
-
-  puts "simulate $LibraryUnit $args"              ; # EchoOsvvmCmd
+  StartSimulateBuildYaml $TestCaseName
+  set SimArgs [concat $LibraryUnit {*}$args]
+  if {$::osvvm::GenericList ne ""} {
+    set SimArgs "$SimArgs [ToGenericCommand $::osvvm::GenericList]"
+  }
+  puts "simulate $SimArgs"              ; # EchoOsvvmCmd
 
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     set RanSimulationWithCoverage "true"
@@ -1006,38 +969,16 @@ proc LocalSimulate {LibraryUnit args} {
     set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions]
   }
 
-  puts "Simulation Start time [clock format $SimulateStartTime -format %T]"
-
   CallbackBefore_Simulate $LibraryUnit $args
   vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} {*}${SimulateOptions}
   CallbackAfter_Simulate  $LibraryUnit $args
 }
 
 proc AfterSimulateReports {} {
-  variable TestCaseName
-  variable TestSuiteName
-  variable TestCaseFileName
-  variable SimulateStartTime
-  variable SimulateStartTimeMs
 
-  Simulate2Html $TestCaseName $TestSuiteName $TestCaseFileName
-
-  #puts "Start time  [clock format $SimulateStartTime -format %T]"
-  set  SimulateFinishTime    [clock seconds]
-  set  SimulateElapsedTime   [expr ($SimulateFinishTime - $SimulateStartTime)]
-  set  SimulateFinishTimeMs  [clock milliseconds]
-  set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
-
-  puts "Simulation Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
-
-  ##!!TODO Refactor into AfterSimulateBuildYaml
-  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
-    puts  $RunFile "        TestCaseFileName: $TestCaseFileName"
-    puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericList\""
-    puts  $RunFile "        ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
-    close $RunFile
-  }
+  Simulate2Html ${::osvvm::TestCaseName} ${::osvvm::TestSuiteName} ${::osvvm::BuildName} ${::osvvm::GenericList}
+  
+  FinishSimulateBuildYaml 
 }
 
 proc RunIfFileExists {ScriptToRun} {
@@ -1094,12 +1035,32 @@ proc SimulateRunScripts {LibraryUnit} {
 proc generic {Name Value} {
   variable GenericList
   variable GenericNames
+  variable GenericOptions
   
   lappend GenericList "$Name $Value"
   set GenericNames ${GenericNames}_${Name}_${Value}
+  lappend GenericOptions [vendor_generic ${Name} ${Value}]
   
 #   return "-g${Name}=${Value}"
-  return [vendor_generic ${Name} ${Value}]
+#  return [vendor_generic ${Name} ${Value}]
+  return ""
+}
+
+#--------------------------------------------------------------
+proc ToGenericCommand {GenericList} {
+
+  set Commands ""
+  if {${GenericList} ne ""} {
+    foreach GenericName $GenericList {
+      set NewCommand "\[generic [lindex $GenericName 0] [lindex $GenericName 1]\]"
+      if {$Commands eq ""} {
+        set Commands "$NewCommand"
+      } else {
+        set Commands "$Commands $NewCommand"
+      }
+    }
+  }
+  return $Commands
 }
 
 # -------------------------------------------------
@@ -1116,7 +1077,6 @@ proc DoWaves {args} {
     return $WaveOptions
   } 
 }
-
 
 # -------------------------------------------------
 proc CreateVerilogLibraryParams {prefix} {
@@ -1136,56 +1096,37 @@ proc MergeCoverage {SuiteName MergeName} {
 }
 
 # -------------------------------------------------
-proc  ElapsedTimeMs {StartTimeMs} {
-  set   FinishTimeMs  [clock milliseconds]
-  set   ElapsedTimeMs [expr ($FinishTimeMs - $StartTimeMs)]
-  return [format %.3f [expr ${ElapsedTimeMs}/1000.0]]
-}
-
-# -------------------------------------------------
 proc FinalizeTestSuite {SuiteName} {
   
   # Merge Code Coverage for the Test Suite if it exists
   if {$::osvvm::RanSimulationWithCoverage eq "true"} {
-    set BuildName [file rootname ${::osvvm::CurrentTranscript}]
-    CreateDirectory ${::osvvm::CoverageDirectory}/${BuildName}
+    CreateDirectory ${::osvvm::CoverageDirectory}/${::osvvm::BuildName}
     CreateDirectory ${::osvvm::CoverageDirectory}/${SuiteName}
-    vendor_MergeCodeCoverage $SuiteName ${::osvvm::CoverageDirectory} ${BuildName}
+    vendor_MergeCodeCoverage $SuiteName ${::osvvm::CoverageDirectory} ${::osvvm::BuildName}
   }
 }
 
 # -------------------------------------------------
 proc TestSuite {SuiteName} {
   variable TestSuiteName
-  variable TestSuiteStartTimeMs
 
   puts "TestSuite $SuiteName"                     ; # EchoOsvvmCmd
   
-  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
-  } else {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
-  }
-  if {![info exists TestSuiteName]} {
-    ##!!TODO Refactor into FirstTestSuiteBuildYaml
-    puts  $RunFile "TestSuites: "
-  } else {
-    ##!!TODO Refactor into FinishTestSuiteBuildYaml
-    puts  $RunFile "    ElapsedTime: [ElapsedTimeMs $TestSuiteStartTimeMs]"
+
+  set FirstRun [expr ![info exists TestSuiteName]]
+  if {! $FirstRun} {
+    # Finish previous test suite before ending current one
     FinalizeTestSuite $TestSuiteName
+    FinishTestSuiteBuildYaml
   }
+  StartTestSuiteBuildYaml $SuiteName $FirstRun
+  
   set   TestSuiteName $SuiteName
-  ##!!TODO Refactor into StartTestSuiteBuildYaml
-  puts  $RunFile "  - Name: $TestSuiteName"
-  puts  $RunFile "    TestCases:"
-  close $RunFile
 
   CheckSimulationDirs
   CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${TestSuiteName}]
   CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ResultsDirectory} ${TestSuiteName}]
 
-  # Starting a Test Suite here
-  set TestSuiteStartTimeMs   [clock milliseconds]
 }
 
 # -------------------------------------------------
@@ -1203,15 +1144,6 @@ proc TestName {Name} {
 
   puts "TestName $Name"
   set TestCaseName $Name
-
-  ##!!TODO Refactor into StartTestCaseBuildYaml
-  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
-  } else {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
-  }
-  puts  $RunFile "      - TestCaseName: $Name"
-  close $RunFile
 }
 
 # Maintain backward compatibility
@@ -1223,10 +1155,14 @@ proc TestCase {Name} {
 # -------------------------------------------------
 # RunTest
 #
-proc RunTest {FileName {SimName ""}} {
+proc RunTest {FileName {SimName ""} args} {
   variable CompoundCommand
 
-  puts "RunTest $FileName $SimName"               ; # EchoOsvvmCmd
+  set RunArgs [concat $FileName $SimName]
+  if {$::osvvm::GenericList ne ""} {
+    set RunArgs "$RunArgs [ToGenericCommand $::osvvm::GenericList]"
+  }
+  puts "RunTest $RunArgs"               ; # EchoOsvvmCmd
   set CompoundCommand TRUE
 
 	if {$SimName eq ""} {
@@ -1250,17 +1186,8 @@ proc SkipTest {FileName Reason} {
   set SimName [file rootname [file tail $FileName]]
 
   puts "SkipTest $FileName $Reason"
-
-  if {[file isfile ${::osvvm::OsvvmYamlResultsFile}]} {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
-  } else {
-    set RunFile [open ${::osvvm::OsvvmYamlResultsFile} w]
-  }
-  puts  $RunFile "      - TestCaseName: $SimName"
-  puts  $RunFile "        Name: $SimName"
-  puts  $RunFile "        Status: SKIPPED"
-  puts  $RunFile "        Results: {Reason: \"$Reason\"}"
-  close $RunFile
+  
+  SkipTestBuildYaml $SimName $Reason
 }
 
 
@@ -1305,9 +1232,8 @@ proc SetTranscriptType {{TranscriptType "html"}} {
 
   set lowerTranscriptType [string tolower $TranscriptType]
 
-  if {$lowerTranscriptType eq "html"} {
-    set TranscriptExtension "html"
-  } else {
+  set TranscriptExtension $lowerTranscriptType
+  if {($lowerTranscriptType ne "html") && ($lowerTranscriptType ne "none")} {
     set TranscriptExtension "log"
   }
 }
@@ -1761,12 +1687,19 @@ proc ChangeWorkingDirectory {RelativePath} {
   set CurrentWorkingDirectory [file join $CurrentWorkingDirectory $RelativePath]
 }
 
+proc TimeIt {args} {
+
+  set StartTimeMs [clock milliseconds]
+  eval $args
+  puts  "Time:  [ElapsedTimeMs $StartTimeMs]"
+}
+
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
 namespace export analyze simulate build include library RunTest SkipTest TestSuite TestName TestCase
 namespace export generic DoWaves
-namespace export IterateFile StartTranscript StopTranscript TerminateTranscript
+namespace export IterateFile StartTranscript StopTranscript 
 namespace export RemoveLibrary RemoveLibraryDirectory RemoveAllLibraries RemoveLocalLibraries 
 namespace export CreateDirectory
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
@@ -1793,7 +1726,7 @@ namespace export OsvvmLibraryPath
 namespace export JoinWorkingDirectory ChangeWorkingDirectory
 
 # Exported only for tesing purposes
-namespace export FindLibraryPath CreateLibraryPath EndSimulation FindExistingLibraryPath
+namespace export FindLibraryPath CreateLibraryPath EndSimulation FindExistingLibraryPath TimeIt
 
 
 # end namespace ::osvvm

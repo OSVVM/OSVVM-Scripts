@@ -82,7 +82,7 @@ proc vendor_StartTranscript {FileName} {
 }
 
 proc vendor_StopTranscript {FileName} {
-  transcript off
+  transcript to -off
 }
 
 # -------------------------------------------------
@@ -266,7 +266,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   # With sim_working_folder setting should no longer need MY_START_DIR
   set MY_START_DIR $::osvvm::CurrentSimulationDirectory
   
-  set SimulateOptions [concat {*}${args} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
+  set SimulateOptions [concat {*}${args} {*}${::osvvm::GenericOptions} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
 
   puts "asim ${SimulateOptions}"
         asim {*}${SimulateOptions}

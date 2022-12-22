@@ -56,6 +56,7 @@
 
 
 # Load Base OSVVM Project Scripts and Vendor Specific Scripts
+source ${::osvvm::SCRIPT_DIR}/CreateBuildYamlReports.tcl
 source ${::osvvm::SCRIPT_DIR}/OsvvmProjectScripts.tcl
 namespace eval ::osvvm {
   source ${::osvvm::SCRIPT_DIR}/VendorScripts_${::osvvm::ScriptBaseName}.tcl
@@ -68,6 +69,8 @@ if {![catch {package require yaml}]} {
 } else {
   source ${::osvvm::SCRIPT_DIR}/NoYamlPackage.tcl
 }
+
+source ${::osvvm::SCRIPT_DIR}/Log2Osvvm.tcl
 
 # Import any procedure exported by previous OSVVM scripts
 namespace import ::osvvm::*
@@ -86,8 +89,6 @@ if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults_${::osvvm::ScriptBas
 
 # Finalize Settings
 source ${::osvvm::SCRIPT_DIR}/OsvvmRequiredSettings.tcl
-
-source ${::osvvm::SCRIPT_DIR}/Log2Osvvm.tcl
 
 
 # Set OSVVM Script Defaults - defaults may call scripts
@@ -108,12 +109,10 @@ if {[file exists ${::osvvm::SCRIPT_DIR}/LocalCallbacks_${::osvvm::ScriptBaseName
 #
 # If the tee scripts load, mark them as available
 #
-if {${::osvvm::ToolName} ne "XSIM"} {
-  if {[catch {source ${::osvvm::SCRIPT_DIR}/tee.tcl}]} {
-     variable ::osvvm::GotTee false
-  } else {
-     variable ::osvvm::GotTee true
-  }
+if {[catch {source ${::osvvm::SCRIPT_DIR}/tee.tcl}]} {
+   variable ::osvvm::GotTee false
+} else {
+   variable ::osvvm::GotTee true
 }
 
 puts "OSVVM Script Version:  $::osvvm::OsvvmVersion"

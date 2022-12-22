@@ -57,7 +57,7 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Aldec"
   variable ToolName    "RivieraPRO"
-  variable simulator   $ToolName ; # Deprecated 
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   #  Could differentiate between RivieraPRO and VSimSA
   variable ToolNameVersion ${ToolName}-[asimVersion]
 #   puts $ToolNameVersion
@@ -183,7 +183,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SimulateOptions
 
 #  puts "vendor_simulate  LibraryName: $LibraryName    LibraryUnit:  $LibraryUnit   args:  $args"
-  set SimulateOptions [concat -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args}]
+  set SimulateOptions [concat -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions}]
 
   puts "vsim ${SimulateOptions}"
         vsim {*}${SimulateOptions}

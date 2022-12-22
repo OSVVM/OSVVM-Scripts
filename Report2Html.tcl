@@ -19,6 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    12/2022   2022.12    Refactored to only use static OSVVM information
 #    05/2022   2022.05    Updated directory handling
 #    02/2022   2022.02    Added links for code coverage.
 #    10/2021   Initial    Initial Revision
@@ -45,12 +46,22 @@ package require yaml
 
 proc Report2Html {ReportFile} {
   variable ResultsFile
+  variable ReportBuildName
 
-  set FileName  [file rootname ${ReportFile}].html
-  file copy -force [file join ${::osvvm::SCRIPT_DIR} summary_header_report.html] ${FileName}
-  set ResultsFile [open ${FileName} a]
+  set ReportFileRoot  [file rootname $ReportFile]
+  set ReportBuildName [file tail $ReportFileRoot]
+  set FileName ${ReportFileRoot}.html
   
-  set ErrorCode [catch {LocalReport2Html $ReportFile} errmsg]
+  set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
+#  if {[dict exists $Report2HtmlDict ReportHeaderHtmlFile]} {
+#    set ReportHeaderHtmlFile  [dict get $Report2HtmlDict ReportHeaderHtmlFile]
+    set ReportHeaderHtmlFile [file join ${::osvvm::SCRIPT_DIR} summary_header_report.html]
+    file copy -force ${ReportHeaderHtmlFile} ${FileName}
+    set ResultsFile [open ${FileName} a]
+#  } else {
+#    set ResultsFile [open ${FileName} w]
+#  }
+  set ErrorCode [catch {LocalReport2Html $Report2HtmlDict} errmsg]
   
   close $ResultsFile
 
@@ -59,10 +70,9 @@ proc Report2Html {ReportFile} {
   }
 }
 
-proc LocalReport2Html {ReportFile} {
+proc LocalReport2Html {Report2HtmlDict} {
   variable ResultsFile
 
-  set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
   set VersionNum  [dict get $Report2HtmlDict Version]
 
   ReportElaborateStatus $Report2HtmlDict
@@ -75,29 +85,29 @@ proc LocalReport2Html {ReportFile} {
 }
 
 proc ReportBuildStatus {} {
-  variable AnalyzeErrorCount
-  variable SimulateErrorCount
+  variable ReportBuildName
+  variable ReportBuildErrorCode
+  variable ReportAnalyzeErrorCount
+  variable ReportSimulateErrorCount
   variable BuildStatus 
   variable TestCasesPassed 
   variable TestCasesFailed 
   variable TestCasesSkipped 
   variable TestCasesRun 
-  variable BuildName
-  variable BuildErrorCode
   
   if {$BuildStatus eq "PASSED"} {
-    puts "Build: ${BuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${AnalyzeErrorCount},  Simulate Errors: ${SimulateErrorCount}"
+    puts "Build: ${ReportBuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${ReportAnalyzeErrorCount},  Simulate Errors: ${ReportSimulateErrorCount}"
   } else {
-    puts "BuildError: ${BuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${AnalyzeErrorCount},  Simulate Errors: ${SimulateErrorCount},  Build Error Code: $BuildErrorCode"
+    puts "BuildError: ${ReportBuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${ReportAnalyzeErrorCount},  Simulate Errors: ${ReportSimulateErrorCount},  Build Error Code: $ReportBuildErrorCode"
   }
 }
 
 proc ReportElaborateStatus {TestDict} {
   variable ResultsFile
-  variable BuildTranscript
-  variable AnalyzeErrorCount
-  variable SimulateErrorCount
-  variable BuildErrorCode
+  variable ReportBuildName
+  variable ReportBuildErrorCode
+  variable ReportAnalyzeErrorCount
+  variable ReportSimulateErrorCount
   variable BuildStatus "PASSED"
   variable TestCasesPassed 0
   variable TestCasesFailed 0
@@ -107,12 +117,36 @@ proc ReportElaborateStatus {TestDict} {
   if {[info exists ReportTestSuiteSummary]} {
     unset ReportTestSuiteSummary
   }
-#  set BuildStatus "PASSED"
-#  set TestCasesPassed 0
-#  set TestCasesFailed 0
-#  set TestCasesSkipped 0
-#  set TestCasesRun 0
-  if {($BuildErrorCode != 0) || $AnalyzeErrorCount || $SimulateErrorCount} {
+
+#  set ReportBuildName [dict get $TestDict BuildName] ; # now comes from FileName
+
+  if { [dict exists $TestDict Run] } {
+    set RunInfo   [dict get $TestDict Run] 
+  } else {
+    set RunInfo   [dict create BuildErrorCode 1]
+  }
+  if {[dict exists $RunInfo BuildErrorCode]} {
+    set ReportBuildErrorCode [dict get $RunInfo BuildErrorCode]
+  } else {
+    set ReportBuildErrorCode 1
+  }
+  if {[dict exists $RunInfo AnalyzeErrorCount]} {
+    set ReportAnalyzeErrorCount [dict get $RunInfo AnalyzeErrorCount]
+  } else {
+    set ReportAnalyzeErrorCount 0
+  }
+  if {[dict exists $RunInfo SimulateErrorCount]} {
+    set ReportSimulateErrorCount [dict get $RunInfo SimulateErrorCount]
+  } else {
+    set ReportSimulateErrorCount 0
+  }
+  if {[dict exists $RunInfo Elapsed]} {
+    set ElapsedTimeSeconds [dict get $RunInfo Elapsed]
+  } else {
+    set ElapsedTimeSeconds 0.0
+  }
+
+  if {($ReportBuildErrorCode != 0) || $ReportAnalyzeErrorCount || $ReportSimulateErrorCount} {
     set BuildStatus "FAILED"
   }
   
@@ -191,26 +225,12 @@ proc ReportElaborateStatus {TestDict} {
       dict append SuiteDict ReqGoal         $SuiteReqGoal
       dict append SuiteDict DisabledAlerts  $SuiteDisabledAlerts
       dict append SuiteDict ElapsedTime     $SuiteElapsedTime
-  #    lappend ReportTestSuiteSummary [dict create Name $SuiteName Status $SuiteStatus Passed $SuitePassed Failed $SuiteFailed Skipped $SuiteSkipped ReqPassed $SuiteReqPassed ReqGoal $SuiteReqGoal]
       lappend ReportTestSuiteSummary $SuiteDict
 
     }
   }
-#  puts $ReportTestSuiteSummary
-#  puts "Build Status: $BuildStatus"
-#  puts  "TestCasesPassed:  $TestCasesPassed"
-#  puts  "TestCasesFailed:  $TestCasesFailed"
-#  puts  "TestCasesSkipped: $TestCasesSkipped"
-#  puts  "TestCasesRun: $TestCasesRun"
 
-  set BuildInfo [dict get $TestDict Build]
-  if { [dict exists $TestDict Run] } {
-    set RunInfo   [dict get $TestDict Run] 
-  } else {
-    set RunInfo   [dict create Start NONE Finish NONE Elapsed 0.0]
-  }
-  set BuildName [dict get $BuildInfo Name]
-  puts $ResultsFile "<title>$BuildName Build Report</title>"
+  puts $ResultsFile "<title>$ReportBuildName Build Report</title>"
   puts $ResultsFile "</head>"
   puts $ResultsFile "<body>"
   set PassedColor  "#000000"
@@ -226,61 +246,66 @@ proc ReportElaborateStatus {TestDict} {
     set StatusColor  "#D09000" 
     set SkippedColor "#D09000"
   }
-  if {$AnalyzeErrorCount} {
+  if {$ReportAnalyzeErrorCount} {
     set AnalyzeColor  "#FF0000"
   } else {
     set AnalyzeColor  "#000000"
   }
-  if {$SimulateErrorCount} {
+  if {$ReportSimulateErrorCount} {
     set SimulateColor  "#FF0000"
   } else {
     set SimulateColor  "#000000"
   }
-  set ElapsedTimeSeconds [dict get $RunInfo Elapsed]
   set ElapsedTimeSecondsInt [expr {round($ElapsedTimeSeconds)}]
   set ElapsedTimeHms     [format %d:%02d:%02d [expr ($ElapsedTimeSecondsInt/(60*60))] [expr (($ElapsedTimeSecondsInt/60)%60)] [expr (${ElapsedTimeSecondsInt}%60)]]
   puts $ResultsFile "<br>"
-  puts $ResultsFile "<h2>$BuildName Build Summary Report</h2>"
+  puts $ResultsFile "<h2>$ReportBuildName Build Summary Report</h2>"
   puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
   puts $ResultsFile "<table>"
-  puts $ResultsFile "  <tr style=\"height:40px\"><th>Build</th><th>$BuildName</th></tr>"
+  puts $ResultsFile "  <tr style=\"height:40px\"><th>Build</th>         <th>$ReportBuildName</th></tr>"
   puts $ResultsFile "  <tr style=color:${StatusColor}><td>Status</td>   <td>$BuildStatus</td></tr>"
-  puts $ResultsFile "  <tr style=color:${PassedColor}><td>PASSED</td>  <td>$TestCasesPassed</td></tr>"
-  puts $ResultsFile "  <tr style=color:${FailedColor}><td>FAILED</td>  <td>$TestCasesFailed</td></tr>"
+  puts $ResultsFile "  <tr style=color:${PassedColor}><td>PASSED</td>   <td>$TestCasesPassed</td></tr>"
+  puts $ResultsFile "  <tr style=color:${FailedColor}><td>FAILED</td>   <td>$TestCasesFailed</td></tr>"
   puts $ResultsFile "  <tr style=color:${SkippedColor}><td>SKIPPED</td> <td>$TestCasesSkipped</td></tr>"
-  puts $ResultsFile "  <tr style=color:${AnalyzeColor}><td>Analyze Failures</td> <td>$AnalyzeErrorCount</td></tr>"
-  puts $ResultsFile "  <tr style=color:${SimulateColor}><td>Simulate Failures</td> <td>$SimulateErrorCount</td></tr>"
-  puts $ResultsFile "  <tr><td>Elapsed Time (h:m:s)</td>              <td>$ElapsedTimeHms</td></tr>"
-  puts $ResultsFile "  <tr><td>Elapsed Time (seconds)</td>            <td>$ElapsedTimeSeconds</td></tr>"
-  puts $ResultsFile "  <tr><td>Date</td>                              <td>[dict get $BuildInfo Date]</td></tr>"
-  puts $ResultsFile "  <tr><td>Simulator</td>                         <td>[dict get $BuildInfo Simulator]</td></tr>"
-  puts $ResultsFile "  <tr><td>Version</td>                           <td>[dict get $BuildInfo Version]</td></tr>"
-  puts $ResultsFile "  <tr><td>OSVVM YAML Version</td>                <td>[dict get $TestDict Version]</td></tr>"
-  
-  if {[info exists BuildTranscript]} {
-    set BuildTranscriptPath [file join ${::osvvm::LogDirectory} ${BuildTranscript}]
-    if {[file exists ${BuildTranscriptPath}]} {
-      puts $ResultsFile "  <tr><td>Simulation Transcript</td>         <td><a href=\"${BuildTranscriptPath}\">${BuildTranscript}</a></td></tr>"
+  puts $ResultsFile "  <tr style=color:${AnalyzeColor}><td>Analyze Failures</td>   <td>$ReportAnalyzeErrorCount</td></tr>"
+  puts $ResultsFile "  <tr style=color:${SimulateColor}><td>Simulate Failures</td> <td>$ReportSimulateErrorCount</td></tr>"
+  puts $ResultsFile "  <tr><td>Elapsed Time (h:m:s)</td>                <td>$ElapsedTimeHms</td></tr>"
+  puts $ResultsFile "  <tr><td>Elapsed Time (seconds)</td>              <td>$ElapsedTimeSeconds</td></tr>"
+
+  # Print BuildInfo
+  if { [dict exists $TestDict BuildInfo] } {
+    set BuildInfo  [dict get $TestDict BuildInfo]
+    dict for {key val} ${BuildInfo} {
+      puts $ResultsFile "  <tr><td>$key</td><td>$val</td></tr>"
     }
-    set HtmlTranscript [file rootname $BuildTranscript]_log.html
-    set HtmlTranscriptPath [file join ${::osvvm::LogDirectory} ${HtmlTranscript}]
+  }
+  
+  if {$::osvvm::TranscriptExtension ne "none"} {
+    set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${ReportBuildName}]
+    puts $ResultsFile "  <tr><td>Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}.log\">${ReportBuildName}.log</a></td></tr>"
     if {$::osvvm::TranscriptExtension eq "html"} {
-      puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td>         <td><a href=\"${HtmlTranscriptPath}\">${HtmlTranscript}</a></td></tr>"
+      puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${ReportBuildName}_log.html</a></td></tr>"
+    }
+    set CodeCoverageFile [vendor_GetCoverageFileName ${ReportBuildName}]
+    if {$::osvvm::RanSimulationWithCoverage eq "true"} {
+      puts $ResultsFile "  <tr><td>Code Coverage</td><td><a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
+    }
+  }
+  
+  # Print OptionalInfo
+  if { [dict exists $TestDict OptionalInfo] } {
+    set OptionalInfo  [dict get $TestDict OptionalInfo]
+    dict for {key val} ${OptionalInfo} {
+      puts $ResultsFile "  <tr><td>$key</td><td>$val</td></tr>"
     }
   }
 
-  set resolvedCoverageDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::CoverageDirectory}]
-  set CodeCoverageFile [vendor_GetCoverageFileName ${BuildName}]
-  if {[file exists ${resolvedCoverageDirectory}/${CodeCoverageFile}] && $::osvvm::RanSimulationWithCoverage eq "true"} {
-#    puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${resolvedCoverageDirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
-    puts $ResultsFile "  <tr><td>Code Coverage</td>                <td><a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
-  }
 
   puts $ResultsFile "</table>"
   puts $ResultsFile "<DIV STYLE=\"font-size:25px\"><BR></DIV>"
   
   if { $HaveTestSuites } {
-    puts $ResultsFile "<details open><summary><strong>$BuildName Test Suite Summary</strong></summary>"
+    puts $ResultsFile "<details open><summary><strong>$ReportBuildName Test Suite Summary</strong></summary>"
     puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
     puts $ResultsFile "<table>"
     puts $ResultsFile "  <tr><th rowspan=\"2\">TestSuites</th>"
@@ -317,7 +342,6 @@ proc ReportElaborateStatus {TestDict} {
       puts $ResultsFile "      <td>[dict get $TestSuite SKIPPED]</td>"
       puts $ResultsFile "      <td>[dict get $TestSuite ReqPassed] / [dict get $TestSuite ReqGoal]</td>"
       puts $ResultsFile "      <td>[dict get $TestSuite DisabledAlerts]</td>"
-  # Add Elapsed Time in Simulation Scripts
       puts $ResultsFile "      <td>[dict get $TestSuite ElapsedTime]</td>"
       puts $ResultsFile "  </tr>"
     }
@@ -350,6 +374,12 @@ proc ReportTestSuites {TestDict} {
       puts $ResultsFile "      <th rowspan=\"2\">Elapsed<br>Time</th>"
       puts $ResultsFile "  </tr>"
       puts $ResultsFile "  <tr></tr>"
+#      if { [dict exists $TestSuite ReportsDirectory] } {
+#        set ReportsDirectory [dict get $TestSuite ReportsDirectory]
+#      } else {
+#        set ReportsDirectory ""
+#      }
+      set ReportsDirectory [file join $::osvvm::ReportsSubdirectory $SuiteName]
 
       foreach TestCase [dict get $TestSuite TestCases] {
         set TestName     [dict get $TestCase TestCaseName]
@@ -403,7 +433,7 @@ proc ReportTestSuites {TestDict} {
         } else {
           set TestFileName $TestName
         }
-        set TestCaseHtmlFile [file join ${::osvvm::ReportsSubdirectory} ${SuiteName} ${TestFileName}.html]
+        set TestCaseHtmlFile [file join ${ReportsDirectory} ${TestFileName}.html]
         set TestCaseName $TestName
         if { [dict exists $TestCase TestCaseGenerics] } { 
           set TestCaseGenerics [dict get $TestCase TestCaseGenerics]

@@ -51,7 +51,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2022.11
+  variable OsvvmVersion 2022.12
   
   
   # 
@@ -80,10 +80,10 @@ namespace eval ::osvvm {
   #
   # Create derived directory paths
   #
-    variable ReportsDirectory          [file join ${OutputBaseDirectory} ${ReportsSubdirectory}]
-    variable ResultsDirectory          [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
-    variable CoverageDirectory         [file join ${OutputBaseDirectory} ${CoverageSubdirectory}]
-  
+    variable ReportsDirectory     [file join ${OutputBaseDirectory} ${ReportsSubdirectory}]
+    variable ResultsDirectory     [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
+    variable CoverageDirectory    [file join ${OutputBaseDirectory} ${CoverageSubdirectory}]
+    variable LogDirectory         [file join ${OutputBaseDirectory} ${LogSubdirectory}]
 
   #
   #  Initialize OSVVM Internals
@@ -105,18 +105,21 @@ namespace eval ::osvvm {
     variable Log2OsvvmErrorInfo        ""
 
 
-    
-    # When a build is started, run include instead of build
-    variable BuildStarted "false"
-    variable GenericList  ""
-    variable GenericNames ""
+    variable BuildStarted   "false"   ; # Detects if build is running and if build is called, call include instead
+    variable GenericList    ""
+    variable GenericNames   ""
+    variable GenericOptions ""
+    variable RanSimulationWithCoverage "false"
 
     # VhdlReportsDirectory:  OSVVM temporary location for yml.  Moved to ${ReportsDirectory}/${TestSuiteName}
     variable VhdlReportsDirectory     "" ;  
-    
+
     # OsvvmYamlResultsFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${BuildName}.yaml
     variable OsvvmYamlResultsFile     "OsvvmRun.yml" ;  
-    
+
+    # OsvvmBuildFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${LogSubDirectory}/${BuildName}.log
+    variable OsvvmBuildFile           "OsvvmBuild.log" ;  
+
     #  TranscriptYamlFile: temporary file that contains set of files used in TranscriptOpen.  Deleted by scripts.
     variable TranscriptYamlFile       "OSVVM_transcript.yml" ;  
     
