@@ -72,6 +72,11 @@ if {![catch {package require yaml}]} {
 
 source ${::osvvm::SCRIPT_DIR}/Log2Osvvm.tcl
 
+if {[file exists ${::osvvm::SCRIPT_DIR}/../CoSim]} { 
+  source ${::osvvm::SCRIPT_DIR}/../CoSim/Scripts/MakeVproc.tcl
+}
+
+
 # Import any procedure exported by previous OSVVM scripts
 namespace import ::osvvm::*
 
