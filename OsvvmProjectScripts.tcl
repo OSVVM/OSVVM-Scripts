@@ -253,7 +253,7 @@ proc BeforeBuildCleanUp {} {
   # If Files Open, then Close them
   # CloseAllFiles  ; # oddly Questa has a number of files open already
 
-  # End simulations if started - only set by simulate
+  # End simulation if one was started - only set by simulate - closes any open files
   if {[info exists vendor_simulate_started]} {
     puts "Ending Previous Simulation"
     EndSimulation
@@ -318,7 +318,7 @@ proc build {{Path_Or_File "."}} {
     set BuildErrorCode [catch {LocalBuild $BuildName $Path_Or_File} BuildErrMsg]
     set LocalBuildErrorInfo $::errorInfo
     set BuildStarted "false"
-
+    
     # Try to create reports, even if the build failed
     set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
     set LocalReportErrorInfo $::errorInfo
@@ -895,7 +895,8 @@ proc LocalAnalyze {FileName args} {
 # Simulate
 #
 proc simulate {LibraryUnit args} {
-  
+  variable vendor_simulate_started
+
   set SavedInteractive [GetInteractiveMode] 
   if {!($::osvvm::BuildStarted)} {
     SetInteractiveMode "true"
@@ -904,6 +905,12 @@ proc simulate {LibraryUnit args} {
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
   set LocalSimulateErrorInfo $::errorInfo
   SetInteractiveMode $SavedInteractive  ; # Restore original value
+  
+  if {$SimulateErrorCode != 0} {
+    # if simulate ended in error, EndSimulate to close open files.
+    EndSimulate
+    unset vendor_simulate_started
+  }
   
   set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
   set LocalReportErrorInfo $::errorInfo
@@ -1724,9 +1731,10 @@ namespace export SetSecondSimulationTopLevel GetSecondSimulationTopLevel
 namespace export MergeCoverage
 namespace export OsvvmLibraryPath
 namespace export JoinWorkingDirectory ChangeWorkingDirectory
+namespace export EndSimulation 
 
 # Exported only for tesing purposes
-namespace export FindLibraryPath CreateLibraryPath EndSimulation FindExistingLibraryPath TimeIt
+namespace export FindLibraryPath CreateLibraryPath FindExistingLibraryPath TimeIt
 
 
 # end namespace ::osvvm
