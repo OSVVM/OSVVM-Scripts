@@ -44,14 +44,14 @@
 
 
 namespace eval ::osvvm {
-  # Initial SCRIPT_DIR setup - revised by ActiveHDL VSimSA
-  variable SCRIPT_DIR  [file dirname [file normalize [info script]]]
+  # Initial OsvvmScriptDirectory setup - revised by ActiveHDL VSimSA
+  variable OsvvmScriptDirectory  [file dirname [file normalize [info script]]]
   
   variable OsvvmInitialized  "false"
   variable ScriptBaseName   "Xsim"
 }
 
-source ${::osvvm::SCRIPT_DIR}/StartUpShared.tcl
+source ${::osvvm::OsvvmScriptDirectory}/StartUpShared.tcl
 
 set ::osvvm::OsvvmInitialized "true"
 

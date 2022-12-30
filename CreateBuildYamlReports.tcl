@@ -69,7 +69,7 @@ proc StartBuildYaml {BuildName} {
 #  puts  $RunFile "BuildName: $BuildName"
   puts  $RunFile "Version: $::osvvm::OsvvmVersion"
   puts  $RunFile "Date: $StartTime"
-#  set   ReportHeaderHtmlFile [file join ${::osvvm::SCRIPT_DIR} summary_header_report.html]
+#  set   ReportHeaderHtmlFile [file join ${::osvvm::OsvvmScriptDirectory} summary_header_report.html]
 #  puts  $RunFile "ReportHeaderHtmlFile: $ReportHeaderHtmlFile"
 #  puts  $RunFile "ReportsDirectory: ${::osvvm::ReportsSubdirectory}"
   puts  $RunFile "BuildInfo:"

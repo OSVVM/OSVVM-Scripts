@@ -252,7 +252,7 @@ proc FindFirstFile {Name} {
   if {[file exists $LocalPathName]} {
     return ${LocalPathName}
   }
-  set LocalPathName [file join ${::osvvm::SCRIPT_DIR} ${Name}]
+  set LocalPathName [file join ${::osvvm::OsvvmScriptDirectory} ${Name}]
   if {[file exists $LocalPathName]} {
     return ${LocalPathName}
   }

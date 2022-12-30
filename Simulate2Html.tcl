@@ -104,7 +104,7 @@ proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
   # Create the TestCase file in the simulation directory
   set FileName ${TestCaseName}.html
   if { $initialize } {
-    file copy -force ${::osvvm::SCRIPT_DIR}/header_report.html ${FileName}
+    file copy -force ${::osvvm::OsvvmScriptDirectory}/header_report.html ${FileName}
   }
   set ResultsFile [open ${FileName} a]
 }

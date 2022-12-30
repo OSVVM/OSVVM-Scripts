@@ -44,13 +44,13 @@
 
 
 namespace eval ::osvvm {
-  variable SCRIPT_DIR  [file dirname [file normalize [info script]]]
+  variable OsvvmScriptDirectory  [file dirname [file normalize [info script]]]
   
   variable OsvvmInitialized  "false"
   variable ScriptBaseName   "Xcelium"
 }
 
-source ${::osvvm::SCRIPT_DIR}/StartUpShared.tcl
+source ${::osvvm::OsvvmScriptDirectory}/StartUpShared.tcl
 
 set ::osvvm::OsvvmInitialized "true"
 
