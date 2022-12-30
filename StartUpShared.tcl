@@ -22,7 +22,7 @@
 #    05/2022   2022.05    Refactored StartUp.tcl to remove items 
 #                         shared by all StartUp scripts
 #    10/2021   2021.10    Loads OsvvmYamlSupport.tcl when YAML library available
-#                         Loads LocalScriptDefaults.tcl if it is in the SCRIPT_DIR
+#                         Loads LocalScriptDefaults.tcl if it is in the OsvvmScriptDirectory
 #                            This is a optional user settings file.
 #                         LocalScriptsDefaults.tcl is not provided by OSVVM so your local settings will not be overwritten.  
 #     2/2021   2021.02    Refactored.                                                          
@@ -54,26 +54,36 @@
 #  limitations under the License.
 #
 
+namespace eval ::osvvm {
+  # Usage of SCRIPT_DIR is deprecated.
+  if {![info exists OsvvmScriptDirectory]} {
+    # if a calling script uses SCRIPT_DIR, this supports backward compatibility
+    variable OsvvmScriptDirectory ${SCRIPT_DIR}
+  } else {
+    # if a user add on script uses SCRIPT_DIR, this supports backward compatibility
+    variable SCRIPT_DIR ${OsvvmScriptDirectory}
+  }
+}
 
 # Load Base OSVVM Project Scripts and Vendor Specific Scripts
-source ${::osvvm::SCRIPT_DIR}/CreateBuildYamlReports.tcl
-source ${::osvvm::SCRIPT_DIR}/OsvvmProjectScripts.tcl
+source ${::osvvm::OsvvmScriptDirectory}/CreateBuildYamlReports.tcl
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmProjectScripts.tcl
 namespace eval ::osvvm {
-  source ${::osvvm::SCRIPT_DIR}/VendorScripts_${::osvvm::ScriptBaseName}.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/VendorScripts_${::osvvm::ScriptBaseName}.tcl
 }
 
 # Load OSVVM YAML support if yaml support available 
 # Could be made conditional for only simulators
 if {![catch {package require yaml}]} {
-  source ${::osvvm::SCRIPT_DIR}/OsvvmYamlSupport.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/OsvvmYamlSupport.tcl
 } else {
-  source ${::osvvm::SCRIPT_DIR}/NoYamlPackage.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/NoYamlPackage.tcl
 }
 
-source ${::osvvm::SCRIPT_DIR}/Log2Osvvm.tcl
+source ${::osvvm::OsvvmScriptDirectory}/Log2Osvvm.tcl
 
-if {[file exists ${::osvvm::SCRIPT_DIR}/../CoSim]} { 
-  source ${::osvvm::SCRIPT_DIR}/../CoSim/Scripts/MakeVproc.tcl
+if {[file exists ${::osvvm::OsvvmScriptDirectory}/../CoSim]} { 
+  source ${::osvvm::OsvvmScriptDirectory}/../CoSim/Scripts/MakeVproc.tcl
 }
 
 
@@ -82,39 +92,39 @@ namespace import ::osvvm::*
 
 # Load OSVVM Defaults and then User Defaults (LocalScriptDefaults)
 # Dependencies in here depend on VendorScripts_???.tcl
-source ${::osvvm::SCRIPT_DIR}/OsvvmDefaultSettings.tcl
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmDefaultSettings.tcl
 # Load User Settings if they exist
-if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl]} {
-  source ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults.tcl
+if {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults.tcl]} {
+  source ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults.tcl
 }
 # Simulator specific defaults
-if {[file exists ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults_${::osvvm::ScriptBaseName}.tcl]} {
-  source ${::osvvm::SCRIPT_DIR}/LocalScriptDefaults_${::osvvm::ScriptBaseName}.tcl
+if {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults_${::osvvm::ScriptBaseName}.tcl]} {
+  source ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults_${::osvvm::ScriptBaseName}.tcl
 }
 
 # Finalize Settings
-source ${::osvvm::SCRIPT_DIR}/OsvvmRequiredSettings.tcl
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmRequiredSettings.tcl
 
 
 # Set OSVVM Script Defaults - defaults may call scripts
-source ${::osvvm::SCRIPT_DIR}/CallbackDefaults.tcl
+source ${::osvvm::OsvvmScriptDirectory}/CallbackDefaults.tcl
 # Override common actions here
 #   While intended for call back feature, can be used to replace any
 #   previously defined procedure
-if {[file exists ${::osvvm::SCRIPT_DIR}/LocalCallbacks.tcl]} {
-  source ${::osvvm::SCRIPT_DIR}/LocalCallbacks.tcl
+if {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalCallbacks.tcl]} {
+  source ${::osvvm::OsvvmScriptDirectory}/LocalCallbacks.tcl
 }
 # Override simulator specific actions here
 #   While intended for call back feature, can be used to replace any
 #   previously defined procedure - such as vendor_SetCoverageAnalyzeDefaults
-if {[file exists ${::osvvm::SCRIPT_DIR}/LocalCallbacks_${::osvvm::ScriptBaseName}.tcl]} {
-  source ${::osvvm::SCRIPT_DIR}/LocalCallbacks_${::osvvm::ScriptBaseName}.tcl
+if {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalCallbacks_${::osvvm::ScriptBaseName}.tcl]} {
+  source ${::osvvm::OsvvmScriptDirectory}/LocalCallbacks_${::osvvm::ScriptBaseName}.tcl
 }
 
 #
 # If the tee scripts load, mark them as available
 #
-if {[catch {source ${::osvvm::SCRIPT_DIR}/tee.tcl}]} {
+if {[catch {source ${::osvvm::OsvvmScriptDirectory}/tee.tcl}]} {
    variable ::osvvm::GotTee false
 } else {
    variable ::osvvm::GotTee true

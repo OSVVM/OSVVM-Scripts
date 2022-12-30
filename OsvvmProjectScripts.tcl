@@ -75,8 +75,8 @@
 #   re-run the startup scripts, this program included
 #
 proc StartUp {} {
-  puts "source $::osvvm::SCRIPT_DIR/StartUpShared.tcl"
-  eval "source $::osvvm::SCRIPT_DIR/StartUpShared.tcl"
+  puts "source $::osvvm::OsvvmScriptDirectory/StartUpShared.tcl"
+  eval "source $::osvvm::OsvvmScriptDirectory/StartUpShared.tcl"
 }
 
 
@@ -1021,20 +1021,20 @@ proc SimulateRunSubScripts {LibraryUnit Directory} {
 }
 
 proc SimulateRunScripts {LibraryUnit} {
-  variable  SCRIPT_DIR
+  variable  OsvvmScriptDirectory
   variable  CurrentSimulationDirectory
   variable  CurrentWorkingDirectory
   
   set NormalizedSimulationDirectory [file normalize $CurrentSimulationDirectory]
   set NormalizedWorkingDirectory    [file normalize $CurrentWorkingDirectory]
-  set NormalizedScriptDirectory     [file normalize $SCRIPT_DIR]
+  set NormalizedScriptDirectory     [file normalize $OsvvmScriptDirectory]
   
   SimulateRunSubScripts ${LibraryUnit} ${CurrentWorkingDirectory}
   if {${NormalizedSimulationDirectory} ne ${NormalizedWorkingDirectory}} {
     SimulateRunSubScripts ${LibraryUnit} ${CurrentSimulationDirectory}
   }
   if {(${NormalizedScriptDirectory} ne ${NormalizedWorkingDirectory}) && (${NormalizedScriptDirectory} ne ${NormalizedSimulationDirectory})} {
-    SimulateRunSubScripts ${LibraryUnit} ${SCRIPT_DIR}
+    SimulateRunSubScripts ${LibraryUnit} ${OsvvmScriptDirectory}
   }
 }
 

@@ -41,14 +41,14 @@
 
 
 namespace eval ::osvvm {
-#  variable SCRIPT_DIR  [file dirname [file normalize [info script]]]
-  variable SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
+#  variable OsvvmScriptDirectory  [file dirname [file normalize [info script]]]
+  variable OsvvmScriptDirectory [file dirname [string trim $argv0 ?{}?]]
   
   variable OsvvmInitialized  "false"
   variable ScriptBaseName   "VSimSA"
 }
 
-source ${::osvvm::SCRIPT_DIR}/StartUpShared.tcl
+source ${::osvvm::OsvvmScriptDirectory}/StartUpShared.tcl
 
 set ::osvvm::OsvvmInitialized "true"
 

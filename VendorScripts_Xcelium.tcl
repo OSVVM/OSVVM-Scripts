@@ -188,7 +188,7 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
-  variable SCRIPT_DIR
+  variable OsvvmScriptDirectory
   variable SimulateTimeUnits
   variable ToolVendor
   variable ToolName
@@ -206,12 +206,12 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   puts  $RunFile "set intovf_severity_level WARNING"
 
   # Project Vendor script
-  if {[file exists ${SCRIPT_DIR}/${ToolVendor}.tcl]} {
-    puts  $RunFile "source ${SCRIPT_DIR}/${ToolVendor}.tcl"
+  if {[file exists ${OsvvmScriptDirectory}/${ToolVendor}.tcl]} {
+    puts  $RunFile "source ${OsvvmScriptDirectory}/${ToolVendor}.tcl"
   }
 # Project Simulator Script
-  if {[file exists ${SCRIPT_DIR}/${ToolName}.tcl]} {
-    puts  $RunFile "source ${SCRIPT_DIR}/${ToolName}.tcl"
+  if {[file exists ${OsvvmScriptDirectory}/${ToolName}.tcl]} {
+    puts  $RunFile "source ${OsvvmScriptDirectory}/${ToolName}.tcl"
   }
  
 ### User level settings for simulator in the simulation run directory
