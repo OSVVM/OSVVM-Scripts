@@ -46,9 +46,9 @@
 package require yaml
 proc Simulate2Html {TestCaseName TestSuiteName BuildName {GenericList ""}} {
   variable ResultsFile
-  variable VhdlReportsDirectory
-  variable AlertYamlFile [file join $VhdlReportsDirectory ${TestCaseName}_alerts.yml]
-  variable CovYamlFile   [file join $VhdlReportsDirectory ${TestCaseName}_cov.yml]
+  variable OsvvmTemporaryOutputDirectory
+  variable AlertYamlFile [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_alerts.yml]
+  variable CovYamlFile   [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_cov.yml]
   variable SbBaseYamlFile ${TestCaseName}_sb_
   variable SimGenericNames
   
@@ -70,10 +70,10 @@ proc Simulate2Html {TestCaseName TestSuiteName BuildName {GenericList ""}} {
     file rename -force ${CovYamlFile}     [file join ${TestSuiteDirectory} ${TestCaseFileName}_cov.yml]
   }
   
-  set SbFiles [glob -nocomplain ${SbBaseYamlFile}*.yml]
+  set SbFiles [glob -nocomplain [file join $OsvvmTemporaryOutputDirectory ${SbBaseYamlFile}*.yml] ]
   if {$SbFiles ne ""} {
     foreach SbFile ${SbFiles} {
-      set SbName [regsub ${SbBaseYamlFile} [file rootname $SbFile] ""]
+      set SbName [regsub ${SbBaseYamlFile} [file rootname [file tail $SbFile]] ""]
       Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbFile} Scoreboard_${SbName}
       # TestCaseFileName includes generics, where SbFile does not
       file rename -force ${SbFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_${SbName}.yml]

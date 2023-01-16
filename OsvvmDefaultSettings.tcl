@@ -59,7 +59,7 @@ namespace eval ::osvvm {
     variable CurrentWorkingDirectory ""
     # CurrentSimulationDirectory is an absolute path to the simulation directory (for reports and such)
 #    variable CurrentSimulationDirectory [pwd]
-    variable CurrentSimulationDirectory "Invalid Path !@#$%^&*()+=|><| Replaced By CheckWorkingDir"
+    variable CurrentSimulationDirectory "Invalid Initial Path !@#$%^&*()+=|><| Should be replaced By CheckWorkingDir"
   
   #
   # Directory structure and results file management
@@ -72,6 +72,10 @@ namespace eval ::osvvm {
     variable VhdlLibraryDirectory       "VHDL_LIBS"
     variable VhdlLibrarySubdirectory    "${ToolNameVersion}"
     variable VhdlLibraryParentDirectory [pwd]      ; # use local directory
+    
+    # OsvvmTemporaryOutputDirectory is where temporary OSVVM output goes.   
+    # Caution:  If you change the value of OsvvmTemporaryOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
+    variable OsvvmTemporaryOutputDirectory   ""
   
   # 
   # TCL Error signaling during a build 

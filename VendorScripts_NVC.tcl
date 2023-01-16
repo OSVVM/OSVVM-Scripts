@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     1/2023   2023.01    Added options for CoSim 
 #    10/2022              Initial Version based on VendorScripts_GHDL.tcl
 #
 #
@@ -196,7 +197,17 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   set LocalReportDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
 
-  set LocalRunOptions [concat "--ieee-warnings=off" {*}${ExtendedRunOptions}]
+
+  set CoSimRunOptions ""
+  if {$::osvvm::RunningCoSim} {
+    if {$::osvvm::OperatingSystemName eq "linux"} {
+      set CoSimRunOptions "--load=./VProc.so"
+    } else {
+      set ::env(NVC_FOREIGN_OBJ) VProc.so
+    }
+  }
+
+  set LocalRunOptions [concat "--ieee-warnings=off" {*}${ExtendedRunOptions} {*}${CoSimRunOptions}]
   if {$::osvvm::SaveWaves} {
     set LocalRunOptions [concat {*}${LocalRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.fst ]
   }
