@@ -231,19 +231,10 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 #    set LocalRunOptions [concat {*}${ExtendedRunOptions} ${GhdlRunOptions}]
     set LocalRunOptions [concat {*}${ExtendedRunOptions} {*}${::osvvm::GenericOptions}]
   }
-  
-  if {[info exists GhdlRunCmd]} {
-    set runcmd $GhdlRunCmd
-  } else {
-    set runcmd "--elab-run"
-  }
-
 #  set GhdlRunOptions ""
   
 # format for select file  
   set SimulateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit} {*}${LocalRunOptions}]
-  puts "ghdl ${runcmd} ${SimulateOptions}" 
-  if { [catch {exec ghdl ${runcmd} {*}${SimulateOptions}} SimulateErrorMessage]} { 
   puts "ghdl $runcmd ${SimulateOptions}" 
   if { [catch {exec ghdl $runcmd {*}${SimulateOptions}} SimulateErrorMessage]} { 
     PrintWithPrefix "Error:" $SimulateErrorMessage
