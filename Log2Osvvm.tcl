@@ -131,9 +131,13 @@ namespace eval ::osvvm {
     variable PrintPrefix 
     
     if {[regexp {^Build Start} $LineOfLogFile] } {
-      puts $HtmlFileHandle "${PrintPrefix}$LineOfLogFile"
+      if {$PrintPrefix eq "</details>"} {
+        puts $HtmlFileHandle "${PrintPrefix}${LineOfLogFile}"
+      } else {
+        puts $HtmlFileHandle "${PrintPrefix}\n${LineOfLogFile}"
+      }
       set PrintPrefix ""
-    } elseif {[regexp {^build|^include} $LineOfLogFile] } {
+    } elseif {[regexp {^build|^include|^MkVproc|^MkVprocNoClean|^MkVprocSkt|^MkVprocGhdlMain} $LineOfLogFile] } {
       puts $HtmlFileHandle "${PrintPrefix}<details><summary>${LineOfLogFile}</summary>"
       set PrintPrefix "</details>"
     } elseif {[regexp {^TestSuite} $LineOfLogFile] } {
