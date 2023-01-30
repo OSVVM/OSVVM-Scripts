@@ -1060,7 +1060,7 @@ proc SimulateRunScripts {LibraryUnit} {
 # -------------------------------------------------
 proc CoSim {} {
 
-  set RunningCoSim TRUE 
+  set ::osvvm::RunningCoSim TRUE 
   return ""
 }
 
