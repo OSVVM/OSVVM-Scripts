@@ -1744,7 +1744,11 @@ proc CreateOsvvmScriptSettingsPkg {} {
   } else {
     set FileHandle  [open $NewFileName a]
     puts $FileHandle "  constant OSVVM_HOME_DIRECTORY        : string := \"[file normalize ${::osvvm::OsvvmHomeDirectory}]\" ;"
-    puts $FileHandle "  constant OSVVM_OUTPUT_DIRECTORY      : string := \"${::osvvm::OsvvmTemporaryOutputDirectory}\" ;"
+    if {${::osvvm::OsvvmTemporaryOutputDirectory} eq ""} {
+      puts $FileHandle "  constant OSVVM_OUTPUT_DIRECTORY      : string := \"\" ;"
+    } else {
+      puts $FileHandle "  constant OSVVM_OUTPUT_DIRECTORY      : string := \"${::osvvm::OsvvmTemporaryOutputDirectory}/\" ;"
+    }
     puts $FileHandle "  constant OSVVM_BUILD_YAML_FILE       : string := \"${::osvvm::OsvvmBuildYamlFile}\" ;"
     puts $FileHandle "  constant OSVVM_TRANSCRIPT_YAML_FILE  : string := \"${::osvvm::TranscriptYamlFile}\" ;"
     puts $FileHandle "end package OsvvmScriptSettingsPkg ;" 
@@ -1830,7 +1834,7 @@ namespace export OsvvmLibraryPath
 namespace export JoinWorkingDirectory ChangeWorkingDirectory
 namespace export EndSimulation 
 namespace export CreateOsvvmScriptSettingsPkg 
-namespace export FindLibraryPathByName
+namespace export FindLibraryPathByName CoSim
 
 # Exported only for tesing purposes
 namespace export FindLibraryPath CreateLibraryPath FindExistingLibraryPath TimeIt

@@ -117,7 +117,7 @@ namespace eval ::osvvm {
     variable RanSimulationWithCoverage "false"
     
     if {[catch {set OperatingSystemName [string tolower [exec uname]]} err]} {
-      set OperatingSystemName Windows
+      set OperatingSystemName windows
     }
 
     # VhdlReportsDirectory:  OSVVM temporary location for yml.  Moved to ${ReportsDirectory}/${TestSuiteName}
