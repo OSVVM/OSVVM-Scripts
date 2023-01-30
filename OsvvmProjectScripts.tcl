@@ -925,8 +925,8 @@ proc simulate {LibraryUnit args} {
   SetInteractiveMode $SavedInteractive  ; # Restore original value
   
   if {$SimulateErrorCode != 0} {
-    # if simulate ended in error, EndSimulate to close open files.
-    EndSimulate
+    # if simulate ended in error, EndSimulation to close open files.
+    EndSimulation
     unset vendor_simulate_started
   }
   
