@@ -63,9 +63,9 @@
 #   puts $ToolNameVersion
 
   if {[batch_mode]} {
-    variable NoGui true
+    variable NoGui "true"
   } else {
-    variable NoGui false
+    variable NoGui "false"
   }
 
 # -------------------------------------------------
