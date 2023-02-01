@@ -68,10 +68,10 @@
   
   if {[batch_mode]} {
     variable ToolArgs $argv
-    variable NoGui true
+    variable NoGui "true"
   } else {
     variable ToolArgs "-gui"
-    variable NoGui false
+    variable NoGui "false"
   }
   variable ToolVersion [vsimVersion]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
@@ -266,7 +266,7 @@ proc vendor_end_previous_simulation {} {
 # integer_max, real_max, ...
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
-  variable SCRIPT_DIR
+  variable OsvvmScriptDirectory
   variable SimulateTimeUnits
   variable TestSuiteName
   variable TestCaseFileName
@@ -283,8 +283,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   vsim {*}${SimulateOptions}
   
   # Historical name.  Must be run with "do" for actions to work
-  if {[file exists ${SCRIPT_DIR}/Siemens.do]} {
-    do ${SCRIPT_DIR}/Siemens.do
+  if {[file exists ${OsvvmScriptDirectory}/Siemens.do]} {
+    do ${OsvvmScriptDirectory}/Siemens.do
   }
   
   SimulateRunScripts ${LibraryUnit}

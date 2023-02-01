@@ -20,12 +20,14 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     1/2023   2023.01    Added OsvvmHomeDirectory and OsvvmCoSimDirectory.  
+#                         Added options for CoSim 
 #     5/2022   2022.05    Refactored Variable handling
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2022 by SynthWorks Design Inc.  
+#  Copyright (c) 2022 - 2023 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -51,7 +53,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2022.12
+  variable OsvvmVersion 2023.01
   
   
   # 
@@ -80,6 +82,8 @@ namespace eval ::osvvm {
   #
   # Create derived directory paths
   #
+    variable OsvvmHomeDirectory   [file normalize ${OsvvmScriptDirectory}/..]
+    variable OsvvmCoSimDirectory  ${OsvvmHomeDirectory}/CoSim
     variable ReportsDirectory     [file join ${OutputBaseDirectory} ${ReportsSubdirectory}]
     variable ResultsDirectory     [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
     variable CoverageDirectory    [file join ${OutputBaseDirectory} ${CoverageSubdirectory}]
@@ -105,24 +109,29 @@ namespace eval ::osvvm {
     variable Log2OsvvmErrorInfo        ""
 
 
-    variable BuildStarted   "false"   ; # Detects if build is running and if build is called, call include instead
-    variable GenericList    ""
-    variable GenericNames   ""
-    variable GenericOptions ""
+    variable BuildStarted          "false"   ; # Detects if build is running and if build is called, call include instead
+    variable GenericList           ""
+    variable GenericNames          ""
+    variable GenericOptions        ""
+    variable RunningCoSim              "false"
     variable RanSimulationWithCoverage "false"
+    
+    if {[catch {set OperatingSystemName [string tolower [exec uname]]} err]} {
+      set OperatingSystemName windows
+    }
 
     # VhdlReportsDirectory:  OSVVM temporary location for yml.  Moved to ${ReportsDirectory}/${TestSuiteName}
-    variable VhdlReportsDirectory     "" ;  
+#    variable VhdlReportsDirectory     "" ;   # replaced by OsvvmTemporaryOutputDirectory
 
-    # OsvvmYamlResultsFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${BuildName}.yaml
-    variable OsvvmYamlResultsFile     "OsvvmRun.yml" ;  
-
-    # OsvvmBuildFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${LogSubDirectory}/${BuildName}.log
-    variable OsvvmBuildFile           "OsvvmBuild.log" ;  
+    # OsvvmBuildYamlFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${BuildName}.yaml
+    variable OsvvmBuildYamlFile     [file join ${OsvvmTemporaryOutputDirectory} "OsvvmRun.yml"] ;  
 
     #  TranscriptYamlFile: temporary file that contains set of files used in TranscriptOpen.  Deleted by scripts.
-    variable TranscriptYamlFile       "OSVVM_transcript.yml" ;  
+    variable TranscriptYamlFile     [file join ${OsvvmTemporaryOutputDirectory} "OSVVM_transcript.yml"] ;  
     
+    # OsvvmBuildLogFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${LogSubDirectory}/${BuildName}.log
+    variable OsvvmBuildLogFile      [file join ${OsvvmTemporaryOutputDirectory} "OsvvmBuild.log"] ;  
+
     # Error handling
     variable AnalyzeErrorCount 0
     variable ConsecutiveAnalyzeErrors 0

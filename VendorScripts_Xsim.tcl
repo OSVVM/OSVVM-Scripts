@@ -145,7 +145,7 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
-  variable SCRIPT_DIR
+  variable OsvvmScriptDirectory
   variable SimulateTimeUnits
   variable ToolVendor
 

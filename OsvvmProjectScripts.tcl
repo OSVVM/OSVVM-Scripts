@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#     1/2023   2023.01    Added options for CoSim 
 #    12/2022   2022.12    Minor update to StartUp
 #    09/2022   2022.09    Added RemoveLibrary, RemoveLibraryDirectory, OsvvmLibraryPath
 #                         Added SetVhdlAnalyzeOptions, SetExtendedAnalyzeOptions, SetExtendedSimulateOptions
@@ -75,8 +76,8 @@
 #   re-run the startup scripts, this program included
 #
 proc StartUp {} {
-  puts "source $::osvvm::SCRIPT_DIR/StartUpShared.tcl"
-  eval "source $::osvvm::SCRIPT_DIR/StartUpShared.tcl"
+  puts "source $::osvvm::OsvvmScriptDirectory/StartUpShared.tcl"
+  eval "source $::osvvm::OsvvmScriptDirectory/StartUpShared.tcl"
 }
 
 
@@ -253,7 +254,7 @@ proc BeforeBuildCleanUp {} {
   # If Files Open, then Close them
   # CloseAllFiles  ; # oddly Questa has a number of files open already
 
-  # End simulations if started - only set by simulate
+  # End simulation if one was started - only set by simulate - closes any open files
   if {[info exists vendor_simulate_started]} {
     puts "Ending Previous Simulation"
     EndSimulation
@@ -318,7 +319,7 @@ proc build {{Path_Or_File "."}} {
     set BuildErrorCode [catch {LocalBuild $BuildName $Path_Or_File} BuildErrMsg]
     set LocalBuildErrorInfo $::errorInfo
     set BuildStarted "false"
-
+    
     # Try to create reports, even if the build failed
     set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
     set LocalReportErrorInfo $::errorInfo
@@ -385,7 +386,7 @@ proc AfterBuildReports {BuildName} {
   # short sleep to allow the file to close
   after 1000
   set BuildYamlFile [file join ${::osvvm::OutputBaseDirectory} ${BuildName}.yml]
-  file rename -force ${::osvvm::OsvvmYamlResultsFile} ${BuildYamlFile}
+  file rename -force ${::osvvm::OsvvmBuildYamlFile} ${BuildYamlFile}
   Report2Html  ${BuildYamlFile}
   Report2Junit ${BuildYamlFile}
   
@@ -474,7 +475,7 @@ proc CheckSimulationDirs {} {
 
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ResultsDirectory}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ReportsDirectory}]
-  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::VhdlReportsDirectory}]
+  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::OsvvmTemporaryOutputDirectory}]
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     CreateDirectory [file join $CurrentSimulationDirectory $::osvvm::CoverageDirectory $::osvvm::TestSuiteName]
   }
@@ -518,7 +519,7 @@ proc StartTranscript {FileBaseName} {
 
   CheckWorkingDir
   
-  set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildFile}]
+  set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildLogFile}]
   
   if {![catch {info body vendor_StartTranscript} err]} {
     vendor_StartTranscript $TempTranscriptName
@@ -548,7 +549,7 @@ proc StopTranscript {{FileBaseName ""}} {
   set FullPathLogDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
   CreateDirectory          $FullPathLogDirectory
 
-  set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildFile}]
+  set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildLogFile}]
   set TranscriptFileName [file join ${FullPathLogDirectory} ${FileBaseName}.log]
   if {![catch {info body vendor_StopTranscript} err]} {
     vendor_StopTranscript $TempTranscriptName
@@ -675,6 +676,23 @@ proc FindExistingLibraryPath {PathToLib} {
   }
 }
 
+proc FindLibraryPathByName {LibraryName} {
+  variable LibraryList
+
+  set PathToLib ""
+  
+  if {[info exists LibraryList]} {
+    # Find Library in list
+    set found [lsearch $LibraryList "[string tolower $LibraryName] *"]
+    if {$found >= 0} {
+      # Lookup Existing Library Directory
+      set item [lindex $LibraryList $found]
+      set PathToLib [lreplace $item 0 0]
+    } 
+  }
+  
+  return $PathToLib
+}
 
 # -------------------------------------------------
 proc AddLibraryToList {LibraryName PathToLib} {
@@ -895,7 +913,8 @@ proc LocalAnalyze {FileName args} {
 # Simulate
 #
 proc simulate {LibraryUnit args} {
-  
+  variable vendor_simulate_started
+
   set SavedInteractive [GetInteractiveMode] 
   if {!($::osvvm::BuildStarted)} {
     SetInteractiveMode "true"
@@ -905,16 +924,23 @@ proc simulate {LibraryUnit args} {
   set LocalSimulateErrorInfo $::errorInfo
   SetInteractiveMode $SavedInteractive  ; # Restore original value
   
+  if {$SimulateErrorCode != 0} {
+    # if simulate ended in error, EndSimulation to close open files.
+    EndSimulation
+    unset vendor_simulate_started
+  }
+  
   set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
   set LocalReportErrorInfo $::errorInfo
 
+  # Reset Temporary Settings
   if {[info exists ::osvvm::TestCaseName]} {
     unset ::osvvm::TestCaseName
   }
-  # Remove Generics
-  set ::osvvm::GenericList    ""
-  set ::osvvm::GenericNames   ""
-  set ::osvvm::GenericOptions ""
+  set ::osvvm::GenericList           ""
+  set ::osvvm::GenericNames          ""
+  set ::osvvm::GenericOptions        ""
+  set ::osvvm::RunningCoSim          "false"
   
   if {$SimulateErrorCode != 0} {
     CallbackOnError_Simulate $SimErrMsg $LocalSimulateErrorInfo [concat $LibraryUnit $args]
@@ -1014,21 +1040,28 @@ proc SimulateRunSubScripts {LibraryUnit Directory} {
 }
 
 proc SimulateRunScripts {LibraryUnit} {
-  variable  SCRIPT_DIR
+  variable  OsvvmScriptDirectory
   variable  CurrentSimulationDirectory
   variable  CurrentWorkingDirectory
   
   set NormalizedSimulationDirectory [file normalize $CurrentSimulationDirectory]
   set NormalizedWorkingDirectory    [file normalize $CurrentWorkingDirectory]
-  set NormalizedScriptDirectory     [file normalize $SCRIPT_DIR]
+  set NormalizedScriptDirectory     [file normalize $OsvvmScriptDirectory]
   
   SimulateRunSubScripts ${LibraryUnit} ${CurrentWorkingDirectory}
   if {${NormalizedSimulationDirectory} ne ${NormalizedWorkingDirectory}} {
     SimulateRunSubScripts ${LibraryUnit} ${CurrentSimulationDirectory}
   }
   if {(${NormalizedScriptDirectory} ne ${NormalizedWorkingDirectory}) && (${NormalizedScriptDirectory} ne ${NormalizedSimulationDirectory})} {
-    SimulateRunSubScripts ${LibraryUnit} ${SCRIPT_DIR}
+    SimulateRunSubScripts ${LibraryUnit} ${OsvvmScriptDirectory}
   }
+}
+
+# -------------------------------------------------
+proc CoSim {} {
+
+  set ::osvvm::RunningCoSim "true"
+  return ""
 }
 
 # -------------------------------------------------
@@ -1694,6 +1727,81 @@ proc TimeIt {args} {
   puts  "Time:  [ElapsedTimeMs $StartTimeMs]"
 }
 
+# -------------------------------------------------
+# CreateOsvvmScriptSettingsPkg
+#   do an operation on a list of items
+#
+proc CreateOsvvmScriptSettingsPkg {} {
+  set FileName [file join ${::osvvm::OsvvmHomeDirectory} "osvvm/OsvvmScriptSettingsPkg.vhd"]
+  set NewFileName [file join ${::osvvm::OsvvmHomeDirectory} "osvvm/OsvvmScriptSettingsPkg_new.vhd"]
+  set ErrorCode [catch {AutoGenerateFile $FileName $NewFileName "--!! Autogenerated:"} errmsg]
+  if {$ErrorCode} { 
+    # Close file handle if it opened - chances are it failed on trying to open and it should be still closed.
+    puts "CreateOsvvmScriptSettingsPkg had errors"
+    puts "errmsg    $errmsg"
+    puts "errorInfo $::errorInfo"
+    set ErrorCode2 [catch {close $NewFileName} errmsg2]
+  } else {
+    set FileHandle  [open $NewFileName a]
+    puts $FileHandle "  constant OSVVM_HOME_DIRECTORY        : string := \"[file normalize ${::osvvm::OsvvmHomeDirectory}]\" ;"
+    if {${::osvvm::OsvvmTemporaryOutputDirectory} eq ""} {
+      puts $FileHandle "  constant OSVVM_OUTPUT_DIRECTORY      : string := \"\" ;"
+    } else {
+      puts $FileHandle "  constant OSVVM_OUTPUT_DIRECTORY      : string := \"${::osvvm::OsvvmTemporaryOutputDirectory}/\" ;"
+    }
+    puts $FileHandle "  constant OSVVM_BUILD_YAML_FILE       : string := \"${::osvvm::OsvvmBuildYamlFile}\" ;"
+    puts $FileHandle "  constant OSVVM_TRANSCRIPT_YAML_FILE  : string := \"${::osvvm::TranscriptYamlFile}\" ;"
+    puts $FileHandle "end package OsvvmScriptSettingsPkg ;" 
+    close $FileHandle
+  }
+  if {[FileDiff $FileName $NewFileName]} {
+    file rename -force $NewFileName $FileName
+  } else {
+    file delete -force $NewFileName
+  }
+}
+
+proc AutoGenerateFile {FileName NewFileName AutoGenerateMarker} {
+  set ReadCode [catch {set ReadFile [open $FileName r]} ReadErrMsg]
+  if {$ReadCode} { return }
+  set LinesOfFile [split [read $ReadFile] \n]
+  close $ReadFile
+  
+  set WriteCode [catch {set WriteFile  [open $NewFileName w]} WriteErrMsg]
+  if {$WriteCode} { return }
+  foreach OneLine $LinesOfFile {
+    puts $WriteFile $OneLine
+    if { [regexp ${AutoGenerateMarker} $OneLine] } {
+      break
+    }
+  }
+  close $WriteFile
+}
+
+proc FileDiff {File1 File2} {
+  set FileHandle1    [open $File1 r]
+  set LinesOfFile1   [split [read $FileHandle1] \n]
+  close $FileHandle1
+  set LengthOfFile1  [llength $$LinesOfFile1]
+  
+  set FileHandle2    [open $File2 r]
+  set LinesOfFile2   [split [read $FileHandle2] \n]
+  close $FileHandle2
+  set LengthOfFile2  [llength $$LinesOfFile2]
+
+  if {$LengthOfFile1 != $LengthOfFile2} {
+    return "true"
+  }
+  for {set i 0} {$i < $LengthOfFile1} {incr i} {
+    if {[lindex $LinesOfFile1 $i] ne [lindex $LinesOfFile2 $i]} {  
+      return "true"
+    }
+  }
+  return "false"
+}
+
+
+
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
@@ -1724,9 +1832,12 @@ namespace export SetSecondSimulationTopLevel GetSecondSimulationTopLevel
 namespace export MergeCoverage
 namespace export OsvvmLibraryPath
 namespace export JoinWorkingDirectory ChangeWorkingDirectory
+namespace export EndSimulation 
+namespace export CreateOsvvmScriptSettingsPkg 
+namespace export FindLibraryPathByName CoSim
 
 # Exported only for tesing purposes
-namespace export FindLibraryPath CreateLibraryPath EndSimulation FindExistingLibraryPath TimeIt
+namespace export FindLibraryPath CreateLibraryPath FindExistingLibraryPath TimeIt
 
 
 # end namespace ::osvvm

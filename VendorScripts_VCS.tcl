@@ -167,7 +167,7 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
-  variable SCRIPT_DIR
+  variable OsvvmScriptDirectory
   variable SimulateTimeUnits
   variable ToolVendor
   variable ToolName
@@ -183,12 +183,12 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set SynFile [open "temp_Synopsys_run.tcl" w]
 
   # Project Vendor script
-  if {[file exists ${SCRIPT_DIR}/${ToolVendor}.tcl]} {
-    puts  $SynFile "source ${SCRIPT_DIR}/${ToolVendor}.tcl"
+  if {[file exists ${OsvvmScriptDirectory}/${ToolVendor}.tcl]} {
+    puts  $SynFile "source ${OsvvmScriptDirectory}/${ToolVendor}.tcl"
   }
 # Project Simulator Script
-  if {[file exists ${SCRIPT_DIR}/${ToolName}.tcl]} {
-    puts  $SynFile "source ${SCRIPT_DIR}/${ToolName}.tcl"
+  if {[file exists ${OsvvmScriptDirectory}/${ToolName}.tcl]} {
+    puts  $SynFile "source ${OsvvmScriptDirectory}/${ToolName}.tcl"
   }
  
 ### User level settings for simulator in the simulation run directory

@@ -64,9 +64,9 @@
   setlibrarymode -rw osvvm
 
   if {[batch_mode]} {
-    variable NoGui true
+    variable NoGui "true"
   } else {
-    variable NoGui false
+    variable NoGui "false"
   }
   variable RemoveUnmappedLibraries                "false"
   variable RemoveLibraryDirectoryDeletesDirectory "false"
@@ -254,7 +254,7 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
-  variable SCRIPT_DIR
+  variable OsvvmScriptDirectory
   variable SimulateTimeUnits
   variable ToolVendor
   variable TestSuiteName

@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     1/2023   2023.01    Added options for CoSim 
 #     5/2022   2022.05    Updated variable naming 
 #     2/2022   2022.02    Added template of procedures needed for coverage support
 #    12/2021   2021.12    Updated to use relative paths.
@@ -197,8 +198,22 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ExtendedElaborateOptions
   variable ExtendedRunOptions
 #  variable GhdlRunOptions
+  variable GhdlRunCmd
 
-  set LocalElaborateOptions [concat --std=${VhdlShortVersion} --syn-binding {*}${ExtendedElaborateOptions} --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${args}]
+  if {[info exists GhdlRunCmd]} {
+    set runcmd $GhdlRunCmd
+  } else {
+    set runcmd "--elab-run"
+  }
+
+  set CoSimElaborateOptions ""
+  if {$::osvvm::RunningCoSim} {
+    if {$::osvvm::OperatingSystemName eq "linux"} {
+      set CoSimElaborateOptions "-Wl,-lpthread"
+    }
+  }
+
+  set LocalElaborateOptions [concat --std=${VhdlShortVersion} --syn-binding {*}${ExtendedElaborateOptions} {*}${CoSimElaborateOptions} --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${args}]
 
   set LocalReportDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
 
@@ -220,8 +235,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   
 # format for select file  
   set SimulateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit} {*}${LocalRunOptions}]
-  puts "ghdl --elab-run ${SimulateOptions}" 
-  if { [catch {exec ghdl --elab-run {*}${SimulateOptions}} SimulateErrorMessage]} { 
+  puts "ghdl $runcmd ${SimulateOptions}" 
+  if { [catch {exec ghdl $runcmd {*}${SimulateOptions}} SimulateErrorMessage]} { 
     PrintWithPrefix "Error:" $SimulateErrorMessage
     error "Failed: simulate $LibraryUnit"
   } else {
@@ -244,7 +259,7 @@ proc FindFirstFile {Name} {
   if {[file exists $LocalPathName]} {
     return ${LocalPathName}
   }
-  set LocalPathName [file join ${::osvvm::SCRIPT_DIR} ${Name}]
+  set LocalPathName [file join ${::osvvm::OsvvmScriptDirectory} ${Name}]
   if {[file exists $LocalPathName]} {
     return ${LocalPathName}
   }

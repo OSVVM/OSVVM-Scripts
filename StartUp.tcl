@@ -25,7 +25,7 @@
 #                         shared by all StartUp scripts to StartUpShared.tcl
 #    01/2022   2022.01    New StartUp algorithm for detecting ActiveHDL's VSimSA.
 #    10/2021   2021.10    Loads YAML utilities when YAML library available: OsvvmYamlSupport.tcl, NoYamlPackage.tcl
-#                         Loads LocalScriptDefaults.tcl if it is in the SCRIPT_DIR.  This is a optional user settings file.
+#                         Loads LocalScriptDefaults.tcl if it is in the OsvvmScriptDirectory.  This is a optional user settings file.
 #                         LocalScriptsDefaults.tcl is not provided by OSVVM so your local settings will not be overwritten.  
 #     2/2021   2021.02    Refactored.                                                          
 #                         - Tool now determined in here (was in ToolConfiguration.tcl). 
@@ -61,8 +61,8 @@
 
 
 namespace eval ::osvvm {
-  # Default SCRIPT_DIR setup - revised for ActiveHDL VSimSA
-  variable SCRIPT_DIR  [file dirname [file normalize [info script]]]
+  # Default OsvvmScriptDirectory setup - revised for ActiveHDL VSimSA
+  variable OsvvmScriptDirectory  [file dirname [file normalize [info script]]]
   variable OsvvmInitialized  "false"
   
   # 
@@ -79,7 +79,7 @@ namespace eval ::osvvm {
 
     } elseif {[string match -nocase $ToolExecutableName "vsimsa"]} {
       if {![info exists ScriptBaseName]} {
-        set SCRIPT_DIR [file dirname [string trim $argv0 ?{}?]]
+        set OsvvmScriptDirectory [file dirname [string trim $argv0 ?{}?]]
       } 
       variable ScriptBaseName   "VSimSA"
 
@@ -101,7 +101,7 @@ namespace eval ::osvvm {
   }
 }
 
-source ${::osvvm::SCRIPT_DIR}/StartUpShared.tcl
+source ${::osvvm::OsvvmScriptDirectory}/StartUpShared.tcl
 
 set ::osvvm::OsvvmInitialized "true"
 

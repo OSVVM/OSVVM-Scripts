@@ -55,7 +55,7 @@ proc Report2Html {ReportFile} {
   set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
 #  if {[dict exists $Report2HtmlDict ReportHeaderHtmlFile]} {
 #    set ReportHeaderHtmlFile  [dict get $Report2HtmlDict ReportHeaderHtmlFile]
-    set ReportHeaderHtmlFile [file join ${::osvvm::SCRIPT_DIR} summary_header_report.html]
+    set ReportHeaderHtmlFile [file join ${::osvvm::OsvvmScriptDirectory} summary_header_report.html]
     file copy -force ${ReportHeaderHtmlFile} ${FileName}
     set ResultsFile [open ${FileName} a]
 #  } else {

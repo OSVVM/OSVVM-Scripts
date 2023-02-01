@@ -65,11 +65,11 @@ proc StartBuildYaml {BuildName} {
   set  StartTime [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]
   puts "Starting Build at time [clock format $BuildStartTime -format %T]"
 
-  set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} w]
+  set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} w]
 #  puts  $RunFile "BuildName: $BuildName"
   puts  $RunFile "Version: $::osvvm::OsvvmVersion"
   puts  $RunFile "Date: $StartTime"
-#  set   ReportHeaderHtmlFile [file join ${::osvvm::SCRIPT_DIR} summary_header_report.html]
+#  set   ReportHeaderHtmlFile [file join ${::osvvm::OsvvmScriptDirectory} summary_header_report.html]
 #  puts  $RunFile "ReportHeaderHtmlFile: $ReportHeaderHtmlFile"
 #  puts  $RunFile "ReportsDirectory: ${::osvvm::ReportsSubdirectory}"
   puts  $RunFile "BuildInfo:"
@@ -91,7 +91,7 @@ proc FinishBuildYaml {BuildName} {
   variable SimulateErrorCount
 
   # Print Elapsed time for last TestSuite (if any ran) and the entire build
-  set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} a]
+  set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} a]
 
   set   BuildFinishTime     [clock seconds]
   set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
@@ -124,7 +124,7 @@ proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
   variable TestSuiteName
   variable TestSuiteStartTimeMs
   
-  set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
+  set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
 
   if {$FirstRun} {
     puts  $RunFile "TestSuites: "
@@ -143,7 +143,7 @@ proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
 proc FinishTestSuiteBuildYaml {} {
   variable TestSuiteStartTimeMs
 
-  set   RunFile  [open ${::osvvm::OsvvmYamlResultsFile} a]
+  set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} a]
   puts  $RunFile "    ElapsedTime: [ElapsedTimeMs $TestSuiteStartTimeMs]"
   close $RunFile
 }
@@ -158,7 +158,7 @@ proc StartSimulateBuildYaml {TestName} {
   set SimulateStartTimeMs [clock milliseconds]
   puts "Simulation Start time [clock format $SimulateStartTime -format %T]"
 
-  set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
+  set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
   puts  $RunFile "      - TestCaseName: $TestName"
   close $RunFile
 }
@@ -180,7 +180,7 @@ proc FinishSimulateBuildYaml {} {
   set  SimulateFinishTimeMs  [clock milliseconds]
   set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
   
-  set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
+  set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
   puts  $RunFile "        TestCaseFileName: $TestCaseFileName"
   puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericList\""
   puts  $RunFile "        ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
@@ -192,7 +192,7 @@ proc FinishSimulateBuildYaml {} {
 #
 proc SkipTestBuildYaml {SimName Reason} {
 
-  set RunFile [open ${::osvvm::OsvvmYamlResultsFile} a]
+  set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
   puts  $RunFile "      - TestCaseName: $SimName"
   puts  $RunFile "        Name: $SimName"
   puts  $RunFile "        Status: SKIPPED"
