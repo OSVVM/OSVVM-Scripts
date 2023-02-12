@@ -165,8 +165,10 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
   set  AnalyzeOptions [concat {*}${args} ${FileName}]
   puts "nvc ${GlobalOptions} -a $AnalyzeOptions"
   if {[catch {exec nvc {*}${GlobalOptions} -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
-    puts $AnalyzeErrorMessage
+    PrintWithPrefix "Error:" $AnalyzeErrorMessage
     error "Failed: analyze $FileName"
+  } else {
+    puts $AnalyzeErrorMessage
   }
 }
 
@@ -218,12 +220,16 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set RunOptions [concat {*}${LocalRunOptions} ${LibraryUnit}]
   puts "nvc ${GlobalOptions} -e ${ElaborateOptions}" 
   if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions}} ElaborateErrorMessage]} { 
-    puts $ElaborateErrorMessage
+    PrintWithPrefix "Elaborate Error:"  $ElaborateErrorMessage
     error "Failed: simulate $LibraryUnit"
   }
   puts "nvc ${GlobalOptions} -r ${RunOptions}" 
-  if { [catch {exec nvc {*}${GlobalOptions} -r {*}${RunOptions} >@ stdout 2>@ stdout}]} {
+  if { [catch {exec nvc {*}${GlobalOptions} -r {*}${RunOptions} 2>@1} SimulateErrorMessage]} {
+#    error "Failed: simulate $LibraryUnit"
+    PrintWithPrefix "Error:" $SimulateErrorMessage
     error "Failed: simulate $LibraryUnit"
+  } else {
+    puts $SimulateErrorMessage
   }
   
   # Save Coverage Information
