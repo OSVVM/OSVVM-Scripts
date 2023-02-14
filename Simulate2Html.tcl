@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    02/2023   2023.02    CreateDirectory if results/<TestSuiteName> does not exist
 #    12/2022   2022.12    Refactored to minimize dependecies on other scripts.
 #    05/2022   2022.05    Updated directory handling
 #    03/2022   2022.03    Added Transcript File reporting.
