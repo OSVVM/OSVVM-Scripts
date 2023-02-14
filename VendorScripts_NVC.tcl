@@ -202,11 +202,12 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   set CoSimRunOptions ""
   if {$::osvvm::RunningCoSim} {
-    if {$::osvvm::OperatingSystemName eq "linux"} {
-      set CoSimRunOptions "--load=./VProc.so"
-    } else {
-      set ::env(NVC_FOREIGN_OBJ) VProc.so
-    }
+    set CoSimRunOptions "--load=./VProc.so"
+#    if {$::osvvm::OperatingSystemName eq "linux"} {
+#      set CoSimRunOptions "--load=./VProc.so"
+#    } else {
+#      set ::env(NVC_FOREIGN_OBJ) VProc.so
+#    }
   }
 
   set LocalRunOptions [concat "--ieee-warnings=off" {*}${ExtendedRunOptions} {*}${CoSimRunOptions}]
