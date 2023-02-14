@@ -64,9 +64,9 @@
   setlibrarymode -rw osvvm
 
   if {[batch_mode]} {
-    variable NoGui true
+    variable NoGui "true"
   } else {
-    variable NoGui false
+    variable NoGui "false"
   }
   variable RemoveUnmappedLibraries                "false"
   variable RemoveLibraryDirectoryDeletesDirectory "false"

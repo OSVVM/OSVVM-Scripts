@@ -925,8 +925,8 @@ proc simulate {LibraryUnit args} {
   SetInteractiveMode $SavedInteractive  ; # Restore original value
   
   if {$SimulateErrorCode != 0} {
-    # if simulate ended in error, EndSimulate to close open files.
-    EndSimulate
+    # if simulate ended in error, EndSimulation to close open files.
+    EndSimulation
     unset vendor_simulate_started
   }
   
@@ -1060,7 +1060,7 @@ proc SimulateRunScripts {LibraryUnit} {
 # -------------------------------------------------
 proc CoSim {} {
 
-  set ::osvvm::RunningCoSim TRUE 
+  set ::osvvm::RunningCoSim "true"
   return ""
 }
 
@@ -1790,14 +1790,14 @@ proc FileDiff {File1 File2} {
   set LengthOfFile2  [llength $$LinesOfFile2]
 
   if {$LengthOfFile1 != $LengthOfFile2} {
-    return TRUE
+    return "true"
   }
   for {set i 0} {$i < $LengthOfFile1} {incr i} {
     if {[lindex $LinesOfFile1 $i] ne [lindex $LinesOfFile2 $i]} {  
-      return TRUE
+      return "true"
     }
   }
-  return FALSE
+  return "false"
 }
 
 

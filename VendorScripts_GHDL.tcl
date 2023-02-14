@@ -227,6 +227,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   if {$::osvvm::SaveWaves} {
 #    set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.ghw ${SignalSelectionOptions} ${GhdlRunOptions} ]
     set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.ghw ${SignalSelectionOptions} {*}${::osvvm::GenericOptions} ]
+    CreateDirectory ${LocalReportDirectory}
   } else {
 #    set LocalRunOptions [concat {*}${ExtendedRunOptions} ${GhdlRunOptions}]
     set LocalRunOptions [concat {*}${ExtendedRunOptions} {*}${::osvvm::GenericOptions}]
@@ -236,7 +237,12 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 # format for select file  
   set SimulateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit} {*}${LocalRunOptions}]
   puts "ghdl $runcmd ${SimulateOptions}" 
-  if { [catch {exec ghdl $runcmd {*}${SimulateOptions}} SimulateErrorMessage]} { 
+  
+  set SimulateErrorCode [catch {exec ghdl $runcmd {*}${SimulateOptions}} SimulateErrorMessage] 
+#  if {[file exists ${LibraryUnit}.ghw]} {
+#    file rename -force ${LibraryUnit}.ghw ${LocalReportDirectory}/${LibraryUnit}.ghw
+#  }
+  if {$SimulateErrorCode != 0} {
     PrintWithPrefix "Error:" $SimulateErrorMessage
     error "Failed: simulate $LibraryUnit"
   } else {

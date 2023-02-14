@@ -63,9 +63,9 @@
 #   puts $ToolNameVersion
 
   if {[batch_mode]} {
-    variable NoGui true
+    variable NoGui "true"
   } else {
-    variable NoGui false
+    variable NoGui "false"
   }
 
 # -------------------------------------------------
@@ -116,8 +116,7 @@ proc vendor_library {LibraryName PathToLib} {
     puts "vlib    ${PathAndLib}"
           vlib    ${PathAndLib}
     after 1000
-  }
-  if {![file exists ./compile/${LibraryName}.epr]} {
+  } elseif {![file exists ./compile/${LibraryName}.epr]} {
     puts "vmap    $LibraryName  ${PathAndLib}"
           vmap    $LibraryName  ${PathAndLib}
   }

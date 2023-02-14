@@ -68,10 +68,10 @@
   
   if {[batch_mode]} {
     variable ToolArgs $argv
-    variable NoGui true
+    variable NoGui "true"
   } else {
     variable ToolArgs "-gui"
-    variable NoGui false
+    variable NoGui "false"
   }
   variable ToolVersion [vsimVersion]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
