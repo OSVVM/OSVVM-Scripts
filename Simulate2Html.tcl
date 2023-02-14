@@ -182,6 +182,7 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName BuildName GenericList}
       set CopyTargetFile [file join ${::osvvm::ResultsDirectory} ${TestSuiteName} ${TranscriptGenericName}]
       if {[file normalize ${TranscriptFile}] ne [file normalize ${CopyTargetFile}]} {
         if {[file exists ${TranscriptFile}]} {
+          CreateDirectory [file join ${::osvvm::ResultsDirectory} ${TestSuiteName}]
           # Check required since if file is open, closed, then re-opened, 
           # it will be in the file more than once
           file rename -force ${TranscriptFile}  ${CopyTargetFile}
