@@ -257,6 +257,45 @@ the method required by each simulator.
    
 Release 2022.09 removed the necessity to put quotes around the options specified with simulate.
 
+Debugging and Logging Signal Values (for later display)
+--------------------------------------------------------
+By default, OSVVM scripting focuses on running regressions fast. 
+Adding debugging information, logging signals, and/or displaying waveforms will slow things down. 
+In addition, by default, if one simulation crashes, the scripts will continue and run the next simulation.
+
+To add debugging information to your simulation, call SetDebugMode. 
+If you do not call SetDebugMode, the debug mode is false. 
+If you call SetDebugMode without a true or false value, the default is true.
+
+.. code:: tcl
+
+   SetDebugMode true
+
+To log signals so they can be displayed after the simulation finishes, call SetLogSignals. 
+If you do not call SetLogSignals, the log signals mode is false. 
+If you call SetLogSignals without a true or false value, the default is true.
+
+.. code:: tcl
+
+   SetLogSignals true
+
+Whether analyze or simulate stop on a failure or not is controlled by the internal variables AnalyzeErrorStopCount and SimulateErrorStopCount. 
+By default, these values are set to 0, which means do not stop.  
+Setting them to a non-zero value, causes either analyze or simulate to stop when the specified number of errors occur.  
+Hence, to stop after one error, set them as follows. 
+
+ .. code:: tcl
+
+   set ::osvvm::AnalyzeErrorStopCount  1
+   set ::osvvm::SimulateErrorStopCount  1
+
+To do all of the above in one step, call SetInteractiveMode. 
+If you call SetInteractiveMode without a true or false value, the default is true.
+
+If you do not like the OSVVM default settings, you can add any of these to your LocalScriptDefaults.tcl.   
+
+Also note that there are scripts that automatically run when you call a simulation (see next section).
+You can use these scripts to display waveforms.
 
 Scripts that Run during Simulate if they exist
 ----------------------------------------------------
@@ -269,12 +308,13 @@ When simulate (or RunTest) is called, it will source the following files in orde
 
 -  <ToolVendor>.tcl
 -  <ToolName>.tcl
--  wave.do
+-  wave.do 
 -  <LibraryUnit>.tcl
 -  <LibraryUnit>_<ToolName>.tcl
 -  <TestCaseName>.tcl
 -  <TestCaseName>_<ToolName>.tcl
 
+Note that wave.do will not run if you are running in a batch environment (such as vsim -c in QuestaSim).
 ToolVendor is either {Aldec, Siemens, Cadence, Synopsys}. 
 ToolName is one of {QuestaSim, ModelSim, RivieraPRO, ActiveHDL, VCS, Xcelium}. 
 LibraryUnit is the name specified to simulate. 
@@ -308,6 +348,17 @@ The method of running them may change in the future (and may use source).
    library  default
    simulate Tb [DoWaves wave1.do]
    simulate Tb [DoWaves wave1.do wave2.do] 
+
+Saving Waveforms With GHDL and NVC
+----------------------------------------------------
+The open source simulators GHDL and NVC run in a batch mode, but can save waveforms to see with a separate viewer (Gtkwave).   
+To save waveforms for GHDL and NVC, call SetSaveWaves. 
+If you do not call SetSaveWaves, the debug mode is false. 
+If you call SetSaveWaves without a true or false value, the default is true.
+
+.. code:: tcl
+
+   SetSaveWaves true
 
 Including Scripts
 --------------------------
