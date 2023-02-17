@@ -121,7 +121,6 @@ proc FinishBuildYaml {BuildName} {
 
 # -------------------------------------------------
 proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
-  variable TestSuiteName
   variable TestSuiteStartTimeMs
   
   set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
@@ -165,8 +164,6 @@ proc StartSimulateBuildYaml {TestName} {
 
 
 proc FinishSimulateBuildYaml {} {
-  variable TestCaseName
-  variable TestSuiteName
   variable TestCaseFileName
   variable SimulateStartTime
   variable SimulateStartTimeMs
