@@ -99,8 +99,8 @@ namespace eval ::osvvm {
     variable LogFileHandle
     variable LineOfLogFile
     variable InRunTest 0
-    variable TestSuiteName Default
-    variable TestCaseName  Default
+    variable LogTestSuiteName Default
+    variable LogTestCaseName  Default
     variable PrintPrefix "<pre>"
 
     # Read line by line - For OSVVM regressions, this is 50 to 100 ms slower
@@ -126,8 +126,8 @@ namespace eval ::osvvm {
     variable HtmlFileHandle
     variable LineOfLogFile
     variable InRunTest
-    variable TestSuiteName 
-    variable TestCaseName 
+    variable LogTestSuiteName 
+    variable LogTestCaseName 
     variable PrintPrefix 
     
     if {[regexp {^Build Start} $LineOfLogFile] } {
@@ -141,7 +141,7 @@ namespace eval ::osvvm {
       puts $HtmlFileHandle "${PrintPrefix}<details><summary>${LineOfLogFile}</summary>"
       set PrintPrefix "</details>"
     } elseif {[regexp {^TestSuite} $LineOfLogFile] } {
-      set TestSuiteName [lindex $LineOfLogFile 1]
+      set LogTestSuiteName [lindex $LineOfLogFile 1]
       puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary>"
       set PrintPrefix "</details>"
     } elseif {[regexp {^RunTest} $LineOfLogFile] } {
@@ -170,15 +170,15 @@ namespace eval ::osvvm {
         }
       }
       if {! $InRunTest} {
-        puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary><span id=\"${TestSuiteName}_${TestCaseName}${GenericNames}\" />"
+        puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary><span id=\"${LogTestSuiteName}_${LogTestCaseName}${GenericNames}\" />"
         set PrintPrefix "</details>"
       } else {
-        puts $HtmlFileHandle "$LineOfLogFile <span id=\"${TestSuiteName}_${TestCaseName}${GenericNames}\" />"
+        puts $HtmlFileHandle "$LineOfLogFile <span id=\"${LogTestSuiteName}_${LogTestCaseName}${GenericNames}\" />"
       }
       set InRunTest 0
     } else {
       if {[regexp {^TestName} $LineOfLogFile] } {
-        set TestCaseName [lindex $LineOfLogFile 1]
+        set LogTestCaseName [lindex $LineOfLogFile 1]
       }
       if {[regexp {DONE   FAILED} $LineOfLogFile]} {
         set PrintPrefix "${PrintPrefix}<span style=color:#FF0000>$LineOfLogFile</span>"
