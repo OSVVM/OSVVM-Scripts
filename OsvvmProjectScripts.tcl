@@ -330,11 +330,12 @@ proc build {{Path_Or_File "."}} {
 
 #    StopTranscript ${LogFileName}
     StopTranscript ${BuildName}
+    
+    set BuildName ""
 
     # Cannot generate html log files until transcript is closed - previous step
     set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
     set Log2ErrorInfo $::errorInfo
-
 
     if {$BuildErrorCode != 0 || $AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
       CallbackOnError_Build $Path_Or_File $BuildErrorCode $LocalBuildErrorInfo 
