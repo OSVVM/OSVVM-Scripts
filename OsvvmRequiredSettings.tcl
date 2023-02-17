@@ -110,6 +110,7 @@ namespace eval ::osvvm {
 
 
     variable BuildStarted          "false"   ; # Detects if build is running and if build is called, call include instead
+    variable BuildName             ""
     variable GenericList           ""
     variable GenericNames          ""
     variable GenericOptions        ""
