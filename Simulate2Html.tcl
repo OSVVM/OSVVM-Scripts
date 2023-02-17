@@ -45,7 +45,7 @@
 #
 
 package require yaml
-proc Simulate2Html {TestCaseName TestSuiteName BuildName {GenericList ""}} {
+proc Simulate2Html {TestCaseName {TestSuiteName "Default"} {BuildName ""} {GenericList ""}} {
   variable ResultsFile
   variable OsvvmTemporaryOutputDirectory
   variable AlertYamlFile [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_alerts.yml]
@@ -168,7 +168,7 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName BuildName GenericList}
   } else {
     set ReportsPrefix "../.."
   }
-  if {([GetTranscriptType] eq "html")} {
+  if {([GetTranscriptType] eq "html") && ($BuildName ne "")} {
     set HtmlTranscript ${BuildName}_log.html
     set SimulationResultsLink [file join ${::osvvm::LogSubdirectory} ${HtmlTranscript}#${TestSuiteName}_${TestCaseName}${SimGenericNames}]
     puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${SimulationResultsLink}\">Link to Simulation Results</a></td></tr>"
@@ -208,7 +208,7 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName BuildName GenericList}
 #    }
 #  }
   # Print link back to Build Summary Report
-  if {([info exists BuildName])} {
+  if {($BuildName ne "")} {
     set BuildLink ${ReportsPrefix}/${BuildName}.html
     puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${BuildName}.html\">${BuildName} Build Summary</a></td></tr>"
   }
