@@ -102,17 +102,17 @@ proc vendor_library {LibraryName PathToLib} {
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable NVC_WORKING_LIBRARY_PATH
   variable VhdlShortVersion
-   
+
   set PathAndLib [NvcLibraryPath $LibraryName $PathToLib]
 
-  set  GlobalOptions [concat --std=${VhdlShortVersion} --work=${LibraryName}:${PathAndLib}]
+  set  GlobalOptions [concat --std=${VhdlShortVersion} --work=${LibraryName}:${PathAndLib}.${VhdlShortVersion}]
   puts "nvc ${GlobalOptions} --init"
   if {[catch {exec nvc {*}${GlobalOptions} --init} InitErrorMessage]} {
     puts $InitErrorMessage
     error "Failed: library init $LibraryName ($PathAndLib)"
   }
 
-  
+
   if {![info exists VHDL_RESOURCE_LIBRARY_PATHS]} {
     # Create Initial empty list
     set VHDL_RESOURCE_LIBRARY_PATHS ""
@@ -161,7 +161,7 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlLibraryFullPath
   variable NVC_WORKING_LIBRARY_PATH
 
-  set  GlobalOptions [concat --std=${VhdlShortVersion} -H 128m --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
+  set  GlobalOptions [concat --std=${VhdlShortVersion} -H 128m --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
   set  AnalyzeOptions [concat {*}${args} ${FileName}]
   puts "nvc ${GlobalOptions} -a $AnalyzeOptions"
   if {[catch {exec nvc {*}${GlobalOptions} -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
@@ -194,7 +194,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ExtendedElaborateOptions
   variable ExtendedRunOptions
 
-  set LocalGlobalOptions [concat --std=${VhdlShortVersion} -H 128m --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
+  set LocalGlobalOptions [concat --std=${VhdlShortVersion} -H 128m --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
   set LocalElaborateOptions [concat {*}${ExtendedElaborateOptions} {*}${args}  {*}${::osvvm::GenericOptions}]
 
   set LocalReportDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
