@@ -266,7 +266,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   # With sim_working_folder setting should no longer need MY_START_DIR
   set MY_START_DIR $::osvvm::CurrentSimulationDirectory
   
-  set SimulateOptions [concat {*}${args} {*}${::osvvm::GenericOptions} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
+  set SimulateOptions [concat {*}${args} {*}${::osvvm::GenericOptions} -interceptcoutput -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
 
   puts "asim ${SimulateOptions}"
         asim {*}${SimulateOptions}
@@ -281,7 +281,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
     log -rec [env]/*
     cd $MY_START_DIR
   }
-  run -all 
+  run -all
+  endsim
   cd $MY_START_DIR
   
   # Save Coverage Information 
