@@ -1169,6 +1169,10 @@ in the table below.
       - GHDL
       - simulator
       -
+    * - NVC
+      - NVC
+      - simulator
+      -
     * - Siemens
       - ModelSim
       - simulator
@@ -1252,7 +1256,7 @@ Script File Summary
 
 - VendorScript_tool-name.tcl  
    - TCL procedures that do simulator specific actions.
-   - "tool-name" = one of (ActiveHDL, GHDL, Mentor, RivieraPro, VSimSA, VCS, Xcelium, Xsim)
+   - "tool-name" = one of (ActiveHDL, GHDL, NVC, Siemens, RivieraPro, VSimSA, VCS, Xcelium, Xsim)
    - VSimSA is the one associated with ActiveHDL.
    - Called by StartUpShared.tcl 
 
