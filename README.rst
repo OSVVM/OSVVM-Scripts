@@ -93,8 +93,7 @@ Initialize the OSVVM Script environment by doing:
    source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
    
 To simplify this, put ``source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl`` 
-in the ``.tclshrc`` file.
-You can also add a windows short cut that includes 
+in the ``.tclshrc`` file and add a windows short cut that does 
 ``C:\tools\msys64\mingw64.exe winpty tclsh``. 
 
 GHDL in Linux
@@ -108,8 +107,34 @@ Initialize the OSVVM Script environment by doing:
    source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
 
 To simplify this, put ``source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl`` 
-in the ``.tclshrc`` file.
-In bash, add ``alias gsim='rlwrap tclsh'`` to your ``.bashrc``.
+in the ``.tclshrc`` file and in bash add ``alias gsim='rlwrap tclsh'`` to your ``.bashrc``.
+
+NVC in Windows
+~~~~~~~~~~~~~~~~
+
+Initialize the OSVVM Script environment by doing:
+
+.. code:: tcl
+
+   winpty tclsh
+   source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartNVC.tcl
+   
+To simplify this, put ``source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartNVC.tcl`` 
+in the ``.tclshrc`` file and add a windows short cut that does 
+``C:\tools\msys64\mingw64.exe winpty tclsh``.
+
+NVC in Linux
+~~~~~~~~~~~~~~~~
+
+Initialize the OSVVM Script environment by doing:
+
+.. code:: tcl
+
+   rlwrap tclsh
+   source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartNVC.tcl
+
+To simplify this, put ``source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartNVC.tcl`` 
+in the ``.tclshrc`` file and in bash add ``alias nsim='rlwrap tclsh'`` to your ``.bashrc``.
 
 Synopsys VCS
 ~~~~~~~~~~~~
@@ -329,8 +354,8 @@ CurrentSimulationDirectory is the directory in which the simulator is running.
 CurrentWorkingDirectory is the directory of the script that calls either 
 RunTest or simulate.   
 
-Currently GHDL does not run any extra scripts since it is a batch
-simulator.
+Currently NVC and GHDL do not run any extra scripts since they are batch
+simulators.
 
 Adding Other Wave Files
 --------------------------
@@ -1061,7 +1086,7 @@ The values for a commands ``options`` value are typically simulator dependent.
 To keep a set of scripts simulator independent, be sure to call these
 at a high level, such as in ``LocalScriptDefaults.tcl``.
 
-The following are options currently only for GHDL.
+The following are options currently only for GHDL and NVC.
 
 - SetExtendedElaborateOptions <options>
    - Set extended (additional) options for simulate to ``options``.
@@ -1203,17 +1228,22 @@ Script File Summary
 
 - StartUp.tcl  
    - StartUp script for running ActiveHDL, GHDL, Mentor, RivieraPro, and VSimSA (ActiveHDL)   
-   - Detects the simulator running and calls the VendorScript_vendor-name.tcl.
-     Also calls OsvvmProjectScripts.tcl and OsvvmScriptDefaults.tcl 
+   - Detects the simulator running and calls StartUpShared.tcl 
 
+- StartGHDL.tcl
+   - Version of StartUp.tcl that is specific to GHDL  
+      
+- StartNVC.tcl
+   - Version of StartUp.tcl that is specific to NVC  
+      
 - StartVCS.tcl
-   - StartUp script for Synopsys VCS.  Does what StartUp.tcl does except is specific to VCS  
+   - Version of StartUp.tcl that is specific to VCS  
       
 - StartXcelium.tcl  
-   - StartUp script for Cadence Xcelium.  Does what StartUp.tcl does except is specific to Xcelium
+   - Version of StartUp.tcl that is specific to Xcelium
       
 - StartXSIM.tcl  
-   - StartUp script for Xilinx XSIM.  Does what StartUp.tcl does except is specific to Xsim
+   - Version of StartUp.tcl that is specific to Xsim
    - Note, XSIM is currently a alpha level, experimental release.
       
 - OsvvmProjectScripts.tcl  
