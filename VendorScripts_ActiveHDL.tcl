@@ -282,7 +282,6 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
     cd $MY_START_DIR
   }
   run -all
-  endsim
   cd $MY_START_DIR
   
   # Save Coverage Information 
