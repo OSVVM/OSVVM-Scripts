@@ -219,14 +219,24 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set GlobalOptions ${LocalGlobalOptions}
   set ElaborateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit}]
   set RunOptions [concat {*}${LocalRunOptions} ${LibraryUnit}]
-  puts "nvc ${GlobalOptions} -e ${ElaborateOptions}" 
-  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions}} ElaborateErrorMessage]} { 
-    PrintWithPrefix "Elaborate Error:"  $ElaborateErrorMessage
-    error "Failed: simulate $LibraryUnit"
-  }
-  puts "nvc ${GlobalOptions} -r ${RunOptions}" 
-  if { [catch {exec nvc {*}${GlobalOptions} -r {*}${RunOptions} 2>@1} SimulateErrorMessage]} {
-#    error "Failed: simulate $LibraryUnit"
+  
+# Running NVC with separate elaborate and simulate - Nick recommended switching to doing this in one step
+# #  puts "nvc ${GlobalOptions} -e ${ElaborateOptions}" 
+# #  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions}} ElaborateErrorMessage]} { 
+# #    PrintWithPrefix "Elaborate Error:"  $ElaborateErrorMessage
+# #    error "Failed: simulate $LibraryUnit"
+# #  }
+# #  puts "nvc ${GlobalOptions} -r ${RunOptions}" 
+# #  if { [catch {exec nvc {*}${GlobalOptions} -r {*}${RunOptions} 2>@1} SimulateErrorMessage]} {
+# ##    error "Failed: simulate $LibraryUnit"
+# #    PrintWithPrefix "Error:" $SimulateErrorMessage
+# #    error "Failed: simulate $LibraryUnit"
+# #  } else {
+# #    puts $SimulateErrorMessage
+# #  }
+
+  puts "nvc ${GlobalOptions} -e ${ElaborateOptions} --jit --no-save -r ${RunOptions}"
+  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} >@ stdout 2>@ stdout}] } {  
     PrintWithPrefix "Error:" $SimulateErrorMessage
     error "Failed: simulate $LibraryUnit"
   } else {
