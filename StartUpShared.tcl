@@ -63,7 +63,10 @@ namespace eval ::osvvm {
     # if a user add on script uses SCRIPT_DIR, this supports backward compatibility
     variable SCRIPT_DIR ${OsvvmScriptDirectory}
   }
+  variable OsvvmHomeDirectory   [file normalize ${OsvvmScriptDirectory}/..]
 }
+
+variable OsvvmLibraries $::osvvm::OsvvmHomeDirectory
 
 # Load Base OSVVM Project Scripts and Vendor Specific Scripts
 source ${::osvvm::OsvvmScriptDirectory}/CreateBuildYamlReports.tcl
