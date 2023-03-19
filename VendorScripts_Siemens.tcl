@@ -55,10 +55,19 @@
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Siemens"
+  
+  
+  if {![catch {vsimVersionString} msg]} {
+    set VersionString [vsimVersionString]
+  } else {
+    set VersionString [exec vsim -version]
+  }
+
   if {[info exists ::ToolName]} {
     variable ToolName $::ToolName
   } else {
-    if {[lindex [split [vsimVersionString]] 2] eq "ModelSim"} {
+#    if {[lindex [split [vsimVersionString]] 2] eq "ModelSim"} {}
+    if {[lindex [split $VersionString] 2] eq "ModelSim"} {
       variable ToolName   "ModelSim"
     } else {
       variable ToolName   "QuestaSim"
@@ -66,14 +75,31 @@
   }
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   
-  if {[batch_mode]} {
-    variable ToolArgs $argv
-    variable NoGui "true"
+  if {![catch {batch_mode} msg]} {
+    variable shell ""
+    variable SiemensSimulateOptions ""
+    if {[batch_mode]} {
+      variable ToolArgs $argv
+      variable NoGui "true"
+    } else {
+      variable ToolArgs "-gui"
+      variable NoGui "false"
+    }
   } else {
-    variable ToolArgs "-gui"
-    variable NoGui "false"
+    # Started from Shell
+    variable SiemensSimulateOptions "-batch"
+    variable shell "exec"
+    variable ToolArgs "none"
+    variable NoGui "true"
   }
-  variable ToolVersion [vsimVersion]
+  
+  if {![catch {vsimVersion} msg]} {
+    variable ToolVersion [vsimVersion]
+  } else {
+    set ToolVersion tbd
+  }
+
+#  variable ToolVersion [vsimVersion]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 #   puts $ToolNameVersion
   
@@ -89,6 +115,8 @@
 #
 proc vendor_StartTranscript {FileName} {
   variable NoGui
+  
+#  puts "NoGui: $NoGui"
 
   if {$NoGui} {
     DefaultVendor_StartTranscript $FileName
@@ -103,7 +131,7 @@ proc vendor_StopTranscript {FileName} {
   variable NoGui
 
   # FileName not used here
-  transcript file ""
+#  transcript file ""
   if {$NoGui} {
     DefaultVendor_StopTranscript $FileName
   } else {
@@ -142,10 +170,10 @@ proc vendor_library {LibraryName PathToLib} {
 
   if {![file exists ${PathAndLib}]} {
     puts "vlib   ${PathAndLib} "
-          vlib   ${PathAndLib}
+    eval $::osvvm::shell  vlib   ${PathAndLib}
   }
-  puts "vmap   $LibraryName  ${PathAndLib}"
-        vmap   $LibraryName  ${PathAndLib}
+  puts                 "vmap   $LibraryName  ${PathAndLib}"
+  eval $::osvvm::shell  vmap   $LibraryName  ${PathAndLib}
 }
 
 proc vendor_LinkLibrary {LibraryName PathToLib} {
@@ -156,12 +184,12 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
   } else {
     set ResolvedLib ${PathToLib}
   }
-  echo vmap    $LibraryName  ${ResolvedLib}
-       vmap    $LibraryName  ${ResolvedLib}
+  puts                "vmap    $LibraryName  ${ResolvedLib}"
+  eval $::osvvm::shell vmap    $LibraryName  ${ResolvedLib}
 }
 
 proc vendor_UnlinkLibrary {LibraryName PathToLib} {
-  vmap -del ${LibraryName}
+  eval $::osvvm::shell vmap -del ${LibraryName}
 }
 
 # -------------------------------------------------
@@ -172,13 +200,13 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
   
   set  AnalyzeOptions [concat -${VhdlVersion} -work ${LibraryName} {*}${args} ${FileName}]
 #  puts "vcom $AnalyzeOptions"
-        vcom {*}$AnalyzeOptions
+  eval $::osvvm::shell vcom {*}$AnalyzeOptions
 }
 
 proc vendor_analyze_verilog {LibraryName FileName args} {
   set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${args} ${FileName}]
-  puts "vlog $AnalyzeOptions"
-        vlog {*}$AnalyzeOptions
+#  puts "vlog $AnalyzeOptions"
+  eval $::osvvm::shell vlog {*}$AnalyzeOptions
 }
 
 # -------------------------------------------------
@@ -272,7 +300,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestCaseFileName
   
   if {($::osvvm::NoGui) || !($::osvvm::Debug)} {
-    set SimulateOptions ""
+    set SimulateOptions $::osvvm::SiemensSimulateOptions
   } else {
     set SimulateOptions "-voptargs=$::osvvm::DebugOptions"
   }
@@ -280,7 +308,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set SimulateOptions [concat $SimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
 
 #  puts "vsim {*}${SimulateOptions}"
-  vsim {*}${SimulateOptions}
+  eval $::osvvm::shell vsim {*}${SimulateOptions}
   
   # Historical name.  Must be run with "do" for actions to work
   if {[file exists ${OsvvmScriptDirectory}/Siemens.do]} {
@@ -313,7 +341,7 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
   set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
   set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.ucdb]
   if {$CovFiles ne ""} {
-    vcover merge ${CoverageFileBaseName}.ucdb {*}$CovFiles
+    eval $::osvvm::shell vcover merge ${CoverageFileBaseName}.ucdb {*}$CovFiles
   }
 }
 
@@ -322,7 +350,7 @@ proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
   if {[file exists $CodeCovResultsDir]} {
     file delete -force -- $CodeCovResultsDir
   }
-  vcover report -html -annotate -details -verbose -output ${CodeCovResultsDir} ${CodeCoverageDirectory}/${TestSuiteName}.ucdb 
+  eval $::osvvm::shell vcover report -html -annotate -details -verbose -output ${CodeCovResultsDir} ${CodeCoverageDirectory}/${TestSuiteName}.ucdb 
 }
 
 proc vendor_GetCoverageFileName {TestName} { 
