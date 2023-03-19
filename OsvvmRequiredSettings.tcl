@@ -53,7 +53,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2023.01
+  variable OsvvmVersion 2023.03
   
   
   # 
@@ -82,7 +82,6 @@ namespace eval ::osvvm {
   #
   # Create derived directory paths
   #
-    variable OsvvmHomeDirectory   [file normalize ${OsvvmScriptDirectory}/..]
     variable OsvvmCoSimDirectory  ${OsvvmHomeDirectory}/CoSim
     variable ReportsDirectory     [file join ${OutputBaseDirectory} ${ReportsSubdirectory}]
     variable ResultsDirectory     [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
