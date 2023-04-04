@@ -53,7 +53,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2023.03
+  variable OsvvmVersion 2023.04
   
   
   # 
