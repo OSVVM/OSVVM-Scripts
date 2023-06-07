@@ -236,13 +236,14 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   }
 
 # #  puts "nvc ${GlobalOptions} -e ${ElaborateOptions} --jit --no-save -r ${RunOptions}"
-# #  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} >@ stdout 2>@ stdout} SimulateErrorMessage] } {  
+# ##  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} >@ stdout 2>@ stdout} SimulateErrorMessage] } {  }
+# #  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} 2>@1} SimulateErrorMessage] } {  
 # #    PrintWithPrefix "Error:" $SimulateErrorMessage
 # #    error "Failed: simulate $LibraryUnit"
 # #  } else {
 # #    puts $SimulateErrorMessage
 # #  }
-  
+
   # Save Coverage Information
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
 #    acdb save -o ${LibraryUnit}.acdb -testname ${LibraryUnit}
