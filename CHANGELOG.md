@@ -2,6 +2,12 @@
 
 | **Revision**  |   **Release Summary**                                                                         | 
 |---------------|-----------------------------------------------------------------------------------------------| 
+| 2023.05       |  Updated comments in NVC script  |
+| 2023.04       |  Updates to cosim  |
+|               |  Scripts now create package body OsvvmScriptSettings_generated.vhd.  |
+|               |  Added OsvvmScriptSettings_generated.vhd top .gitignore |
+| 2023.01       |  Updated scripts to support CoSim.  |
+|               |  Creates OsvvmScriptSettingsPkg.vhd                        |
 | 2022.12       |  Updates StartUp.tcl to use environment variable OSVVM_TOOL to select default simulator/tool  |
 |               |  Updated HTML Report generation: Report2Html, Simulate2Html, Log2Osvvm                        |
 |               |  Updated yaml format for <BuildName>.yml                                                      |
