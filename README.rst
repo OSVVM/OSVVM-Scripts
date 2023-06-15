@@ -242,7 +242,7 @@ run OSVVM verification component library regressions.
    analyze  TestCtrl_e.vhd
    analyze  TbAxi4_MultipleMemory.vhd
    analyze  TbAxi4_Shared1.vhd
-   TestCase TbAxi4_Shared1
+   TestName TbAxi4_Shared1
    simulate TbAxi4_Shared1
 
 In OSVVM scripting, calling library activates the library. 
@@ -263,7 +263,7 @@ It can be run by specifying:
 
 If you were to open testbench_MultipleMemory.pro, you would find
 that RunTest is used instead as it is an abbreviation for the
-analyze, TestCase and simulate when the names are the same.
+analyze, TestName and simulate when the names are the same.
 
 Simulating with Generics
 --------------------------
@@ -343,7 +343,7 @@ Note that wave.do will not run if you are running in a batch environment (such a
 ToolVendor is either {Aldec, Siemens, Cadence, Synopsys}. 
 ToolName is one of {QuestaSim, ModelSim, RivieraPRO, ActiveHDL, VCS, Xcelium}. 
 LibraryUnit is the name specified to simulate. 
-TestCaseName is the name specified to TestCase.
+TestCaseName is the name specified to TestName.
 
 It will search for these files in the following directories
 - OsvvmLibraries/Scripts
@@ -801,7 +801,7 @@ The test sequencer entity is in file TestCtrl_e.vhd.
 Tests are in architectures of TestCtrl in the files,
 TestCtrl_SendGet1.vhd, TestCtrl_SendGet2.vhd, and TbtCtrl_Scoreboard1.vhd. 
 The tests are run by calling "simulate TbUart".
-TestCase is used to specify the test name that is running.
+TestName is used to specify the test name that is running.
 This is needed here as otherwise the name TbUart would be used.
 The test case that is run is the latest one that was analyzed.
 
@@ -813,19 +813,19 @@ The test case that is run is the latest one that was analyzed.
    analyze   TestCtrl_e.vhd
    analyze   TbUart.vhd
 
-   TestCase  TbUart_SendGet1
+   TestName  TbUart_SendGet1
    analyze   TestCtrl_SendGet1.vhd 
    simulate  TbUart
 
-   TestCase  TbUart_SendGet2
+   TestName  TbUart_SendGet2
    analyze   TestCtrl_SendGet2.vhd 
    simulate  TbUart
 
-   TestCase  TbUart_Scoreboard1
+   TestName  TbUart_Scoreboard1
    analyze   TestCtrl_Scoreboard1.vhd 
    simulate  TbUart
    
-The above call to TestCase puts the TestCase name into the build
+The above call to TestName puts the TestName name into the build
 test summary YAML file.   
 If the simulation for any reason fails to run, there will be 
 no test status information in the YAML file.
@@ -854,7 +854,7 @@ Hence, we revise the sequence of running one test to be as follows.
 
 .. code:: tcl
 
-   TestCase  TbUart_SendGet1
+   TestName  TbUart_SendGet1
    analyze   TbUart_SendGet1.vhd 
    simulate  TbUart_SendGet1
 
@@ -966,12 +966,12 @@ The following are general API commands.
 - SetSecondSimulationTopLevel <library>.<TestName>
    - Sets the name of a second library unit to use during simulation. 
    - Called before simulate.   
-- TestCase <test-name>
-   - Identify the TestCase that is active. 
+- TestName <test-name>
+   - Identify the TestName that is active. 
    - Must match name in the testbench call to SetTestName (aka SetAlertLogName).
 - RunTest [<path>/]<name> 
-   - Combines analyze, TestCase, and simulate into one step.
-   - TestCase and simulate are set to the base name of ``file``.
+   - Combines analyze, TestName, and simulate into one step.
+   - TestName and simulate are set to the base name of ``file``.
    - Paths are relative to CurrentWorkingDirectory.
 - SkipTest <test-name> Reason
    - Add Skip test to the Build Summary Reports with ``Reason`` as part of the report. 
