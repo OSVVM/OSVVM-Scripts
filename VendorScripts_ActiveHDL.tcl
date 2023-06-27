@@ -220,11 +220,11 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile args} {
     set DebugOptions "-dbg"
   }
   
-  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${args} ${FileName}]
+  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${args}]
   
-  echo "vcom {*}$AnalyzeOptions" > ${FileAlreadyAdded}
+  echo "vcom {*}$AnalyzeOptions  ${FileName}" > ${FileAlreadyAdded}
 #  puts "vcom {*}$AnalyzeOptions"
-        vcom {*}$AnalyzeOptions
+        vcom {*}$AnalyzeOptions ${FileName}
   
   cd $MY_START_DIR
 }
@@ -237,9 +237,9 @@ proc vendor_analyze_verilog {LibraryName File_Relative_Path args} {
   
   set FileName [file normalize $File_Relative_Path]
 
-  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${args} ${FileName}]
-  puts "vlog $AnalyzeOptions"
-        vlog {*}$AnalyzeOptions
+  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${args}]
+  puts "vlog $AnalyzeOptions  ${FileName}"
+        vlog {*}$AnalyzeOptions  ${FileName}
   cd $MY_START_DIR
 }
 
