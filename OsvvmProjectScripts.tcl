@@ -710,6 +710,20 @@ proc FindLibraryPathByName {LibraryName} {
 }
 
 # -------------------------------------------------
+proc IsLibraryInList {LibraryName} {
+  variable LibraryList
+  variable LibraryDirectoryList
+
+  if {![info exists LibraryList]} {
+    # Create Initial empty list
+    set LibraryList ""
+    set LibraryDirectoryList ""
+  }
+#  set LowerLibraryName [string tolower $LibraryName]
+  set found [lsearch $LibraryList "${LibraryName} *"]
+  return $found
+}
+
 proc AddLibraryToList {LibraryName PathToLib} {
   variable LibraryList
   variable LibraryDirectoryList
@@ -761,7 +775,8 @@ proc library {LibraryName {PathToLib ""}} {
   CreateDirectory $ResolvedPathToLib 
 
   # Needs to be here to activate library (ActiveHDL)
-  set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+#  set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+  set found [IsLibraryInList $LowerLibraryName]
   # Policy:  If library is already in library list, then use that directory
   if {$found >= 0} {
     # Lookup Existing Library Directory
@@ -775,6 +790,10 @@ proc library {LibraryName {PathToLib ""}} {
     CallbackOnError_Library "library ${LibraryName} path to lib ${ResolvedPathToLib} failed in call to vendor_library"
   } else {
     CallbackAfter_Library ${LibraryName} ${PathToLib}
+  }
+  if {$found < 0} {
+    set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+    # Could check found here or remove the return value from AddLibraryToList
   }
 
   set VhdlWorkingLibrary  $LibraryName
@@ -796,7 +815,8 @@ proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
   set LowerLibraryName [string tolower $LibraryName]
 
   if  {[file isdirectory $ResolvedPathToLib]} {
-    set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+#    set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+    set found [IsLibraryInList $LowerLibraryName]
     # Policy:  If library is already in library list, then use that directory
     if {$found >= 0} {
       # Lookup Existing Library Directory
@@ -805,6 +825,10 @@ proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
     }
     if {[catch {vendor_LinkLibrary $LowerLibraryName $ResolvedPathToLib} LibraryErrMsg]} {
       CallbackOnError_Library "LinkLibrary ${LibraryName} ${PathToLib} failed in call to vendor_LinkLibrary"
+    }
+    if {$found < 0} {
+      set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+      # Could check found here or remove the return value from AddLibraryToList
     }
   } else {
     CallbackOnError_Library "LinkLibrary ${LibraryName} ${PathToLib} failed.  $ResolvedPathToLib is not a directory."

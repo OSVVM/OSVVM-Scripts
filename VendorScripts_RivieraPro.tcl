@@ -112,26 +112,31 @@ proc vendor_SetCoverageSimulateDefaults {} {
 proc vendor_library {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
 
-  if {![file exists ${PathAndLib}]} {
-    puts "vlib    ${PathAndLib}"
-          vlib    ${PathAndLib}
-    after 1000
-  } elseif {![file exists ./compile/${LibraryName}.epr]} {
-    puts "vmap    $LibraryName  ${PathAndLib}"
-          vmap    $LibraryName  ${PathAndLib}
+  # Policy:  If library is already in library list, then skip this for Riviera
+  if {[IsLibraryInList $LibraryName] < 0} {
+    if {![file exists ${PathAndLib}]} {
+      puts "vlib    ${PathAndLib}"
+            vlib    ${PathAndLib}
+      after 1000
+    } else {
+      puts "vmap    $LibraryName  ${PathAndLib}"
+            vmap    $LibraryName  ${PathAndLib}
+    }
   }
 }
 
 proc vendor_LinkLibrary {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
 
-  if {[file exists ${PathAndLib}]} {
-    set ResolvedLib ${PathAndLib}
-  } else {
-    set ResolvedLib ${PathToLib}
+  if {[IsLibraryInList $LibraryName] < 0} {
+    if {[file exists ${PathAndLib}]} {
+      set ResolvedLib ${PathAndLib}
+    } else {
+      set ResolvedLib ${PathToLib}
+    }
+    puts "vmap    $LibraryName  ${ResolvedLib}"
+          vmap    $LibraryName  ${ResolvedLib}
   }
-  puts "vmap    $LibraryName  ${ResolvedLib}"
-        vmap    $LibraryName  ${ResolvedLib}
 }
 
 proc vendor_UnlinkLibrary {LibraryName PathToLib} {
