@@ -48,9 +48,10 @@ package require yaml
 proc Simulate2Html {TestCaseName {TestSuiteName "Default"} {BuildName ""} {GenericList ""}} {
   variable ResultsFile
   variable OsvvmTemporaryOutputDirectory
-  variable AlertYamlFile [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_alerts.yml]
-  variable CovYamlFile   [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_cov.yml]
-  variable SbBaseYamlFile ${TestCaseName}_sb_
+  variable AlertYamlFile        [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_alerts.yml]
+  variable CovYamlFile          [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_cov.yml]
+  variable RequirementsYamlFile [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_req.yml]
+  variable SbBaseYamlFile       ${TestCaseName}_sb_
   variable SimGenericNames
   
   set SimGenericNames [ToGenericNames $GenericList]
@@ -63,12 +64,18 @@ proc Simulate2Html {TestCaseName {TestSuiteName "Default"} {BuildName ""} {Gener
   
   if {[file exists ${AlertYamlFile}]} {
     Alert2Html ${TestCaseName} ${TestSuiteName} ${AlertYamlFile}
-    file rename -force ${AlertYamlFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_alerts.yml]
+    file rename -force ${AlertYamlFile} [file join ${TestSuiteDirectory} [file tail ${AlertYamlFile}]]
   }
-  
+
+  if {[file exists ${RequirementsYamlFile}]} {
+# This is somewhat redundant but can be added to the TestCase Report
+#    Requirements2Html ${RequirementsYamlFile} $TestCaseName $TestSuiteName
+    file rename -force ${RequirementsYamlFile}  [file join ${TestSuiteDirectory} [file tail ${RequirementsYamlFile}]]
+  }
+
   if {[file exists ${CovYamlFile}]} {
     Cov2Html ${TestCaseName} ${TestSuiteName} ${CovYamlFile}
-    file rename -force ${CovYamlFile}     [file join ${TestSuiteDirectory} ${TestCaseFileName}_cov.yml]
+    file rename -force ${CovYamlFile}   [file join ${TestSuiteDirectory} [file tail ${CovYamlFile}]]
   }
   
   set SbFiles [glob -nocomplain [file join $OsvvmTemporaryOutputDirectory ${SbBaseYamlFile}*.yml] ]

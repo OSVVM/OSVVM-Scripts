@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#     7/2023   2023.07    Added calls to MergeRequirements and Requirements2Html 
 #     1/2023   2023.01    Added options for CoSim 
 #    12/2022   2022.12    Minor update to StartUp
 #    09/2022   2022.09    Added RemoveLibrary, RemoveLibraryDirectory, OsvvmLibraryPath
@@ -369,10 +370,22 @@ proc LocalBuild {BuildName Path_Or_File} {
   CallbackAfter_Build ${Path_Or_File}
 
   if {[info exists TestSuiteName]} {
+    # Finalize Test Suite
+    set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
+    set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${BuildName} ${TestSuiteName}_req.yml]
+    MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
+    Requirements2Html $RequirementsResultsFile
+    
     FinalizeTestSuite $TestSuiteName
     FinishTestSuiteBuildYaml
     unset TestSuiteName
   }
+  
+    # Finalize Build
+    set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${BuildName}]
+    set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${BuildName}_req.yml]
+    MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
+    Requirements2Html $RequirementsResultsFile
 
   if {$RanSimulationWithCoverage eq "true"} {
     vendor_MergeCodeCoverage  $BuildName $::osvvm::CoverageDirectory ""
@@ -476,6 +489,7 @@ proc CheckSimulationDirs {} {
 
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ResultsDirectory}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ReportsDirectory}]
+  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::BuildName}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::OsvvmTemporaryOutputDirectory}]
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     CreateDirectory [file join $CurrentSimulationDirectory $::osvvm::CoverageDirectory $::osvvm::TestSuiteName]
@@ -1137,7 +1151,7 @@ proc FinalizeTestSuite {SuiteName} {
     CreateDirectory ${::osvvm::CoverageDirectory}/${::osvvm::BuildName}
     CreateDirectory ${::osvvm::CoverageDirectory}/${SuiteName}
     vendor_MergeCodeCoverage $SuiteName ${::osvvm::CoverageDirectory} ${::osvvm::BuildName}
-  }
+  } 
 }
 
 # -------------------------------------------------
@@ -1149,6 +1163,11 @@ proc TestSuite {SuiteName} {
 
   set FirstRun [expr ![info exists TestSuiteName]]
   if {! $FirstRun} {
+    set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
+    set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${::osvvm::BuildName} ${TestSuiteName}_req.yml]
+    MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
+    Requirements2Html $RequirementsResultsFile
+    
     # Finish previous test suite before ending current one
     FinalizeTestSuite $TestSuiteName
     FinishTestSuiteBuildYaml
@@ -1160,7 +1179,6 @@ proc TestSuite {SuiteName} {
   CheckSimulationDirs
   CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${TestSuiteName}]
   CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ResultsDirectory} ${TestSuiteName}]
-
 }
 
 # -------------------------------------------------

@@ -283,13 +283,19 @@ proc ReportElaborateStatus {TestDict} {
   if {$::osvvm::TranscriptExtension ne "none"} {
     set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${ReportBuildName}]
     puts $ResultsFile "  <tr><td>Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}.log\">${ReportBuildName}.log</a></td></tr>"
-    if {$::osvvm::TranscriptExtension eq "html"} {
-      puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${ReportBuildName}_log.html</a></td></tr>"
-    }
-    set CodeCoverageFile [vendor_GetCoverageFileName ${ReportBuildName}]
-    if {$::osvvm::RanSimulationWithCoverage eq "true"} {
-      puts $ResultsFile "  <tr><td>Code Coverage</td><td><a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
-    }
+  }
+  if {$::osvvm::TranscriptExtension eq "html"} {
+    puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${ReportBuildName}_log.html</a></td></tr>"
+  }
+    
+  set RequirementsHtml [file join $::osvvm::ReportsSubdirectory ${ReportBuildName}_req.html]
+  if {[file exists $RequirementsHtml]} {
+    puts $ResultsFile "  <tr><td>Requirements Summary</td><td><a href=\"${RequirementsHtml}\">[file tail $RequirementsHtml]</a></td></tr>"
+  }
+  
+  set CodeCoverageFile [vendor_GetCoverageFileName ${ReportBuildName}]
+  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
+    puts $ResultsFile "  <tr><td>Code Coverage</td><td><a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
   }
   
   # Print OptionalInfo
@@ -299,7 +305,6 @@ proc ReportElaborateStatus {TestDict} {
       puts $ResultsFile "  <tr><td>$key</td><td>$val</td></tr>"
     }
   }
-
 
   puts $ResultsFile "</table>"
   puts $ResultsFile "<DIV STYLE=\"font-size:25px\"><BR></DIV>"
@@ -340,7 +345,12 @@ proc ReportElaborateStatus {TestDict} {
       puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestSuite PASSED] </td>"
       puts $ResultsFile "      <td style=color:${FailedColor}>[dict get $TestSuite FAILED] </td>"
       puts $ResultsFile "      <td>[dict get $TestSuite SKIPPED]</td>"
-      puts $ResultsFile "      <td>[dict get $TestSuite ReqPassed] / [dict get $TestSuite ReqGoal]</td>"
+      set RequirementsHtml [file join $::osvvm::ReportsSubdirectory $ReportBuildName ${SuiteName}_req.html]
+      if {[file exists $RequirementsHtml]} {
+        puts $ResultsFile "      <td><a href=\"${RequirementsHtml}\">[dict get $TestSuite ReqPassed] / [dict get $TestSuite ReqGoal]</a></td>"
+      } else {
+        puts $ResultsFile "      <td>[dict get $TestSuite ReqPassed] / [dict get $TestSuite ReqGoal]</td>"
+      }
       puts $ResultsFile "      <td>[dict get $TestSuite DisabledAlerts]</td>"
       puts $ResultsFile "      <td>[dict get $TestSuite ElapsedTime]</td>"
       puts $ResultsFile "  </tr>"

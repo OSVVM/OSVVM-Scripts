@@ -84,7 +84,7 @@ proc LocalAlert2Html {TestCaseName TestSuiteName AlertYamlFile} {
   puts $ResultsFile "      <th>Errors</th>"
   puts $ResultsFile "      <th>Warnings</th>"
   puts $ResultsFile "      <th>Passed</th>"
-  puts $ResultsFile "      <th>Checked</th>"
+  puts $ResultsFile "      <th>Goal</th>"
   puts $ResultsFile "      <th>Failures</th>"
   puts $ResultsFile "      <th>Errors</th>"
   puts $ResultsFile "      <th>Warnings</th>"

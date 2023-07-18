@@ -50,7 +50,9 @@ package require yaml
   source ${::osvvm::OsvvmScriptDirectory}/Scoreboard2Html.tcl
   source ${::osvvm::OsvvmScriptDirectory}/Report2Html.tcl
   source ${::osvvm::OsvvmScriptDirectory}/Report2Junit.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/MergeRequirements.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/Requirements2Html.tcl
   
-namespace export Simulate2Html Cov2Html Alert2Html Scoreboard2Html Report2Html Report2Junit
+namespace export Simulate2Html Cov2Html Alert2Html Scoreboard2Html Report2Html Report2Junit MergeRequirements Requirements2Html
 # end namespace ::osvvm
 }

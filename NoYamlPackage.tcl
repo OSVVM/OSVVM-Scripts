@@ -72,6 +72,16 @@ namespace eval ::osvvm {
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
   
+  proc MergeRequirements {args} {
+    puts "To generate OSVVM coverage HTML files, please install TCL yaml package from Tcllib"
+    puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+  }
+  
+  proc Requirements2Html {args} {
+    puts "To generate OSVVM coverage HTML files, please install TCL yaml package from Tcllib"
+    puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
+  }
+  
   proc ReportBuildStatus {args} {
 #    puts "To generate OSVVM Test Suite Report JUnit XML CI Results files, please install TCL yaml package from Tcllib"
 #    puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
