@@ -43,25 +43,26 @@ package require yaml
 proc MergeRequirements {SourceDirectory ResultsFileName} {
   variable ResultsFile
 
-	set ResultsFile  [open $ResultsFileName w]
-  set ErrorCode [catch {LocalMergeRequirements $SourceDirectory} errmsg]
-  close $ResultsFile
-  if {$ErrorCode} {
-#    CallbackOnError_Alert2Html $TestSuiteName $errmsg
-    puts "Add error callback here"
+  set ReqFiles [glob -nocomplain [file join ${SourceDirectory} *_req.yml]]
+  if {$ReqFiles ne ""} {
+    set ResultsFile  [open $ResultsFileName w]
+    set ErrorCode [catch {LocalMergeRequirements $ReqFiles} errmsg]
+    close $ResultsFile
+    if {$ErrorCode} {
+#      CallbackOnError_MergeRequirements $TestSuiteName $errmsg
+      puts "Add error callback here"
+    }
   }
 }
 
-proc LocalMergeRequirements {SourceDirectory} {
+proc LocalMergeRequirements {ReqFiles} {
   variable ResultsFile
 
   set ReqDict ""
-  set ReqFiles [glob -nocomplain [file join ${SourceDirectory} *_req.yml]]
-  if {$ReqFiles ne ""} {
-    foreach ReqFile ${ReqFiles} {
-      set ReqDict [concat $ReqDict [::yaml::yaml2dict -file ${ReqFile}]]
-    }
+  foreach ReqFile ${ReqFiles} {
+    set ReqDict [concat $ReqDict [::yaml::yaml2dict -file ${ReqFile}]]
   }
+
   # Sort based on test name - must sort here so can combine TestCases
   set SortedReqDict [lsort -index 1 $ReqDict]
 

@@ -43,22 +43,24 @@ package require yaml
 proc Requirements2Html {RequirementsYamlFile {TestCaseName ""} {TestSuiteName ""}} {
   variable ResultsFile
 
-  if {$TestSuiteName eq ""} {
-    set FileRoot [file rootname $RequirementsYamlFile]
-    set HtmlFileName ${FileRoot}.html
-    file copy -force ${::osvvm::OsvvmScriptDirectory}/header_report.html ${HtmlFileName}
-    set ResultsFile [open ${HtmlFileName} a]
-    set ReportName [regsub {_req} [file tail $FileRoot] ""] 
-  } else {
-    OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
-    set ReportName $TestCaseName
-  }
-  set ErrorCode [catch {LocalRequirements2Html $RequirementsYamlFile $ReportName} errmsg]
-  close $ResultsFile
+  if {[file exists $RequirementsYamlFile]} {
+    if {$TestSuiteName eq ""} {
+      set FileRoot [file rootname $RequirementsYamlFile]
+      set HtmlFileName ${FileRoot}.html
+      file copy -force ${::osvvm::OsvvmScriptDirectory}/header_report.html ${HtmlFileName}
+      set ResultsFile [open ${HtmlFileName} a]
+      set ReportName [regsub {_req} [file tail $FileRoot] ""] 
+    } else {
+      OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
+      set ReportName $TestCaseName
+    }
+    set ErrorCode [catch {LocalRequirements2Html $RequirementsYamlFile $ReportName} errmsg]
+    close $ResultsFile
 
-  if {$ErrorCode} {
-#    CallbackOnError_Requirements2Html $TestSuiteName $TestCaseName $errmsg
-     puts "TODO!! CallbackOneError_Requirements2Html"
+    if {$ErrorCode} {
+#      CallbackOnError_Requirements2Html $TestSuiteName $TestCaseName $errmsg
+       puts "TODO!! CallbackOneError_Requirements2Html"
+    }
   }
 }
 
