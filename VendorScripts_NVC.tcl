@@ -225,6 +225,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions}} ElaborateErrorMessage]} { 
     PrintWithPrefix "Elaborate Error:"  $ElaborateErrorMessage
     error "Failed: simulate $LibraryUnit"
+  } else {
+    puts $ElaborateErrorMessage
   }
   puts "nvc ${GlobalOptions} -r ${RunOptions}" 
   if { [catch {exec nvc {*}${GlobalOptions} -r {*}${RunOptions} 2>@1} SimulateErrorMessage]} {
