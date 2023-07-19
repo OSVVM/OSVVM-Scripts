@@ -107,15 +107,17 @@ proc RequirementsTableHeader { ReportName } {
   puts $ResultsFile "      <th rowspan=\"2\">Requirement</th>"
   puts $ResultsFile "      <th rowspan=\"2\">TestName</th>"
   puts $ResultsFile "      <th rowspan=\"2\">Status</th>"
-  puts $ResultsFile "      <th colspan=\"4\">Requirements</th>"
+  puts $ResultsFile "      <th colspan=\"2\">Requirements</th>"
+  puts $ResultsFile "      <th colspan=\"3\">Checks</th>"
   puts $ResultsFile "      <th colspan=\"3\">Alert Counts</th>"
   puts $ResultsFile "      <th colspan=\"3\">Disabled Alert Counts</th>"
   puts $ResultsFile "  </tr>"
   puts $ResultsFile "  <tr>"
   puts $ResultsFile "      <th>Goal</th>"
   puts $ResultsFile "      <th>Passed</th>"
-  puts $ResultsFile "      <th>Errors</th>"
-  puts $ResultsFile "      <th>Checked</th>"
+  puts $ResultsFile "      <th>Total</th>"
+  puts $ResultsFile "      <th>Passed</th>"
+  puts $ResultsFile "      <th>Failed</th>"
   puts $ResultsFile "      <th>Failures</th>"
   puts $ResultsFile "      <th>Errors</th>"
   puts $ResultsFile "      <th>Warnings</th>"
@@ -135,6 +137,12 @@ proc WriteOneRequirement {TestCase {Requirement ""}} {
   set Passed               [dict get $ResultsDict  Passed]
   set Errors               [dict get $ResultsDict  Errors]
   set Checked              [dict get $ResultsDict  Checked]
+  
+  if {[dict exists $ResultsDict PassedGoal]} {
+    set PassedGoal         [dict get $ResultsDict  PassedGoal]
+  } else {
+    set PassedGoal $Passed
+  }
   
   set AlertCount           [dict get $ResultsDict        AlertCount]
   set AlertFailure         [dict get $AlertCount         Failure]
@@ -169,10 +177,11 @@ proc WriteOneRequirement {TestCase {Requirement ""}} {
   puts $ResultsFile "      <td style=color:${StatusColor}>$Status</td>"
   
   puts $ResultsFile "      <td style=color:${RequirementsColor}>$Goal</td>"
-  puts $ResultsFile "      <td style=color:${RequirementsColor}>$Passed</td>"
+  puts $ResultsFile "      <td style=color:${RequirementsColor}>$PassedGoal</td>"
 
-  puts $ResultsFile "      <td style=color:${StatusColor}>$Errors</td>"
   puts $ResultsFile "      <td style=color:${PassedCountColor}>$Checked</td>"
+  puts $ResultsFile "      <td style=color:${RequirementsColor}>$Passed</td>"
+  puts $ResultsFile "      <td style=color:${StatusColor}>$Errors</td>"
   
   puts $ResultsFile "      <td style=color:${AlertFailureColor}>$AlertFailure</td>"
   puts $ResultsFile "      <td style=color:${AlertErrorColor}>$AlertError</td>"
@@ -190,6 +199,7 @@ proc MergeTestCaseResults { TestCases } {
   set Status               PASSED
   set Goal                 0
   set Passed               0
+  set PassedGoal           0
   set Errors               0
   set Checked              0
 
@@ -204,8 +214,8 @@ proc MergeTestCaseResults { TestCases } {
     set CurStatus               [dict get $TestCase  Status]
     set ResultsDict             [dict get $TestCase  Results]
     set CurGoal                 [dict get $ResultsDict  Goal]
-    set DictPassed              [dict get $ResultsDict  Passed]
-    set CurPassed           [expr {$DictPassed < $CurGoal ? $DictPassed : $CurGoal}]
+    set CurPassed               [dict get $ResultsDict  Passed]
+    set CurPassedGoal        [expr {$CurPassed < $CurGoal ? $CurPassed : $CurGoal}]
     set CurErrors               [dict get $ResultsDict  Errors]
     set CurChecked              [dict get $ResultsDict  Checked]
     set AlertCount              [dict get $ResultsDict        AlertCount]
@@ -222,6 +232,7 @@ proc MergeTestCaseResults { TestCases } {
     }
     set Goal                 [expr {$Goal > $CurGoal ? $Goal : $CurGoal}]
     set Passed               [expr {$Passed  + $CurPassed}]
+    set PassedGoal           [expr {$PassedGoal  + $CurPassedGoal}]
     set Errors               [expr {$Errors  + $CurErrors}]
     set Checked              [expr {$Checked + $CurChecked}]
 
@@ -242,7 +253,7 @@ proc MergeTestCaseResults { TestCases } {
 
 #  return $NewDict
   return "TestName Merged Status $Status Results { \
-    Goal $Goal Passed $Passed Errors $Errors Checked $Checked \
+    Goal $Goal PassedGoal $PassedGoal Passed $Passed Errors $Errors Checked $Checked \
     AlertCount {Failure $AlertFailure Error $AlertError Warning $AlertWarning} \
     DisabledAlertCount {Failure $DisabledAlertFailure Error $DisabledAlertError Warning $DisabledAlertWarning} }"
 }

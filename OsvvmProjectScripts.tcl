@@ -386,6 +386,7 @@ proc LocalBuild {BuildName Path_Or_File} {
     set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${BuildName}_req.yml]
     MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
     Requirements2Html $RequirementsResultsFile
+    Requirements2Csv  $RequirementsResultsFile
 
   if {$RanSimulationWithCoverage eq "true"} {
     vendor_MergeCodeCoverage  $BuildName $::osvvm::CoverageDirectory ""

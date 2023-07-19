@@ -376,12 +376,18 @@ proc ReportTestSuites {TestDict} {
       puts $ResultsFile "<table>"
       puts $ResultsFile "  <tr><th rowspan=\"2\">Test Case</th>"
       puts $ResultsFile "      <th rowspan=\"2\">Status</th>"
-      puts $ResultsFile "      <th rowspan=\"2\">Checks<br>passed / checked</th>"
-      puts $ResultsFile "      <th rowspan=\"2\">Errors</th>"
-      puts $ResultsFile "      <th rowspan=\"2\">Requirements<br>passed / goal</th>"
+      puts $ResultsFile "      <th colspan=\"3\">Checks</th>"
+      puts $ResultsFile "      <th colspan=\"2\">Requirements</th>"
       puts $ResultsFile "      <th rowspan=\"2\">Functional<br>Coverage</th>"
       puts $ResultsFile "      <th rowspan=\"2\">Disabled<br>Alerts</th>"
       puts $ResultsFile "      <th rowspan=\"2\">Elapsed<br>Time</th>"
+      puts $ResultsFile "  </tr>"
+      puts $ResultsFile "  <tr>"
+      puts $ResultsFile "      <th>Total</th>"
+      puts $ResultsFile "      <th>Passed</th>"
+      puts $ResultsFile "      <th>Failed</th>"
+      puts $ResultsFile "      <th>Goal</th>"
+      puts $ResultsFile "      <th>Passed</th>"
       puts $ResultsFile "  </tr>"
       puts $ResultsFile "  <tr></tr>"
 #      if { [dict exists $TestSuite ReportsDirectory] } {
@@ -465,9 +471,11 @@ proc ReportTestSuites {TestDict} {
         puts $ResultsFile "      <td><a href=\"${TestCaseHtmlFile}\">${TestCaseName}</a></td>"
         puts $ResultsFile "      <td style=color:${StatusColor}>$TestStatus</td>"
         if { $TestReport eq "REPORT" } {
-          puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestResults PassedCount] /  [dict get $TestResults AffirmCount]</td>"
-          puts $ResultsFile "      <td style=color:${FailedColor}>[dict get $TestResults TotalErrors] </td>"
-          puts $ResultsFile "      <td>[dict get $TestResults RequirementsPassed] /  [dict get $TestResults RequirementsGoal]</td>"
+          puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestResults AffirmCount]</td>"
+          puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestResults PassedCount]</td>"
+          puts $ResultsFile "      <td style=color:${FailedColor}>[dict get $TestResults TotalErrors]</td>"
+          puts $ResultsFile "      <td>[dict get $TestResults RequirementsGoal]</td>"
+          puts $ResultsFile "      <td>[dict get $TestResults RequirementsPassed]</td>"
           if { [dict exists $TestCase FunctionalCoverage] } { 
             set FunctionalCov [dict get $TestCase FunctionalCoverage]
           } else {

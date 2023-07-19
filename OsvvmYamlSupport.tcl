@@ -52,7 +52,8 @@ package require yaml
   source ${::osvvm::OsvvmScriptDirectory}/Report2Junit.tcl
   source ${::osvvm::OsvvmScriptDirectory}/MergeRequirements.tcl
   source ${::osvvm::OsvvmScriptDirectory}/Requirements2Html.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/Requirements2Csv.tcl
   
-namespace export Simulate2Html Cov2Html Alert2Html Scoreboard2Html Report2Html Report2Junit MergeRequirements Requirements2Html
+namespace export Simulate2Html Cov2Html Alert2Html Scoreboard2Html Report2Html Report2Junit MergeRequirements Requirements2Html Requirements2Csv
 # end namespace ::osvvm
 }
