@@ -49,8 +49,7 @@ proc MergeRequirements {SourceDirectory ResultsFileName} {
     set ErrorCode [catch {LocalMergeRequirements $ReqFiles} errmsg]
     close $ResultsFile
     if {$ErrorCode} {
-#      CallbackOnError_MergeRequirements $TestSuiteName $errmsg
-      puts "Add error callback here"
+      CallbackOnError_AnyReport "MergeRequirements" "SourceDirectory: $SourceDirectory, ResultsFileName: $ResultsFileName" $errmsg
     }
   }
 }

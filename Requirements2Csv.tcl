@@ -52,8 +52,7 @@ proc Requirements2Csv {RequirementsYamlFile} {
     close $ResultsFile
 
     if {$ErrorCode} {
-#      CallbackOnError_Requirements2Csv $TestSuiteName $TestCaseName $errmsg
-       puts "TODO!! CallbackOneError_Requirements2Csv"
+      CallbackOnError_AnyReport "Requirements2Csv" "RequirementsYamlFile: $RequirementsYamlFile" $errmsg
     }
   }
 }
