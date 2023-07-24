@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    07/2023   2023.07    Updated OpenSimulationReportFile to search for user defined HTML headers
 #    02/2023   2023.02    CreateDirectory if results/<TestSuiteName> does not exist
 #    12/2022   2022.12    Refactored to minimize dependecies on other scripts.
 #    05/2022   2022.05    Updated directory handling
@@ -29,7 +30,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2021 - 2022 by SynthWorks Design Inc.
+#  Copyright (c) 2021 - 2023 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -112,7 +113,11 @@ proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
   # Create the TestCase file in the simulation directory
   set FileName ${TestCaseName}.html
   if { $initialize } {
-    file copy -force ${::osvvm::OsvvmScriptDirectory}/header_report.html ${FileName}
+    set HeaderFile [FindProjectFile ${TestCaseName}_simulation_header.html]
+    if {$HeaderFile eq ""} {
+      set HeaderFile [FindProjectFile simulation_header.html]
+    }
+    file copy -force ${HeaderFile} ${FileName}
   }
   set ResultsFile [open ${FileName} a]
 }

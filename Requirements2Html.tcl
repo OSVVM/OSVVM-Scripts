@@ -45,21 +45,29 @@ proc Requirements2Html {RequirementsYamlFile {TestCaseName ""} {TestSuiteName ""
 
   if {[file exists $RequirementsYamlFile]} {
     if {$TestSuiteName eq ""} {
+      # Extract HTML file name and ReportName from YamlFile
       set FileRoot [file rootname $RequirementsYamlFile]
       set HtmlFileName ${FileRoot}.html
-      file copy -force ${::osvvm::OsvvmScriptDirectory}/header_report.html ${HtmlFileName}
-      set ResultsFile [open ${HtmlFileName} a]
       set ReportName [regsub {_req} [file tail $FileRoot] ""] 
+      
+      # Copy header file to results file and open results file
+      set HeaderFile [FindProjectFile ${ReportName}_requirements_header.html]
+      if {$HeaderFile eq ""} {
+        set HeaderFile [FindProjectFile requirements_header.html]
+      }
+      file copy -force $HeaderFile ${HtmlFileName}
+      set ResultsFile [open ${HtmlFileName} a]
     } else {
       OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
       set ReportName $TestCaseName
     }
+    
+    # Convert requirements YAML to HTML and catch errors
     set ErrorCode [catch {LocalRequirements2Html $RequirementsYamlFile $ReportName} errmsg]
     close $ResultsFile
 
     if {$ErrorCode} {
-#      CallbackOnError_Requirements2Html $TestSuiteName $TestCaseName $errmsg
-       puts "TODO!! CallbackOneError_Requirements2Html"
+      CallbackOnError_AnyReport "Requirements2Html" "RequirementsYamlFile: $RequirementsYamlFile" $errmsg
     }
   }
 }
@@ -134,14 +142,14 @@ proc WriteOneRequirement {TestCase {Requirement ""}} {
   set Status               [dict get $TestCase  Status]
   set ResultsDict          [dict get $TestCase  Results]
   set Goal                 [dict get $ResultsDict  Goal]
-  set Passed               [dict get $ResultsDict  Passed]
+  set PassedChecks         [dict get $ResultsDict  Passed]
   set Errors               [dict get $ResultsDict  Errors]
   set Checked              [dict get $ResultsDict  Checked]
   
-  if {[dict exists $ResultsDict PassedGoal]} {
-    set PassedGoal         [dict get $ResultsDict  PassedGoal]
+  if {[dict exists $ResultsDict PassedReq]} {
+    set PassedReq         [dict get $ResultsDict  PassedReq]
   } else {
-    set PassedGoal $Passed
+    set PassedReq $PassedChecks
   }
   
   set AlertCount           [dict get $ResultsDict        AlertCount]
@@ -161,8 +169,9 @@ proc WriteOneRequirement {TestCase {Requirement ""}} {
   } else {
     set StatusColor "#D09000"
   } 
-  set PassedCountColor   [ expr {$Passed  < $Checked ? "#F00000" : "#000000"}]
-  set RequirementsColor  [expr {$Passed < $Goal     ? "#F00000" : "#000000"}]
+  set RequirementsColor  [expr {$PassedReq    < $Goal     ? "#D09000" : "#000000"}]
+  set PassedChecksColor  [expr {$PassedChecks < $Checked  ? "#D09000" : "#000000"}]
+  set ChecksColor        [expr {$Errors > 0               ? "#F00000" : ${PassedChecksColor}}]
 
   set AlertFailureColor         [expr {$AlertFailure > 0         ? "#F00000" : "#000000"}]
   set AlertErrorColor           [expr {$AlertError   > 0         ? "#F00000" : "#000000"}]
@@ -177,11 +186,11 @@ proc WriteOneRequirement {TestCase {Requirement ""}} {
   puts $ResultsFile "      <td style=color:${StatusColor}>$Status</td>"
   
   puts $ResultsFile "      <td style=color:${RequirementsColor}>$Goal</td>"
-  puts $ResultsFile "      <td style=color:${RequirementsColor}>$PassedGoal</td>"
+  puts $ResultsFile "      <td style=color:${RequirementsColor}>$PassedReq</td>"
 
-  puts $ResultsFile "      <td style=color:${PassedCountColor}>$Checked</td>"
-  puts $ResultsFile "      <td style=color:${RequirementsColor}>$Passed</td>"
-  puts $ResultsFile "      <td style=color:${StatusColor}>$Errors</td>"
+  puts $ResultsFile "      <td style=color:${ChecksColor}>$Checked</td>"
+  puts $ResultsFile "      <td style=color:${ChecksColor}>$PassedChecks</td>"
+  puts $ResultsFile "      <td style=color:${ChecksColor}>$Errors</td>"
   
   puts $ResultsFile "      <td style=color:${AlertFailureColor}>$AlertFailure</td>"
   puts $ResultsFile "      <td style=color:${AlertErrorColor}>$AlertError</td>"
@@ -199,7 +208,7 @@ proc MergeTestCaseResults { TestCases } {
   set Status               PASSED
   set Goal                 0
   set Passed               0
-  set PassedGoal           0
+  set PassedReq            0
   set Errors               0
   set Checked              0
 
@@ -215,7 +224,7 @@ proc MergeTestCaseResults { TestCases } {
     set ResultsDict             [dict get $TestCase  Results]
     set CurGoal                 [dict get $ResultsDict  Goal]
     set CurPassed               [dict get $ResultsDict  Passed]
-    set CurPassedGoal        [expr {$CurPassed < $CurGoal ? $CurPassed : $CurGoal}]
+    set CurPassedReq        [expr {$CurPassed < $CurGoal ? $CurPassed : $CurGoal}]
     set CurErrors               [dict get $ResultsDict  Errors]
     set CurChecked              [dict get $ResultsDict  Checked]
     set AlertCount              [dict get $ResultsDict        AlertCount]
@@ -232,7 +241,7 @@ proc MergeTestCaseResults { TestCases } {
     }
     set Goal                 [expr {$Goal > $CurGoal ? $Goal : $CurGoal}]
     set Passed               [expr {$Passed  + $CurPassed}]
-    set PassedGoal           [expr {$PassedGoal  + $CurPassedGoal}]
+    set PassedReq           [expr {$PassedReq  + $CurPassedReq}]
     set Errors               [expr {$Errors  + $CurErrors}]
     set Checked              [expr {$Checked + $CurChecked}]
 
@@ -253,7 +262,7 @@ proc MergeTestCaseResults { TestCases } {
 
 #  return $NewDict
   return "TestName Merged Status $Status Results { \
-    Goal $Goal PassedGoal $PassedGoal Passed $Passed Errors $Errors Checked $Checked \
+    Goal $Goal PassedReq $PassedReq Passed $Passed Errors $Errors Checked $Checked \
     AlertCount {Failure $AlertFailure Error $AlertError Warning $AlertWarning} \
     DisabledAlertCount {Failure $DisabledAlertFailure Error $DisabledAlertError Warning $DisabledAlertWarning} }"
 }

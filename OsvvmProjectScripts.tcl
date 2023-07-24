@@ -1097,6 +1097,20 @@ proc SimulateRunScripts {LibraryUnit} {
   }
 }
 
+proc FindProjectFile { ProjectFile } {
+  variable  OsvvmScriptDirectory
+  variable  CurrentSimulationDirectory
+
+  if { [file exists       [file join $CurrentSimulationDirectory $ProjectFile]] } {
+    set PathToProjectFile [file join $CurrentSimulationDirectory $ProjectFile]
+  } elseif { [file exists [file join $OsvvmScriptDirectory       $ProjectFile]] } {
+    set PathToProjectFile [file join $OsvvmScriptDirectory       $ProjectFile]
+  } else {
+    set PathToProjectFile ""
+  }
+  return $PathToProjectFile
+}
+
 # -------------------------------------------------
 proc CoSim {} {
 
