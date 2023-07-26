@@ -69,9 +69,6 @@ proc StartBuildYaml {BuildName} {
 #  puts  $RunFile "BuildName: $BuildName"
   puts  $RunFile "Version: $::osvvm::OsvvmVersion"
   puts  $RunFile "Date: $StartTime"
-#  set   ReportHeaderHtmlFile [file join ${::osvvm::OsvvmScriptDirectory} summary_header_report.html]
-#  puts  $RunFile "ReportHeaderHtmlFile: $ReportHeaderHtmlFile"
-#  puts  $RunFile "ReportsDirectory: ${::osvvm::ReportsSubdirectory}"
   puts  $RunFile "BuildInfo:"
   puts  $RunFile "  Start Time: $StartTime"
   puts  $RunFile "  Simulator: \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
@@ -115,7 +112,7 @@ proc FinishBuildYaml {BuildName} {
   close $RunFile
 
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
-  puts "Build Finish time [clock format $BuildFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
+  puts "Build Finish time [clock format $BuildFinishTime -format %T], Elapsed time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
 }
 
 
@@ -172,7 +169,7 @@ proc FinishSimulateBuildYaml {} {
   set  SimulateFinishTime    [clock seconds]
   set  SimulateElapsedTime   [expr ($SimulateFinishTime - $SimulateStartTime)]
 
-  puts "Simulation Finish time [clock format $SimulateFinishTime -format %T], Elasped time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
+  puts "Simulation Finish time [clock format $SimulateFinishTime -format %T], Elapsed time: [format %d:%02d:%02d [expr ($SimulateElapsedTime/(60*60))] [expr (($SimulateElapsedTime/60)%60)] [expr (${SimulateElapsedTime}%60)]] "
 
   set  SimulateFinishTimeMs  [clock milliseconds]
   set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]

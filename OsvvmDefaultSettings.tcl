@@ -130,6 +130,7 @@ namespace eval ::osvvm {
     variable Debug               "false"
     variable LogSignalsIsSet     "false"
     variable LogSignals          "false"
+    variable ScriptDebug         "false"
 
   # 
   # Extended Analyze and Simulate Options

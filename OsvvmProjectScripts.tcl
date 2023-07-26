@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#     7/2023   2023.07    Added calls to MergeRequirements and Requirements2Html 
 #     1/2023   2023.01    Added options for CoSim 
 #    12/2022   2022.12    Minor update to StartUp
 #    09/2022   2022.09    Added RemoveLibrary, RemoveLibraryDirectory, OsvvmLibraryPath
@@ -369,10 +370,23 @@ proc LocalBuild {BuildName Path_Or_File} {
   CallbackAfter_Build ${Path_Or_File}
 
   if {[info exists TestSuiteName]} {
+    # Finalize Test Suite
+    set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
+    set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${BuildName} ${TestSuiteName}_req.yml]
+    MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
+    Requirements2Html $RequirementsResultsFile
+    
     FinalizeTestSuite $TestSuiteName
     FinishTestSuiteBuildYaml
     unset TestSuiteName
   }
+  
+    # Finalize Build
+    set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${BuildName}]
+    set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${BuildName}_req.yml]
+    MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
+    Requirements2Html $RequirementsResultsFile
+    Requirements2Csv  $RequirementsResultsFile
 
   if {$RanSimulationWithCoverage eq "true"} {
     vendor_MergeCodeCoverage  $BuildName $::osvvm::CoverageDirectory ""
@@ -476,6 +490,7 @@ proc CheckSimulationDirs {} {
 
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ResultsDirectory}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ReportsDirectory}]
+  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::BuildName}]
   CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::OsvvmTemporaryOutputDirectory}]
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     CreateDirectory [file join $CurrentSimulationDirectory $::osvvm::CoverageDirectory $::osvvm::TestSuiteName]
@@ -696,6 +711,20 @@ proc FindLibraryPathByName {LibraryName} {
 }
 
 # -------------------------------------------------
+proc IsLibraryInList {LibraryName} {
+  variable LibraryList
+  variable LibraryDirectoryList
+
+  if {![info exists LibraryList]} {
+    # Create Initial empty list
+    set LibraryList ""
+    set LibraryDirectoryList ""
+  }
+#  set LowerLibraryName [string tolower $LibraryName]
+  set found [lsearch $LibraryList "${LibraryName} *"]
+  return $found
+}
+
 proc AddLibraryToList {LibraryName PathToLib} {
   variable LibraryList
   variable LibraryDirectoryList
@@ -747,7 +776,8 @@ proc library {LibraryName {PathToLib ""}} {
   CreateDirectory $ResolvedPathToLib 
 
   # Needs to be here to activate library (ActiveHDL)
-  set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+#  set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+  set found [IsLibraryInList $LowerLibraryName]
   # Policy:  If library is already in library list, then use that directory
   if {$found >= 0} {
     # Lookup Existing Library Directory
@@ -761,6 +791,10 @@ proc library {LibraryName {PathToLib ""}} {
     CallbackOnError_Library "library ${LibraryName} path to lib ${ResolvedPathToLib} failed in call to vendor_library"
   } else {
     CallbackAfter_Library ${LibraryName} ${PathToLib}
+  }
+  if {$found < 0} {
+    set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+    # Could check found here or remove the return value from AddLibraryToList
   }
 
   set VhdlWorkingLibrary  $LibraryName
@@ -782,7 +816,8 @@ proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
   set LowerLibraryName [string tolower $LibraryName]
 
   if  {[file isdirectory $ResolvedPathToLib]} {
-    set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+#    set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+    set found [IsLibraryInList $LowerLibraryName]
     # Policy:  If library is already in library list, then use that directory
     if {$found >= 0} {
       # Lookup Existing Library Directory
@@ -791,6 +826,10 @@ proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
     }
     if {[catch {vendor_LinkLibrary $LowerLibraryName $ResolvedPathToLib} LibraryErrMsg]} {
       CallbackOnError_Library "LinkLibrary ${LibraryName} ${PathToLib} failed in call to vendor_LinkLibrary"
+    }
+    if {$found < 0} {
+      set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
+      # Could check found here or remove the return value from AddLibraryToList
     }
   } else {
     CallbackOnError_Library "LinkLibrary ${LibraryName} ${PathToLib} failed.  $ResolvedPathToLib is not a directory."
@@ -1058,6 +1097,20 @@ proc SimulateRunScripts {LibraryUnit} {
   }
 }
 
+proc FindProjectFile { ProjectFile } {
+  variable  OsvvmScriptDirectory
+  variable  CurrentSimulationDirectory
+
+  if { [file exists       [file join $CurrentSimulationDirectory $ProjectFile]] } {
+    set PathToProjectFile [file join $CurrentSimulationDirectory $ProjectFile]
+  } elseif { [file exists [file join $OsvvmScriptDirectory       $ProjectFile]] } {
+    set PathToProjectFile [file join $OsvvmScriptDirectory       $ProjectFile]
+  } else {
+    set PathToProjectFile ""
+  }
+  return $PathToProjectFile
+}
+
 # -------------------------------------------------
 proc CoSim {} {
 
@@ -1137,7 +1190,7 @@ proc FinalizeTestSuite {SuiteName} {
     CreateDirectory ${::osvvm::CoverageDirectory}/${::osvvm::BuildName}
     CreateDirectory ${::osvvm::CoverageDirectory}/${SuiteName}
     vendor_MergeCodeCoverage $SuiteName ${::osvvm::CoverageDirectory} ${::osvvm::BuildName}
-  }
+  } 
 }
 
 # -------------------------------------------------
@@ -1149,6 +1202,11 @@ proc TestSuite {SuiteName} {
 
   set FirstRun [expr ![info exists TestSuiteName]]
   if {! $FirstRun} {
+    set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
+    set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${::osvvm::BuildName} ${TestSuiteName}_req.yml]
+    MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
+    Requirements2Html $RequirementsResultsFile
+    
     # Finish previous test suite before ending current one
     FinalizeTestSuite $TestSuiteName
     FinishTestSuiteBuildYaml
@@ -1160,7 +1218,6 @@ proc TestSuite {SuiteName} {
   CheckSimulationDirs
   CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${TestSuiteName}]
   CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ResultsDirectory} ${TestSuiteName}]
-
 }
 
 # -------------------------------------------------

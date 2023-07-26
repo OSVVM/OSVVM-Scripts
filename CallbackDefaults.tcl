@@ -253,4 +253,25 @@ namespace eval ::osvvm {
     LocalOnError_SimulateReports Scoreboard2Html $TestSuiteName $TestCaseName $errmsg
   }  
 
+  proc CallbackOnError_AnyReport {ProcName Message errmsg} {
+#    set ::osvvm::${ProcName}ErrorInfo $::errorInfo
+    set ::osvvm::ReportErrorInfo $::errorInfo
+    set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
+
+    # Report Error
+    puts "ReportError: during $ProcName $Message failed: $errmsg"
+    
+        # Reference or print ErrorInfo for this error 
+    if {$::osvvm::ScriptDebug} {
+#      puts ${::osvvm::${ProcName}ErrorInfo}
+      puts ${::osvvm::ReportErrorInfo}
+    } else {
+#      puts  "For tcl errorInfo, puts \$::osvvm::${ProcName}ErrorInfo"
+      puts  "For tcl errorInfo, puts \$::osvvm::ReportErrorInfo"
+    }
+
+    # Pass the error information up
+    error $ProcName $Message failed: $errmsg"
+  }  
+
 }

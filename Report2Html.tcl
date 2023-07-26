@@ -19,6 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    07/2023   2023.07    Updated file handler to search for user defined HTML headers
 #    12/2022   2022.12    Refactored to only use static OSVVM information
 #    05/2022   2022.05    Updated directory handling
 #    02/2022   2022.02    Added links for code coverage.
@@ -27,7 +28,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2021 - 2022 by SynthWorks Design Inc.
+#  Copyright (c) 2021 - 2023 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -48,21 +49,29 @@ proc Report2Html {ReportFile} {
   variable ResultsFile
   variable ReportBuildName
 
+  # Extract BuildName and HtmlFileName from ReportFile
   set ReportFileRoot  [file rootname $ReportFile]
   set ReportBuildName [file tail $ReportFileRoot]
   set FileName ${ReportFileRoot}.html
   
+  # Read the YAML file into a dictionary
   set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
-#  if {[dict exists $Report2HtmlDict ReportHeaderHtmlFile]} {
-#    set ReportHeaderHtmlFile  [dict get $Report2HtmlDict ReportHeaderHtmlFile]
-    set ReportHeaderHtmlFile [file join ${::osvvm::OsvvmScriptDirectory} summary_header_report.html]
-    file copy -force ${ReportHeaderHtmlFile} ${FileName}
-    set ResultsFile [open ${FileName} a]
-#  } else {
-#    set ResultsFile [open ${FileName} w]
-#  }
+
+  # Copy header file to results file and open results file
+  set HeaderFile [FindProjectFile ${ReportBuildName}_build_report_header.html]
+  if {$HeaderFile eq ""} {
+    set HeaderFile [FindProjectFile build_report_header.html]
+  }
+  set ReportHeaderHtmlFile $HeaderFile
+  file copy -force ${ReportHeaderHtmlFile} ${FileName}
+  
+  # Open results file
+  set ResultsFile [open ${FileName} a]
+  
+  # Convert YAML file to HTML & catch results
   set ErrorCode [catch {LocalReport2Html $Report2HtmlDict} errmsg]
   
+  # Close Results file - done here s.t. it is closed even if it fails
   close $ResultsFile
 
   if {$ErrorCode} {
@@ -283,13 +292,19 @@ proc ReportElaborateStatus {TestDict} {
   if {$::osvvm::TranscriptExtension ne "none"} {
     set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${ReportBuildName}]
     puts $ResultsFile "  <tr><td>Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}.log\">${ReportBuildName}.log</a></td></tr>"
-    if {$::osvvm::TranscriptExtension eq "html"} {
-      puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${ReportBuildName}_log.html</a></td></tr>"
-    }
-    set CodeCoverageFile [vendor_GetCoverageFileName ${ReportBuildName}]
-    if {$::osvvm::RanSimulationWithCoverage eq "true"} {
-      puts $ResultsFile "  <tr><td>Code Coverage</td><td><a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
-    }
+  }
+  if {$::osvvm::TranscriptExtension eq "html"} {
+    puts $ResultsFile "  <tr><td>HTML Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${ReportBuildName}_log.html</a></td></tr>"
+  }
+    
+  set RequirementsHtml [file join $::osvvm::ReportsSubdirectory ${ReportBuildName}_req.html]
+  if {[file exists $RequirementsHtml]} {
+    puts $ResultsFile "  <tr><td>Requirements Summary</td><td><a href=\"${RequirementsHtml}\">[file tail $RequirementsHtml]</a></td></tr>"
+  }
+  
+  set CodeCoverageFile [vendor_GetCoverageFileName ${ReportBuildName}]
+  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
+    puts $ResultsFile "  <tr><td>Code Coverage</td><td><a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
   }
   
   # Print OptionalInfo
@@ -299,7 +314,6 @@ proc ReportElaborateStatus {TestDict} {
       puts $ResultsFile "  <tr><td>$key</td><td>$val</td></tr>"
     }
   }
-
 
   puts $ResultsFile "</table>"
   puts $ResultsFile "<DIV STYLE=\"font-size:25px\"><BR></DIV>"
@@ -340,7 +354,18 @@ proc ReportElaborateStatus {TestDict} {
       puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestSuite PASSED] </td>"
       puts $ResultsFile "      <td style=color:${FailedColor}>[dict get $TestSuite FAILED] </td>"
       puts $ResultsFile "      <td>[dict get $TestSuite SKIPPED]</td>"
-      puts $ResultsFile "      <td>[dict get $TestSuite ReqPassed] / [dict get $TestSuite ReqGoal]</td>"
+      set RequirementsHtml [file join $::osvvm::ReportsSubdirectory $ReportBuildName ${SuiteName}_req.html]
+      set ReqGoal [dict get $TestSuite ReqGoal]
+      set ReqPassed [dict get $TestSuite ReqPassed]
+      if {[file exists $RequirementsHtml]} {
+        puts $ResultsFile "      <td><a href=\"${RequirementsHtml}\">$ReqPassed / $ReqGoal</a></td>"
+      } else {
+        if {($ReqGoal > 0) || ($ReqPassed > 0)} {
+          puts $ResultsFile "      <td>$ReqPassed / $ReqGoal</td>"
+        } else {
+          puts $ResultsFile "      <td>-</td>"
+        }
+      }
       puts $ResultsFile "      <td>[dict get $TestSuite DisabledAlerts]</td>"
       puts $ResultsFile "      <td>[dict get $TestSuite ElapsedTime]</td>"
       puts $ResultsFile "  </tr>"
@@ -366,12 +391,18 @@ proc ReportTestSuites {TestDict} {
       puts $ResultsFile "<table>"
       puts $ResultsFile "  <tr><th rowspan=\"2\">Test Case</th>"
       puts $ResultsFile "      <th rowspan=\"2\">Status</th>"
-      puts $ResultsFile "      <th rowspan=\"2\">Checks<br>passed / checked</th>"
-      puts $ResultsFile "      <th rowspan=\"2\">Errors</th>"
-      puts $ResultsFile "      <th rowspan=\"2\">Requirements<br>passed / goal</th>"
+      puts $ResultsFile "      <th colspan=\"3\">Checks</th>"
+      puts $ResultsFile "      <th colspan=\"2\">Requirements</th>"
       puts $ResultsFile "      <th rowspan=\"2\">Functional<br>Coverage</th>"
       puts $ResultsFile "      <th rowspan=\"2\">Disabled<br>Alerts</th>"
       puts $ResultsFile "      <th rowspan=\"2\">Elapsed<br>Time</th>"
+      puts $ResultsFile "  </tr>"
+      puts $ResultsFile "  <tr>"
+      puts $ResultsFile "      <th>Total</th>"
+      puts $ResultsFile "      <th>Passed</th>"
+      puts $ResultsFile "      <th>Failed</th>"
+      puts $ResultsFile "      <th>Goal</th>"
+      puts $ResultsFile "      <th>Passed</th>"
       puts $ResultsFile "  </tr>"
       puts $ResultsFile "  <tr></tr>"
 #      if { [dict exists $TestSuite ReportsDirectory] } {
@@ -455,9 +486,18 @@ proc ReportTestSuites {TestDict} {
         puts $ResultsFile "      <td><a href=\"${TestCaseHtmlFile}\">${TestCaseName}</a></td>"
         puts $ResultsFile "      <td style=color:${StatusColor}>$TestStatus</td>"
         if { $TestReport eq "REPORT" } {
-          puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestResults PassedCount] /  [dict get $TestResults AffirmCount]</td>"
-          puts $ResultsFile "      <td style=color:${FailedColor}>[dict get $TestResults TotalErrors] </td>"
-          puts $ResultsFile "      <td>[dict get $TestResults RequirementsPassed] /  [dict get $TestResults RequirementsGoal]</td>"
+          puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestResults AffirmCount]</td>"
+          puts $ResultsFile "      <td style=color:${PassedColor}>[dict get $TestResults PassedCount]</td>"
+          puts $ResultsFile "      <td style=color:${FailedColor}>[dict get $TestResults TotalErrors]</td>"
+          set RequirementsGoal [dict get $TestResults RequirementsGoal]
+          set RequirementsPassed [dict get $TestResults RequirementsPassed]
+          if {($RequirementsGoal > 0) || ($RequirementsPassed > 0)} {
+            puts $ResultsFile "      <td>$RequirementsGoal</td>"
+            puts $ResultsFile "      <td>$RequirementsPassed</td>"
+          } else {
+            puts $ResultsFile "      <td>-</td>"
+            puts $ResultsFile "      <td>-</td>"
+          }
           if { [dict exists $TestCase FunctionalCoverage] } { 
             set FunctionalCov [dict get $TestCase FunctionalCoverage]
           } else {

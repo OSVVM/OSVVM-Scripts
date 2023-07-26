@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    07/2023   2023.07    Updated OpenSimulationReportFile to search for user defined HTML headers
 #    02/2023   2023.02    CreateDirectory if results/<TestSuiteName> does not exist
 #    12/2022   2022.12    Refactored to minimize dependecies on other scripts.
 #    05/2022   2022.05    Updated directory handling
@@ -29,7 +30,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2021 - 2022 by SynthWorks Design Inc.
+#  Copyright (c) 2021 - 2023 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -48,9 +49,10 @@ package require yaml
 proc Simulate2Html {TestCaseName {TestSuiteName "Default"} {BuildName ""} {GenericList ""}} {
   variable ResultsFile
   variable OsvvmTemporaryOutputDirectory
-  variable AlertYamlFile [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_alerts.yml]
-  variable CovYamlFile   [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_cov.yml]
-  variable SbBaseYamlFile ${TestCaseName}_sb_
+  variable AlertYamlFile        [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_alerts.yml]
+  variable CovYamlFile          [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_cov.yml]
+  variable RequirementsYamlFile [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_req.yml]
+  variable SbBaseYamlFile       ${TestCaseName}_sb_
   variable SimGenericNames
   
   set SimGenericNames [ToGenericNames $GenericList]
@@ -63,12 +65,18 @@ proc Simulate2Html {TestCaseName {TestSuiteName "Default"} {BuildName ""} {Gener
   
   if {[file exists ${AlertYamlFile}]} {
     Alert2Html ${TestCaseName} ${TestSuiteName} ${AlertYamlFile}
-    file rename -force ${AlertYamlFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_alerts.yml]
+    file rename -force ${AlertYamlFile} [file join ${TestSuiteDirectory} [file tail ${AlertYamlFile}]]
   }
-  
+
+  if {[file exists ${RequirementsYamlFile}]} {
+# This is somewhat redundant but can be added to the TestCase Report
+#    Requirements2Html ${RequirementsYamlFile} $TestCaseName $TestSuiteName
+    file rename -force ${RequirementsYamlFile}  [file join ${TestSuiteDirectory} [file tail ${RequirementsYamlFile}]]
+  }
+
   if {[file exists ${CovYamlFile}]} {
     Cov2Html ${TestCaseName} ${TestSuiteName} ${CovYamlFile}
-    file rename -force ${CovYamlFile}     [file join ${TestSuiteDirectory} ${TestCaseFileName}_cov.yml]
+    file rename -force ${CovYamlFile}   [file join ${TestSuiteDirectory} [file tail ${CovYamlFile}]]
   }
   
   set SbFiles [glob -nocomplain [file join $OsvvmTemporaryOutputDirectory ${SbBaseYamlFile}*.yml] ]
@@ -105,7 +113,11 @@ proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
   # Create the TestCase file in the simulation directory
   set FileName ${TestCaseName}.html
   if { $initialize } {
-    file copy -force ${::osvvm::OsvvmScriptDirectory}/header_report.html ${FileName}
+    set HeaderFile [FindProjectFile ${TestCaseName}_simulation_header.html]
+    if {$HeaderFile eq ""} {
+      set HeaderFile [FindProjectFile simulation_header.html]
+    }
+    file copy -force ${HeaderFile} ${FileName}
   }
   set ResultsFile [open ${FileName} a]
 }

@@ -53,8 +53,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2023.05
-  
+  variable OsvvmVersion 2023.07
   
   # 
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
@@ -103,6 +102,7 @@ namespace eval ::osvvm {
     variable BuildReportErrorInfo      ""
     variable SimulateReportErrorInfo   ""
     variable Simulate2HtmlErrorInfo    ""
+    variable ReportErrorInfo           ""
     variable Report2HtmlErrorInfo      ""
     variable Report2JunitErrorInfo     ""
     variable Log2OsvvmErrorInfo        ""
@@ -138,7 +138,7 @@ namespace eval ::osvvm {
     variable SimulateErrorCount 0
     variable ConsecutiveSimulateErrors 0
     variable ScriptErrorCount 0 
-
+    
     variable GotTee false
 
     # Initial saved values for ErrorStopCounts
