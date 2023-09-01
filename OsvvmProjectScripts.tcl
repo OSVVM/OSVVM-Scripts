@@ -134,10 +134,10 @@ proc PrintWithPrefix {Prefix RawMessageList} {
 # include
 #   finds and sources a project file
 #
-proc include {Path_Or_File} {
+proc include {Path_Or_File {CommandName "include"}} {
   variable CurrentWorkingDirectory
 
-  CallbackBefore_Include $Path_Or_File
+  CallbackBefore_Include $Path_Or_File $CommandName
   puts "include $Path_Or_File"                    ; # EchoOsvvmCmd
 
 # probably remove.  Redundant with analyze and simulate
@@ -220,9 +220,9 @@ proc include {Path_Or_File} {
       set FoundActivity 1
     }
     if {$FoundActivity == 0} {
-      CallbackOnError_Include $Path_Or_File
+      CallbackOnError_Include $Path_Or_File $CommandName
     } else {
-      CallbackAfter_Include $Path_Or_File
+      CallbackAfter_Include $Path_Or_File $CommandName
     }
   }
 #  puts "set CurrentWorkingDirectory ${StartingPath} Ending Include"
@@ -339,7 +339,7 @@ proc build {{Path_Or_File "."}} {
     set Log2ErrorInfo $::errorInfo
 
     if {$BuildErrorCode != 0 || $AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
-      CallbackOnError_Build $Path_Or_File $BuildErrorCode $LocalBuildErrorInfo 
+      CallbackOnError_Build $Path_Or_File $BuildErrMsg $LocalBuildErrorInfo 
     } 
     # Fail on Test Case Errors
     if {($::osvvm::BuildStatus eq "FAILED") && ($::osvvm::FailOnTestCaseErrors)} {
@@ -366,7 +366,7 @@ proc LocalBuild {BuildName Path_Or_File} {
   StartBuildYaml $BuildName
   
   CallbackBefore_Build ${Path_Or_File}
-  include ${Path_Or_File}
+  include ${Path_Or_File} "build"
   CallbackAfter_Build ${Path_Or_File}
 
   if {[info exists TestSuiteName]} {
