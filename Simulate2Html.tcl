@@ -84,7 +84,7 @@ proc Simulate2Html {TestCaseName {TestSuiteName "Default"} {BuildName ""} {Gener
     foreach SbFile ${SbFiles} {
       set SbName [regsub ${SbBaseYamlFile} [file rootname [file tail $SbFile]] ""]
       Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbFile} Scoreboard_${SbName}
-      # TestCaseFileName includes generics, where SbFile does not
+      # TestCaseFileName = SbFile & "{_generic1_value1}"
       file rename -force ${SbFile}   [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_${SbName}.yml]
     }
   }
