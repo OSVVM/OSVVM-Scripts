@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#     9/2023   2023.09    Updated messaging for file not found by build/include 
 #     7/2023   2023.07    Added calls to MergeRequirements and Requirements2Html 
 #     1/2023   2023.01    Added options for CoSim 
 #    12/2022   2022.12    Minor update to StartUp
@@ -190,6 +191,7 @@ proc include {Path_Or_File {CommandName "include"}} {
     set FileFilesName  ${FileBaseName}.files
     set FileTclName    ${FileBaseName}.tcl
     set FileDoName     ${FileBaseName}.do
+    set BuildProName   [file join $NormName build.pro]
 
     set FoundActivity 0
     if {[file isfile ${FileProName}]} {
@@ -219,6 +221,14 @@ proc include {Path_Or_File {CommandName "include"}} {
       eval do ${FileDoName} ${CurrentWorkingDirectory}
       set FoundActivity 1
     }
+    # if found nothing and build.pro exists in current directory
+    if {($FoundActivity == 0) && ([file isfile $BuildProName])} {
+      puts "source ${BuildProName}"
+      source ${BuildProName}
+      set FoundActivity 1
+    }
+
+
     if {$FoundActivity == 0} {
       CallbackOnError_Include $Path_Or_File $CommandName
     } else {
@@ -460,6 +470,9 @@ proc CheckLibraryInit {} {
   variable VhdlLibraryParentDirectory
   variable VhdlLibraryFullPath
   
+  if { [file tail ${VhdlLibraryParentDirectory}] eq $::osvvm::InvalidLibraryDirectory} {
+    set VhdlLibraryParentDirectory [pwd]
+  }
   if { ${VhdlLibraryParentDirectory} eq [pwd]} {
     # Local Library Directory - use OutputBaseDirectory
     set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
@@ -1746,6 +1759,66 @@ proc RemoveAllLibraries {} {
   }
 }
 
+# -------------------------------------------------
+# UnsetLibraryVars
+#
+proc UnsetLibraryVars {} {
+  variable VhdlWorkingLibrary
+  variable LibraryList
+  variable LibraryDirectoryList
+
+  if {[info exists VhdlWorkingLibrary]} {
+    unset VhdlWorkingLibrary
+  }
+  if {[info exists LibraryList]} {
+    unset LibraryList
+  }
+  if {[info exists LibraryDirectoryList]} {
+    unset LibraryDirectoryList
+  }
+}
+
+
+# -------------------------------------------------
+# InstallProject
+#
+proc InstallProject { {ProjectDir $OsvvmLibraries} {ProjectBuildScript $ProjectDir/OsvvmLibraries.pro} } {
+  
+  # Record current SimulationDirectory and LibraryDirectory
+  set StartingDirectory             [pwd]
+  set StartingLibraryDirectory      [GetLibraryDirectory]
+#  set StartingVhdlLibraryDirectory  $::osvvm::VhdlLibraryDirectory
+
+
+  # Goto ProjectDir and Set that as the current Library Directory
+  cd $ProjectDir
+#  SetLibraryDirectory [pwd]/VHDL_LIBS
+  SetLibraryDirectory [pwd]
+
+  # Create a tool specific sim directory for logs and tool temporaries in ProjectDir
+  file mkdir sim/${::osvvm::ToolNameVersion}
+  cd   sim/${::osvvm::ToolNameVersion}
+
+  # Save current log file settings and temporarily override it
+  set      CurLogSubDirectory           $::osvvm::LogSubdirectory
+  variable ::osvvm::LogSubdirectory     "logs"                 ;# default value is "logs/${ToolNameVersion}"
+  variable ::osvvm::LogDirectory        [file join ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
+#  variable ::osvvm::VhdlLibraryDirectory       "VHDL_LIBS"
+
+#  build ../../OsvvmLibraries.pro
+  build $ProjectBuildScript
+
+  # Restore log file settings 
+  variable ::osvvm::LogSubdirectory     $CurLogSubDirectory
+  variable ::osvvm::LogDirectory        [file join ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
+
+  # Restore SimulationDirectory and LibraryDirectory
+  cd $StartingDirectory
+  SetLibraryDirectory $StartingLibraryDirectory
+#  variable ::osvvm::VhdlLibraryDirectory $StartingVhdlLibraryDirectory
+}
+
+# -------------------------------------------------
 proc DirectoryExists {DirInQuestion} {
   variable CurrentWorkingDirectory
 
@@ -1807,6 +1880,7 @@ proc CreateOsvvmScriptSettingsPkg {} {
   }
   puts $FileHandle "  constant OSVVM_BUILD_YAML_FILE       : string := \"${::osvvm::OsvvmBuildYamlFile}\" ;"
   puts $FileHandle "  constant OSVVM_TRANSCRIPT_YAML_FILE  : string := \"${::osvvm::TranscriptYamlFile}\" ;"
+  puts $FileHandle "  constant OSVVM_REVISION              : string := \"${::osvvm::OsvvmVersion}\" ;"
   puts $FileHandle "end package body OsvvmScriptSettingsPkg ;" 
   close $FileHandle
   if {[FileDiff $FileName $NewFileName]} {

@@ -83,10 +83,9 @@ namespace eval ::osvvm {
     #    If "", use $OutputBaseDirectory as base
     #    If has an absolute path, use the absolute path as the library parent directory
     #  variable VhdlLibraryParentDirectory ""                          ;# default value
-    #  variable VhdlLibraryParentDirectory  "C:/tools/sim_temp"        ;# put libraries in temp space
+    #  variable VhdlLibraryParentDirectory  "C:/tools"                 ;# put libraries in temp space
 
     #  Library Directory
-    #    variable VhdlLibraryDirectory        ""                       ;# good with above alternative
     #    variable VhdlLibraryDirectory       "VHDL_LIBS"               ;# default value
     
     #  Library Subdirectory
@@ -121,7 +120,7 @@ namespace eval ::osvvm {
   #
     #  variable DefaultVHDLVersion     "2008"      ; # OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
     #  variable SimulateTimeUnits      "ps"
-    #  variable DefaultLibraryName     "default"
+    #  variable DefaultLibraryName     "DefaultLib"
 
   # 
   # Default Coverage Options

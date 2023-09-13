@@ -71,7 +71,9 @@ namespace eval ::osvvm {
     variable CoverageSubdirectory       "CodeCoverage"
     variable VhdlLibraryDirectory       "VHDL_LIBS"
     variable VhdlLibrarySubdirectory    "${ToolNameVersion}"
-    variable VhdlLibraryParentDirectory [pwd]      ; # use local directory
+    variable InvalidLibraryDirectory    "Invalid Library Directory !@#$%^&*()+=|><|"
+    variable VhdlLibraryParentDirectory $InvalidLibraryDirectory
+#    variable VhdlLibraryParentDirectory [pwd]      ; # use local directory
     
     # OsvvmTemporaryOutputDirectory is where temporary OSVVM output goes.   
     # Caution:  If you change the value of OsvvmTemporaryOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
@@ -111,7 +113,7 @@ namespace eval ::osvvm {
   #
     variable DefaultVHDLVersion     "2008"     ; # OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
     variable SimulateTimeUnits      "ps"
-    variable DefaultLibraryName     "default"
+    variable DefaultLibraryName     "DefaultLib"
   
   # 
   # Default Coverage Options
