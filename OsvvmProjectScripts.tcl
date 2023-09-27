@@ -130,113 +130,135 @@ proc PrintWithPrefix {Prefix RawMessageList} {
   }
 }
 
+# -------------------------------------------------
+# FindIncludeFile
+#   finds an include file using directory, file base name, or file with extension to locate the file
+#
+proc FindIncludeFile {Path_Or_File} {
+
+  set JoinName [file join ${::osvvm::CurrentWorkingDirectory} ${Path_Or_File}]
+  set NormName [ReducePath $JoinName]
+  # Normalize to handle ".." and "."
+  set NameToHandle [file tail [file normalize $NormName]]
+
+  if {[file isfile $NormName]} {
+    return $NormName
+  } else {
+    if {[file isdirectory $NormName]} {
+      # Path_Or_File is directory name
+      set FileBaseName ${NormName}/[file rootname ${NameToHandle}]
+    } else {
+      # Path_Or_File is file name without an extension
+      set FileBaseName ${NormName}
+    }
+    # Determine which if any project files exist
+    set FileProName    ${FileBaseName}.pro
+    set BuildProName   [file join $NormName build.pro]
+    set FileTclName    ${FileBaseName}.tcl
+    set FileDoName     ${FileBaseName}.do
+    set FileDirsName   ${FileBaseName}.dirs
+    set FileFilesName  ${FileBaseName}.files
+
+    if {[file isfile ${FileProName}]} {
+      return ${FileProName}
+      
+    } elseif {[file isfile ${BuildProName}]} {
+      return ${BuildProName}
+
+    } elseif {[file isfile ${FileTclName}]} {
+      return ${FileTclName}
+
+    } elseif {[file isfile ${FileDoName}]} {
+      return ${FileDoName}
+
+    } elseif {[file isfile ${FileDirsName}]} {
+      return ${FileDirsName}
+
+    } elseif {[file isfile ${FileFilesName}]} {
+      return ${FileFilesName}
+      
+    } else {
+      error $Path_Or_File 
+      
+    }
+  }
+}
+
 
 # -------------------------------------------------
 # include
 #   finds and sources a project file
 #
-proc include {Path_Or_File {CommandName "include"}} {
+proc include {Path_Or_File args} {
   variable CurrentWorkingDirectory
 
-  CallbackBefore_Include $Path_Or_File $CommandName
-  puts "include $Path_Or_File"                    ; # EchoOsvvmCmd
+  CallbackBefore_Include $Path_Or_File
+  puts "include $Path_Or_File $args"                    ; # EchoOsvvmCmd
 
+  set FindFileErrorCode [catch {set IncludeFile [FindIncludeFile $Path_Or_File]} FindErrMsg]
+  if {$FindFileErrorCode != 0} {
+    CallbackOnError_FindIncludeFile $Path_Or_File include
+  } else {
+    LocalInclude $IncludeFile {*}$args
+  }
+  CallbackAfter_Include $Path_Or_File
+}
+
+proc LocalInclude {PathAndFile args} {
+  variable CurrentWorkingDirectory
+  
 # probably remove.  Redundant with analyze and simulate
-#  puts "set StartingPath ${CurrentWorkingDirectory} Starting Include"
   # If a library does not exist, then create the default
   CheckLibraryExists
 
-  set StartingPath ${CurrentWorkingDirectory}
+  #  Save CurrentWorkingDirectory, $::argv0, $::argv, $::argc
+  set SaveCurrentWorkingDirectory ${CurrentWorkingDirectory}
+  set SaveArgv0 $::argv0
+  set SaveArgv  $::argv
+  set SaveArgc  $::argc
+  set ::argv0   [file tail $PathAndFile]
+  set ::argv    $args
+  set ::argc    [llength $args]
+  set ::ARGC    $::argc
+  set ::ARGV(0) $::argv0
+  set index  1
+  foreach arg $::argv {set ::ARGV($index) $arg ; incr index 1}
 
-  set JoinName [file join ${StartingPath} ${Path_Or_File}]
-  set NormName [ReducePath $JoinName]
-  set RootDir  [file dirname $NormName]
-  # Normalize to handle ".." and "."
-  set NameToHandle [file tail [file normalize $NormName]]
-  set FileExtension [file extension $NameToHandle]
+  # Use the RootDir of PathAndFile as the CurrentWorkingDirectory
+  set RootDir  [file dirname $PathAndFile]
+  puts "set CurrentWorkingDirectory ${RootDir}"
+  set CurrentWorkingDirectory ${RootDir}
+  
+  # Handle the file based on its extension
+  set FileExtension [file extension $PathAndFile]
 
-  if {[file isfile $NormName]} {
-    # Path_Or_File is <name>.pro, <name>.tcl, <name>.do, <name>.dirs, <name>.files
-    puts "set CurrentWorkingDirectory ${RootDir}"
-    set CurrentWorkingDirectory ${RootDir}
-    if {$FileExtension eq ".pro" || $FileExtension eq ".tcl" || $FileExtension eq ".do"} {
-      # Path_Or_File is <name>.pro, <name>.tcl, or <name>.do
-      puts "source ${NormName}"
-      source ${NormName}
-    } elseif {$FileExtension eq ".dirs"} {
-      # Path_Or_File is <name>.dirs
-      puts "IterateFile ${NormName} include"
-      IterateFile ${NormName} "include"
-    } else {
-    #  was elseif {$FileExtension eq ".files"}
-      # Path_Or_File is <name>.files or other extension
-      puts "IterateFile ${NormName} analyze"
-      IterateFile ${NormName} "analyze"
-    }
+  if {$FileExtension eq ".pro" || $FileExtension eq ".tcl"} {
+    puts "source ${PathAndFile}"
+    source ${PathAndFile}
+  } elseif {$FileExtension eq ".do"} {
+    # Do files can be simulator specific and require the simulator "do" to run them
+    puts "do ${PathAndFile}"
+    do ${PathAndFile}
+  } elseif {$FileExtension eq ".dirs"} {
+    # Path_Or_File is <name>.dirs
+    puts "IterateFile ${PathAndFile} include"
+    IterateFile ${PathAndFile} "include"
   } else {
-    if {[file isdirectory $NormName]} {
-      # Path_Or_File is directory name
-      puts "set CurrentWorkingDirectory ${NormName}"
-      set CurrentWorkingDirectory ${NormName}
-      set FileBaseName ${NormName}/[file rootname ${NameToHandle}]
-    } else {
-      # Path_Or_File is file name without an extension
-      puts "set CurrentWorkingDirectory ${RootDir}"
-      set CurrentWorkingDirectory ${RootDir}
-      set FileBaseName ${NormName}
-    }
-    # Determine which if any project files exist
-    set FileProName    ${FileBaseName}.pro
-    set FileDirsName   ${FileBaseName}.dirs
-    set FileFilesName  ${FileBaseName}.files
-    set FileTclName    ${FileBaseName}.tcl
-    set FileDoName     ${FileBaseName}.do
-    set BuildProName   [file join $NormName build.pro]
-
-    set FoundActivity 0
-    if {[file isfile ${FileProName}]} {
-      puts "source ${FileProName}"
-      source ${FileProName}
-      set FoundActivity 1
-    }
-    # .dirs is intended to be deprecated in favor of .pro
-    if {[file isfile ${FileDirsName}]} {
-      IterateFile ${FileDirsName} "include"
-      set FoundActivity 1
-    }
-    # .files is intended to be deprecated in favor of .pro
-    if {[file isfile ${FileFilesName}]} {
-      IterateFile ${FileFilesName} "analyze"
-      set FoundActivity 1
-    }
-    # .tcl intended for extended capability
-    if {[file isfile ${FileTclName}]} {
-      puts "do ${FileTclName} ${CurrentWorkingDirectory}"
-      eval do ${FileTclName} ${CurrentWorkingDirectory}
-      set FoundActivity 1
-    }
-    # .do intended for extended capability
-    if {[file isfile ${FileDoName}]} {
-      puts "do ${FileDoName} ${CurrentWorkingDirectory}"
-      eval do ${FileDoName} ${CurrentWorkingDirectory}
-      set FoundActivity 1
-    }
-    # if found nothing and build.pro exists in current directory
-    if {($FoundActivity == 0) && ([file isfile $BuildProName])} {
-      puts "source ${BuildProName}"
-      source ${BuildProName}
-      set FoundActivity 1
-    }
-
-
-    if {$FoundActivity == 0} {
-      CallbackOnError_Include $Path_Or_File $CommandName
-    } else {
-      CallbackAfter_Include $Path_Or_File $CommandName
-    }
+  #  was elseif {$FileExtension eq ".files"}
+    # Path_Or_File is <name>.files or other extension
+    puts "IterateFile ${PathAndFile} analyze"
+    IterateFile ${PathAndFile} "analyze"
   }
-#  puts "set CurrentWorkingDirectory ${StartingPath} Ending Include"
-  set CurrentWorkingDirectory ${StartingPath}
+
+  #  Restore CurrentWorkingDirectory, $::argv0, $::argv, $::argc
+  set CurrentWorkingDirectory ${SaveCurrentWorkingDirectory}
+  set ::argv0   $SaveArgv0
+  set ::argv    $SaveArgv 
+  set ::argc    $SaveArgc 
+  set ::ARGC    $::argc
+  set ::ARGV(0) $::argv0
+  set index  1
+  foreach arg $::argv {set ::ARGV($index) $arg ; incr index 1}
 }
 
 
@@ -305,7 +327,7 @@ proc SetBuildName {Path_Or_File} {
 # -------------------------------------------------
 # build
 #
-proc build {{Path_Or_File "."}} {
+proc build {{Path_Or_File "."} args} {
   variable AnalyzeErrorCount 
   variable SimulateErrorCount
   variable ScriptErrorCount 
@@ -316,56 +338,61 @@ proc build {{Path_Or_File "."}} {
   variable BuildErrorCode 0
   
   if {$BuildStarted} {
-    include $Path_Or_File
+    include $Path_Or_File $args
   } else {
+    set FindFileErrorCode [catch {set IncludeFile [FindIncludeFile $Path_Or_File]} FindErrMsg]
+    if {$FindFileErrorCode != 0} {
+      # With error handling here, directories do not get created if cannot find Path_Or_File
+      CallbackOnError_FindIncludeFile $Path_Or_File Build
+    } else {
   
-    BeforeBuildCleanUp   
-    
-    set BuildStarted "true"
-    set BuildName [SetBuildName $Path_Or_File]
+      BeforeBuildCleanUp   
+      
+      set BuildStarted "true"
+      set BuildName [SetBuildName $Path_Or_File]
 
-    StartTranscript ${BuildName}
+      StartTranscript ${BuildName}
 
-    #  Catch any errors from the build and handle them below
-    set BuildErrorCode [catch {LocalBuild $BuildName $Path_Or_File} BuildErrMsg]
-    set LocalBuildErrorInfo $::errorInfo
-    set BuildStarted "false"
-    
-    # Try to create reports, even if the build failed
-    set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
-    set LocalReportErrorInfo $::errorInfo
+      #  Catch any errors from the build and handle them below
+      set BuildErrorCode [catch {LocalBuild $BuildName $IncludeFile {*}$args} BuildErrMsg]
+      set LocalBuildErrorInfo $::errorInfo
+      set BuildStarted "false"
+      
+      # Try to create reports, even if the build failed
+      set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
+      set LocalReportErrorInfo $::errorInfo
 
-    if {($ReportErrorCode != 0) || ($ScriptErrorCount != 0)} {  
-      CallbackOnError_AfterBuildReports $LocalReportErrorInfo
-    } 
+      if {($ReportErrorCode != 0) || ($ScriptErrorCount != 0)} {  
+        CallbackOnError_AfterBuildReports $LocalReportErrorInfo
+      } 
 
-#    StopTranscript ${LogFileName}
-    StopTranscript ${BuildName}
-    
-    set BuildName ""
+      StopTranscript ${BuildName}
+      
+      set BuildName ""
 
-    # Cannot generate html log files until transcript is closed - previous step
-    set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
-    set Log2ErrorInfo $::errorInfo
+      # Cannot generate html log files until transcript is closed - previous step
+      set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
+      set Log2ErrorInfo $::errorInfo
 
-    if {$BuildErrorCode != 0 || $AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
-      CallbackOnError_Build $Path_Or_File $BuildErrMsg $LocalBuildErrorInfo 
-    } 
-    # Fail on Test Case Errors
-    if {($::osvvm::BuildStatus eq "FAILED") && ($::osvvm::FailOnTestCaseErrors)} {
-        error "Test finished with Test Case Errors"
-    }
-    # Fail on Report / Script Errors?
-    if {($ReportErrorCode != 0) || ($Log2ErrorCode != 0) || ($ScriptErrorCount != 0)} {  
-      # End Simulation with errors
-      if {$::osvvm::FailOnReportErrors} {
-        error "Test finished with either Report or Script (wave.do) errors."
+      if {$BuildErrorCode != 0 || $AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
+        CallbackOnError_Build $Path_Or_File $BuildErrMsg $LocalBuildErrorInfo 
+      } 
+      # Fail on Test Case Errors
+      if {($::osvvm::BuildStatus eq "FAILED") && ($::osvvm::FailOnTestCaseErrors)} {
+          error "Test finished with Test Case Errors"
       }
+      # Fail on Report / Script Errors?
+      if {($ReportErrorCode != 0) || ($Log2ErrorCode != 0) || ($ScriptErrorCount != 0)} {  
+        # End Simulation with errors
+        if {$::osvvm::FailOnReportErrors} {
+          error "Test finished with either Report or Script (wave.do) errors."
+        }
+      } 
     } 
   }
 }
 
-proc LocalBuild {BuildName Path_Or_File} {
+proc LocalBuild {BuildName Path_Or_File args} {
   variable TestSuiteStartTimeMs
   variable RanSimulationWithCoverage 
   variable TestSuiteName
@@ -376,7 +403,7 @@ proc LocalBuild {BuildName Path_Or_File} {
   StartBuildYaml $BuildName
   
   CallbackBefore_Build ${Path_Or_File}
-  include ${Path_Or_File} "build"
+  LocalInclude ${Path_Or_File} {*}$args
   CallbackAfter_Build ${Path_Or_File}
 
   if {[info exists TestSuiteName]} {
@@ -391,12 +418,12 @@ proc LocalBuild {BuildName Path_Or_File} {
     unset TestSuiteName
   }
   
-    # Finalize Build
-    set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${BuildName}]
-    set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${BuildName}_req.yml]
-    MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
-    Requirements2Html $RequirementsResultsFile
-    Requirements2Csv  $RequirementsResultsFile
+  # Finalize Build
+  set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${BuildName}]
+  set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${BuildName}_req.yml]
+  MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
+  Requirements2Html $RequirementsResultsFile
+  Requirements2Csv  $RequirementsResultsFile
 
   if {$RanSimulationWithCoverage eq "true"} {
     vendor_MergeCodeCoverage  $BuildName $::osvvm::CoverageDirectory ""
@@ -1969,7 +1996,7 @@ namespace export CreateOsvvmScriptSettingsPkg
 namespace export FindLibraryPathByName CoSim
 
 # Exported only for tesing purposes
-namespace export FindLibraryPath CreateLibraryPath FindExistingLibraryPath TimeIt
+namespace export FindLibraryPath CreateLibraryPath FindExistingLibraryPath TimeIt FindIncludeFile
 
 
 # end namespace ::osvvm

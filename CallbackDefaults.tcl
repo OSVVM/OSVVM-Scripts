@@ -57,16 +57,16 @@ namespace eval ::osvvm {
 #
 # CallbackBefore_Xxx, CallbackAfter_Xxx
 #
-  proc CallbackBefore_Build {Path_Or_File} {
+  proc CallbackBefore_Build {Path_Or_File args} {
 #    puts "Build Before ${Path_Or_File}"
   }
-  proc CallbackAfter_Build {Path_Or_File} {
+  proc CallbackAfter_Build {Path_Or_File args} {
 #    puts "Build After ${Path_Or_File}"
   }
-  proc CallbackBefore_Include {Path_Or_File CommandName} {
+  proc CallbackBefore_Include {Path_Or_File args} {
 #    puts "Include Before ${Path_Or_File}"
   }
-  proc CallbackAfter_Include {Path_Or_File CommandName} {
+  proc CallbackAfter_Include {Path_Or_File args} {
 #    puts "Include After ${Path_Or_File}"
   }
   proc CallbackBefore_Library {LibraryName PathToLib} {
@@ -105,7 +105,7 @@ namespace eval ::osvvm {
     }
   }
   
-  proc CallbackOnError_Include {Path_Or_File CommandName} {
+  proc CallbackOnError_FindIncludeFile {Path_Or_File CommandName} {
     puts "Error: $CommandName ${Path_Or_File} is not a file or path"
     error "$CommandName [file normalize ${Path_Or_File}] is not a file or path"
   }
