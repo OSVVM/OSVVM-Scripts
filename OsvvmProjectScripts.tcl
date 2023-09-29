@@ -829,7 +829,7 @@ proc library {LibraryName {PathToLib ""}} {
   CallbackBefore_Library ${LibraryName} ${PathToLib}
   
   if {[catch {vendor_library $LowerLibraryName $ResolvedPathToLib} LibraryErrMsg]} {
-    CallbackOnError_Library "library ${LibraryName} path to lib ${ResolvedPathToLib} failed in call to vendor_library"
+    CallbackOnError_Library $LibraryErrMsg ${LibraryName} ${ResolvedPathToLib} vendor_library
   } else {
     CallbackAfter_Library ${LibraryName} ${PathToLib}
   }
@@ -866,14 +866,14 @@ proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
       set ResolvedPathToLib [lreplace $item 0 0]
     }
     if {[catch {vendor_LinkLibrary $LowerLibraryName $ResolvedPathToLib} LibraryErrMsg]} {
-      CallbackOnError_Library "LinkLibrary ${LibraryName} ${PathToLib} failed in call to vendor_LinkLibrary"
+      CallbackOnError_LinkLibrary "${LibraryName} ${PathToLib} failed in call to vendor_LinkLibrary"
     }
     if {$found < 0} {
       set found [AddLibraryToList $LowerLibraryName $ResolvedPathToLib]
       # Could check found here or remove the return value from AddLibraryToList
     }
   } else {
-    CallbackOnError_Library "LinkLibrary ${LibraryName} ${PathToLib} failed.  $ResolvedPathToLib is not a directory."
+    CallbackOnError_LinkLibrary  "${LibraryName} ${PathToLib} failed.  $ResolvedPathToLib is not a directory."
   }
 }
 
@@ -1751,7 +1751,7 @@ proc RemoveLibraryDirectory {{PathToLib ""}} {
   if  {$ResolvedPathToLib ne ""} {
     LocalRemoveLibraryDirectory $ResolvedPathToLib
   } else {
-    CallbackOnError_Library "RemoveLibraryDirectory ${PathToLib} failed.  $PathToLib is not in \$::osvvm::LibraryDirectoryList."
+    CallbackOnError_RemoveLibraryDirectory "${PathToLib} failed.  $PathToLib is not in \$::osvvm::LibraryDirectoryList."
   }
 }
 

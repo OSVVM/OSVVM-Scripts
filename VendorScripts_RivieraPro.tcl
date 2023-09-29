@@ -109,25 +109,30 @@ proc vendor_SetCoverageSimulateDefaults {} {
 # -------------------------------------------------
 # Library
 #
+proc vendor_vlib {PathAndLib} {
+    after 1000
+    puts "vlib    ${PathAndLib}"
+          vlib    ${PathAndLib}
+}
+
 proc vendor_library {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
 
-  # Policy:  If library is already in library list, then skip this for Riviera
-  if {[IsLibraryInList $LibraryName] < 0} {
-    if {![file exists ${PathAndLib}]} {
-      puts "vlib    ${PathAndLib}"
-            vlib    ${PathAndLib}
-      after 1000
-    } else {
-      puts "vmap    $LibraryName  ${PathAndLib}"
-            vmap    $LibraryName  ${PathAndLib}
+  if {![file exists ${PathAndLib}]} {
+    if {[catch {vendor_vlib $PathAndLib} LibraryErrMsg]} {
+      # if fails first try, wait and try again
+      after 10000
+      vendor_vlib $PathAndLib
     }
+  } else {
+    vendor_LinkLibrary  $LibraryName  ${PathAndLib}
   }
 }
 
 proc vendor_LinkLibrary {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
 
+  # Policy:  If library is already in library list, then skip this for Riviera
   if {[IsLibraryInList $LibraryName] < 0} {
     if {[file exists ${PathAndLib}]} {
       set ResolvedLib ${PathAndLib}

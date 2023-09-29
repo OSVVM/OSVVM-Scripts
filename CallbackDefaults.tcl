@@ -110,7 +110,22 @@ namespace eval ::osvvm {
     error "$CommandName [file normalize ${Path_Or_File}] is not a file or path"
   }
   
-  proc CallbackOnError_Library {Message} {
+  proc CallbackOnError_Library {ErrMsg LibraryName PathToLib ErrInProc} {
+    set ::osvvm::LibraryErrorInfo $::errorInfo
+    puts "LibraryError: $ErrMsg"
+    puts "LibraryError: library $LibraryName $PathToLib failed in $ErrInProc  See messages above"
+    puts "For tcl errorInfo, puts \$::osvvm::LibraryErrorInfo"
+    error "LibraryError: $ErrMsg"
+  }
+  
+  proc CallbackOnError_LinkLibrary {Message} {
+    set ::osvvm::LibraryErrorInfo $::errorInfo
+    puts "LibraryError: $Message   See messages above"
+    puts "For tcl errorInfo, puts \$::osvvm::LibraryErrorInfo"
+    error "$Message"
+  }
+  
+  proc CallbackOnError_RemoveLibraryDirectory {Message} {
     set ::osvvm::LibraryErrorInfo $::errorInfo
     puts "LibraryError: $Message   See messages above"
     puts "For tcl errorInfo, puts \$::osvvm::LibraryErrorInfo"
