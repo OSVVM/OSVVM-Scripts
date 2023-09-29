@@ -2,6 +2,9 @@
 
 | **Revision**  |   **Release Summary**                                                                         | 
 |---------------|-----------------------------------------------------------------------------------------------| 
+| 2023.09       |  OsvvmProjectScripts - build/include - file search now happens early for better messages  |
+|               |  Default library name now DefaultLib rather than default (a VHDL-2008 reserved word)  |
+|               |  build/include now support $::ARGC, $::ARGV (a TCL array), as well as, $::argv (a TCL list), $::argv0, and $::argc |
 | 2023.05       |  Updated comments in NVC script  |
 | 2023.04       |  Updates to cosim  |
 |               |  Scripts now create package body OsvvmScriptSettings_generated.vhd.  |

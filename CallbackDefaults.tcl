@@ -57,16 +57,16 @@ namespace eval ::osvvm {
 #
 # CallbackBefore_Xxx, CallbackAfter_Xxx
 #
-  proc CallbackBefore_Build {Path_Or_File} {
+  proc CallbackBefore_Build {Path_Or_File args} {
 #    puts "Build Before ${Path_Or_File}"
   }
-  proc CallbackAfter_Build {Path_Or_File} {
+  proc CallbackAfter_Build {Path_Or_File args} {
 #    puts "Build After ${Path_Or_File}"
   }
-  proc CallbackBefore_Include {Path_Or_File} {
+  proc CallbackBefore_Include {Path_Or_File args} {
 #    puts "Include Before ${Path_Or_File}"
   }
-  proc CallbackAfter_Include {Path_Or_File} {
+  proc CallbackAfter_Include {Path_Or_File args} {
 #    puts "Include After ${Path_Or_File}"
   }
   proc CallbackBefore_Library {LibraryName PathToLib} {
@@ -94,18 +94,20 @@ namespace eval ::osvvm {
 # CallbackOnError_Xxx
 #   Defines how all OSVVM functionality handles errors
 #
-  proc CallbackOnError_Build {Path_Or_File BuildErrorCode LocalBuildErrorInfo} {    
+  proc CallbackOnError_Build {Path_Or_File BuildErrorMessage LocalBuildErrorInfo} {    
     set ::osvvm::BuildErrorInfo $LocalBuildErrorInfo
     if {$::osvvm::FailOnBuildErrors} {
-      error "For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
+#      error "For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
+      puts "Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
+      error $BuildErrorMessage
     } else {
       puts "Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
     }
   }
   
-  proc CallbackOnError_Include {Path_Or_File} {
-    puts "Error: Build/Include did not find anything to execute for ${Path_Or_File}"
-    error "Build / Include did not find anything to execute for ${Path_Or_File}"
+  proc CallbackOnError_FindIncludeFile {Path_Or_File CommandName} {
+    puts "Error: $CommandName ${Path_Or_File} is not a file or path"
+    error "$CommandName [file normalize ${Path_Or_File}] is not a file or path"
   }
   
   proc CallbackOnError_Library {Message} {
