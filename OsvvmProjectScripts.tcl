@@ -21,6 +21,7 @@
 #  Revision History:
 #    Date      Version    Description
 #     9/2023   2023.09    Updated messaging for file not found by build/include 
+#                         Made UnsetLibraryVars visible
 #     7/2023   2023.07    Added calls to MergeRequirements and Requirements2Html 
 #     1/2023   2023.01    Added options for CoSim 
 #    12/2022   2022.12    Minor update to StartUp
@@ -1996,7 +1997,7 @@ namespace export CreateOsvvmScriptSettingsPkg
 namespace export FindLibraryPathByName CoSim
 
 # Exported only for tesing purposes
-namespace export FindLibraryPath CreateLibraryPath FindExistingLibraryPath TimeIt FindIncludeFile
+namespace export FindLibraryPath CreateLibraryPath FindExistingLibraryPath TimeIt FindIncludeFile UnsetLibraryVars
 
 
 # end namespace ::osvvm
