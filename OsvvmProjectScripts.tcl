@@ -214,9 +214,16 @@ proc LocalInclude {PathAndFile args} {
 
   #  Save CurrentWorkingDirectory, $::argv0, $::argv, $::argc
   set SaveCurrentWorkingDirectory ${CurrentWorkingDirectory}
-  set SaveArgv0 $::argv0
-  set SaveArgv  $::argv
-  set SaveArgc  $::argc
+  if {[info exists ::argv]} {
+    set SaveArgv0 $::argv0
+    set SaveArgv  $::argv
+    set SaveArgc  $::argc
+  } else {
+    set SaveArgv0  0
+    set SaveArgv   0
+    set SaveArgc   0
+  }
+
   set ::argv0   [file tail $PathAndFile]
   set ::argv    $args
   set ::argc    [llength $args]
@@ -1938,6 +1945,13 @@ proc AutoGenerateFile {FileName NewFileName AutoGenerateMarker} {
   }
   close $WriteFile
 }
+
+proc SetArgv {} {
+  set ::argv0   0
+  set ::argv    0
+  set ::argc    0
+}
+
 
 proc FileDiff {File1 File2} {
   set ReadFile1Code [catch {set FileHandle1 [open $File1 r]} ReadErrMsg]
