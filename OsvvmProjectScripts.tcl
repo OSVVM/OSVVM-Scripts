@@ -598,6 +598,10 @@ proc DefaultVendor_StartTranscript {FileName} {
     set LogFile  [open ${FileName} w]
     tee channel stderr $LogFile
     tee channel stdout $LogFile
+  } else {
+    set LogFile  [open ${FileName} w]
+    puts  $LogFile "Log files do not currently work in these tools"
+    close $LogFile
   }
 }
 

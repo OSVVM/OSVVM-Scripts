@@ -77,10 +77,10 @@ namespace eval ::osvvm {
 
 # Load OSVVM YAML support if yaml support available 
 # Could be made conditional for only simulators
-if {![catch {package require yaml}]} {
-  source ${::osvvm::OsvvmScriptDirectory}/OsvvmYamlSupport.tcl
-} else {
+if {[catch {package require yaml}]} {
   source ${::osvvm::OsvvmScriptDirectory}/NoYamlPackage.tcl
+} else {
+  source ${::osvvm::OsvvmScriptDirectory}/OsvvmYamlSupport.tcl
 }
 
 source ${::osvvm::OsvvmScriptDirectory}/Log2Osvvm.tcl

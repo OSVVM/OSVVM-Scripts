@@ -102,6 +102,8 @@ namespace eval ::osvvm {
     variable LogTestSuiteName Default
     variable LogTestCaseName  Default
     variable PrintPrefix "<pre>"
+    variable FoundBuild "false" 
+    variable FirstLine  "true"
 
     # Read line by line - For OSVVM regressions, this is 50 to 100 ms slower
     #   while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {  } ; 
@@ -109,17 +111,44 @@ namespace eval ::osvvm {
     # Read whole file and split it into lines
     foreach RawLineOfLogFile [split [read $LogFileHandle] \n] {
       set LineOfLogFile [regsub {^KERNEL: } [regsub {^# } $RawLineOfLogFile ""] ""]
-        
-      if {$LocalLogType eq "html"} {
-        Log2Html  
+      
+      if {!$FoundBuild} {
+        set FoundBuild [FindBuildInLog]
       }
-      if {$LocalCreateSimScripts} {
-        Log2Sim 
-      }
-      if {$LocalCreateOsvvmOutput} {
-        Log2OsvvmOutput  
+      
+      if {$FoundBuild} {
+        if {$LocalLogType eq "html"} {
+          Log2Html  
+        }
+        if {$LocalCreateSimScripts} {
+          Log2Sim 
+        }
+        if {$LocalCreateOsvvmOutput} {
+          Log2OsvvmOutput  
+        }
       }
     }
+  }
+
+  proc FindBuildInLog {} {
+    variable HtmlFileHandle
+    variable LineOfLogFile
+    variable FirstLine
+    variable PrintPrefix 
+    
+    return [regexp {^build} $LineOfLogFile]
+#    if {[regexp {^build} $LineOfLogFile] } {
+#      return "true"
+#    } else {
+#      if {$FirstLine} {
+#        puts $HtmlFileHandle "${PrintPrefix}<details><summary>Simulator Startup Stuff</summary>"
+#        puts $HtmlFileHandle "<!--"
+#        set PrintPrefix "--></details>"
+#        set FirstLine "false"
+#      }
+#      puts $HtmlFileHandle $LineOfLogFile
+#      return "false"
+#    }
   }
 
   proc Log2Html {} {
