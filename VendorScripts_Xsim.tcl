@@ -163,9 +163,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SimulateTimeUnits
   variable ToolVendor
 
-#!!TODO:   Where do generics get applied:   {*}${::osvvm::GenericOptions}
-
-  set  ElaborateOptions "-timeprecision_vhdl 1${SimulateTimeUnits} -mt auto  ${LibraryName}.${LibraryUnit} -runall"
+  set  ElaborateOptions [concat -timeprecision_vhdl 1${SimulateTimeUnits} -mt auto  ${LibraryName}.${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}$::osvvm::GenericOptions -runall]
   puts "xelab {*}$ElaborateOptions"
   if {[catch {exec xelab {*}$ElaborateOptions 2>@1} ElaborateMessage]} { 
     PrintWithPrefix "Elaborate Error:"  $ElaborateMessage

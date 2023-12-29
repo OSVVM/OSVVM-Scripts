@@ -1178,10 +1178,8 @@ proc generic {Name Value} {
   
   lappend GenericList "$Name $Value"
   set GenericNames ${GenericNames}_${Name}_${Value}
-  lappend GenericOptions [vendor_generic ${Name} ${Value}]
-  
-#   return "-g${Name}=${Value}"
-#  return [vendor_generic ${Name} ${Value}]
+#x  lappend GenericOptions [vendor_generic ${Name} ${Value}] 
+  append GenericOptions " " [vendor_generic ${Name} ${Value}]
   return ""
 }
 
