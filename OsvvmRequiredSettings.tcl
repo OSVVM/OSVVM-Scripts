@@ -53,7 +53,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2023.09b
+  variable OsvvmVersion 2024.01
   
   # 
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
