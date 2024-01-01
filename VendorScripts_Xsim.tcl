@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    12/2023   2024.01    Updated as 2023.02's OSVVM support is looking good.
 #    05/2022   2022.05    Updated variable naming 
 #     2/2022   2022.02    Added template of procedures needed for coverage support
 #     9/2021   2021.09    Created from VendorScripts_xxx.tcl
@@ -26,7 +27,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.  
+#  Copyright (c) 2018 - 2023 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -47,14 +48,19 @@
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Xilinx"
-  variable ToolName   "XSIM"
-  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
-  variable ToolNameVersion "xsim_22_1"
+  variable ToolName    "XSIM"
+  variable ToolVersion [version -short]
+  variable ToolNameVersion ${ToolName}-${ToolVersion}   ;# produces "XSIM-2023.2" 
 #   puts $ToolNameVersion
+
+  # Make this version dependent when Xilinx starts supporting it
+  variable ToolSupportsDeferredConstants "false"
+  
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
 
 
 # -------------------------------------------------
-# StartTranscript / StopTranscxript
+# StartTranscript / StopTranscript
 #
 
 # 
@@ -63,11 +69,13 @@
 
 # With this commented out, it will run the DefaultVendor_StartTranscript
 proc vendor_StartTranscript {FileName} {
-#  Do nothing
+#  Do nothing - for now
 }
-
+# 
 proc vendor_StopTranscript {FileName} {
-#  Do nothing
+  # This will have everything from a session rather than just the current build.
+  # OK for bring up
+  file copy   -force vivado.log ${FileName}
 }
 
 # -------------------------------------------------
@@ -75,7 +83,7 @@ proc vendor_StopTranscript {FileName} {
 #
 proc IsVendorCommand {LineOfText} {
 
-  return [regexp {xvhdl|xelab|xsim} $LineOfText] 
+  return [regexp {^xvhdl|^xelab|^xsim} $LineOfText] 
 }
 
 # -------------------------------------------------
@@ -124,7 +132,13 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
   
   set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -work ${LibraryName} {*}${args} ${FileName}]
   puts "xvhdl {*}$AnalyzeOptions"
-  exec  xvhdl {*}$AnalyzeOptions
+#  exec  xvhdl {*}$AnalyzeOptions
+  if {[catch {exec xvhdl {*}$AnalyzeOptions  2>@1} AnalyzeMessage]} {
+    PrintWithPrefix "Error:" $AnalyzeMessage
+    error "Failed: analyze $FileName"
+  } else {
+    puts $AnalyzeMessage
+  }
 }
 
 proc vendor_analyze_verilog {LibraryName FileName args} {
@@ -149,21 +163,37 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SimulateTimeUnits
   variable ToolVendor
 
-#!!TODO:   Where do generics get applied:   {*}${::osvvm::GenericOptions}
-
-#  set  ElaborateOptions "-timeprecision_vhdl 1${SimulateTimeUnits} -mt auto  ${LibraryName}.${LibraryUnit} -runall"
-#  set  ElaborateOptions "-timeprecision_vhdl 1${SimulateTimeUnits} -mt off  ${LibraryName}.${LibraryUnit} -runall"
-#  puts "xelab {*}$ElaborateOptions"
-#  exec  xelab {*}$ElaborateOptions
-  
-# Patrick suggests that we do this one rather than the above 12/9/2022  
-  set  ElaborateOptions "-timeprecision_vhdl 1${SimulateTimeUnits} -mt off  ${LibraryName}.${LibraryUnit} -snapshot ${LibraryName}_${LibraryUnit}"
+  set  ElaborateOptions [concat -timeprecision_vhdl 1${SimulateTimeUnits} -mt auto  ${LibraryName}.${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}$::osvvm::GenericOptions -runall]
   puts "xelab {*}$ElaborateOptions"
-  exec  xelab {*}$ElaborateOptions
+  if {[catch {exec xelab {*}$ElaborateOptions 2>@1} ElaborateMessage]} { 
+    PrintWithPrefix "Elaborate Error:"  $ElaborateMessage
+    error "Failed: simulate $LibraryUnit"
+  } else {
+    puts $ElaborateMessage
+  }
   
-  set  SimulateOptions "-runall ${LibraryName}_${LibraryUnit}"
-  puts "xsim {*}$SimulateOptions"
-  exec  xsim {*}$SimulateOptions
+## This Works## # Patrick suggests that we do this one rather than the above 12/9/2022  
+## This Works## #  set  ElaborateOptions "-timeprecision_vhdl 1${SimulateTimeUnits} -mt off  ${LibraryName}.${LibraryUnit} -snapshot ${LibraryName}_${LibraryUnit}"
+## This Works##   set  ElaborateOptions "-timeprecision_vhdl 1${SimulateTimeUnits} -mt auto  ${LibraryName}.${LibraryUnit} -snapshot ${LibraryName}_${LibraryUnit}"
+## This Works##   puts "xelab {*}$ElaborateOptions"
+## This Works## #  exec  xelab {*}$ElaborateOptions
+## This Works##   if {[catch {exec xelab {*}$ElaborateOptions 2>@1} ElaborateMessage]} { 
+## This Works##     PrintWithPrefix "Elaborate Error:"  $ElaborateMessage
+## This Works##     error "Failed: simulate $LibraryUnit"
+## This Works##   } else {
+## This Works##     puts $ElaborateMessage
+## This Works##   }
+## This Works##   
+## This Works##   set  SimulateOptions "-runall ${LibraryName}_${LibraryUnit}"
+## This Works##   puts "xsim {*}$SimulateOptions"
+## This Works## #  exec  xsim {*}$SimulateOptions
+## This Works##   if { [catch {exec xsim {*}$SimulateOptions 2>@1} SimulateMessage]} {
+## This Works## #    error "Failed: simulate $LibraryUnit"
+## This Works##     PrintWithPrefix "Error:" $SimulateMessage
+## This Works##     error "Failed: simulate $LibraryUnit"
+## This Works##   } else {
+## This Works##     puts $SimulateMessage
+## This Works##   }
 }
 
 # -------------------------------------------------

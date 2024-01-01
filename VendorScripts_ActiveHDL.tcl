@@ -278,6 +278,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
 
   if {$::osvvm::LogSignals} {
+    puts "log -rec [env]/*"
     log -rec [env]/*
     cd $MY_START_DIR
   }

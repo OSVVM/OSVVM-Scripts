@@ -60,7 +60,7 @@ namespace eval ::osvvm {
   #    Call OSVVM functions to do parameter checking and normalization
   #
     SetVHDLVersion         $DefaultVHDLVersion
-    SetSimulatorResolution $SimulateTimeUnits
+  #  SetSimulatorResolution $SimulateTimeUnits  ;# SimulateTimeUnits is the definitive value
     SetTranscriptType      $TranscriptExtension
     SetLibraryDirectory    $VhdlLibraryParentDirectory 
   
@@ -76,6 +76,9 @@ namespace eval ::osvvm {
     }
     if {![info exists ToolSupportsGenericPackages]} {
       variable ToolSupportsGenericPackages "true"
+    }
+    if {![info exists ToolSupportsDeferredConstants]} {
+      variable ToolSupportsDeferredConstants "true"
     }
   
   #

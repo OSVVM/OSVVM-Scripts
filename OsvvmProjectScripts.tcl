@@ -598,6 +598,10 @@ proc DefaultVendor_StartTranscript {FileName} {
     set LogFile  [open ${FileName} w]
     tee channel stderr $LogFile
     tee channel stdout $LogFile
+  } else {
+    set LogFile  [open ${FileName} w]
+    puts  $LogFile "Log files do not currently work in these tools"
+    close $LogFile
   }
 }
 
@@ -1174,10 +1178,8 @@ proc generic {Name Value} {
   
   lappend GenericList "$Name $Value"
   set GenericNames ${GenericNames}_${Name}_${Value}
-  lappend GenericOptions [vendor_generic ${Name} ${Value}]
-  
-#   return "-g${Name}=${Value}"
-#  return [vendor_generic ${Name} ${Value}]
+#x  lappend GenericOptions [vendor_generic ${Name} ${Value}] 
+  append GenericOptions " " [vendor_generic ${Name} ${Value}]
   return ""
 }
 

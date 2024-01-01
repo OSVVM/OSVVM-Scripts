@@ -222,28 +222,28 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   
 # Running NVC with separate elaborate and simulate - Nick recommended switching to doing this in one step
   puts "nvc ${GlobalOptions} -e ${ElaborateOptions}" 
-  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions}} ElaborateErrorMessage]} { 
-    PrintWithPrefix "Elaborate Error:"  $ElaborateErrorMessage
+  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions}} ElaborateMessage]} { 
+    PrintWithPrefix "Elaborate Error:"  $ElaborateMessage
     error "Failed: simulate $LibraryUnit"
   } else {
-    puts $ElaborateErrorMessage
+    puts $ElaborateMessage
   }
   puts "nvc ${GlobalOptions} -r ${RunOptions}" 
-  if { [catch {exec nvc {*}${GlobalOptions} -r {*}${RunOptions} 2>@1} SimulateErrorMessage]} {
+  if { [catch {exec nvc {*}${GlobalOptions} -r {*}${RunOptions} 2>@1} SimulateMessage]} {
 #    error "Failed: simulate $LibraryUnit"
-    PrintWithPrefix "Error:" $SimulateErrorMessage
+    PrintWithPrefix "Error:" $SimulateMessage
     error "Failed: simulate $LibraryUnit"
   } else {
-    puts $SimulateErrorMessage
+    puts $SimulateMessage
   }
 
 # #  puts "nvc ${GlobalOptions} -e ${ElaborateOptions} --jit --no-save -r ${RunOptions}"
-# ##  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} >@ stdout 2>@ stdout} SimulateErrorMessage] } {  }
-# #  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} 2>@1} SimulateErrorMessage] } {  
-# #    PrintWithPrefix "Error:" $SimulateErrorMessage
+# ##  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} >@ stdout 2>@ stdout} SimulateMessage] } {  }
+# #  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} 2>@1} SimulateMessage] } {  
+# #    PrintWithPrefix "Error:" $SimulateMessage
 # #    error "Failed: simulate $LibraryUnit"
 # #  } else {
-# #    puts $SimulateErrorMessage
+# #    puts $SimulateMessage
 # #  }
 
   # Save Coverage Information
