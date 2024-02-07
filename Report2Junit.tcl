@@ -289,9 +289,14 @@ proc JunitTestSuites {TestDict TestSuiteSummary } {
         set TestStatus "FAILED"
         set Reason "Name mismatch"
       }
-      
+      if { [dict exists $TestCase TestCaseFileName] } { 
+        set ResolvedTestName [dict get $TestCase TestCaseFileName]
+      } else {
+        set ResolvedTestName $TestName
+      }
+
       puts $ResultsFile "<testcase "
-      puts $ResultsFile "   name=\"$TestName\""
+      puts $ResultsFile "   name=\"$ResolvedTestName\""
 #      puts $ResultsFile "   classname=\"$VhdlName\""
       puts $ResultsFile "   classname=\"$TestSuiteName\""
       puts $ResultsFile "   time=\"$ElapsedTime\""

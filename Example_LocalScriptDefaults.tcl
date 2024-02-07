@@ -53,6 +53,11 @@ namespace eval ::osvvm {
   #
   # Directory structure and results file management
   #
+    # OsvvmVersionCompatibility:  value does not have to match an exact revision tag. 
+    #   The intent is to rarely change the settings. 
+    # variable OsvvmVersionCompatibility $OsvvmVersion                 ;# default - format is:  YYYY.MMr.  YYYY= year.  MM= Month number.  r is a,b,c as minor revision tag 
+    # variable OsvvmVersionCompatibility 2023.99                       ;# Use values established in 2023, but no updated values from 2024 or later
+
 
     #  Base directory for other OSVVM created directories 
     #  variable OutputBaseDirectory        ""                          ;# put output in $CurrentSimulationDirectory

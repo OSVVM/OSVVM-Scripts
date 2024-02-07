@@ -54,7 +54,10 @@
 namespace eval ::osvvm {
 
   variable OsvvmVersion 2024.01
-  
+  if {![info exists OsvvmVersionCompatibility]} {
+    variable OsvvmVersionCompatibility $OsvvmVersion
+  }
+
   # 
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
   #    Call OSVVM functions to do parameter checking and normalization
@@ -79,6 +82,9 @@ namespace eval ::osvvm {
     }
     if {![info exists ToolSupportsDeferredConstants]} {
       variable ToolSupportsDeferredConstants "true"
+    }
+    if {![info exists InstallGeneratedFilesInOsvvm]} {
+      variable InstallGeneratedFilesInOsvvm "true"
     }
   
   #
@@ -134,6 +140,7 @@ namespace eval ::osvvm {
     
     # OsvvmBuildLogFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${LogSubDirectory}/${BuildName}.log
     variable OsvvmBuildLogFile      [file join ${OsvvmTemporaryOutputDirectory} "OsvvmBuild.log"] ;  
+    
 
     # Error handling
     variable AnalyzeErrorCount 0

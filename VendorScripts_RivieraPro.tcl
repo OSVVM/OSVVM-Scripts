@@ -191,8 +191,14 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestCaseFileName
   variable SimulateOptions
 
+  if {($::osvvm::Debug)} {
+    set DebugOptions "+access +r"
+  } else {
+    set DebugOptions ""
+  }
+
 #  puts "vendor_simulate  LibraryName: $LibraryName    LibraryUnit:  $LibraryUnit   args:  $args"
-  set SimulateOptions [concat -interceptcoutput -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions}]
+  set SimulateOptions [concat $DebugOptions -interceptcoutput -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions}]
 
   puts "vsim ${SimulateOptions}"
         vsim {*}${SimulateOptions}
