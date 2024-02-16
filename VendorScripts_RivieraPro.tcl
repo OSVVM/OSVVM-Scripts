@@ -249,3 +249,8 @@ proc vendor_GetCoverageFileName {TestName} {
   set CoverageFileName ${TestName}_code_cov.html
   return $CoverageFileName
 }
+
+proc vendor_OpenBuildHtml {BuildHtmlFile BuildName} {
+  catch {framework.window.close -window $BuildName} Msg
+  system.open "$BuildHtmlFile" -title $BuildName
+}
