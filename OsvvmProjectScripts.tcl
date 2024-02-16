@@ -357,7 +357,9 @@ proc build {{Path_Or_File "."} args} {
       BeforeBuildCleanUp   
       
       set BuildStarted "true"
-      set BuildName [SetBuildName $Path_Or_File]
+#      set BuildName [SetBuildName $Path_Or_File]
+      set BuildName [SetBuildName $IncludeFile]
+      set ::osvvm::LastBuildName $BuildName
 
       StartTranscript ${BuildName}
 
@@ -448,9 +450,30 @@ proc AfterBuildReports {BuildName} {
   set BuildYamlFile [file join ${::osvvm::OutputBaseDirectory} ${BuildName}.yml]
   file rename -force ${::osvvm::OsvvmBuildYamlFile} ${BuildYamlFile}
   Report2Html  ${BuildYamlFile}
+  if {($::osvvm::SimulateInteractive) && ($::osvvm::OpenBuildHtmlFile)} {
+    OpenBuildHtml ${BuildName}
+  }
   Report2Junit ${BuildYamlFile}
   
   ReportBuildStatus  
+}
+
+proc OpenBuildHtml {{BuildName ""}} {
+  if {$BuildName eq ""} {
+      set BuildName $::osvvm::LastBuildName
+  }
+  set BuildHtmlFile [file join ${::osvvm::OutputBaseDirectory} ${BuildName}.html]
+  if {![catch {info body vendor_OpenBuildHtml} err]} {
+    vendor_OpenBuildHtml $BuildHtmlFile $BuildName
+  } else {
+    DefaultVendor_OpenBuildHtml $BuildHtmlFile
+  }
+}
+
+proc DefaultVendor_OpenBuildHtml {BuildHtmlFile} {
+  if {[regexp {[Ww]indows} $::env(OS)]} {
+    exec {*}[auto_execok start] "$BuildHtmlFile"
+  }
 }
 
 
@@ -2025,6 +2048,7 @@ namespace export JoinWorkingDirectory ChangeWorkingDirectory
 namespace export EndSimulation 
 namespace export CreateOsvvmScriptSettingsPkg 
 namespace export FindLibraryPathByName CoSim
+namespace export OpenBuildHtml
 
 # Exported only for tesing purposes
 namespace export FindLibraryPath CreateLibraryPath FindExistingLibraryPath TimeIt FindIncludeFile UnsetLibraryVars
