@@ -204,7 +204,7 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
 }
 
 proc vendor_analyze_verilog {LibraryName FileName args} {
-  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${args} ${FileName}]
+  set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-L "] -work ${LibraryName} {*}${args} ${FileName}]
 #  puts "vlog $AnalyzeOptions"
   eval $::osvvm::shell vlog {*}$AnalyzeOptions
 }
