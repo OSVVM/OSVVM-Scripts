@@ -66,6 +66,20 @@ namespace eval ::osvvm {
   #  SetSimulatorResolution $SimulateTimeUnits  ;# SimulateTimeUnits is the definitive value
     SetTranscriptType      $TranscriptExtension
     SetLibraryDirectory    $VhdlLibraryParentDirectory 
+    
+  #
+  # Set argv0, argv, and argc in the event the tool forgets to.
+  #
+    if {![info exists ::argv0]} {
+    variable ::argv0  ""
+    }
+    if {![info exists ::argv]} {
+    variable ::argv  ""
+    }
+    if {![info exists ::argc]} {
+    variable ::argc  ""
+    }
+
   
   #
   # Variables set by VendorScripts_***.tcl
@@ -86,7 +100,7 @@ namespace eval ::osvvm {
     if {![info exists InstallGeneratedFilesInOsvvm]} {
       variable InstallGeneratedFilesInOsvvm "true"
     }
-  
+    
   #
   # Create derived directory paths
   #
@@ -119,6 +133,7 @@ namespace eval ::osvvm {
 
     variable BuildStarted          "false"   ; # Detects if build is running and if build is called, call include instead
     variable BuildName             ""
+    variable LastBuildName         ""
     variable GenericList           ""
     variable GenericNames          ""
     variable GenericOptions        ""
