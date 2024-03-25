@@ -20,6 +20,9 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     3/2024   2024.03    Revision Update for release
+#                         Added default values for argc, argv, argv0 for questa -batch
+#                         Sets OsvvmVersionCompatibility if it is not set in LocalScriptDefaults.tcl
 #     1/2023   2023.01    Added OsvvmHomeDirectory and OsvvmCoSimDirectory.  
 #                         Added options for CoSim 
 #     5/2022   2022.05    Refactored Variable handling
@@ -27,7 +30,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2022 - 2023 by SynthWorks Design Inc.  
+#  Copyright (c) 2022 - 2024 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -53,7 +56,8 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2024.01
+  variable OsvvmVersion 2024.03
+
   if {![info exists OsvvmVersionCompatibility]} {
     variable OsvvmVersionCompatibility $OsvvmVersion
   }
