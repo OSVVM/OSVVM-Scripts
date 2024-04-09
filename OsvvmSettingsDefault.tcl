@@ -78,6 +78,11 @@ namespace eval ::osvvm {
     # OsvvmTemporaryOutputDirectory is where temporary OSVVM output goes.   
     # Caution:  If you change the value of OsvvmTemporaryOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
     variable OsvvmTemporaryOutputDirectory   ""
+    # OsvvmSettingsDirectory 
+    # This is relative to OsvvmSimulationDirectoy
+    # Location for package bodies generated:  OsvvmScriptSettingsPkg_generated.vhd and
+    #     OsvvmSettingsPkg_local.vhd 
+    variable OsvvmSettingsDirectory      $OutputBaseDirectory 
   
   # 
   # TCL Error signaling during a build 
