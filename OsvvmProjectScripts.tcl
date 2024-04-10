@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#     3/2024   2024.03    Updated CreateOsvvmScriptSettingsPkg and added FindOsvvmSettingsDirectory 
 #     9/2023   2023.09    Updated messaging for file not found by build/include 
 #                         Made UnsetLibraryVars visible
 #     7/2023   2023.07    Added calls to MergeRequirements and Requirements2Html 
@@ -59,7 +60,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.
+#  Copyright (c) 2018 - 2024 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
