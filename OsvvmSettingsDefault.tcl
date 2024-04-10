@@ -1,4 +1,4 @@
-#  File Name:         OsvvmScriptDefaults.tcl
+#  File Name:         OsvvmSettingsDefault.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 
@@ -18,6 +18,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    04/2024   2024.03    Renamed to OsvvmSettingsDefault.tcl
 #    05/2022   2022.05    Refactored to move variable settings from OsvvmProjectScripts
 #    02/2022   2022.02    Added call to SetTranscriptType to make HTML the default transcript
 #     2/2021   2021.02    Refactored Default Settings from StartUp.tcl
@@ -25,7 +26,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2021 - 2022 by SynthWorks Design Inc.  
+#  Copyright (c) 2021 - 2024 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -69,21 +70,24 @@ namespace eval ::osvvm {
     variable ReportsSubdirectory        "reports"  ; # Directory scripts put reports into.
     variable ResultsSubdirectory        "results"  ; # Directory for files opened by TranscriptOpen
     variable CoverageSubdirectory       "CodeCoverage"
-    variable VhdlLibraryDirectory       "VHDL_LIBS"
-    variable VhdlLibrarySubdirectory    "${ToolNameVersion}"
     variable InvalidLibraryDirectory    "Invalid Library Directory !@#$%^&*()+=|><|"
     variable VhdlLibraryParentDirectory $InvalidLibraryDirectory
 #    variable VhdlLibraryParentDirectory [pwd]      ; # use local directory
+    variable VhdlLibraryDirectory       "VHDL_LIBS"
+    variable VhdlLibrarySubdirectory    "${ToolNameVersion}"
     
     # OsvvmTemporaryOutputDirectory is where temporary OSVVM output goes.   
     # Caution:  If you change the value of OsvvmTemporaryOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
+    # Files only remain in this directory when a tool does not complete correctly
     variable OsvvmTemporaryOutputDirectory   ""
-    # OsvvmSettingsDirectory 
-    # This is relative to OsvvmSimulationDirectoy
-    # Location for package bodies generated:  OsvvmScriptSettingsPkg_generated.vhd and
-    #     OsvvmSettingsPkg_local.vhd 
-    variable OsvvmSettingsDirectory      $OutputBaseDirectory 
-  
+    
+    # OsvvmSettingsSubDirectory 
+    # Location for package local and generated package bodies 
+    # Settings are relative to $OsvvmLibraries/osvvm if SettingsAreRelativeToSimulationDirectory is false
+    variable SettingsAreRelativeToSimulationDirectory "false"
+    variable OsvvmSettingsSubDirectory      "" 
+
+
   # 
   # TCL Error signaling during a build 
   #

@@ -1,4 +1,4 @@
-#  File Name:         OsvvmRequiredSettings.tcl
+#  File Name:         OsvvmSettingsRequired.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 
@@ -100,9 +100,6 @@ namespace eval ::osvvm {
     }
     if {![info exists ToolSupportsDeferredConstants]} {
       variable ToolSupportsDeferredConstants "true"
-    }
-    if {![info exists InstallGeneratedFilesInOsvvm]} {
-      variable InstallGeneratedFilesInOsvvm "true"
     }
     
   #

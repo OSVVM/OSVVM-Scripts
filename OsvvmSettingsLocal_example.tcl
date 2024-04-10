@@ -1,4 +1,4 @@
-#  File Name:         Example_LocalScriptDefaults.tcl
+#  File Name:         OsvvmSettingsLocal_example.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 
@@ -25,7 +25,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2022 by SynthWorks Design Inc.  
+#  Copyright (c) 2022 - 2024 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -96,6 +96,18 @@ namespace eval ::osvvm {
     
     #  Library Subdirectory
     #    variable VhdlLibrarySubdirectory    "${ToolNameVersion}"      ;# default value
+
+    # OsvvmTemporaryOutputDirectory is where temporary OSVVM output goes.   
+    # Caution:  If you change the value of OsvvmTemporaryOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
+    # Files only remain in this directory when a tool does not complete correctly
+    #    variable OsvvmTemporaryOutputDirectory   ""
+    
+    # OsvvmSettingsSubDirectory 
+    # Location for package bodies generated:  OsvvmScriptSettingsPkg_generated.vhd and OsvvmScriptSettingsPkg_generated.vhd
+    # Project/User settings OsvvmSettingsPkg_local.vhd 
+    #    variable SettingsAreRelativeToSimulationDirectory "false"
+    #    variable OsvvmSettingsSubDirectory      ""  
+
 
   #
   #  TCL Error signaling during a build 
