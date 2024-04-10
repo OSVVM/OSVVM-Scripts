@@ -93,20 +93,29 @@ if {[file exists ${::osvvm::OsvvmScriptDirectory}/../CoSim]} {
 # Import any procedure exported by previous OSVVM scripts
 namespace import ::osvvm::*
 
-# Load OSVVM Defaults and then User Defaults (LocalScriptDefaults)
-# Dependencies in here depend on VendorScripts_???.tcl
-source ${::osvvm::OsvvmScriptDirectory}/OsvvmDefaultSettings.tcl
-# Load User Settings if they exist
-if {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults.tcl]} {
+# Load    OsvvmSettings*.tcl
+# --------------------------------
+# First   OsvvmSettingsDefault.tcl
+# Second  OsvvmSettingsLocal.tcl - for user/project to update - excluded from project
+# Third   OsvvmSettingsLocal_<vendor_or_tool>.tcl - Simulator specific defaults
+# Final   OsvvmSettingsRequired.tcl to Finalize Settings
+# 
+# First   OsvvmSettingsDefault.tcl
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsDefault.tcl
+# Second  OsvvmSettingsLocal.tcl - for user/project to update - excluded from project
+if {[file exists ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsLocal.tcl]} {
+  source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsLocal.tcl
+} elseif {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults.tcl]} {
+  # Deprecated: only try to load if OsvvmSettingsLocal.tcl does not exist
   source ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults.tcl
 }
-# Simulator specific defaults
+
+# Third   OsvvmSettingsLocal_<vendor_or_tool>.tcl - Simulator specific defaults
 if {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults_${::osvvm::ScriptBaseName}.tcl]} {
   source ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults_${::osvvm::ScriptBaseName}.tcl
 }
-
-# Finalize Settings
-source ${::osvvm::OsvvmScriptDirectory}/OsvvmRequiredSettings.tcl
+# Final   OsvvmSettingsRequired.tcl to Finalize Settings
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsRequired.tcl
 
 
 # Set OSVVM Script Defaults - defaults may call scripts

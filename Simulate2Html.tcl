@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    03/2024   2024.03    Updated handling of TranscriptFile to account for simulator still having it open (due to abnormal exit)
 #    07/2023   2023.07    Updated OpenSimulationReportFile to search for user defined HTML headers
 #    02/2023   2023.02    CreateDirectory if results/<TestSuiteName> does not exist
 #    12/2022   2022.12    Refactored to minimize dependecies on other scripts.
@@ -30,7 +31,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2021 - 2023 by SynthWorks Design Inc.
+#  Copyright (c) 2021 - 2024 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -195,10 +196,16 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName BuildName GenericList}
       set CopyTargetFile [file join ${::osvvm::ResultsDirectory} ${TestSuiteName} ${TranscriptGenericName}]
       if {[file normalize ${TranscriptFile}] ne [file normalize ${CopyTargetFile}]} {
         if {[file exists ${TranscriptFile}]} {
-          CreateDirectory [file join ${::osvvm::ResultsDirectory} ${TestSuiteName}]
           # Check required since if file is open, closed, then re-opened, 
           # it will be in the file more than once
-          file rename -force ${TranscriptFile}  ${CopyTargetFile}
+          CreateDirectory [file join ${::osvvm::ResultsDirectory} ${TestSuiteName}]
+#          file rename -force ${TranscriptFile}  ${CopyTargetFile}
+          file copy -force ${TranscriptFile}  ${CopyTargetFile}
+          if {[catch {file delete -force ${TranscriptFile}} err]} {
+            # end simulation to try to free locks on the file, and try to delete again
+            EndSimulation  
+            file delete -force ${TranscriptFile}
+          } 
         }
       }
       set HtmlTargetFile [file join ${::osvvm::ResultsSubdirectory} ${TestSuiteName} ${TranscriptGenericName}]

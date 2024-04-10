@@ -2,6 +2,9 @@
 
 | **Revision**  |   **Release Summary**                                                                         | 
 |---------------|-----------------------------------------------------------------------------------------------| 
+| 2024.04       |  OsvvmProjectScripts - OpenBuildHtml                                                      |
+|               |  Fixed issue WRT simulator ending in error and not being able to move transcript files    |
+|               |  Added variable OsvvmVersionCompatibility to control whether to use new or old OSVVM settings    |
 | 2023.09       |  OsvvmProjectScripts - build/include - file search now happens early for better messages  |
 |               |  Default library name now DefaultLib rather than default (a VHDL-2008 reserved word)  |
 |               |  build/include now support $::ARGC, $::ARGV (a TCL array), as well as, $::argv (a TCL list), $::argv0, and $::argc |
@@ -83,8 +86,8 @@
 
  
 ## Copyright and License
-Copyright (C) 2006-2022 by [SynthWorks Design Inc.](http://www.synthworks.com/)   
-Copyright (C) 2022 by [OSVVM contributors](CONTRIBUTOR.md)   
+Copyright (C) 2006-2024 by [SynthWorks Design Inc.](http://www.synthworks.com/)   
+Copyright (C) 2022-2024 by [OSVVM contributors](CONTRIBUTOR.md)   
 
 This file is part of OSVVM.
 

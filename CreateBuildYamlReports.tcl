@@ -41,6 +41,9 @@
 
 
 namespace eval ::osvvm {
+  variable  TclZone   [clock format [clock seconds] -format %z]
+  variable  IsoZone   [format "%s:%s" [string range $TclZone 0 2] [string range $TclZone 3 4]] 
+
 
 # -------------------------------------------------
 proc  ElapsedTimeMs {StartTimeMs} {
@@ -54,6 +57,11 @@ proc  ElapsedTimeHms {StartTimeSec} {
 #!! TODO Refactor from FinishBuildYaml
 }
 
+# -------------------------------------------------
+proc GetIsoTime {TimeSeconds} {
+  set  IsoTime [format "%s%s" [clock format $TimeSeconds -format {%Y-%m-%dT%H:%M:%S}] $::osvvm::IsoZone]
+  return $IsoTime
+}
 
 # -------------------------------------------------
 proc StartBuildYaml {BuildName} {
@@ -62,7 +70,7 @@ proc StartBuildYaml {BuildName} {
 
   set  BuildStartTimeMs  [clock milliseconds]
   set  BuildStartTime    [clock seconds]
-  set  StartTime [clock format $BuildStartTime -format {%Y-%m-%dT%H:%M%z}]
+  set  StartTime [GetIsoTime $BuildStartTime]
   puts "Starting Build at time [clock format $BuildStartTime -format %T]"
 
   set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} w]
@@ -102,7 +110,7 @@ proc FinishBuildYaml {BuildName} {
 #  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
 #    puts $RunFile "  Code Coverage: <a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a>"
 #  }
-  puts  $RunFile "  Finish Time: [clock format $BuildFinishTime -format {%Y-%m-%dT%H:%M%z}]"
+  puts  $RunFile "  Finish Time: [GetIsoTime $BuildFinishTime]"
   
   puts  $RunFile "Run:"
   puts  $RunFile "  BuildErrorCode:       $BuildErrorCode"

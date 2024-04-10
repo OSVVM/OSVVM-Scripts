@@ -1,4 +1,4 @@
-#  File Name:         OsvvmRequiredSettings.tcl
+#  File Name:         OsvvmSettingsRequired.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 
@@ -20,6 +20,9 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     3/2024   2024.03    Revision Update for release
+#                         Added default values for argc, argv, argv0 for questa -batch
+#                         Sets OsvvmVersionCompatibility if it is not set in LocalScriptDefaults.tcl
 #     1/2023   2023.01    Added OsvvmHomeDirectory and OsvvmCoSimDirectory.  
 #                         Added options for CoSim 
 #     5/2022   2022.05    Refactored Variable handling
@@ -27,7 +30,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2022 - 2023 by SynthWorks Design Inc.  
+#  Copyright (c) 2022 - 2024 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -53,8 +56,12 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2024.01
-  
+  variable OsvvmVersion 2024.03
+
+  if {![info exists OsvvmVersionCompatibility]} {
+    variable OsvvmVersionCompatibility $OsvvmVersion
+  }
+
   # 
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
   #    Call OSVVM functions to do parameter checking and normalization
@@ -63,6 +70,20 @@ namespace eval ::osvvm {
   #  SetSimulatorResolution $SimulateTimeUnits  ;# SimulateTimeUnits is the definitive value
     SetTranscriptType      $TranscriptExtension
     SetLibraryDirectory    $VhdlLibraryParentDirectory 
+    
+  #
+  # Set argv0, argv, and argc in the event the tool forgets to.
+  #
+    if {![info exists ::argv0]} {
+    variable ::argv0  ""
+    }
+    if {![info exists ::argv]} {
+    variable ::argv  ""
+    }
+    if {![info exists ::argc]} {
+    variable ::argc  ""
+    }
+
   
   #
   # Variables set by VendorScripts_***.tcl
@@ -80,7 +101,7 @@ namespace eval ::osvvm {
     if {![info exists ToolSupportsDeferredConstants]} {
       variable ToolSupportsDeferredConstants "true"
     }
-  
+    
   #
   # Create derived directory paths
   #
@@ -113,6 +134,8 @@ namespace eval ::osvvm {
 
     variable BuildStarted          "false"   ; # Detects if build is running and if build is called, call include instead
     variable BuildName             ""
+    variable BuildStatus           "FAILED"
+    variable LastBuildName         ""
     variable GenericList           ""
     variable GenericNames          ""
     variable GenericOptions        ""
@@ -134,6 +157,7 @@ namespace eval ::osvvm {
     
     # OsvvmBuildLogFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${LogSubDirectory}/${BuildName}.log
     variable OsvvmBuildLogFile      [file join ${OsvvmTemporaryOutputDirectory} "OsvvmBuild.log"] ;  
+    
 
     # Error handling
     variable AnalyzeErrorCount 0

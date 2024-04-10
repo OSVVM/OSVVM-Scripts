@@ -1,4 +1,4 @@
-#  File Name:         Example_LocalScriptDefaults.tcl
+#  File Name:         OsvvmSettingsLocal_example.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 
@@ -19,12 +19,13 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     3/2024   2024.03    Added OsvvmVersionCompatibility
 #     6/2022   2022.06    Initial
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2022 by SynthWorks Design Inc.  
+#  Copyright (c) 2022 - 2024 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -53,6 +54,11 @@ namespace eval ::osvvm {
   #
   # Directory structure and results file management
   #
+    # OsvvmVersionCompatibility:  value does not have to match an exact revision tag. 
+    #   The intent is to rarely change the settings. 
+    # variable OsvvmVersionCompatibility $OsvvmVersion                 ;# default - format is:  YYYY.MMr.  YYYY= year.  MM= Month number.  r is a,b,c as minor revision tag 
+    # variable OsvvmVersionCompatibility 2023.99                       ;# Use values established in 2023, but no updated values from 2024 or later
+
 
     #  Base directory for other OSVVM created directories 
     #  variable OutputBaseDirectory        ""                          ;# put output in $CurrentSimulationDirectory
@@ -90,6 +96,18 @@ namespace eval ::osvvm {
     
     #  Library Subdirectory
     #    variable VhdlLibrarySubdirectory    "${ToolNameVersion}"      ;# default value
+
+    # OsvvmTemporaryOutputDirectory is where temporary OSVVM output goes.   
+    # Caution:  If you change the value of OsvvmTemporaryOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
+    # Files only remain in this directory when a tool does not complete correctly
+    #    variable OsvvmTemporaryOutputDirectory   ""
+    
+    # OsvvmSettingsSubDirectory 
+    # Location for package bodies generated:  OsvvmScriptSettingsPkg_generated.vhd and OsvvmScriptSettingsPkg_generated.vhd
+    # Project/User settings OsvvmSettingsPkg_local.vhd 
+    #    variable SettingsAreRelativeToSimulationDirectory "false"
+    #    variable OsvvmSettingsSubDirectory      ""  
+
 
   #
   #  TCL Error signaling during a build 

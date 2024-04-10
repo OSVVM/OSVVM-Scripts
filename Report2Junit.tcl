@@ -228,14 +228,16 @@ proc JunitCreateSummary {TestDict} {
 
 proc JunitTestSuiteInfo { TestSuiteSummaryDict } {
   variable ResultsFile
+  variable TestSuiteName
 
   # Print testsuite information
   #  <testsuite name="Suite1" errors="0" failures="3" skipped="0" tests="10" hostname="seven">
-  set SuitePassed  [dict get $TestSuiteSummaryDict PASSED]
-  set SuiteFailed  [dict get $TestSuiteSummaryDict FAILED]
-  set SuiteSkipped [dict get $TestSuiteSummaryDict SKIPPED]
+  set SuitePassed   [dict get $TestSuiteSummaryDict PASSED]
+  set SuiteFailed   [dict get $TestSuiteSummaryDict FAILED]
+  set SuiteSkipped  [dict get $TestSuiteSummaryDict SKIPPED]
+  set TestSuiteName [dict get $TestSuiteSummaryDict Name]
   puts $ResultsFile "<testsuite "
-  puts $ResultsFile "   name=\"[dict get $TestSuiteSummaryDict Name]\""
+  puts $ResultsFile "   name=\"$TestSuiteName\""
   puts $ResultsFile "   time=\"[dict get $TestSuiteSummaryDict ElapsedTime]\""
   puts $ResultsFile "   tests=\"[expr {$SuitePassed + $SuiteFailed + $SuiteSkipped}]\""
   puts $ResultsFile "   failures=\"$SuiteFailed\""
@@ -248,6 +250,7 @@ proc JunitTestSuiteInfo { TestSuiteSummaryDict } {
 
 proc JunitTestSuites {TestDict TestSuiteSummary } {
   variable ResultsFile
+  variable TestSuiteName
   
   set Index 0
   foreach TestSuite [dict get $TestDict TestSuites] {
@@ -286,11 +289,16 @@ proc JunitTestSuites {TestDict TestSuiteSummary } {
         set TestStatus "FAILED"
         set Reason "Name mismatch"
       }
-      
-      
+      if { [dict exists $TestCase TestCaseFileName] } { 
+        set ResolvedTestName [dict get $TestCase TestCaseFileName]
+      } else {
+        set ResolvedTestName $TestName
+      }
+
       puts $ResultsFile "<testcase "
-      puts $ResultsFile "   name=\"$TestName\""
-      puts $ResultsFile "   classname=\"$VhdlName\""
+      puts $ResultsFile "   name=\"$ResolvedTestName\""
+#      puts $ResultsFile "   classname=\"$VhdlName\""
+      puts $ResultsFile "   classname=\"$TestSuiteName\""
       puts $ResultsFile "   time=\"$ElapsedTime\""
       puts $ResultsFile ">"
       

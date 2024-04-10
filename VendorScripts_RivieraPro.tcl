@@ -191,8 +191,14 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestCaseFileName
   variable SimulateOptions
 
+  if {($::osvvm::Debug)} {
+    set DebugOptions "+access +r"
+  } else {
+    set DebugOptions ""
+  }
+
 #  puts "vendor_simulate  LibraryName: $LibraryName    LibraryUnit:  $LibraryUnit   args:  $args"
-  set SimulateOptions [concat -interceptcoutput -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions}]
+  set SimulateOptions [concat $DebugOptions -interceptcoutput -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions}]
 
   puts "vsim ${SimulateOptions}"
         vsim {*}${SimulateOptions}
@@ -242,4 +248,9 @@ proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
 proc vendor_GetCoverageFileName {TestName} { 
   set CoverageFileName ${TestName}_code_cov.html
   return $CoverageFileName
+}
+
+proc vendor_OpenBuildHtml {BuildHtmlFile BuildName} {
+  catch {framework.window.close -window $BuildName} Msg
+  system.open "$BuildHtmlFile" -title $BuildName
 }

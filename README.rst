@@ -350,9 +350,8 @@ It will search for these files in the following directories
 - CurrentSimulationDirectory
 - CurrentWorkingDirectory
 
-CurrentSimulationDirectory is the directory in which the simulator is running.
-CurrentWorkingDirectory is the directory of the script that calls either 
-RunTest or simulate.   
+CurrentSimulationDirectory is the normalized path for the directory in which the simulator is running.
+CurrentWorkingDirectory is the relative path to the directory of the script that is currently running.   
 
 Currently NVC and GHDL do not run any extra scripts since they are batch
 simulators.
