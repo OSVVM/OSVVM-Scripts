@@ -203,8 +203,10 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName BuildName GenericList}
           file copy -force ${TranscriptFile}  ${CopyTargetFile}
           if {[catch {file delete -force ${TranscriptFile}} err]} {
             # end simulation to try to free locks on the file, and try to delete again
-            EndSimulation  
-            file delete -force ${TranscriptFile}
+            if {!$::osvvm::SimulateInteractive} {
+              EndSimulation  
+              file delete -force ${TranscriptFile}
+            }
           } 
         }
       }
