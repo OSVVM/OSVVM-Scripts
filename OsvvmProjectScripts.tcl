@@ -1040,7 +1040,7 @@ proc simulate {LibraryUnit args} {
   set LocalSimulateErrorInfo $::errorInfo
   SetInteractiveMode $SavedInteractive  ; # Restore original value
   
-  if {$SimulateErrorCode != 0} {
+  if {($SimulateErrorCode != 0) && (!$::osvvm::SimulateInteractive)} {
     # if simulate ended in error, EndSimulation to close open files.
     EndSimulation
     unset vendor_simulate_started
