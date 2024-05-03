@@ -80,8 +80,8 @@ proc StartBuildYaml {BuildName} {
   puts  $RunFile "BuildInfo:"
   puts  $RunFile "  Start Time: $StartTime"
   puts  $RunFile "  Simulator: \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
-  puts  $RunFile "  Simulator Version: $::osvvm::ToolNameVersion"
-  puts  $RunFile "  OSVVM Version: $::osvvm::OsvvmVersion"
+  puts  $RunFile "  Simulator Version: \"$::osvvm::ToolNameVersion\""
+  puts  $RunFile "  OSVVM Version: \"$::osvvm::OsvvmVersion\""
 #  set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${BuildName}]
 #  puts  $RunFile "  Simulation Transcript: <a href=\"${BuildTranscriptLinkPathPrefix}.log\">${BuildName}.log</a>"
   close $RunFile
@@ -163,7 +163,7 @@ proc StartSimulateBuildYaml {TestName} {
   puts "Simulation Start time [clock format $SimulateStartTime -format %T]"
 
   set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
-  puts  $RunFile "      - TestCaseName: $TestName"
+  puts  $RunFile "      - TestCaseName: \"$TestName\""
   close $RunFile
 }
 
@@ -183,7 +183,7 @@ proc FinishSimulateBuildYaml {} {
   set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
   
   set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
-  puts  $RunFile "        TestCaseFileName: $TestCaseFileName"
+  puts  $RunFile "        TestCaseFileName: \"$TestCaseFileName\""
   puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericList\""
   puts  $RunFile "        ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
   close $RunFile
