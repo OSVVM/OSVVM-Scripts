@@ -125,7 +125,7 @@ proc vendor_library {LibraryName PathToLib} {
       vendor_vlib $PathAndLib
     }
   } else {
-    vendor_LinkLibrary  $LibraryName  ${PathAndLib}
+    vendor_LinkLibrary  $LibraryName  ${PathToLib}
   }
 }
 
