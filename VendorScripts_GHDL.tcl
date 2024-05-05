@@ -63,7 +63,9 @@
   }
   
   regexp {GHDL\s+\d+\.\d+\S*} [exec ghdl --version] VersionString
-  variable ToolNameVersion [regsub {\s+} $VersionString -]
+  variable ToolVersion [regsub {GHDL\s+} $VersionString ""]
+  variable ToolNameVersion ${ToolName}-${ToolVersion}
+#  variable ToolNameVersion [regsub {\s+} $VersionString -]
 #   puts $ToolNameVersion
 
 #  variable GhdlRunOptions ""

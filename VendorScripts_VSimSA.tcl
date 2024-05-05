@@ -57,7 +57,8 @@
   variable ToolVendor  "Aldec"
   variable ToolName    "VSimSA"
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
-  variable ToolNameVersion ${ToolName}-[lindex [split $version] [llength $version]-1]
+  variable ToolVersion [lindex [split $version] [llength $version]-1]
+  variable ToolNameVersion ${ToolName}-${ToolVersion}
 #   puts $ToolNameVersion
 
   if {[batch_mode]} {

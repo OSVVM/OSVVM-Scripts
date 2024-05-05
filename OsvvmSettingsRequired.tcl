@@ -56,7 +56,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2024.03a
+  variable OsvvmVersion 2024.0X-Dev
 
   if {![info exists OsvvmVersionCompatibility]} {
     variable OsvvmVersionCompatibility $OsvvmVersion

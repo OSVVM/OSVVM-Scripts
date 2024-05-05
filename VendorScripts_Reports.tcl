@@ -48,6 +48,7 @@
   variable ToolVendor  "Reports"
   variable ToolName   "Reports"
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
+  variable ToolVersion "Reports"
   variable ToolNameVersion "Reports"
 #   puts $ToolNameVersion
 

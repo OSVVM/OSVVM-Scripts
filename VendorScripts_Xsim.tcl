@@ -50,7 +50,7 @@
   variable ToolVendor  "Xilinx"
   variable ToolName    "XSIM"
   variable ToolVersion [version -short]
-  variable ToolNameVersion ${ToolName}-${ToolVersion}   ;# produces "XSIM-2023.2" 
+  variable ToolNameVersion ${ToolName}-${ToolVersion}  
 #   puts $ToolNameVersion
 
   # Make this version dependent when Xilinx starts supporting it

@@ -41,9 +41,9 @@
 
 
 namespace eval ::osvvm {
-  variable  TclZone   [clock format [clock seconds] -format %z]
-  variable  IsoZone   [format "%s:%s" [string range $TclZone 0 2] [string range $TclZone 3 4]] 
-
+  variable  TclZone      [clock format [clock seconds] -format %z]
+  variable  IsoZone      [format "%s:%s" [string range $TclZone 0 2] [string range $TclZone 3 4]] 
+  variable  TimeZoneName [clock format [clock seconds] -format %Z]
 
 # -------------------------------------------------
 proc  ElapsedTimeMs {StartTimeMs} {
@@ -77,11 +77,12 @@ proc StartBuildYaml {BuildName} {
 #  puts  $RunFile "BuildName: $BuildName"
   puts  $RunFile "Version: $::osvvm::OsvvmVersion"
   puts  $RunFile "Date: $StartTime"
-  puts  $RunFile "BuildInfo:"
-  puts  $RunFile "  Start Time: $StartTime"
-  puts  $RunFile "  Simulator: \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
-  puts  $RunFile "  Simulator Version: \"$::osvvm::ToolNameVersion\""
-  puts  $RunFile "  OSVVM Version: \"$::osvvm::OsvvmVersion\""
+#  puts  $RunFile "BuildInfo:"
+#  puts  $RunFile "  StartTime:    $StartTime"
+#  puts  $RunFile "  TimeZoneName: \"${::osvvm::TimeZoneName}\""
+#  puts  $RunFile "  Simulator: \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
+#  puts  $RunFile "  SimulatorVersion: \"$::osvvm::ToolVersion\""
+#  puts  $RunFile "  OsvvmVersion: \"$::osvvm::OsvvmVersion\""
 #  set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${BuildName}]
 #  puts  $RunFile "  Simulation Transcript: <a href=\"${BuildTranscriptLinkPathPrefix}.log\">${BuildName}.log</a>"
   close $RunFile
@@ -100,7 +101,7 @@ proc FinishBuildYaml {BuildName} {
 
   set   BuildFinishTime     [clock seconds]
   set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
-  puts  $RunFile "OptionalInfo:"
+#  puts  $RunFile "OptionalInfo:"
 #  # OptionalInfo is not known until simulation finishes
 #  if {$::osvvm::TranscriptExtension eq "html"} {
 #    set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${BuildName}]
@@ -110,13 +111,19 @@ proc FinishBuildYaml {BuildName} {
 #  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
 #    puts $RunFile "  Code Coverage: <a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a>"
 #  }
-  puts  $RunFile "  Finish Time: [GetIsoTime $BuildFinishTime]"
-  
-  puts  $RunFile "Run:"
+  puts  $RunFile "BuildInfo:"
+#  puts  $RunFile "  TimeZoneName: \"${::osvvm::TimeZoneName}\""
+  puts  $RunFile "  StartTime:            [GetIsoTime $BuildStartTime]"
+  puts  $RunFile "  FinishTime:           [GetIsoTime $BuildFinishTime]"
+  puts  $RunFile "  Elapsed:              [ElapsedTimeMs $BuildStartTimeMs]"
+  puts  $RunFile "  Simulator:            \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
+  puts  $RunFile "  SimulatorVersion:     \"$::osvvm::ToolVersion\""
+  puts  $RunFile "  OsvvmVersion:         \"$::osvvm::OsvvmVersion\""
+
+#  puts  $RunFile "Run:"
   puts  $RunFile "  BuildErrorCode:       $BuildErrorCode"
   puts  $RunFile "  AnalyzeErrorCount:    $AnalyzeErrorCount"
   puts  $RunFile "  SimulateErrorCount:   $BuildErrorCode"
-  puts  $RunFile "  Elapsed:  [ElapsedTimeMs $BuildStartTimeMs]"
   close $RunFile
 
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"

@@ -105,8 +105,8 @@ proc JunitCreateSummary {TestDict} {
   if { [dict exists $TestDict Date] } {
     set StartTime [dict get $TestDict Date]
   }
-  if { [dict exists $TestDict Run] } {
-    set RunInfo   [dict get $TestDict Run] 
+  if { [dict exists $TestDict BuildInfo] } {
+    set RunInfo   [dict get $TestDict BuildInfo] 
   } else {
     set RunInfo   [dict create BuildErrorCode 1]
   }
