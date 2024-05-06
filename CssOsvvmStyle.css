@@ -130,6 +130,9 @@ td:nth-child(n+3) {
 table.AlertSettings td {
   text-align: left;
 }
+table.RequirementsResults td:nth-child(3) {
+  text-align: left;
+}
 
 tfoot {
     background-color: #e0e0e0;

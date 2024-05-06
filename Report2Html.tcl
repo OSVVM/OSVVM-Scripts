@@ -126,7 +126,7 @@ proc CreateBuildReportHeader {} {
   puts $ResultsFile "</head>"
   puts $ResultsFile "<body>"
   puts $ResultsFile "<header>"
-  puts $ResultsFile "  <h1>$ReportBuildName Build Report</h2>"
+  puts $ResultsFile "  <h1>$ReportBuildName Build Report</h1>"
   puts $ResultsFile "</header>"
   puts $ResultsFile "<main>"
 }
