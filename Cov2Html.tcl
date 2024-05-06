@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    04/2024   2024.04    Updated report formatting
 #    06/2022   2022.06    Print PASSED/FAILED with Coverage HTML
 #    02/2022   2022.02    Updated YAML file handling
 #    01/2022   2022.01    Handling for All Range
@@ -27,7 +28,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2021 by SynthWorks Design Inc.  
+#  Copyright (c) 2021-2024 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.

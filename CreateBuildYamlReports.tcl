@@ -19,12 +19,13 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    04/2024   2024.04    Updated report formatting
 #    12/2022   2022.12    Refactored from OsvvmProjectScripts
 #
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2022 by SynthWorks Design Inc.
+#  Copyright (c) 2022-2024 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -74,17 +75,8 @@ proc StartBuildYaml {BuildName} {
   puts "Starting Build at time [clock format $BuildStartTime -format %T]"
 
   set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} w]
-#  puts  $RunFile "BuildName: $BuildName"
   puts  $RunFile "Version: $::osvvm::OsvvmVersion"
   puts  $RunFile "Date: $StartTime"
-#  puts  $RunFile "BuildInfo:"
-#  puts  $RunFile "  StartTime:    $StartTime"
-#  puts  $RunFile "  TimeZoneName: \"${::osvvm::TimeZoneName}\""
-#  puts  $RunFile "  Simulator: \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
-#  puts  $RunFile "  SimulatorVersion: \"$::osvvm::ToolVersion\""
-#  puts  $RunFile "  OsvvmVersion: \"$::osvvm::OsvvmVersion\""
-#  set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${BuildName}]
-#  puts  $RunFile "  Simulation Transcript: <a href=\"${BuildTranscriptLinkPathPrefix}.log\">${BuildName}.log</a>"
   close $RunFile
 }
 
@@ -101,18 +93,7 @@ proc FinishBuildYaml {BuildName} {
 
   set   BuildFinishTime     [clock seconds]
   set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
-#  puts  $RunFile "OptionalInfo:"
-#  # OptionalInfo is not known until simulation finishes
-#  if {$::osvvm::TranscriptExtension eq "html"} {
-#    set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${BuildName}]
-#    puts $RunFile "  HTML Simulation Transcript: <a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${BuildName}_log.html</a>"
-#  }
-#  set CodeCoverageFile [vendor_GetCoverageFileName ${BuildName}]
-#  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
-#    puts $RunFile "  Code Coverage: <a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a>"
-#  }
   puts  $RunFile "BuildInfo:"
-#  puts  $RunFile "  TimeZoneName: \"${::osvvm::TimeZoneName}\""
   puts  $RunFile "  StartTime:            [GetIsoTime $BuildStartTime]"
   puts  $RunFile "  FinishTime:           [GetIsoTime $BuildFinishTime]"
   puts  $RunFile "  Elapsed:              [ElapsedTimeMs $BuildStartTimeMs]"
@@ -120,7 +101,6 @@ proc FinishBuildYaml {BuildName} {
   puts  $RunFile "  SimulatorVersion:     \"$::osvvm::ToolVersion\""
   puts  $RunFile "  OsvvmVersion:         \"$::osvvm::OsvvmVersion\""
 
-#  puts  $RunFile "Run:"
   puts  $RunFile "  BuildErrorCode:       $BuildErrorCode"
   puts  $RunFile "  AnalyzeErrorCount:    $AnalyzeErrorCount"
   puts  $RunFile "  SimulateErrorCount:   $BuildErrorCode"

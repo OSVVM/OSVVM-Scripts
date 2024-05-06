@@ -18,7 +18,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#    04/2024   2024.04    Updated formatting
+#    04/2024   2024.04    Updated report formatting
 #    07/2023   2023.07    Initial Revision
 #
 #
@@ -51,12 +51,6 @@ proc Requirements2Html {RequirementsYamlFile {TestCaseName ""} {TestSuiteName ""
       set HtmlFileName ${FileRoot}.html
       set ReportName [regsub {_req} [file tail $FileRoot] ""] 
       
-      # Copy header file to results file and open results file
-      set HeaderFile [FindProjectFile ${ReportName}_requirements_header.html]
-      if {$HeaderFile eq ""} {
-        set HeaderFile [FindProjectFile requirements_header.html]
-      }
-#      file copy -force $HeaderFile ${HtmlFileName}
       set ResultsFile [open ${HtmlFileName} w]
     } else {
 # This branch is not used.
@@ -261,12 +255,6 @@ proc MergeTestCaseResults { TestCases } {
   
   set TestName Merged
   
-#  dict set NewDict TestName Merged Status $Status Results { \
-#    Goal $Goal Passed $Passed Errors $Errors Checked $Checked \
-#    AlertCount {Failure $AlertFailure Error $AlertError Warning $AlertWarning} \
-#    DisabledAlertCount {Failure $DisabledAlertFailure Error $DisabledAlertError Warning $DisabledAlertWarning} }
-
-#  return $NewDict
   return "TestName Merged Status $Status Results { \
     Goal $Goal PassedReq $PassedReq Passed $Passed Errors $Errors Checked $Checked \
     AlertCount {Failure $AlertFailure Error $AlertError Warning $AlertWarning} \

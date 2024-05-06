@@ -19,6 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    04/2024   2024.04    Updated report formatting
 #    07/2023   2023.07    Updated file handler to search for user defined HTML headers
 #    12/2022   2022.12    Refactored to only use static OSVVM information
 #    05/2022   2022.05    Updated directory handling
@@ -28,7 +29,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2021 - 2023 by SynthWorks Design Inc.
+#  Copyright (c) 2021 - 2024 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -57,16 +58,7 @@ proc Report2Html {ReportFile} {
   # Read the YAML file into a dictionary
   set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
 
-#  # Copy header file to results file and open results file
-#  set HeaderFile [FindProjectFile ${ReportBuildName}_build_report_header.html]
-#  if {$HeaderFile eq ""} {
-#    set HeaderFile [FindProjectFile build_report_header.html]
-#  }
-#  set ReportHeaderHtmlFile $HeaderFile
-#  file copy -force ${ReportHeaderHtmlFile} ${FileName}
-  
   # Open results file
-#  set ResultsFile [open ${FileName} a]
   set ResultsFile [open ${FileName} w]
   
   # Convert YAML file to HTML & catch results
@@ -264,40 +256,6 @@ proc ReportElaborateStatus {TestDict} {
     }
   }
   
-# #!!  set PassedColor  "#000000"
-# #!!  set FailedColor  "#000000"
-# #!!  set SkippedColor "#000000"
-# #!!  if { ${BuildStatus} eq "PASSED" } {
-# #!!    set StatusColor  "#00C000" 
-# #!!    set PassedColor  "#00C000"
-# #!!  } elseif { ${BuildStatus} eq "FAILED" } {
-# #!!    set StatusColor  "#FF0000" 
-# #!!    set FailedColor  "#FF0000"
-# #!!  } else {
-# #!!    set StatusColor  "#D09000" 
-# #!!    set SkippedColor "#D09000"
-# #!!  }
-# #!!  if {$ReportAnalyzeErrorCount} {
-# #!!    set AnalyzeColor  "#FF0000"
-# #!!  } else {
-# #!!    set AnalyzeColor  "#000000"
-# #!!  }
-# #!!  if {$ReportSimulateErrorCount} {
-# #!!    set SimulateColor  "#FF0000"
-# #!!  } else {
-# #!!    set SimulateColor  "#000000"
-# #!!  }
-# #!!  set ElapsedTimeSecondsInt [expr {round($ElapsedTimeSeconds)}]
-# #!!  set ElapsedTimeHms     [format %d:%02d:%02d [expr ($ElapsedTimeSecondsInt/(60*60))] [expr (($ElapsedTimeSecondsInt/60)%60)] [expr (${ElapsedTimeSecondsInt}%60)]]
-# #!!  puts $ResultsFile "<table>"
-# #!!  puts $ResultsFile "  <tr class=\"column-header\""><th>Build</th>         <th>$ReportBuildName</th></tr>"
-# #!!  puts $ResultsFile "  <tr style=color:${StatusColor}><td>Status</td>   <td>$BuildStatus</td></tr>"
-# #!!  puts $ResultsFile "  <tr style=color:${PassedColor}><td>PASSED</td>   <td>$TestCasesPassed</td></tr>"
-# #!!  puts $ResultsFile "  <tr style=color:${FailedColor}><td>FAILED</td>   <td>$TestCasesFailed</td></tr>"
-# #!!  puts $ResultsFile "  <tr style=color:${SkippedColor}><td>SKIPPED</td> <td>$TestCasesSkipped</td></tr>"
-# #!!  puts $ResultsFile "  <tr style=color:${AnalyzeColor}><td>Analyze Failures</td>   <td>$ReportAnalyzeErrorCount</td></tr>"
-# #!!  puts $ResultsFile "  <tr style=color:${SimulateColor}><td>Simulate Failures</td> <td>$ReportSimulateErrorCount</td></tr>"
-  
   set PassedClass  ""
   set FailedClass  ""
   set SkippedClass ""
@@ -322,7 +280,6 @@ proc ReportElaborateStatus {TestDict} {
     set SimulateClass  ""
   }
   
-  
   puts $ResultsFile "  <div class=\"summary-parent\">"
   puts $ResultsFile "    <div  class=\"summary-table\">"
   puts $ResultsFile "      <table  class=\"summary-table\">"
@@ -339,16 +296,6 @@ proc ReportElaborateStatus {TestDict} {
 
   # Print BuildInfo
   set BuildInfo $RunInfo
-##  if { [dict exists $TestDict BuildInfo] } {
-##    set BuildInfo  [dict get $TestDict BuildInfo]
-##  } else {
-##    set BuildInfo  [dict create Error 1]
-##  }
-##  if {[dict exists $RunInfo TimeZoneName]} {
-##    set ReportTimeZoneName [dict get $RunInfo TimeZoneName]
-##  } else {
-##    set ReportTimeZoneName "Unknown"
-##  }
   if {[dict exists $RunInfo StartTime]} {
     set ReportStartTime [dict get $RunInfo StartTime]
     puts $ResultsFile "          <tr><td>Start Time</td> <td>[IsoToOsvvmTime $ReportStartTime]</td></tr>"
@@ -441,19 +388,6 @@ proc ReportElaborateStatus {TestDict} {
     foreach TestSuite $ReportTestSuiteSummary {
       set SuiteName [dict get $TestSuite Name]
       set SuiteStatus  [dict get $TestSuite Status]
-      
-##!!      set PassedColor  "#000000" 
-##!!      set FailedColor  "#000000" 
-##!!
-##!!      if { ${SuiteStatus} eq "PASSED" } {
-##!!        set StatusColor  "#00C000" 
-##!!        set PassedColor  "#00C000" 
-##!!      } elseif { ${SuiteStatus} eq "FAILED" } {
-##!!        set StatusColor  "#FF0000" 
-##!!        set FailedColor  "#FF0000" 
-##!!      } else {
-##!!        set StatusColor  "#D09000" 
-##!!      }
 
       set PassedClass  "" 
       set FailedClass  "" 
@@ -527,11 +461,7 @@ proc ReportTestSuites {TestDict} {
       puts $ResultsFile "          </tr>"
       puts $ResultsFile "        </thead>"
       puts $ResultsFile "        <tbody>"
-#      if { [dict exists $TestSuite ReportsDirectory] } {
-#        set ReportsDirectory [dict get $TestSuite ReportsDirectory]
-#      } else {
-#        set ReportsDirectory ""
-#      }
+
       set ReportsDirectory [file join $::osvvm::ReportsSubdirectory $SuiteName]
 
       foreach TestCase [dict get $TestSuite TestCases] {

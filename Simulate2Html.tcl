@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    04/2024   2024.04    Updated report formatting
 #    03/2024   2024.03    Updated handling of TranscriptFile to account for simulator still having it open (due to abnormal exit)
 #    07/2023   2023.07    Updated OpenSimulationReportFile to search for user defined HTML headers
 #    02/2023   2023.02    CreateDirectory if results/<TestSuiteName> does not exist
