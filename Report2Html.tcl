@@ -638,7 +638,7 @@ proc ReportTestSuites {TestDict} {
           }
           puts $ResultsFile "            <td>$TestCaseElapsedTime</td>"
         } else {
-          puts $ResultsFile "            <td style=\"text-align: left\" colspan=\"6\"> &emsp; $Reason</td>"
+          puts $ResultsFile "            <td style=\"text-align: left\" colspan=\"8\">$Reason</td>"
         }
         puts $ResultsFile "          </tr>"
       }

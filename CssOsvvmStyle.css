@@ -1,7 +1,8 @@
 body {
-    margin-left: 40px;
-    font-family: Tahoma, Verdana, sans-serif;
-    font-size: 14px;
+    margin: 10px 20px;
+    font-family: "Segoe UI", "Trebuchet MS", Verdana, Tahoma, sans-serif;
+/*    font-size: 14px;*/
+    font-size: 90%;
 }
 
 header {
@@ -14,8 +15,12 @@ main {
 footer {
 }
 
+hr {
+    margin: 30px 0px 30px 0px;
+}
+
 footer hr {
-    margin-top: 20px;
+    margin: 30px 0px 0px 0px;
 }
 
 h1 {
@@ -33,6 +38,8 @@ div.summary-parent {
 div.summary-logo img {
     vertical-align: top;
     horiz-align: right;
+    max-width: 400px;
+    margin-left: 20px;
 }
 
 div.analysis-results {
@@ -55,8 +62,26 @@ summary {
     margin-top: 40px;
     margin-bottom: 10px;
     font-weight: bold;
-    font-size: 18px;
+    font-size: 1.5em;
 }
+
+summary.subtitle {
+    margin-top: 20px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+summary.subindented {
+    margin: 20px 20px 5px 20px;
+    font-weight: bold;
+    font-size: 1em;
+}
+
+table.CoverageSettings, table.CoverageTable {
+    margin: 0px 20px 0px 40px;
+}
+
 
 details summary b {
     font-weight: bold;
@@ -65,7 +90,7 @@ details summary b {
 table, th, td {
     border: 1px solid #CCCCCC;
     border-collapse: collapse;
-    padding: 5px 30px 5px 10px;
+    padding: 5px 15px 5px 15px;
 }
 
 table.testsuite-summary-table {
@@ -76,7 +101,7 @@ table.testsuite-details-table {
 }
 
 thead {
-    background-color: #88d0ff;
+    background-color: rgba(0,187, 255, 0.5); /* #88d0ff; */
     font-weight: bold;
 }
 
@@ -94,6 +119,16 @@ tbody tr:nth-child(odd) {
 
 tbody tr:hover {
     background-color: #FFFF00;
+}
+
+td {
+  text-align: left;
+}
+td:nth-child(n+3) {
+  text-align: right;
+}
+table.AlertSettings td {
+  text-align: left;
 }
 
 tfoot {
@@ -115,6 +150,10 @@ tfoot {
 
 .warning {
     color: #D09000
+}
+
+.number {
+  text-align: right;
 }
 
 summary > b {

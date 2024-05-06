@@ -58,43 +58,47 @@ proc Scoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
 proc LocalScoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
   variable ResultsFile
   
-  puts $ResultsFile "<hr>"
-  puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
-  puts $ResultsFile "<h2 id=\"${SbName}\">$TestCaseName Scoreboard Report for ${SbName}</h2>"
+  puts $ResultsFile "  <hr />"
+  puts $ResultsFile "  <div class=\"ScoreboardSummary\">"
+  puts $ResultsFile "    <h2 id=\"${SbName}\">$TestCaseName Scoreboard Report for ${SbName}</h2>"
+  puts $ResultsFile "    <div class=\"${SbName}\">"
+  puts $ResultsFile "      <table class=\"ScoreboardSummary\">"
 
   set TestDict [::yaml::yaml2dict -file ${SbYamlFile}]
   set VersionNum  [dict get $TestDict Version]
-  puts $ResultsFile "<br>"
-  puts $ResultsFile "  <div  style=\"margin: 10px 20px;\">"
-  puts $ResultsFile "    <table>"
   
   set ScoreboardDictArray [dict get $TestDict Scoreboards]
   ScoreboardHeader2Html $ScoreboardDictArray
   ScoreboardBody2Html   $ScoreboardDictArray
 
-  puts $ResultsFile "    </table>"
-  puts $ResultsFile "<br>"
+  puts $ResultsFile "      </table>"
+  puts $ResultsFile "    </div>"
+  puts $ResultsFile "  </div>"
 }
 
 proc ScoreboardHeader2Html {ScoreboardDictArray} {
   variable ResultsFile
   
   set FirstScoreboardDict [lindex $ScoreboardDictArray 0]
-  puts $ResultsFile "    <tr>"
+  puts $ResultsFile "          <thead>"
+  puts $ResultsFile "            <tr>"
   foreach key [dict keys $FirstScoreboardDict] {
-    puts $ResultsFile "      <th>${key}</th>"
+    puts $ResultsFile "              <th>${key}</th>"
   }
-  puts $ResultsFile "    </tr>"
+  puts $ResultsFile "            </tr>"
+  puts $ResultsFile "          </thead>"
 }
 
 proc ScoreboardBody2Html {ScoreboardDictArray} {
   variable ResultsFile
     
+  puts $ResultsFile "          <tbody>"
   foreach ScoreboardDict $ScoreboardDictArray {
-    puts $ResultsFile "    <tr>"
+    puts $ResultsFile "            <tr>"
     dict for {key val} ${ScoreboardDict} {
-      puts $ResultsFile "      <td>${val}</td>"
+      puts $ResultsFile "              <td>${val}</td>"
     }
-    puts $ResultsFile "    </tr>"
+    puts $ResultsFile "            </tr>"
   }
+  puts $ResultsFile "          </tbody>"
 }

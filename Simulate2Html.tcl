@@ -113,14 +113,21 @@ proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
 
   # Create the TestCase file in the simulation directory
   set FileName ${TestCaseName}.html
+  
+#  if { $initialize } {
+#    set HeaderFile [FindProjectFile ${TestCaseName}_simulation_header.html]
+#    if {$HeaderFile eq ""} {
+#      set HeaderFile [FindProjectFile simulation_header.html]
+#    }
+#    file copy -force ${HeaderFile} ${FileName}
+#  }
+#  set ResultsFile [open ${FileName} a]
+  
   if { $initialize } {
-    set HeaderFile [FindProjectFile ${TestCaseName}_simulation_header.html]
-    if {$HeaderFile eq ""} {
-      set HeaderFile [FindProjectFile simulation_header.html]
-    }
-    file copy -force ${HeaderFile} ${FileName}
+    set ResultsFile [open ${FileName} w]
+  } else {
+    set ResultsFile [open ${FileName} a]
   }
-  set ResultsFile [open ${FileName} a]
 }
 
 #--------------------------------------------------------------
@@ -149,30 +156,39 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName BuildName GenericList}
   variable TranscriptYamlFile
   variable SimGenericNames
 
-  puts $ResultsFile "<title>$TestCaseName Test Case Detailed Report</title>"
+  puts $ResultsFile "<!DOCTYPE html>"
+  puts $ResultsFile "<html lang=\"en\">"
+  puts $ResultsFile "<head>"
+  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${::OsvvmLibraries}/Scripts/CssOsvvmStyle.css\">"
+  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${::OsvvmLibraries}/Scripts/Custom-Style.css\">"
+  puts $ResultsFile "  <title>$TestCaseName Test Case Report</title>"
   puts $ResultsFile "</head>"
   puts $ResultsFile "<body>"
+  puts $ResultsFile "<header>"
+  puts $ResultsFile "  <h1>$TestCaseName Test Case Report</h1>"
+  puts $ResultsFile "</header>"
+  puts $ResultsFile "<main>"
 
-  puts $ResultsFile "<br>"
-  puts $ResultsFile "<h2>$TestCaseName Test Case Detailed Report</h2>"
-  puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
-
-  puts $ResultsFile "<br>"
-  puts $ResultsFile "<table>"
-  puts $ResultsFile "  <tr style=\"height:40px\"><th>Available Reports</th></tr>"
+  puts $ResultsFile "  <div class=\"summary-parent\">"
+  puts $ResultsFile "    <div  class=\"summary-table\">"
+  puts $ResultsFile "      <table  class=\"summary-table\">"
+  puts $ResultsFile "        <thead>"
+  puts $ResultsFile "          <tr class=\"column-header\"><th>Available Reports</th></tr>"
+  puts $ResultsFile "        </thead>"
+  puts $ResultsFile "        <tbody>"
 
   if {[file exists ${AlertYamlFile}]} {
-    puts $ResultsFile "  <tr><td><a href=\"#AlertSummary\">Alert Report</a></td></tr>"
+    puts $ResultsFile "          <tr><td><a href=\"#AlertSummary\">Alert Report</a></td></tr>"
   }
   if {[file exists ${CovYamlFile}]} {
-    puts $ResultsFile "  <tr><td><a href=\"#FunctionalCoverage\">Functional Coverage Report(s)</a></td></tr>"
+    puts $ResultsFile "          <tr><td><a href=\"#FunctionalCoverage\">Functional Coverage Report(s)</a></td></tr>"
   }
   
   set SbFiles [glob -nocomplain ${SbBaseYamlFile}*.yml]
   if {$SbFiles ne ""} {
     foreach SbFile ${SbFiles} {
       set SbName [regsub ${SbBaseYamlFile} [file rootname $SbFile] ""]
-      puts $ResultsFile "  <tr><td><a href=\"#Scoreboard_${SbName}\">ScoreboardPkg_${SbName} Report(s)</a></td></tr>"
+      puts $ResultsFile "          <tr><td><a href=\"#Scoreboard_${SbName}\">ScoreboardPkg_${SbName} Report(s)</a></td></tr>"
     }
   }
     
@@ -184,7 +200,7 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName BuildName GenericList}
   if {([GetTranscriptType] eq "html") && ($BuildName ne "")} {
     set HtmlTranscript ${BuildName}_log.html
     set SimulationResultsLink [file join ${::osvvm::LogSubdirectory} ${HtmlTranscript}#${TestSuiteName}_${TestCaseName}${SimGenericNames}]
-    puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${SimulationResultsLink}\">Link to Simulation Results</a></td></tr>"
+    puts $ResultsFile "          <tr><td><a href=\"${ReportsPrefix}/${SimulationResultsLink}\">Link to Simulation Results</a></td></tr>"
   }
   if {[file exists ${TranscriptYamlFile}]} {
     set TranscriptFileArray [::yaml::yaml2dict -file ${TranscriptYamlFile}]
@@ -211,7 +227,7 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName BuildName GenericList}
         }
       }
       set HtmlTargetFile [file join ${::osvvm::ResultsSubdirectory} ${TestSuiteName} ${TranscriptGenericName}]
-      puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${HtmlTargetFile}\">${TranscriptGenericName}</a></td></tr>"
+      puts $ResultsFile "          <tr><td><a href=\"${ReportsPrefix}/${HtmlTargetFile}\">${TranscriptGenericName}</a></td></tr>"
     }
     # Remove file so it does not impact any following simulation
     file delete -force -- ${TranscriptYamlFile}
@@ -219,7 +235,7 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName BuildName GenericList}
   # Print the Generics
   if {${GenericList} ne ""} {
     foreach GenericName $GenericList {
-      puts $ResultsFile "  <tr><td>Generic: [lindex $GenericName 0] = [lindex $GenericName 1]</td></tr>"
+      puts $ResultsFile "          <tr><td>Generic: [lindex $GenericName 0] = [lindex $GenericName 1]</td></tr>"
     }
   }
 # Does not allow names or values with _ in them
@@ -231,11 +247,16 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName BuildName GenericList}
   # Print link back to Build Summary Report
   if {($BuildName ne "")} {
     set BuildLink ${ReportsPrefix}/${BuildName}.html
-    puts $ResultsFile "  <tr><td><a href=\"${ReportsPrefix}/${BuildName}.html\">${BuildName} Build Summary</a></td></tr>"
+    puts $ResultsFile "          <tr><td><a href=\"${ReportsPrefix}/${BuildName}.html\">${BuildName} Build Summary</a></td></tr>"
   }
     
-  puts $ResultsFile "</table>"
-  puts $ResultsFile "<br><br>"
+  puts $ResultsFile "        </tbody>"
+  puts $ResultsFile "      </table>"
+  puts $ResultsFile "    </div>"
+  puts $ResultsFile "    <div class=\"summary-logo\">"
+	puts $ResultsFile "    	 <img id=\"logo\" src=\"${::OsvvmLibraries}/Scripts/OsvvmLogo.png\" alt=\"OSVVM logo\">"
+  puts $ResultsFile "    </div>"
+  puts $ResultsFile "  </div>"
 }
 
 proc FinalizeSimulationReportFile {TestCaseName TestSuiteName} {
@@ -243,7 +264,13 @@ proc FinalizeSimulationReportFile {TestCaseName TestSuiteName} {
 
   OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
   
+  puts $ResultsFile "</main>"
+  puts $ResultsFile "<footer>"
+  puts $ResultsFile "  <hr />"
+	puts $ResultsFile "  <p class=\"generated-by-osvvm\">Generated by OSVVM-Scripts ${::osvvm::OsvvmVersion} on [clock format [clock seconds] -format {%Y-%m-%d - %H:%M:%S (%Z)}].</p>"
+  puts $ResultsFile "</footer>"
   puts $ResultsFile "</body>"
   puts $ResultsFile "</html>"
+  
   close $ResultsFile
 }

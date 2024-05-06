@@ -69,27 +69,24 @@ proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
 proc LocalCov2Html {TestCaseName TestSuiteName CovYamlFile} {
   variable ResultsFile
 
-  puts $ResultsFile "<hr>"
-  puts $ResultsFile "<DIV STYLE=\"font-size:5px\"><BR></DIV>"
-  puts $ResultsFile "<h2 id=\"FunctionalCoverage\">$TestCaseName Coverage Report</h2>"
+  puts $ResultsFile "  <hr />"
+  puts $ResultsFile "  <div class=\"FunctionalCoverage\">"
+  puts $ResultsFile "    <h2 id=\"FunctionalCoverage\">$TestCaseName Coverage Report</h2>"
 
   set TestDict [::yaml::yaml2dict -file ${CovYamlFile}]
   set VersionNum    [dict get $TestDict Version]
   set CovSettings   [dict get $TestDict Settings]
   set WritePassFail [dict get $CovSettings WritePassFail]
   set Coverage      [dict get $TestDict Coverage]
-  puts $ResultsFile "<strong>Total Coverage: $Coverage</strong>"
-  puts $ResultsFile "<br><br>"
+  puts $ResultsFile "    <p>Total Coverage: $Coverage</p>"
   
   foreach ModelDict [dict get $TestDict Models] {
-    puts $ResultsFile "  <details open><summary style=\"font-size: 16px;\"><strong>[dict get $ModelDict Name] Coverage Model &emsp; &emsp; Coverage: [format %.1f [dict get $ModelDict Coverage]]</strong></summary>"
-    puts $ResultsFile "  <div  style=\"margin: 5px 30px;\">"
+    puts $ResultsFile "    <details open><summary class=\"subtitle\">[dict get $ModelDict Name] Coverage Model &emsp; &emsp; Coverage: [format %.1f [dict get $ModelDict Coverage]]</summary>"
     OsvvmCovInfo2Html $ModelDict
     OsvvmCovBins2Html $ModelDict $WritePassFail
-    puts $ResultsFile "  <br>"
-    puts $ResultsFile "  </div>"
-    puts $ResultsFile "  </details>"
+    puts $ResultsFile "    </details>"
   }
+  puts $ResultsFile "  </div>"
 }
 
 proc OsvvmCovInfo2Html {ModelDict} {
@@ -97,24 +94,29 @@ proc OsvvmCovInfo2Html {ModelDict} {
   
   set CovModelSettings [dict get $ModelDict Settings] 
   
-  puts $ResultsFile "    <DIV STYLE=\"font-size:5px\"><BR></DIV>"
-  puts $ResultsFile "    <details><summary>[dict get $ModelDict Name] Coverage Settings</summary>"
-  puts $ResultsFile "    <DIV STYLE=\"font-size:10px\"><BR></DIV>"
-  puts $ResultsFile "    <div  style=\"margin: 0px 30px;\">"
-  puts $ResultsFile "    <table>"
+  puts $ResultsFile "      <div class=\"CoverageSettings\">"
+  puts $ResultsFile "        <details><summary class=\"subindented\">[dict get $ModelDict Name] Coverage Settings</summary>"
+  puts $ResultsFile "          <table class=\"CoverageSettings\">"
+  puts $ResultsFile "            <thead>"
+  puts $ResultsFile "              <tr>"
+  puts $ResultsFile "                  <th>Settings</th>"
+  puts $ResultsFile "                  <th>Value</th>"
+  puts $ResultsFile "              </tr>"
+  puts $ResultsFile "            </thead>"
+  puts $ResultsFile "            <tbody>"
 
   dict for {key val} ${CovModelSettings} {
     if {$key ne "Seeds"} {
-      puts $ResultsFile "      <tr><td>${key}</td><td>${val}</td></tr>"
+      puts $ResultsFile "              <tr><td>${key}</td><td>${val}</td></tr>"
     } else {
-      puts $ResultsFile "      <tr><td>${key}</td><td>[lindex ${val} 0], &nbsp;[lindex ${val} 1]</td></tr>"
+      puts $ResultsFile "              <tr><td>${key}</td><td>[lindex ${val} 0], &nbsp;[lindex ${val} 1]</td></tr>"
     }
   }
   
-  puts $ResultsFile "    </table>"
-  puts $ResultsFile "    </div>"
-  puts $ResultsFile "    <DIV STYLE=\"font-size:10px\"><BR></DIV>"
-  puts $ResultsFile "    </details>"
+  puts $ResultsFile "            </tbody>"
+  puts $ResultsFile "          </table>"
+  puts $ResultsFile "        </details>"
+  puts $ResultsFile "      </div>"
 }
 
 proc OsvvmCovBins2Html {ModelDict WritePassFail} {
@@ -125,48 +127,48 @@ proc OsvvmCovBins2Html {ModelDict WritePassFail} {
   set BinInfoDict      [dict get $ModelDict BinInfo] 
   set BinsArray        [dict get $ModelDict Bins]
 
-  puts $ResultsFile "      <DIV STYLE=\"font-size:5px\"><BR></DIV>"
-  puts $ResultsFile "      <details open><summary>[dict get $ModelDict Name] Coverage Bins</summary>"
-  puts $ResultsFile "      <DIV STYLE=\"font-size:10px\"><BR></DIV>"
-  puts $ResultsFile "      <div  style=\"margin: 0px 30px;\">"
-  puts $ResultsFile "      <table>"
-  puts $ResultsFile "      <tr>"
-  puts $ResultsFile "        <th rowspan=\"2\">Name</th>"
-  puts $ResultsFile "        <th rowspan=\"2\">Type</th>"
+  puts $ResultsFile "      <div class=\"CoverageTable\">"
+  puts $ResultsFile "        <details open><summary class=\"subindented\">[dict get $ModelDict Name] Coverage Bins</summary>"
+  puts $ResultsFile "          <table class=\"CoverageTable\">"
+  puts $ResultsFile "            <thead>"
+  puts $ResultsFile "              <tr>"
+  puts $ResultsFile "                <th rowspan=\"2\">Name</th>"
+  puts $ResultsFile "                <th rowspan=\"2\">Type</th>"
   foreach Heading [dict get $BinInfoDict FieldNames] {
-    puts $ResultsFile "        <th rowspan=\"2\">${Heading}</th>"
+    puts $ResultsFile "                <th rowspan=\"2\">${Heading}</th>"
   }
-  puts $ResultsFile "        <th rowspan=\"2\">Count</th>"
-  puts $ResultsFile "        <th rowspan=\"2\">AtLeast</th>"
-  puts $ResultsFile "        <th rowspan=\"2\">Percent<br>Coverage</th>"
+  puts $ResultsFile "                <th rowspan=\"2\">Count</th>"
+  puts $ResultsFile "                <th rowspan=\"2\">AtLeast</th>"
+  puts $ResultsFile "                <th rowspan=\"2\">Percent<br>Coverage</th>"
   if {$WritePassFail} {
-    puts $ResultsFile "      <th rowspan=\"2\">Status</th>"
+    puts $ResultsFile "              <th rowspan=\"2\">Status</th>"
   }
-  puts $ResultsFile "      </tr>"
-  puts $ResultsFile "      <tr></tr>"
+  puts $ResultsFile "              </tr>"
+  puts $ResultsFile "            </thead>"
+  puts $ResultsFile "            <tbody>"
 
   foreach BinDict $BinsArray {
-    puts $ResultsFile "      <tr>"
-    puts $ResultsFile "        <td>[dict get $BinDict Name]</td>"
+    puts $ResultsFile "              <tr>"
+    puts $ResultsFile "                <td>[dict get $BinDict Name]</td>"
     set CovType [dict get $BinDict Type]
-    puts $ResultsFile "        <td>$CovType</td>"
+    puts $ResultsFile "                <td>$CovType</td>"
     set RangeArray [dict get $BinDict Range]
     foreach RangeDict $RangeArray {
       set MinRange [dict get $RangeDict Min]
       set MaxRange [dict get $RangeDict Max]
       if {${MinRange} == ${MaxRange}} {
-        puts $ResultsFile "        <td>${MinRange}</td>"
+        puts $ResultsFile "                <td>${MinRange}</td>"
       } elseif {${MinRange} > -2147483647 && ${MaxRange} < 2147483647} {
-        puts $ResultsFile "        <td>${MinRange} to ${MaxRange}</td>"
+        puts $ResultsFile "                <td>${MinRange} to ${MaxRange}</td>"
       } else {
-        puts $ResultsFile "        <td>ALL</td>"
+        puts $ResultsFile "                <td>ALL</td>"
       }
     }
     set CovCount   [dict get $BinDict Count]
     set CovAtLeast [dict get $BinDict AtLeast]
-    puts $ResultsFile "        <td>$CovCount</td>"
-    puts $ResultsFile "        <td>$CovAtLeast</td>"
-    puts $ResultsFile "        <td>[format %.1f [dict get $BinDict PercentCov]]</td>"
+    puts $ResultsFile "                <td>$CovCount</td>"
+    puts $ResultsFile "                <td>$CovAtLeast</td>"
+    puts $ResultsFile "                <td>[format %.1f [dict get $BinDict PercentCov]]</td>"
     if {$WritePassFail} {
       if {$CovWeight > 0} {
         if {$CovType eq "COUNT"} {
@@ -175,22 +177,22 @@ proc OsvvmCovBins2Html {ModelDict WritePassFail} {
           set CovPassed [expr {$CovCount != 0}]
         }
         if {$CovPassed} {
-          puts $ResultsFile "        <td style=color:#00C000>PASSED</td>"
+          puts $ResultsFile "                <td class=\"passed\">PASSED</td>"
         } else {
-          puts $ResultsFile "        <td style=color:#F00000>FAILED</td>"
+          puts $ResultsFile "                <td class=\"failed\">FAILED</td>"
         }
       } else {
-          puts $ResultsFile "        <td>-</td>"
+          puts $ResultsFile "                <td>-</td>"
       }
     }
-    puts $ResultsFile "      </tr>"
+    puts $ResultsFile "              </tr>"
   }
   set NumBins [expr 5 + [llength $RangeArray]]
-  puts $ResultsFile "      <tr>"
-  puts $ResultsFile "        <td style=\"text-align: left\" colspan=\"$NumBins\"><strong>Total Percent Coverage:</strong> &emsp; [format %.1f [dict get $ModelDict Coverage]]</td>"
-  puts $ResultsFile "      </tr>"
-  puts $ResultsFile "      </table>"
+  puts $ResultsFile "              <tr>"
+  puts $ResultsFile "                <td style=\"text-align: left\" colspan=\"$NumBins\"><strong>Total Percent Coverage:</strong> &emsp; [format %.1f [dict get $ModelDict Coverage]]</td>"
+  puts $ResultsFile "              </tr>"
+  puts $ResultsFile "            </tbody>"
+  puts $ResultsFile "          </table>"
+  puts $ResultsFile "        </details>"
   puts $ResultsFile "      </div>"
-  puts $ResultsFile "      <DIV STYLE=\"font-size:10px\"><BR></DIV>"
-  puts $ResultsFile "      </details>"
 }
