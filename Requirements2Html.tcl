@@ -41,25 +41,19 @@
 
 package require yaml
 
-proc Requirements2Html {RequirementsYamlFile {TestCaseName ""} {TestSuiteName ""}} {
+proc Requirements2Html {RequirementsYamlFile {AdditionalPath ""} } {
   variable ResultsFile
 
   if {[file exists $RequirementsYamlFile]} {
-    if {$TestSuiteName eq ""} {
-      # Extract HTML file name and ReportName from YamlFile
-      set FileRoot [file rootname $RequirementsYamlFile]
-      set HtmlFileName ${FileRoot}.html
-      set ReportName [regsub {_req} [file tail $FileRoot] ""] 
-      
-      set ResultsFile [open ${HtmlFileName} w]
-    } else {
-# This branch is not used.
-      OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
-      set ReportName $TestCaseName
-    }
+    # Extract HTML file name and ReportName from YamlFile
+    set FileRoot [file rootname $RequirementsYamlFile]
+    set HtmlFileName ${FileRoot}.html
+    set ReportName [regsub {_req} [file tail $FileRoot] ""] 
+    
+    set ResultsFile [open ${HtmlFileName} w]
     
     # Convert requirements YAML to HTML and catch errors
-    set ErrorCode [catch {LocalRequirements2Html $RequirementsYamlFile $ReportName} errmsg]
+    set ErrorCode [catch {LocalRequirements2Html $RequirementsYamlFile $ReportName $AdditionalPath} errmsg]
     close $ResultsFile
 
     if {$ErrorCode} {
@@ -69,14 +63,14 @@ proc Requirements2Html {RequirementsYamlFile {TestCaseName ""} {TestSuiteName ""
 }
 
 
-proc LocalRequirements2Html {RequirementsYamlFile ReportName} {
+proc LocalRequirements2Html { RequirementsYamlFile ReportName AdditionalPath } {
   variable ResultsFile
 
   set UnsortedRequirements2Dict [::yaml::yaml2dict -file ${RequirementsYamlFile}]
   
   set Requirements2Dict [lsort -index 1 $UnsortedRequirements2Dict]
   
-  RequirementsTableHeader $ReportName
+  RequirementsTableHeader $ReportName $AdditionalPath
   
   foreach item $Requirements2Dict {
     set Requirement [dict get $item Requirement]
@@ -95,19 +89,26 @@ proc LocalRequirements2Html {RequirementsYamlFile ReportName} {
   RequirementsTableFooter
 }
 
-proc RequirementsTableHeader { ReportName } {
+proc RequirementsTableHeader { ReportName AdditionalPath } {
   variable ResultsFile
 
   puts $ResultsFile "<!DOCTYPE html>"
   puts $ResultsFile "<html lang=\"en\">"
   puts $ResultsFile "<head>"
-  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${::OsvvmLibraries}/Scripts/CssOsvvmStyle.css\">"
-  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${::OsvvmLibraries}/Scripts/Custom-Style.css\">"
+  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${AdditionalPath}../${::osvvm::CssSubdirectory}/CssOsvvmStyle.css\">"
+  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${AdditionalPath}../${::osvvm::CssSubdirectory}/Custom-Style.css\">"
   puts $ResultsFile "  <title>$ReportName Requirement Results</title>"
   puts $ResultsFile "</head>"
   puts $ResultsFile "<body>"
   puts $ResultsFile "<header>"
-  puts $ResultsFile "  <h1>$ReportName Requirement Results</h1>"
+  puts $ResultsFile "  <div class=\"summary-parent\">"
+  puts $ResultsFile "    <div class=\"summary-table\">"
+  puts $ResultsFile "      <h1>$ReportName Requirement Results</h1>"
+  puts $ResultsFile "    </div>"
+  puts $ResultsFile "    <div class=\"requirements-logo\">"
+  puts $ResultsFile "      <img src=\"${AdditionalPath}../${::osvvm::CssSubdirectory}/OsvvmLogo.png\" alt=\"OSVVM logo\">"
+  puts $ResultsFile "    </div>"
+  puts $ResultsFile "  </div>"
   puts $ResultsFile "</header>"
   puts $ResultsFile "<main>"
   puts $ResultsFile "  <div class=\"RequirementsResults\">"

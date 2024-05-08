@@ -42,9 +42,15 @@ div.summary-parent {
 
 div.summary-logo img {
     vertical-align: top;
-    horiz-align: right;
     max-width: 400px;
     margin-left: 20px;
+}
+
+div.requirements-logo img {
+    float: right;
+    vertical-align: middle;
+    max-width: 200px;
+    margin: 10px 40px 10px 80px;
 }
 
 div.analysis-results {
@@ -168,6 +174,6 @@ summary > b {
     font-weight: bold;
 }
 
-#logo {
+/* #logo {
     width: 100%;
-}
+}*/

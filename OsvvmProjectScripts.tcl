@@ -422,7 +422,7 @@ proc LocalBuild {BuildName Path_Or_File args} {
     set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
     set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${BuildName} ${TestSuiteName}_req.yml]
     MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
-    Requirements2Html $RequirementsResultsFile
+    Requirements2Html $RequirementsResultsFile "../"
     
     FinalizeTestSuite $TestSuiteName
     FinishTestSuiteBuildYaml
@@ -1279,7 +1279,7 @@ proc TestSuite {SuiteName} {
     set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
     set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${::osvvm::BuildName} ${TestSuiteName}_req.yml]
     MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
-    Requirements2Html $RequirementsResultsFile
+    Requirements2Html $RequirementsResultsFile "../"
     
     # Finish previous test suite before ending current one
     FinalizeTestSuite $TestSuiteName

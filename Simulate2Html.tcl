@@ -72,7 +72,7 @@ proc Simulate2Html {TestCaseName {TestSuiteName "Default"} {BuildName ""} {Gener
 
   if {[file exists ${RequirementsYamlFile}]} {
 # This is somewhat redundant but can be added to the TestCase Report
-#    Requirements2Html ${RequirementsYamlFile} $TestCaseName $TestSuiteName
+#    Requirements2Html ${RequirementsYamlFile} $TestCaseName $TestSuiteName ;# this form deprecated
     file rename -force ${RequirementsYamlFile}  [file join ${TestSuiteDirectory} [file tail ${RequirementsYamlFile}]]
   }
 
@@ -114,17 +114,16 @@ proc OpenSimulationReportFile {TestCaseName TestSuiteName {initialize 0}} {
 
   # Create the TestCase file in the simulation directory
   set FileName ${TestCaseName}.html
-  
-#  if { $initialize } {
-#    set HeaderFile [FindProjectFile ${TestCaseName}_simulation_header.html]
-#    if {$HeaderFile eq ""} {
-#      set HeaderFile [FindProjectFile simulation_header.html]
-#    }
-#    file copy -force ${HeaderFile} ${FileName}
-#  }
-#  set ResultsFile [open ${FileName} a]
-  
+    
   if { $initialize } {
+    # If CSS file does not exist in CssDirectory, copy it to there 
+    if {![file exists ${::osvvm::CssDirectory}/CssOsvvmStyle.css]} {
+      file copy -force ${::OsvvmLibraries}/Scripts/CssOsvvmStyle.css ${::osvvm::CssDirectory}/CssOsvvmStyle.css
+    }
+    # If logo file does not exist in CssDirectory, copy it to there
+    if {![file exists ${::osvvm::CssDirectory}/OsvvmLogo.png]} {
+      file copy -force ${::OsvvmLibraries}/Scripts/OsvvmLogo.png ${::osvvm::CssDirectory}/OsvvmLogo.png
+    }
     set ResultsFile [open ${FileName} w]
   } else {
     set ResultsFile [open ${FileName} a]
@@ -160,8 +159,8 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName BuildName GenericList}
   puts $ResultsFile "<!DOCTYPE html>"
   puts $ResultsFile "<html lang=\"en\">"
   puts $ResultsFile "<head>"
-  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${::OsvvmLibraries}/Scripts/CssOsvvmStyle.css\">"
-  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${::OsvvmLibraries}/Scripts/Custom-Style.css\">"
+  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"../../${::osvvm::CssSubdirectory}/CssOsvvmStyle.css\">"
+  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"../../${::osvvm::CssSubdirectory}/Custom-Style.css\">"
   puts $ResultsFile "  <title>$TestCaseName Test Case Report</title>"
   puts $ResultsFile "</head>"
   puts $ResultsFile "<body>"
@@ -255,7 +254,7 @@ proc LocalSimulate2HtmlHeader {TestCaseName TestSuiteName BuildName GenericList}
   puts $ResultsFile "      </table>"
   puts $ResultsFile "    </div>"
   puts $ResultsFile "    <div class=\"summary-logo\">"
-	puts $ResultsFile "    	 <img id=\"logo\" src=\"${::OsvvmLibraries}/Scripts/OsvvmLogo.png\" alt=\"OSVVM logo\">"
+	puts $ResultsFile "    	 <img id=\"logo\" src=\"../../${::osvvm::CssSubdirectory}/OsvvmLogo.png\" alt=\"OSVVM logo\">"
   puts $ResultsFile "    </div>"
   puts $ResultsFile "  </div>"
 }

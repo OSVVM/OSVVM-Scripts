@@ -55,6 +55,16 @@ proc Report2Html {ReportFile} {
   set ReportBuildName [file tail $ReportFileRoot]
   set FileName ${ReportFileRoot}.html
   
+  
+  # If CSS file does not exist in CssDirectory, copy it to there 
+  if {![file exists ${::osvvm::CssDirectory}/CssOsvvmStyle.css]} {
+    file copy -force ${::OsvvmLibraries}/Scripts/CssOsvvmStyle.css ${::osvvm::CssDirectory}/CssOsvvmStyle.css
+  }
+  # If logo file does not exist in CssDirectory, copy it to there
+  if {![file exists ${::osvvm::CssDirectory}/OsvvmLogo.png]} {
+    file copy -force ${::OsvvmLibraries}/Scripts/OsvvmLogo.png ${::osvvm::CssDirectory}/OsvvmLogo.png
+  }
+
   # Read the YAML file into a dictionary
   set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
 
@@ -112,8 +122,8 @@ proc CreateBuildReportHeader {} {
   puts $ResultsFile "<!DOCTYPE html>"
   puts $ResultsFile "<html lang=\"en\">"
   puts $ResultsFile "<head>"
-  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${::OsvvmLibraries}/Scripts/CssOsvvmStyle.css\">"
-  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${::OsvvmLibraries}/Scripts/Custom-Style.css\">"
+  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${::osvvm::CssSubdirectory}/CssOsvvmStyle.css\">"
+  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${::osvvm::CssSubdirectory}/Custom-Style.css\">"
   puts $ResultsFile "  <title>$ReportBuildName Build Report</title>"
   puts $ResultsFile "</head>"
   puts $ResultsFile "<body>"
@@ -347,9 +357,10 @@ proc ReportElaborateStatus {TestDict} {
     puts $ResultsFile "          <tr><td>HTML Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${ReportBuildName}_log.html</a></td></tr>"
   }
 
-  set RequirementsHtml [file join $::osvvm::ReportsSubdirectory ${ReportBuildName}_req.html]
+  set RequirementsRelativeHtml [file join $::osvvm::ReportsSubdirectory ${ReportBuildName}_req.html]
+  set RequirementsHtml [file join $::osvvm::ReportsDirectory ${ReportBuildName}_req.html]
   if {[file exists $RequirementsHtml]} {
-    puts $ResultsFile "          <tr><td>Requirements Summary</td><td><a href=\"${RequirementsHtml}\">[file tail $RequirementsHtml]</a></td></tr>"
+    puts $ResultsFile "          <tr><td>Requirements Summary</td><td><a href=\"${RequirementsRelativeHtml}\">[file tail $RequirementsRelativeHtml]</a></td></tr>"
   }
 
   set CodeCoverageFile [vendor_GetCoverageFileName ${ReportBuildName}]
@@ -361,7 +372,7 @@ proc ReportElaborateStatus {TestDict} {
   puts $ResultsFile "      </table>"
   puts $ResultsFile "    </div>"
   puts $ResultsFile "    <div class=\"summary-logo\">"
-	puts $ResultsFile "    	 <img id=\"logo\" src=\"${::OsvvmLibraries}/Scripts/OsvvmLogo.png\" alt=\"OSVVM logo\">"
+	puts $ResultsFile "    	 <img id=\"logo\" src=\"${::osvvm::CssSubdirectory}/OsvvmLogo.png\" alt=\"OSVVM logo\">"
   puts $ResultsFile "    </div>"
   puts $ResultsFile "  </div>"
   
@@ -407,11 +418,12 @@ proc ReportElaborateStatus {TestDict} {
       puts $ResultsFile "            <td ${PassedClass}>[dict get $TestSuite PASSED] </td>"
       puts $ResultsFile "            <td ${FailedClass}>[dict get $TestSuite FAILED] </td>"
       puts $ResultsFile "            <td>[dict get $TestSuite SKIPPED]</td>"
-      set RequirementsHtml [file join $::osvvm::ReportsSubdirectory $ReportBuildName ${SuiteName}_req.html]
+      set RequirementRelativeHtml [file join $::osvvm::ReportsSubdirectory $ReportBuildName ${SuiteName}_req.html]
+      set RequirementsHtml [file join $::osvvm::ReportsDirectory $ReportBuildName ${SuiteName}_req.html]
       set ReqGoal [dict get $TestSuite ReqGoal]
       set ReqPassed [dict get $TestSuite ReqPassed]
       if {[file exists $RequirementsHtml]} {
-        puts $ResultsFile "          <td><a href=\"${RequirementsHtml}\">$ReqPassed / $ReqGoal</a></td>"
+        puts $ResultsFile "          <td><a href=\"${RequirementRelativeHtml}\">$ReqPassed / $ReqGoal</a></td>"
       } else {
         if {($ReqGoal > 0) || ($ReqPassed > 0)} {
           puts $ResultsFile "          <td>$ReqPassed / $ReqGoal</td>"
@@ -463,6 +475,7 @@ proc ReportTestSuites {TestDict} {
       puts $ResultsFile "        <tbody>"
 
       set ReportsDirectory [file join $::osvvm::ReportsSubdirectory $SuiteName]
+#!!      set ReportsDirectory [file join $::osvvm::ReportsDirectory $SuiteName]
 
       foreach TestCase [dict get $TestSuite TestCases] {
         set TestName     [dict get $TestCase TestCaseName]
