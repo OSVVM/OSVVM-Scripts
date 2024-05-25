@@ -119,7 +119,7 @@ proc FinishBuildYaml {BuildName} {
   } else {
     puts  $RunFile "  Report2SimulationHtmlLogFile: \"\""
   }
-  puts  $RunFile "  CssPngSourceDirectory:   \"${::OsvvmLibraries}/Scripts\""
+  puts  $RunFile "  CssPngSourceDirectory:   \"${::osvvm::OsvvmScriptDirectory}\""
   if {[file exists [file join $::osvvm::ReportsDirectory ${BuildName}_req.yml]]} {
     puts  $RunFile "  RequirementsSubdirectory: \"$::osvvm::ReportsSubdirectory\""
   } else {
