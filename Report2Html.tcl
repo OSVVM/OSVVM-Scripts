@@ -19,6 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    05/2024   2024.05    Refactored. Decoupled.  Yaml = source of information.
 #    04/2024   2024.04    Updated report formatting
 #    07/2023   2023.07    Updated file handler to search for user defined HTML headers
 #    12/2022   2022.12    Refactored to only use static OSVVM information
@@ -46,6 +47,20 @@
 
 package require yaml
 
+#  Notes:  
+#  The following variables are set by GetPathSettings that read the YAML file
+#      Report2CssDirectory 
+#      Report2BaseDirectory
+#      Report2ReportsSubdirectory
+#      Report2LogSubdirectory
+#      Report2CssPngSourceDirectory
+#      Report2RequirementsSubdirectory - value is "" if requirements not used
+#      Report2CoverageSubdirectory - value is "" if coverage not used
+#
+
+# -------------------------------------------------
+# build
+#
 proc Report2Html {ReportFile} {
   variable ResultsFile
   variable ReportBuildName
@@ -56,15 +71,6 @@ proc Report2Html {ReportFile} {
   set FileName ${ReportFileRoot}.html
   
   
-  # If CSS file does not exist in CssDirectory, copy it to there 
-  if {![file exists ${::osvvm::CssDirectory}/CssOsvvmStyle.css]} {
-    file copy -force ${::OsvvmLibraries}/Scripts/CssOsvvmStyle.css ${::osvvm::CssDirectory}/CssOsvvmStyle.css
-  }
-  # If logo file does not exist in CssDirectory, copy it to there
-  if {![file exists ${::osvvm::CssDirectory}/OsvvmLogo.png]} {
-    file copy -force ${::OsvvmLibraries}/Scripts/OsvvmLogo.png ${::osvvm::CssDirectory}/OsvvmLogo.png
-  }
-
   # Read the YAML file into a dictionary
   set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
 
@@ -82,21 +88,33 @@ proc Report2Html {ReportFile} {
   }
 }
 
+# -------------------------------------------------
+# build
+#
 proc LocalReport2Html {Report2HtmlDict} {
   variable ResultsFile
 
   set VersionNum  [dict get $Report2HtmlDict Version]
   
-  CreateBuildReportHeader
-
-  ReportElaborateStatus $Report2HtmlDict
+  GetPathSettings $Report2HtmlDict 
   
-  ReportTestSuites $Report2HtmlDict
+  CreateBuildReportHeader
+  
+  ElaborateTestSuites $Report2HtmlDict
+
+  CreateBuildReportSummary $Report2HtmlDict
+  
+  CreateTestSuiteSummary 
+  
+  CreateTestCaseSummaries $Report2HtmlDict
   
   CreateBuildReportFooter
 
 }
 
+# -------------------------------------------------
+# ReportBuildStatus
+#
 proc ReportBuildStatus {} {
   variable ReportBuildName
   variable ReportBuildErrorCode
@@ -115,15 +133,51 @@ proc ReportBuildStatus {} {
   }
 }
 
+# -------------------------------------------------
+# GetPathSettings
+#
+proc GetPathSettings {TestDict} {
+  variable Report2BaseDirectory            
+  variable Report2ReportsSubdirectory      
+  variable Report2SimulationLogFile        
+  variable Report2SimulationHtmlLogFile    
+  variable Report2CssPngSourceDirectory    
+  variable Report2RequirementsSubdirectory 
+  variable Report2CoverageSubdirectory     
+  variable Report2CssSubdirectory
+  
+  set SettingsInfoDict                    [dict get $TestDict SettingsInfo]
+  set Report2BaseDirectory                [dict get $SettingsInfoDict BaseDirectory]
+  set Report2ReportsSubdirectory          [dict get $SettingsInfoDict ReportsSubdirectory]
+  set Report2SimulationLogFile            [dict get $SettingsInfoDict Report2SimulationLogFile]
+  set Report2SimulationHtmlLogFile        [dict get $SettingsInfoDict Report2SimulationHtmlLogFile]
+  set Report2CssPngSourceDirectory        [dict get $SettingsInfoDict CssPngSourceDirectory]
+  set Report2RequirementsSubdirectory     [dict get $SettingsInfoDict RequirementsSubdirectory]
+  set Report2CoverageSubdirectory         [dict get $SettingsInfoDict CoverageSubdirectory]
+  
+  # Current OSVVM requirement.  Required by all OSVVM html reports
+  set Report2CssSubdirectory $::osvvm::ReportsSubdirectory
+  CreateDirectory [file join $Report2BaseDirectory $Report2CssSubdirectory]  ; # if just running analyze it may not exist yet
+
+}
+
+# -------------------------------------------------
+# CreateBuildReportHeader
+#
 proc CreateBuildReportHeader {} {
   variable ResultsFile
   variable ReportBuildName
+  variable Report2CssPngSourceDirectory
+  variable Report2BaseDirectory
+  variable Report2CssSubdirectory
   
   puts $ResultsFile "<!DOCTYPE html>"
   puts $ResultsFile "<html lang=\"en\">"
   puts $ResultsFile "<head>"
-  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${::osvvm::CssSubdirectory}/CssOsvvmStyle.css\">"
-  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${::osvvm::CssSubdirectory}/Custom-Style.css\">"
+  
+  # Copy the CSS file(s) if they do not exist in Report2CssPngSourceDirectory
+  CopyAndLinkCssFiles $ResultsFile $Report2CssPngSourceDirectory $Report2BaseDirectory $Report2CssSubdirectory
+
   puts $ResultsFile "  <title>$ReportBuildName Build Report</title>"
   puts $ResultsFile "</head>"
   puts $ResultsFile "<body>"
@@ -133,59 +187,62 @@ proc CreateBuildReportHeader {} {
   puts $ResultsFile "<main>"
 }
 
+# -------------------------------------------------
+# CopyAndLinkCssFiles
+#
+proc CopyAndLinkCssFiles {ResultsFile CssSourceDirectory BaseDirectory CssTargetSubdirectory} {
+  variable Report2PngFile
+  
+  # Note files are linked into the HTML in glob order (alphabetical but may be OS dependent WRT upper case)
+  set CssFiles [glob -nocomplain [file join ${CssSourceDirectory} *.css]]
+  if {$CssFiles ne ""} {
+    foreach CssFileWithPath ${CssFiles} {
+      set CssFile [file join $CssTargetSubdirectory [file tail $CssFileWithPath]]
+      file copy -force ${CssFileWithPath}  [file join $BaseDirectory  $CssFile]
+      # HTML file is relative to the BaseDirectory
+      puts $ResultsFile "  <link rel=\"stylesheet\" href=\"$CssFile\">"
+    }
+  }
+  
+  # There should only be one *.png file.
+  set PngFiles [glob -nocomplain [file join ${CssSourceDirectory} *.png]]
+  if {$PngFiles ne ""} {
+    foreach PngFileWithPath ${PngFiles} {
+      set PngFile [file join $CssTargetSubdirectory [file tail $PngFileWithPath]]
+      file copy -force ${PngFileWithPath} [file join $BaseDirectory $PngFile]
+    }
+  }
+  # There should be only one PNG file, so make it the last one we find.
+  set Report2PngFile $PngFile
+}
+
+# -------------------------------------------------
+# CreateBuildReportFooter
+#
 proc CreateBuildReportFooter {} {
   variable ResultsFile
   
   puts $ResultsFile "</main>"
   puts $ResultsFile "<footer>"
   puts $ResultsFile "  <hr />"
+  # ::osvvm::OsvvmVersion is appropriate here.  The two versions should match.
 	puts $ResultsFile "  <p class=\"generated-by-osvvm\">Generated by OSVVM-Scripts ${::osvvm::OsvvmVersion} on [clock format [clock seconds] -format {%Y-%m-%d - %H:%M:%S (%Z)}].</p>"
   puts $ResultsFile "</footer>"
   puts $ResultsFile "</body>"
   puts $ResultsFile "</html>"
 }
 
-proc ReportElaborateStatus {TestDict} {
-  variable ResultsFile
-  variable ReportBuildName
-  variable ReportBuildErrorCode
-  variable ReportAnalyzeErrorCount
-  variable ReportSimulateErrorCount
+# -------------------------------------------------
+# ElaborateTestSuites
+#
+proc ElaborateTestSuites {TestDict} {
   variable BuildStatus "PASSED"
   variable TestCasesPassed 0
   variable TestCasesFailed 0
   variable TestCasesSkipped 0
   variable TestCasesRun 0
-
-  if {[info exists ReportTestSuiteSummary]} {
-    unset ReportTestSuiteSummary
-  }
-
-#  set ReportBuildName [dict get $TestDict BuildName] ; # now comes from FileName
-
-  if { [dict exists $TestDict BuildInfo] } {
-    set RunInfo   [dict get $TestDict BuildInfo] 
-  } else {
-    set RunInfo   [dict create BuildErrorCode 1]
-  }
-  if {[dict exists $RunInfo BuildErrorCode]} {
-    set ReportBuildErrorCode [dict get $RunInfo BuildErrorCode]
-  } else {
-    set ReportBuildErrorCode 1
-  }
-  if {[dict exists $RunInfo AnalyzeErrorCount]} {
-    set ReportAnalyzeErrorCount [dict get $RunInfo AnalyzeErrorCount]
-  } else {
-    set ReportAnalyzeErrorCount 0
-  }
-  if {[dict exists $RunInfo SimulateErrorCount]} {
-    set ReportSimulateErrorCount [dict get $RunInfo SimulateErrorCount]
-  } else {
-    set ReportSimulateErrorCount 0
-  }
-  if {($ReportBuildErrorCode != 0) || $ReportAnalyzeErrorCount || $ReportSimulateErrorCount} {
-    set BuildStatus "FAILED"
-  }
+  variable CreateTestCaseSummariesummary ""
+  variable HaveTestSuites
   
   set HaveTestSuites [dict exists $TestDict TestSuites]
 
@@ -262,8 +319,54 @@ proc ReportElaborateStatus {TestDict} {
       dict append SuiteDict ReqGoal         $SuiteReqGoal
       dict append SuiteDict DisabledAlerts  $SuiteDisabledAlerts
       dict append SuiteDict ElapsedTime     $SuiteElapsedTime
-      lappend ReportTestSuiteSummary $SuiteDict
+      lappend CreateTestCaseSummariesummary $SuiteDict
     }
+  }
+}
+
+# -------------------------------------------------
+# CreateBuildReportSummary
+#
+proc CreateBuildReportSummary {TestDict} {
+  variable ResultsFile
+  variable ReportBuildName
+  variable ReportBuildErrorCode
+  variable ReportAnalyzeErrorCount
+  variable ReportSimulateErrorCount
+  variable BuildStatus 
+  variable TestCasesPassed 
+  variable TestCasesFailed 
+  variable TestCasesSkipped 
+  variable TestCasesRun 
+
+  if {[info exists CreateTestCaseSummariesummary]} {
+    unset CreateTestCaseSummariesummary
+  }
+
+#  set ReportBuildName [dict get $TestDict BuildName] ; # now comes from FileName
+
+  if { [dict exists $TestDict BuildInfo] } {
+    set RunInfo   [dict get $TestDict BuildInfo] 
+  } else {
+    set RunInfo   [dict create BuildErrorCode 1]
+  }
+  if {[dict exists $RunInfo BuildErrorCode]} {
+    set ReportBuildErrorCode [dict get $RunInfo BuildErrorCode]
+  } else {
+    set ReportBuildErrorCode 1
+  }
+  if {[dict exists $RunInfo AnalyzeErrorCount]} {
+    set ReportAnalyzeErrorCount [dict get $RunInfo AnalyzeErrorCount]
+  } else {
+    set ReportAnalyzeErrorCount 0
+  }
+  if {[dict exists $RunInfo SimulateErrorCount]} {
+    set ReportSimulateErrorCount [dict get $RunInfo SimulateErrorCount]
+  } else {
+    set ReportSimulateErrorCount 0
+  }
+  if {($ReportBuildErrorCode != 0) || $ReportAnalyzeErrorCount || $ReportSimulateErrorCount} {
+    set BuildStatus "FAILED"
   }
   
   set PassedClass  ""
@@ -340,42 +443,50 @@ proc ReportElaborateStatus {TestDict} {
     puts $ResultsFile "          <tr><td>OSVVM Version</td> <td>[dict get $RunInfo OsvvmVersion]</td></tr>"
   } 
 
-# These should move to CreateBuildYamlReports
-# Use this to iterate Reports Repository
-  if { [dict exists $TestDict OptionalInfo] } {
-    set OptionalInfo  [dict get $TestDict OptionalInfo]
-    dict for {key val} ${OptionalInfo} {
-      puts $ResultsFile "  <tr><td>$key</td><td>$val</td></tr>"
-    }
+## These should move to CreateBuildYamlReports
+## Use this to iterate Reports Repository
+##   if { [dict exists $TestDict OptionalInfo] } {
+##     set OptionalInfo  [dict get $TestDict OptionalInfo]
+##     dict for {key val} ${OptionalInfo} {
+##       puts $ResultsFile "  <tr><td>$key</td><td>$val</td></tr>"
+##     }
+##   }
+
+  if {$::osvvm::Report2SimulationLogFile ne ""} {
+    puts $ResultsFile "          <tr><td>Simulation Transcript</td><td><a href=\"${::osvvm::Report2SimulationLogFile}\">${ReportBuildName}.log</a></td></tr>"
+  }
+  if {$::osvvm::Report2SimulationHtmlLogFile ne ""} {
+    puts $ResultsFile "          <tr><td>HTML Simulation Transcript</td><td><a href=\"${::osvvm::Report2SimulationHtmlLogFile}\">${ReportBuildName}_log.html</a></td></tr>"
   }
 
-  if {$::osvvm::TranscriptExtension ne "none"} {
-    set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${ReportBuildName}]
-    puts $ResultsFile "          <tr><td>Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}.log\">${ReportBuildName}.log</a></td></tr>"
-  }
-  if {$::osvvm::TranscriptExtension eq "html"} {
-    puts $ResultsFile "          <tr><td>HTML Simulation Transcript</td><td><a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${ReportBuildName}_log.html</a></td></tr>"
-  }
-
-  set RequirementsRelativeHtml [file join $::osvvm::ReportsSubdirectory ${ReportBuildName}_req.html]
-  set RequirementsHtml [file join $::osvvm::ReportsDirectory ${ReportBuildName}_req.html]
-  if {[file exists $RequirementsHtml]} {
+  if {$::osvvm::Report2RequirementsSubdirectory ne ""} {
+    set RequirementsRelativeHtml [file join $::osvvm::Report2RequirementsSubdirectory ${ReportBuildName}_req.html]
     puts $ResultsFile "          <tr><td>Requirements Summary</td><td><a href=\"${RequirementsRelativeHtml}\">[file tail $RequirementsRelativeHtml]</a></td></tr>"
   }
 
-  set CodeCoverageFile [vendor_GetCoverageFileName ${ReportBuildName}]
-  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
-    puts $ResultsFile "          <tr><td>Code Coverage</td><td><a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a></td></tr>"
+  if {$::osvvm::Report2CoverageSubdirectory ne ""} {
+    puts $ResultsFile "          <tr><td>Code Coverage</td><td><a href=\"${::osvvm::Report2CoverageSubdirectory}\">Code Coverage Results</a></td></tr>"
   }
 
   puts $ResultsFile "        </tbody>"
   puts $ResultsFile "      </table>"
   puts $ResultsFile "    </div>"
   puts $ResultsFile "    <div class=\"summary-logo\">"
-	puts $ResultsFile "    	 <img id=\"logo\" src=\"${::osvvm::CssSubdirectory}/OsvvmLogo.png\" alt=\"OSVVM logo\">"
+	puts $ResultsFile "    	 <img id=\"logo\" src=\"${::osvvm::Report2PngFile}\" alt=\"OSVVM logo\">"
   puts $ResultsFile "    </div>"
   puts $ResultsFile "  </div>"
   
+}
+
+# -------------------------------------------------
+# CreateTestSuiteSummary
+#
+proc CreateTestSuiteSummary  {} {
+  variable HaveTestSuites
+  variable CreateTestCaseSummariesummary
+  variable ResultsFile
+  variable ReportBuildName
+
   if { $HaveTestSuites } {
     puts $ResultsFile "  <div class=\"testsuite\">"
     puts $ResultsFile "    <details open=\"open\" class=\"testsuite-details\"><summary>Test Suite Summary</summary>"
@@ -396,7 +507,7 @@ proc ReportElaborateStatus {TestDict} {
     puts $ResultsFile "        </thead>"
     puts $ResultsFile "        <tbody>"
 
-    foreach TestSuite $ReportTestSuiteSummary {
+    foreach TestSuite $CreateTestCaseSummariesummary {
       set SuiteName [dict get $TestSuite Name]
       set SuiteStatus  [dict get $TestSuite Status]
 
@@ -418,8 +529,8 @@ proc ReportElaborateStatus {TestDict} {
       puts $ResultsFile "            <td ${PassedClass}>[dict get $TestSuite PASSED] </td>"
       puts $ResultsFile "            <td ${FailedClass}>[dict get $TestSuite FAILED] </td>"
       puts $ResultsFile "            <td>[dict get $TestSuite SKIPPED]</td>"
-      set RequirementRelativeHtml [file join $::osvvm::ReportsSubdirectory $ReportBuildName ${SuiteName}_req.html]
-      set RequirementsHtml [file join $::osvvm::ReportsDirectory $ReportBuildName ${SuiteName}_req.html]
+      set RequirementRelativeHtml [file join $::osvvm::Report2RequirementsSubdirectory $ReportBuildName ${SuiteName}_req.html]
+      set RequirementsHtml        [file join $::osvvm::Report2BaseDirectory $RequirementRelativeHtml]
       set ReqGoal [dict get $TestSuite ReqGoal]
       set ReqPassed [dict get $TestSuite ReqPassed]
       if {[file exists $RequirementsHtml]} {
@@ -442,11 +553,10 @@ proc ReportElaborateStatus {TestDict} {
   }
 }
 
-proc SumAlertCount {AlertCountDict} {
-  return [expr [dict get $AlertCountDict Failure] + [dict get $AlertCountDict Error] + [dict get $AlertCountDict Warning]]
-}
-
-proc ReportTestSuites {TestDict} {
+# -------------------------------------------------
+# CreateTestCaseSummaries
+#
+proc CreateTestCaseSummaries {TestDict} {
   variable ResultsFile
 
   if { [dict exists $TestDict TestSuites] } {
@@ -474,8 +584,7 @@ proc ReportTestSuites {TestDict} {
       puts $ResultsFile "        </thead>"
       puts $ResultsFile "        <tbody>"
 
-      set ReportsDirectory [file join $::osvvm::ReportsSubdirectory $SuiteName]
-#!!      set ReportsDirectory [file join $::osvvm::ReportsDirectory $SuiteName]
+      set ReportsDirectory [file join $::osvvm::Report2ReportsSubdirectory $SuiteName]
 
       foreach TestCase [dict get $TestSuite TestCases] {
         set TestName     [dict get $TestCase TestCaseName]
@@ -593,6 +702,16 @@ proc ReportTestSuites {TestDict} {
   }
 }
 
+# -------------------------------------------------
+# SumAlertCount
+#
+proc SumAlertCount {AlertCountDict} {
+  return [expr [dict get $AlertCountDict Failure] + [dict get $AlertCountDict Error] + [dict get $AlertCountDict Warning]]
+}
+
+# -------------------------------------------------
+# IsoToOsvvmTime
+#
 proc IsoToOsvvmTime {IsoTime} {
   set TimeInSec [clock scan $IsoTime -format {%Y-%m-%dT%H:%M:%S%z} ]
   return [clock format $TimeInSec -format {%Y-%m-%d - %H:%M:%S (%Z)}]

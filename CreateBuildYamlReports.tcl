@@ -19,6 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    05/2024   2024.05    Updated to Decouple Report2Html from OSVVM.  Yaml = source of information.
 #    04/2024   2024.04    Updated report formatting
 #    12/2022   2022.12    Refactored from OsvvmProjectScripts
 #
@@ -104,6 +105,34 @@ proc FinishBuildYaml {BuildName} {
   puts  $RunFile "  BuildErrorCode:       $BuildErrorCode"
   puts  $RunFile "  AnalyzeErrorCount:    $AnalyzeErrorCount"
   puts  $RunFile "  SimulateErrorCount:   $BuildErrorCode"
+  
+  puts  $RunFile "SettingsInfo:"
+  puts  $RunFile "  BaseDirectory:        \"$::osvvm::OutputBaseDirectory\""
+  puts  $RunFile "  ReportsSubdirectory:  \"$::osvvm::ReportsSubdirectory\""
+  if {$::osvvm::TranscriptExtension ne "none"} {
+    puts  $RunFile "  Report2SimulationLogFile: \"[file join ${::osvvm::LogSubdirectory} ${BuildName}.log]\""
+  } else {
+    puts  $RunFile "  Report2SimulationLogFile: \"\""
+  }
+  if {$::osvvm::TranscriptExtension eq "html"} {
+    puts  $RunFile "  Report2SimulationHtmlLogFile: \"[file join ${::osvvm::LogSubdirectory} ${BuildName}_log.html]\""
+  } else {
+    puts  $RunFile "  Report2SimulationHtmlLogFile: \"\""
+  }
+  puts  $RunFile "  CssPngSourceDirectory:   \"${::OsvvmLibraries}/Scripts\""
+  if {[file exists [file join $::osvvm::ReportsDirectory ${BuildName}_req.yml]]} {
+    puts  $RunFile "  RequirementsSubdirectory: \"$::osvvm::ReportsSubdirectory\""
+  } else {
+    puts  $RunFile "  RequirementsSubdirectory: \"\""
+  }
+  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
+    set CodeCoverageFile [vendor_GetCoverageFileName ${BuildName}]
+    puts  $RunFile "  CoverageSubdirectory:    \"[file join $::osvvm::CoverageSubdirectory  $CodeCoverageFile]\"" 
+  } else {
+    puts  $RunFile "  CoverageSubdirectory: \"\""
+  }
+
+  
   close $RunFile
 
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
