@@ -45,18 +45,11 @@
 
 package require yaml
 
-#proc GetCov {TestCaseName} {
-#  set CovFile ${::osvvm::ReportsDirectory}/${TestCaseName}_cov.yml
-#  set TestDict [::yaml::yaml2dict -file ${CovFile}]
-#  set Coverage    [dict get $TestDict Coverage]
-#  
-#  return $Coverage
-#}
-
 proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
   variable ResultsFile
     
-  OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
+  set FilePath [file dirname $CovYamlFile]
+  OpenSimulationReportFile [file join $FilePath ${TestCaseName}.html] 
   
   set ErrorCode [catch {LocalCov2Html $TestCaseName $TestSuiteName $CovYamlFile} errmsg]
   

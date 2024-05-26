@@ -46,7 +46,8 @@ package require yaml
 proc Alert2Html {TestCaseName TestSuiteName AlertYamlFile} {
   variable ResultsFile
 
-  OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
+  set FilePath [file dirname $AlertYamlFile]
+  OpenSimulationReportFile [file join $FilePath ${TestCaseName}.html] 
   
   set ErrorCode [catch {LocalAlert2Html $TestCaseName $TestSuiteName $AlertYamlFile} errmsg]
   

@@ -412,6 +412,7 @@ proc LocalBuild {BuildName Path_Or_File args} {
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
   StartBuildYaml $BuildName
+  CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
   
   CallbackBefore_Build ${Path_Or_File}
   LocalInclude ${Path_Or_File} {*}$args
@@ -1034,6 +1035,7 @@ proc simulate {LibraryUnit args} {
   set SavedInteractive [GetInteractiveMode] 
   if {!($::osvvm::BuildStarted)} {
     SetInteractiveMode "true"
+    CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
   }
 
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
@@ -1117,6 +1119,8 @@ proc LocalSimulate {LibraryUnit args} {
 }
 
 proc AfterSimulateReports {} {
+
+  SimulateDoneMoveTestCaseFiles ${::osvvm::TestCaseName} ${::osvvm::TestSuiteName} ${::osvvm::BuildName} ${::osvvm::GenericList}
 
   Simulate2Html ${::osvvm::TestCaseName} ${::osvvm::TestSuiteName} ${::osvvm::BuildName} ${::osvvm::GenericList}
   
@@ -1877,6 +1881,134 @@ proc InstallProject { {ProjectDir $OsvvmLibraries} {ProjectBuildScript $ProjectD
   cd $StartingDirectory
   SetLibraryDirectory $StartingLibraryDirectory
 #  variable ::osvvm::VhdlLibraryDirectory $StartingVhdlLibraryDirectory
+}
+
+#--------------------------------------------------------------
+# SimulateDoneMoveTestCaseFiles
+#
+proc SimulateDoneMoveTestCaseFiles {TestCaseName {TestSuiteName "Default"} {BuildName ""} {GenericList ""}} {
+  variable AlertYamlFile              
+  variable RequirementsYamlFile 
+  variable CovYamlFile          
+  variable Sim2SbFiles             
+  variable Sim2SbNames          
+  variable SimGenericNames
+  variable TestSuiteDirectory
+  variable SimulationHtmlLogFile
+  variable TranscriptFiles
+
+  variable OsvvmTemporaryOutputDirectory
+
+ 
+  set SimGenericNames [ToGenericNames $GenericList]
+  set TestCaseFileName ${TestCaseName}${SimGenericNames}
+
+  set TestSuiteDirectory [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
+  CreateDirectory $TestSuiteDirectory
+  
+  set AlertYamlSourceFile        [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_alerts.yml]
+  if {[file exists ${AlertYamlSourceFile}]} {
+    set AlertYamlFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_alerts.yml]
+    file rename -force $AlertYamlSourceFile $AlertYamlFile
+  } else { set AlertYamlFile "" }
+
+  set RequirementsYamlSourceFile [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_req.yml]
+  if {[file exists ${RequirementsYamlSourceFile}]} {
+    set RequirementsYamlFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_req.yml]
+    file rename -force $RequirementsYamlSourceFile  $RequirementsYamlFile
+  } else { set RequirementsYamlFile "" }
+
+  set CovYamlSourceFile          [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_cov.yml]
+  if {[file exists ${CovYamlSourceFile}]} {
+    set CovYamlFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_cov.yml]
+    file rename -force $CovYamlSourceFile  $CovYamlFile
+  } else { set CovYamlFile "" }
+  
+  set SbBaseYamlFile            ${TestCaseName}_sb_
+  set SbSourceFiles [glob -nocomplain [file join $OsvvmTemporaryOutputDirectory ${SbBaseYamlFile}*.yml] ]
+  set Sim2SbFiles ""
+  set Sim2SbNames ""
+  if {$SbSourceFiles ne ""} {
+    foreach SbSourceFile ${SbSourceFiles} {
+      set SbName [regsub ${SbBaseYamlFile} [file rootname [file tail $SbSourceFile]] ""]
+      set SbDestFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_${SbName}.yml]
+      file rename -force $SbSourceFile  $SbDestFile
+      lappend Sim2SbNames $SbName
+      lappend Sim2SbFiles $SbDestFile
+    }
+  }
+  
+  set TranscriptFiles ""
+  if {[file exists ${::osvvm::TranscriptYamlFile}]} {
+    set TranscriptFileArray [::yaml::yaml2dict -file ${::osvvm::TranscriptYamlFile}]
+    foreach TranscriptFile $TranscriptFileArray {
+      set TranscriptBaseName  [file tail $TranscriptFile]
+      set TranscriptRootBaseName  [file rootname $TranscriptBaseName]
+      set TranscriptExtension     [file extension $TranscriptBaseName]
+      set TranscriptGenericName   ${TranscriptRootBaseName}${SimGenericNames}${TranscriptExtension}
+      set TranscriptDestFile [file join ${::osvvm::ResultsDirectory} ${TestSuiteName} ${TranscriptGenericName}]
+      if {[file normalize ${TranscriptFile}] ne [file normalize ${TranscriptDestFile}]} {
+        if {[file exists ${TranscriptFile}]} {
+          # Check required since if file is open, closed, then re-opened, 
+          # it will be in the file more than once
+          CreateDirectory [file join ${::osvvm::ResultsDirectory} ${TestSuiteName}]
+#          file rename -force ${TranscriptFile}  ${TranscriptDestFile}
+          file copy -force ${TranscriptFile}  ${TranscriptDestFile}
+          lappend TranscriptFiles ${TranscriptDestFile}
+          if {[catch {file delete -force ${TranscriptFile}} err]} {
+            # end simulation to try to free locks on the file, and try to delete again
+            if {!$::osvvm::SimulateInteractive} {
+              EndSimulation  
+              file delete -force ${TranscriptFile}
+            }
+          } 
+        }
+      }
+    }
+    # Remove file so it does not impact any following simulation
+    file delete -force -- ${::osvvm::TranscriptYamlFile}
+  }
+  
+#  CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
+  FindCssPngFiles ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
+  
+  if {([GetTranscriptType] eq "html") && ($BuildName ne "")} {
+    set SimulationHtmlLogFile [file join ${::osvvm::LogSubdirectory} ${BuildName}_log.html]
+  } else { set SimulationHtmlLogFile "" }
+}
+
+# -------------------------------------------------
+# CopyCssAndPngFiles
+#
+proc CopyCssAndPngFiles {CssSourceDirectory BaseDirectory CssTargetSubdirectory} {
+#  variable Report2CssFiles
+#  variable Report2PngFile
+  
+  CreateDirectory [file join $BaseDirectory  $CssTargetSubdirectory]
+  # Note files are linked into the HTML in glob order (alphabetical but may be OS dependent WRT upper case)
+  set CssFiles [glob -nocomplain [file join ${CssSourceDirectory} *.css]]
+  set Report2CssFiles ""
+  if {$CssFiles ne ""} {
+    foreach CssFileWithPath ${CssFiles} {
+      set CssFile [file join $CssTargetSubdirectory [file tail $CssFileWithPath]]
+      file copy -force ${CssFileWithPath}  [file join $BaseDirectory  $CssFile]
+      # HTML file is relative to the BaseDirectory
+#      lappend Report2CssFiles $CssFile
+    }
+  }
+  
+  # There should only be one *.png file.
+  set PngFiles [glob -nocomplain [file join ${CssSourceDirectory} *.png]]
+  set PngFile ""
+  if {$PngFiles ne ""} {
+    foreach PngFileWithPath ${PngFiles} {
+      set PngSourceFile $PngFileWithPath
+      set PngDestFile [file tail $PngFileWithPath]
+    }
+  }
+  # There should be only one PNG file, so only copy the last one we find.
+  file copy -force ${PngFileWithPath} [file join $BaseDirectory $CssTargetSubdirectory $PngFile]
+#  set Report2PngFile $PngFile
 }
 
 # -------------------------------------------------

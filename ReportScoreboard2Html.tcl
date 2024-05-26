@@ -45,7 +45,8 @@ package require yaml
 proc Scoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
   variable ResultsFile
   
-  OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
+  set FilePath [file dirname $SbYamlFile]
+  OpenSimulationReportFile [file join $FilePath ${TestCaseName}.html] 
   
   set ErrorCode [catch {LocalScoreboard2Html $TestCaseName $TestSuiteName $SbYamlFile $SbName} errmsg]
   

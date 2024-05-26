@@ -1,4 +1,4 @@
-#  File Name:         OsvvmYamlSupport.tcl
+#  File Name:         StartUpYamlLoadReports.tcl
 #  Purpose:           Utilities to convert OSVVM YAML files to HTML and JUnit XML
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
@@ -7,7 +7,7 @@
 #     Jim Lewis      email:  jim@synthworks.com
 #
 #  Description
-#    Utilities to convert OSVVM YAML files to HTML and JUnit XML
+#    Load YAML reporting utilities - sources multiple files
 #
 #  Developed by:
 #        SynthWorks Design Inc.
@@ -18,13 +18,14 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    05/2024   2024.05    Updated name.  Added ReportSupport.
 #    02/2022   2022.02    Added Scoreboard reports
 #    10/2021   Initial    Initial Revision
 #
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2021-2022 by SynthWorks Design Inc.
+#  Copyright (c) 2021-2024 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -44,13 +45,14 @@ namespace eval ::osvvm {
 package require yaml
 
   variable GotYaml 1
-  source ${::osvvm::OsvvmScriptDirectory}/Simulate2Html.tcl
-  source ${::osvvm::OsvvmScriptDirectory}/Alert2Html.tcl
-  source ${::osvvm::OsvvmScriptDirectory}/Cov2Html.tcl
-  source ${::osvvm::OsvvmScriptDirectory}/Scoreboard2Html.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/ReportSimulate2Html.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/ReportAlert2Html.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/ReportCov2Html.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/ReportScoreboard2Html.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/ReportSupport.tcl
   source ${::osvvm::OsvvmScriptDirectory}/Report2Html.tcl
   source ${::osvvm::OsvvmScriptDirectory}/Report2Junit.tcl
-  source ${::osvvm::OsvvmScriptDirectory}/MergeRequirements.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/RequirementsMerge.tcl
   source ${::osvvm::OsvvmScriptDirectory}/Requirements2Html.tcl
   source ${::osvvm::OsvvmScriptDirectory}/Requirements2Csv.tcl
   

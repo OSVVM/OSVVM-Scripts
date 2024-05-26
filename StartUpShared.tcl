@@ -69,8 +69,8 @@ namespace eval ::osvvm {
 variable OsvvmLibraries $::osvvm::OsvvmHomeDirectory
 
 # Load Base OSVVM Project Scripts and Vendor Specific Scripts
-source ${::osvvm::OsvvmScriptDirectory}/CreateBuildYamlReports.tcl
-source ${::osvvm::OsvvmScriptDirectory}/OsvvmProjectScripts.tcl
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCreateYamlReports.tcl
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCore.tcl
 namespace eval ::osvvm {
   source ${::osvvm::OsvvmScriptDirectory}/VendorScripts_${::osvvm::ScriptBaseName}.tcl
 }
@@ -78,9 +78,9 @@ namespace eval ::osvvm {
 # Load OSVVM YAML support if yaml support available 
 # Could be made conditional for only simulators
 if {[catch {package require yaml}]} {
-  source ${::osvvm::OsvvmScriptDirectory}/NoYamlPackage.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/StartUpYamlMockReports.tcl
 } else {
-  source ${::osvvm::OsvvmScriptDirectory}/OsvvmYamlSupport.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/StartUpYamlLoadReports.tcl
 }
 
 source ${::osvvm::OsvvmScriptDirectory}/Log2Osvvm.tcl
