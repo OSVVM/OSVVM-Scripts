@@ -1,4 +1,4 @@
-#  File Name:         OsvvmProjectScripts.tcl
+#  File Name:         OsvvmScriptsCore.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#     5/2024   2024.05    Updated for refactor of Simulate2Html.   Renamed in prep for breaking file into smaller chunks. 
 #     3/2024   2024.03    Updated CreateOsvvmScriptSettingsPkg and added FindOsvvmSettingsDirectory 
 #     9/2023   2023.09    Updated messaging for file not found by build/include 
 #                         Made UnsetLibraryVars visible
@@ -411,8 +412,8 @@ proc LocalBuild {BuildName Path_Or_File args} {
 
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
-  StartBuildYaml $BuildName
   CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
+  StartBuildYaml $BuildName
   
   CallbackBefore_Build ${Path_Or_File}
   LocalInclude ${Path_Or_File} {*}$args
@@ -1229,6 +1230,18 @@ proc ToGenericCommand {GenericList} {
     }
   }
   return $Commands
+}
+
+#--------------------------------------------------------------
+proc ToGenericNames {GenericList} {
+
+  set Names ""
+  if {${GenericList} ne ""} {
+    foreach GenericName $GenericList {
+      set Names ${Names}_[lindex $GenericName 0]_[lindex $GenericName 1]
+    }
+  }
+  return $Names
 }
 
 # -------------------------------------------------

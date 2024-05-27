@@ -94,19 +94,6 @@ proc Simulate2Html {SettingsFileWithPath} {
   FinalizeSimulationReportFile
 }
 
-
-#--------------------------------------------------------------
-proc ToGenericNames {GenericList} {
-
-  set Names ""
-  if {${GenericList} ne ""} {
-    foreach GenericName $GenericList {
-      set Names ${Names}_[lindex $GenericName 0]_[lindex $GenericName 1]
-    }
-  }
-  return $Names
-}
-
 #--------------------------------------------------------------
 proc OpenSimulationReportFile {FileName {initialize 0}} {
   variable ResultsFile
