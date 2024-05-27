@@ -48,8 +48,7 @@ package require yaml
 proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
   variable ResultsFile
     
-  set FilePath [file dirname $CovYamlFile]
-  OpenSimulationReportFile [file join $FilePath ${TestCaseName}.html] 
+  OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml]
   
   set ErrorCode [catch {LocalCov2Html $TestCaseName $TestSuiteName $CovYamlFile} errmsg]
   

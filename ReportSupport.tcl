@@ -78,32 +78,32 @@ proc CreateOsvvmReportFooter {ResultsFile} {
 # -------------------------------------------------
 # FindCssPngFiles
 #
-proc FindCssPngFiles {BaseDirectory CssTargetSubdirectory} {
-  variable Report2CssFiles
-  variable Report2PngFile
-  
-  # Note files are linked into the HTML in glob order (alphabetical but may be OS dependent WRT upper case)
-  set CssFiles [glob -nocomplain [file join ${BaseDirectory} ${CssTargetSubdirectory} *.css]]
-  set Report2CssFiles ""
-  if {$CssFiles ne ""} {
-    foreach CssFileWithPath ${CssFiles} {
-      set CssFile [file join $CssTargetSubdirectory [file tail $CssFileWithPath]]
-      lappend Report2CssFiles $CssFile
-    }
-  }
-  
-  # There should only be one *.png file.
-  set PngFiles [glob -nocomplain [file join ${BaseDirectory} ${CssTargetSubdirectory} *.png]]
-  set Report2PngFile ""
-  if {$PngFiles ne ""} {
-    foreach PngFileWithPath ${PngFiles} {
-      set PngDestFile [file join $CssTargetSubdirectory [file tail $PngFileWithPath]]
-    }
-  }
-  # There should be only one PNG file, so only copy the last one we find.
-#  file copy -force ${PngFileWithPath} [file join $BaseDirectory $CssTargetSubdirectory $PngFile]
-  set Report2PngFile $PngDestFile
-}
+# proc FindCssPngFiles {BaseDirectory CssTargetSubdirectory} {
+#   variable Report2CssFiles
+#   variable Report2PngFile
+#   
+#   # Note files are linked into the HTML in glob order (alphabetical but may be OS dependent WRT upper case)
+#   set CssFiles [glob -nocomplain [file join ${BaseDirectory} ${CssTargetSubdirectory} *.css]]
+#   set Report2CssFiles ""
+#   if {$CssFiles ne ""} {
+#     foreach CssFileWithPath ${CssFiles} {
+#       set CssFile [file join $CssTargetSubdirectory [file tail $CssFileWithPath]]
+#       lappend Report2CssFiles $CssFile
+#     }
+#   }
+#   
+#   # There should only be one *.png file.
+#   set PngFiles [glob -nocomplain [file join ${BaseDirectory} ${CssTargetSubdirectory} *.png]]
+#   set Report2PngFile ""
+#   if {$PngFiles ne ""} {
+#     foreach PngFileWithPath ${PngFiles} {
+#       set PngDestFile [file join $CssTargetSubdirectory [file tail $PngFileWithPath]]
+#     }
+#   }
+#   # There should be only one PNG file, so only copy the last one we find.
+# #  file copy -force ${PngFileWithPath} [file join $BaseDirectory $CssTargetSubdirectory $PngFile]
+#   set Report2PngFile $PngDestFile
+# }
 
 # -------------------------------------------------
 # LinkCssFiles
@@ -129,4 +129,45 @@ proc LinkLogoFile {ResultsFile {RelativePath ""}} {
 	puts $ResultsFile "    	 <img id=\"logo\" src=\"[file join $RelativePath $Report2PngFile]\" alt=\"OSVVM logo\">"
   puts $ResultsFile "    </div>"
 }
+
+# -------------------------------------------------
+# GetOsvvmPathSettings
+#
+proc GetOsvvmPathSettings {TestDict} {
+  set SettingsInfoDict                         [dict get $TestDict OsvvmSettingsInfo]
+  variable Report2BaseDirectory                [dict get $SettingsInfoDict BaseDirectory]
+  variable Report2ReportsSubdirectory          [dict get $SettingsInfoDict ReportsSubdirectory]
+  variable Report2CssSubdirectory              [dict get $SettingsInfoDict CssSubdirectory]
+  variable Report2SimulationLogFile            [dict get $SettingsInfoDict SimulationLogFile]
+  variable Report2SimulationHtmlLogFile        [dict get $SettingsInfoDict SimulationHtmlLogFile]
+  variable Report2RequirementsSubdirectory     [dict get $SettingsInfoDict RequirementsSubdirectory]
+  variable Report2CoverageSubdirectory         [dict get $SettingsInfoDict CoverageSubdirectory]
+  variable Report2CssFiles                     [dict get $SettingsInfoDict Report2CssFiles]
+  variable Report2PngFile                      [dict get $SettingsInfoDict Report2PngFile]
+}
+
+# -------------------------------------------------
+# GetTestCaseSettings
+#
+proc GetTestCaseSettings {SettingsFileName} {
+  set TestDict  [::yaml::yaml2dict -file ${SettingsFileName}]
+  variable Report2TestCaseName                 [dict get $TestDict TestCaseName        ]
+  variable Report2TestSuiteName                [dict get $TestDict TestSuiteName       ]
+  variable Report2BuildName                    [dict get $TestDict BuildName           ]
+  variable Report2GenericList                  [dict get $TestDict GenericList         ]
+  variable Report2TestCaseFileName             [dict get $TestDict TestCaseFileName    ]
+  variable Report2GenericNames                 [dict get $TestDict GenericNames        ]
+  variable Report2TestSuiteDirectory           [dict get $TestDict TestSuiteDirectory  ]
+  variable Report2RequirementsYamlFile         [dict get $TestDict RequirementsYamlFile]
+  variable Report2AlertYamlFile                [dict get $TestDict AlertYamlFile       ]
+  variable Report2CovYamlFile                  [dict get $TestDict CovYamlFile         ]
+  variable Report2ScoreboardFiles              [dict get $TestDict ScoreboardFiles     ]
+  variable Report2ScoreboardNames              [dict get $TestDict ScoreboardNames     ]
+  variable Report2TranscriptFiles              [dict get $TestDict TranscriptFiles     ]
+
+  variable Report2TestCaseHtml [file join $Report2TestSuiteDirectory ${Report2TestCaseFileName}.html]
+  
+  GetOsvvmPathSettings $TestDict
+}
+
 

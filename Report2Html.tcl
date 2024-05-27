@@ -97,7 +97,7 @@ proc LocalReport2Html {Report2HtmlDict} {
 
   set VersionNum  [dict get $Report2HtmlDict Version]
   
-  GetPathSettings $Report2HtmlDict 
+  GetOsvvmPathSettings $Report2HtmlDict 
   
   CreateOsvvmReportHeader $ResultsFile "$ReportBuildName Build Report"
   
@@ -134,34 +134,6 @@ proc ReportBuildStatus {} {
   }
 }
 
-# -------------------------------------------------
-# GetPathSettings
-#
-proc GetPathSettings {TestDict} {
-  variable Report2BaseDirectory            
-  variable Report2ReportsSubdirectory      
-  variable Report2SimulationLogFile        
-  variable Report2SimulationHtmlLogFile    
-  variable Report2RequirementsSubdirectory 
-  variable Report2CoverageSubdirectory     
-  variable Report2CssSubdirectory
-  
-  set SettingsInfoDict                    [dict get $TestDict SettingsInfo]
-  set Report2BaseDirectory                [dict get $SettingsInfoDict BaseDirectory]
-  set Report2ReportsSubdirectory          [dict get $SettingsInfoDict ReportsSubdirectory]
-  set Report2SimulationLogFile            [dict get $SettingsInfoDict Report2SimulationLogFile]
-  set Report2SimulationHtmlLogFile        [dict get $SettingsInfoDict Report2SimulationHtmlLogFile]
-  set Report2CssPngSourceDirectory        [dict get $SettingsInfoDict CssPngSourceDirectory]
-  set Report2RequirementsSubdirectory     [dict get $SettingsInfoDict RequirementsSubdirectory]
-  set Report2CoverageSubdirectory         [dict get $SettingsInfoDict CoverageSubdirectory]
-  
-  # Current OSVVM requirement.  Required by all OSVVM html reports
-  set Report2CssSubdirectory $::osvvm::ReportsSubdirectory
-  CreateDirectory [file join $Report2BaseDirectory $Report2CssSubdirectory]  ; # if just running analyze it may not exist yet
-
-  # Enumerate the ort2CssPngSourceDirectory
-   FindCssPngFiles $Report2BaseDirectory $Report2CssSubdirectory
-}
 
 # -------------------------------------------------
 # ElaborateTestSuites

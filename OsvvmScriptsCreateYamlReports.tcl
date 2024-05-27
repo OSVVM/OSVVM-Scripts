@@ -106,39 +106,75 @@ proc FinishBuildYaml {BuildName} {
   puts  $RunFile "  AnalyzeErrorCount:    $AnalyzeErrorCount"
   puts  $RunFile "  SimulateErrorCount:   $BuildErrorCode"
   
-  puts  $RunFile "SettingsInfo:"
-  puts  $RunFile "  BaseDirectory:        \"$::osvvm::OutputBaseDirectory\""
-  puts  $RunFile "  ReportsSubdirectory:  \"$::osvvm::ReportsSubdirectory\""
-  if {$::osvvm::TranscriptExtension ne "none"} {
-    puts  $RunFile "  Report2SimulationLogFile: \"[file join ${::osvvm::LogSubdirectory} ${BuildName}.log]\""
-  } else {
-    puts  $RunFile "  Report2SimulationLogFile: \"\""
-  }
-  if {$::osvvm::TranscriptExtension eq "html"} {
-    puts  $RunFile "  Report2SimulationHtmlLogFile: \"[file join ${::osvvm::LogSubdirectory} ${BuildName}_log.html]\""
-  } else {
-    puts  $RunFile "  Report2SimulationHtmlLogFile: \"\""
-  }
-  puts  $RunFile "  CssPngSourceDirectory:   \"${::osvvm::OsvvmScriptDirectory}\""
-  if {[file exists [file join $::osvvm::ReportsDirectory ${BuildName}_req.yml]]} {
-    puts  $RunFile "  RequirementsSubdirectory: \"$::osvvm::ReportsSubdirectory\""
-  } else {
-    puts  $RunFile "  RequirementsSubdirectory: \"\""
-  }
-  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
-    set CodeCoverageFile [vendor_GetCoverageFileName ${BuildName}]
-    puts  $RunFile "  CoverageSubdirectory:    \"[file join $::osvvm::CoverageSubdirectory  $CodeCoverageFile]\"" 
-  } else {
-    puts  $RunFile "  CoverageSubdirectory: \"\""
-  }
+  WriteOsvvmSettingsYaml $RunFile
 
-  
   close $RunFile
 
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   puts "Build Finish time [clock format $BuildFinishTime -format %T], Elapsed time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
 }
 
+# -------------------------------------------------
+proc WriteOsvvmSettingsYaml {ReportFile} {
+  
+  puts  $ReportFile "OsvvmSettingsInfo:"
+  puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OutputBaseDirectory\""
+  puts  $ReportFile "  ReportsSubdirectory:  \"$::osvvm::ReportsSubdirectory\""
+  puts  $ReportFile "  CssSubdirectory:      \"$::osvvm::CssSubdirectory\""  
+  if {$::osvvm::TranscriptExtension ne "none"} {
+    puts  $ReportFile "  SimulationLogFile: \"[file join ${::osvvm::LogSubdirectory} ${::osvvm::BuildName}.log]\""
+  } else {
+    puts  $ReportFile "  SimulationLogFile: \"\""
+  }
+  if {$::osvvm::TranscriptExtension eq "html"} {
+    puts  $ReportFile "  SimulationHtmlLogFile: \"[file join ${::osvvm::LogSubdirectory} ${::osvvm::BuildName}_log.html]\""
+  } else {
+    puts  $ReportFile "  SimulationHtmlLogFile: \"\""
+  }
+  puts  $ReportFile "  CssPngSourceDirectory:   \"${::osvvm::OsvvmScriptDirectory}\""
+  if {[file exists [file join $::osvvm::ReportsDirectory ${::osvvm::BuildName}_req.yml]]} {
+    puts  $ReportFile "  RequirementsSubdirectory: \"$::osvvm::ReportsSubdirectory\""
+  } else {
+    puts  $ReportFile "  RequirementsSubdirectory: \"\""
+  }
+  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
+    set CodeCoverageFile [vendor_GetCoverageFileName ${::osvvm::BuildName}]
+    puts  $ReportFile "  CoverageSubdirectory:    \"[file join $::osvvm::CoverageSubdirectory  $CodeCoverageFile]\"" 
+  } else {
+    puts  $ReportFile "  CoverageSubdirectory: \"\""
+  }
+  
+  puts $ReportFile "  Report2CssFiles: \"$::osvvm::Report2CssFiles\""
+  puts $ReportFile "  Report2PngFile:  \"$::osvvm::Report2PngFile\""
+}
+
+# -------------------------------------------------
+proc WriteTestCaseSettingsYaml {FileName} {
+
+  set  SettingsFile [open ${FileName} w]
+  puts $SettingsFile "TestCaseName:           \"$::osvvm::TestCaseName\""
+	if {[info exists ::osvvm::TestSuiteName]} {
+    puts $SettingsFile "TestSuiteName:          \"$::osvvm::TestSuiteName\""
+  } else {
+    puts $SettingsFile "TestSuiteName:          \"\""
+  }
+  puts $SettingsFile "BuildName:              \"$::osvvm::BuildName\""
+  puts $SettingsFile "GenericList:            \"$::osvvm::GenericList\""
+  puts $SettingsFile "TestCaseFileName:       \"$::osvvm::TestCaseFileName\""
+  puts $SettingsFile "GenericNames:           \"$::osvvm::GenericNames\""
+  
+  puts $SettingsFile "TestSuiteDirectory:    \"$::osvvm::TestSuiteDirectory\""
+  puts $SettingsFile "RequirementsYamlFile:  \"$::osvvm::RequirementsYamlFile\""
+  puts $SettingsFile "AlertYamlFile:         \"$::osvvm::AlertYamlFile\""
+  puts $SettingsFile "CovYamlFile:           \"$::osvvm::CovYamlFile\""
+  puts $SettingsFile "ScoreboardFiles:       \"$::osvvm::ScoreboardFiles\""
+  puts $SettingsFile "ScoreboardNames:       \"$::osvvm::ScoreboardNames\""
+  puts $SettingsFile "TranscriptFiles:       \"$::osvvm::TranscriptFiles\""
+  
+  WriteOsvvmSettingsYaml $SettingsFile
+  
+  close $SettingsFile
+}
 
 # -------------------------------------------------
 proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
@@ -184,6 +220,7 @@ proc StartSimulateBuildYaml {TestName} {
 }
 
 
+# -------------------------------------------------
 proc FinishSimulateBuildYaml {} {
   variable TestCaseFileName
   variable SimulateStartTime

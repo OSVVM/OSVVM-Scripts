@@ -47,7 +47,7 @@ proc Alert2Html {TestCaseName TestSuiteName AlertYamlFile} {
   variable ResultsFile
 
   set FilePath [file dirname $AlertYamlFile]
-  OpenSimulationReportFile [file join $FilePath ${TestCaseName}.html] 
+  OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml]
   
   set ErrorCode [catch {LocalAlert2Html $TestCaseName $TestSuiteName $AlertYamlFile} errmsg]
   

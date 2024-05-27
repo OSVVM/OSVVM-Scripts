@@ -181,6 +181,7 @@ proc vendor_analyze_verilog {LibraryName FileName args} {
 proc vendor_end_previous_simulation {} {
   quit -sim
   framework.documents.closeall -vhdl
+  ::osvvm::CloseAllFiles
 }  
 
 # -------------------------------------------------

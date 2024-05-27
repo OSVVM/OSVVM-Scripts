@@ -212,6 +212,7 @@ proc JunitCreateSummary {TestDict} {
   }
   # Print Initial Build Summary
   #  <testsuites name="Build" time="25.0" tests="20" failures="5" errors="0" skipped="2">
+  puts $ResultsFile "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
   puts $ResultsFile "<testsuites "
   puts $ResultsFile "   name=\"$ReportBuildName\""
 #  puts $ResultsFile "   timestamp=\"[dict get $BuildInfo Date]\""

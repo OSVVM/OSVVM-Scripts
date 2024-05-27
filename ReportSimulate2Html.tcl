@@ -52,47 +52,48 @@ package require yaml
 
 
 #--------------------------------------------------------------
-proc Simulate2Html {TestCaseName {TestSuiteName "Default"} {BuildName ""} {GenericList ""}} {
+proc Simulate2Html {SettingsFileWithPath} {
   variable ResultsFile
-  variable AlertYamlFile              
-  variable RequirementsYamlFile 
-  variable CovYamlFile          
-  variable Sim2SbFiles        
-  variable TestSuiteDirectory
-     
   
-  set SimGenericNames  [ToGenericNames $GenericList]
-  set TestCaseFileName ${TestCaseName}${SimGenericNames}
+  variable Report2AlertYamlFile              
+#  variable Report2RequirementsYamlFile 
+  variable Report2CovYamlFile          
   
+    
+  GetTestCaseSettings $SettingsFileWithPath 
   
-#!! TODO - move this to be called after simulate finishes and before Simulate2Html
-#!! TODO - add something that acquires or creates required information from parameter list
+  set TestCaseFileName $::osvvm::Report2TestCaseFileName
+  set TestCaseName     $::osvvm::Report2TestCaseName  
+  set TestSuiteName    $::osvvm::Report2TestSuiteName 
+  set BuildName        $::osvvm::Report2BuildName     
+  set GenericList      $::osvvm::Report2GenericList   
+
   
-  CreateTestCaseSummaryTable ${TestCaseFileName} ${TestSuiteName} ${BuildName} ${GenericList}
+
+  CreateTestCaseSummaryTable ${TestCaseName} ${TestSuiteName} ${BuildName} ${GenericList}
   
-  if {[file exists ${AlertYamlFile}]} {
-    Alert2Html ${TestCaseFileName} ${TestSuiteName} ${AlertYamlFile}
+  if {[file exists ${Report2AlertYamlFile}]} {
+    Alert2Html ${TestCaseName} ${TestSuiteName} ${Report2AlertYamlFile}
   }
 
-#  if {[file exists ${RequirementsYamlFile}]} {
+#  if {[file exists ${Report2RequirementsYamlFile}]} {
 #    # Generate Test Case requirements file - redundant as reported as alerts too. 
-#    Requirements2Html ${RequirementsYamlFile} $TestCaseFileName $TestSuiteName ;# this form deprecated
+#    Requirements2Html ${Report2RequirementsYamlFile} $TestCaseName $TestSuiteName ;# this form deprecated
 #  }
 
-  if {[file exists ${CovYamlFile}]} {
-    Cov2Html ${TestCaseFileName} ${TestSuiteName} ${CovYamlFile}
+  if {[file exists ${Report2CovYamlFile}]} {
+    Cov2Html ${TestCaseName} ${TestSuiteName} ${Report2CovYamlFile}
   }
   
-  if {$::osvvm::Sim2SbNames ne ""} {
-    foreach SbName ${::osvvm::Sim2SbNames} SbFile ${::osvvm::Sim2SbFiles} {
-      Scoreboard2Html ${TestCaseFileName} ${TestSuiteName} ${SbFile} Scoreboard_${SbName}
+  if {$::osvvm::Report2ScoreboardNames ne ""} {
+    foreach SbName ${::osvvm::Report2ScoreboardNames} SbFile ${::osvvm::Report2ScoreboardFiles} {
+      Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbFile} Scoreboard_${SbName}
     }
   }
   
-  FinalizeSimulationReportFile [file join ${TestSuiteDirectory} ${TestCaseFileName}.html]
-  
-#  file rename -force ${TestCaseName}.html [file join ${TestSuiteDirectory} ${TestCaseFileName}.html]
+  FinalizeSimulationReportFile
 }
+
 
 #--------------------------------------------------------------
 proc ToGenericNames {GenericList} {
@@ -121,8 +122,7 @@ proc OpenSimulationReportFile {FileName {initialize 0}} {
 proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericList} {
   variable ResultsFile
 
-  set FilePath [file dirname $::osvvm::AlertYamlFile]
-  OpenSimulationReportFile [file join $FilePath ${TestCaseName}.html] 1
+  OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml] 1
 
   set ErrorCode [catch {LocalCreateTestCaseSummaryTable $TestCaseName $TestSuiteName $BuildName $GenericList} errmsg]
   
@@ -136,11 +136,8 @@ proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericLis
 #--------------------------------------------------------------
 proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericList} {
   variable ResultsFile
-  variable AlertYamlFile 
-  variable CovYamlFile   
-  variable SimGenericNames
 
-  if {$::osvvm::ReportsSubdirectory eq ""} {
+  if {$::osvvm::Report2ReportsSubdirectory eq ""} {
     set ReportsPrefix ".."
   } else {
     set ReportsPrefix "../.."
@@ -157,36 +154,36 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   puts $ResultsFile "        </thead>"
   puts $ResultsFile "        <tbody>"
 
-  if {[file exists ${AlertYamlFile}]} {
+  # Print the Generics
+  if {${GenericList} ne ""} {
+    foreach GenericName $GenericList {
+      puts $ResultsFile "          <tr><td>Generic: [lindex $GenericName 0] = [lindex $GenericName 1]</td></tr>"
+    }
+  }
+
+  if {[file exists ${::osvvm::Report2AlertYamlFile}]} {
     puts $ResultsFile "          <tr><td><a href=\"#AlertSummary\">Alert Report</a></td></tr>"
   }
-  if {[file exists ${CovYamlFile}]} {
+  if {[file exists ${::osvvm::Report2CovYamlFile}]} {
     puts $ResultsFile "          <tr><td><a href=\"#FunctionalCoverage\">Functional Coverage Report(s)</a></td></tr>"
   }
   
-  if {$::osvvm::Sim2SbNames ne ""} {
-    foreach SbName ${::osvvm::Sim2SbNames} {
+  if {$::osvvm::Report2ScoreboardNames ne ""} {
+    foreach SbName ${::osvvm::Report2ScoreboardNames} {
       puts $ResultsFile "          <tr><td><a href=\"#Scoreboard_${SbName}\">ScoreboardPkg_${SbName} Report(s)</a></td></tr>"
     }
   }
   
   # Add link to simulation results in HTML Log File
-  if {$::osvvm::SimulationHtmlLogFile ne ""} {
-#    set TestCaseLink "#${TestSuiteName}_${TestCaseName}${SimGenericNames}"
-    set TestCaseLink "#${TestSuiteName}_${TestCaseName}"
-    puts $ResultsFile "          <tr><td><a href=\"${ReportsPrefix}/${::osvvm::SimulationHtmlLogFile}${TestCaseLink}\">Link to Simulation Results</a></td></tr>"
+  if {$::osvvm::Report2SimulationHtmlLogFile ne ""} {
+    set TestCaseLink "#${TestSuiteName}_${TestCaseName}${::osvvm::Report2GenericNames}"
+    puts $ResultsFile "          <tr><td><a href=\"${ReportsPrefix}/${::osvvm::Report2SimulationHtmlLogFile}${TestCaseLink}\">Link to Simulation Results</a></td></tr>"
   }
   # Add Transcript Filess to Table
-  if {$::osvvm::TranscriptFiles ne ""} {
-    foreach TranscriptFile ${::osvvm::TranscriptFiles} {
+  if {$::osvvm::Report2TranscriptFiles ne ""} {
+    foreach TranscriptFile ${::osvvm::Report2TranscriptFiles} {
       set TranscriptFileName [file tail $TranscriptFile]
       puts $ResultsFile "          <tr><td><a href=\"${ReportsPrefix}/${TranscriptFile}\">${TranscriptFileName}</a></td></tr>"
-    }
-  }
-  # Print the Generics
-  if {${GenericList} ne ""} {
-    foreach GenericName $GenericList {
-      puts $ResultsFile "          <tr><td>Generic: [lindex $GenericName 0] = [lindex $GenericName 1]</td></tr>"
     }
   }
 
@@ -205,10 +202,10 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   puts $ResultsFile "  </div>"
 }
 
-proc FinalizeSimulationReportFile {FileName} {
+proc FinalizeSimulationReportFile {} {
   variable ResultsFile
 
-  OpenSimulationReportFile $FileName
+  OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml]
   
   CreateOsvvmReportFooter $ResultsFile  
   
