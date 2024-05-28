@@ -7,8 +7,9 @@
 #     Jim Lewis      email:  jim@synthworks.com
 #
 #  Description
-#    Convert OSVVM YAML build reports to JUnit XML
-#    Visible externally:  Report2Junit
+#    Convert OSVVM Build Dictionary into JUnit XML
+#    Visible externally:  ReportBuildDict2Junit
+#    Must call ReportBuildYaml2Dict first.
 #
 #
 #  Developed by:
@@ -20,6 +21,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    05/2024   2024.05    Refactored. 
 #    04/2024   2024.04    Updated report formatting
 #    12/2022   2022.12    Refactored to only use static OSVVM information
 #    10/2021   Initial    Initial Revision
@@ -58,7 +60,7 @@ proc ReportBuildDict2Junit {} {
   close $ResultsFile
 
   if {$ErrorCode} {
-    CallbackOnError_Report2Junit ${ReportFileRoot}.xml $errmsg
+    CallbackOnError_ReportBuildDict2Junit ${ReportFileRoot}.xml $errmsg
   }
 }
 
@@ -204,4 +206,12 @@ proc CreateJunitTestCaseSummary { TestSuiteSummaryDict } {
   puts $ResultsFile "   skipped=\"$SuiteSkipped\""
 #  puts $ResultsFile "   hostname=\"$env(HOSTNAME)\""
   puts $ResultsFile ">"
+}
+
+# -------------------------------------------------
+# Report2Junit - provided for backward compatibility
+#
+proc Report2Junit {BuildYamlFile} {
+  ReportBuildYaml2Dict ${BuildYamlFile}
+  ReportBuildDict2Junit
 }

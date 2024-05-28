@@ -7,8 +7,8 @@
 #     Jim Lewis      email:  jim@synthworks.com
 #
 #  Description
-#    Convert OSVVM YAML build reports to HTML
-#    Visible externally:  Report2Html
+#    Convert OSVVM YAML build reports to TCL Dictionary
+#    Visible externally:  ReportBuildYaml2Dict
 #
 #  Developed by:
 #        SynthWorks Design Inc.
@@ -59,6 +59,15 @@ package require yaml
 #
 
 # -------------------------------------------------
+# CreateBuildReports
+#
+proc CreateBuildReports {ReportFile} {
+  ReportBuildYaml2Dict ${ReportFile}
+  ReportBuildDict2Html
+  ReportBuildDict2Junit
+}
+
+# -------------------------------------------------
 # ReportBuildYaml2Dict
 #
 proc ReportBuildYaml2Dict {ReportFile} {
@@ -78,7 +87,7 @@ proc ReportBuildYaml2Dict {ReportFile} {
   set ErrorCode [catch {LocalReportBuildYaml2Dict $BuildDict} errmsg]
   
   if {$ErrorCode} {
-    CallbackOnError_Report2Html $ReportFile $errmsg
+    CallbackOnError_ReportBuildYaml2Dict $ReportFile $errmsg
   }
 }
 

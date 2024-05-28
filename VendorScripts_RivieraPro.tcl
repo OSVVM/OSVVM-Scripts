@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     5/2024   2024.05    Added CloseAllFiles to vendor_end_previous_simulation.  Added ToolVersion variable 
 #     5/2022   2022.05    Coverage report name based on TestCaseName rather than LibraryUnit
 #                         Updated variable naming 
 #     2/2022   2022.02    Added Coverage Collection
@@ -35,7 +36,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.  
+#  Copyright (c) 2018 - 2024 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.

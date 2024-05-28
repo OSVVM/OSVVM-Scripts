@@ -7,8 +7,7 @@
 #     Jim Lewis      email:  jim@synthworks.com
 #
 #  Description
-#    Convert OSVVM YAML build reports to HTML
-#    Visible externally:  Report2Html
+#    HTML Report Helpers
 #
 #  Developed by:
 #        SynthWorks Design Inc.

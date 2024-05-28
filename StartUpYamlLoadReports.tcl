@@ -18,14 +18,14 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#    05/2024   2024.05    Updated name.  Added ReportSupport.
+#    05/2024   2024.05    Updated name.  Added ReportSupport.  Updated for refactoring.
 #    02/2022   2022.02    Added Scoreboard reports
 #    10/2021   Initial    Initial Revision
 #
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2021-2024 by SynthWorks Design Inc.
+#  Copyright (c) 2021 - 2024 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -62,6 +62,7 @@ package require yaml
   source ${::osvvm::OsvvmScriptDirectory}/Requirements2Html.tcl
   source ${::osvvm::OsvvmScriptDirectory}/Requirements2Csv.tcl
   
-namespace export Simulate2Html Cov2Html Alert2Html Scoreboard2Html Report2Html Report2Junit MergeRequirements Requirements2Html Requirements2Csv
+namespace export Simulate2Html Cov2Html Alert2Html Scoreboard2Html MergeRequirements Requirements2Html Requirements2Csv
+namespace export CreateBuildReports ReportBuildYaml2Dict ReportBuildDict2Html ReportBuildDict2Junit Report2Html Report2Junit
 # end namespace ::osvvm
 }

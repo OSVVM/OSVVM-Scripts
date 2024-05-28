@@ -1,4 +1,4 @@
-#  File Name:         CreateBuildYaml.tcl
+#  File Name:         OsvvmScriptsCreateYamlReports.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
@@ -7,7 +7,7 @@
 #     Jim Lewis           email:  jim@synthworks.com
 #
 #  Description
-#    Procedures that create the OSVVM OsvvmRun.yml
+#    Support procedures to create the OSVVM YAML output
 #    Defines the format of the OsvvmRun.yml file
 #
 #  Developed by:

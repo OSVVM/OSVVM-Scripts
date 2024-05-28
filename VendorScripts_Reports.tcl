@@ -18,6 +18,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     5/2024   2024.05    Added ToolVersion variable 
 #    12/2022   2022.12    Updated variable naming 
 #     2/2022   2022.02    Added template of procedures needed for coverage support
 #     9/2021   2021.09    Created from VendorScripts_xxx.tcl

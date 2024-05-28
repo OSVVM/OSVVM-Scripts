@@ -7,9 +7,8 @@
 #     Jim Lewis      email:  jim@synthworks.com
 #
 #  Description
-#    Convert OSVVM Alert and Coverage results to HTML
-#    Calls Alert2Html and Cov2Html
-#    Visible externally:  GenerateSimulationReports
+#    Convert OSVVM Alert, Coverage, and Scoreboard results to HTML
+#    Visible externally:  Simulate2Html
 #
 #  Developed by:
 #        SynthWorks Design Inc.
@@ -20,7 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#    05/2024   2024.05    Refactored.  Separating file copy from creating HTML.
+#    05/2024   2024.05    Refactored.  Separating file copy from creating HTML.  New Call interface.
 #    04/2024   2024.04    Updated report formatting
 #    03/2024   2024.03    Updated handling of TranscriptFile to account for simulator still having it open (due to abnormal exit)
 #    07/2023   2023.07    Updated OpenSimulationReportFile to search for user defined HTML headers

@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    05/2024   2024.05    Updated for renaming during refactoring 
 #    05/2022   2022.05    Refactored StartUp.tcl to remove items 
 #                         shared by all StartUp scripts
 #    10/2021   2021.10    Loads OsvvmYamlSupport.tcl when YAML library available

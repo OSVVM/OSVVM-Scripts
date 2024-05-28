@@ -18,12 +18,13 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    05/2024   2024.05    Updated for refactoring Report2Html/Junit to ReportBuildYaml2Dict/Dict2Html/Dict2Junit 
 #    09/2022   2022.09    Initial
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2022 by SynthWorks Design Inc.  
+#  Copyright (c) 2022-2024 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -212,14 +213,19 @@ namespace eval ::osvvm {
     error "$ProcName 'File Name: $FileName ' failed: $errmsg"
   }  
 
-  proc CallbackOnError_Report2Html {FileName errmsg} {
+  proc CallbackOnError_ReportBuildYaml2Dict {FileName errmsg} {
     set ::osvvm::Report2HtmlErrorInfo $::errorInfo
-    LocalOnError_BuildReports Report2Html $FileName $errmsg
+    LocalOnError_BuildReports ReportBuildYaml2Dict $FileName $errmsg
+  }  
+
+  proc CallbackOnError_ReportBuildDict2Html {FileName errmsg} {
+    set ::osvvm::Report2HtmlErrorInfo $::errorInfo
+    LocalOnError_BuildReports ReportBuildDict2Html $FileName $errmsg
   }  
   
-  proc CallbackOnError_Report2Junit {FileName errmsg} {
+  proc CallbackOnError_ReportBuildDict2Junit {FileName errmsg} {
     set ::osvvm::Report2JunitErrorInfo $::errorInfo
-    LocalOnError_BuildReports Report2Junit $FileName $errmsg
+    LocalOnError_BuildReports ReportBuildDict2Junit $FileName $errmsg
   }  
   
   proc CallbackOnError_Log2Osvvm {FileName errmsg} {

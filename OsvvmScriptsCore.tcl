@@ -452,14 +452,13 @@ proc AfterBuildReports {BuildName} {
   after 1000
   set BuildYamlFile [file join ${::osvvm::OutputBaseDirectory} ${BuildName}.yml]
   file rename -force ${::osvvm::OsvvmBuildYamlFile} ${BuildYamlFile}
-  ReportBuildYaml2Dict ${BuildYamlFile}
-  ReportBuildDict2Html
-#  Report2Html  ${BuildYamlFile}
+  CreateBuildReports ${BuildYamlFile}
+#  ReportBuildYaml2Dict ${BuildYamlFile}
+#  ReportBuildDict2Html
+#  ReportBuildDict2Junit
   if {($::osvvm::SimulateInteractive) && ($::osvvm::OpenBuildHtmlFile)} {
     OpenBuildHtml ${BuildName}
   }
-#  Report2Junit ${BuildYamlFile}
-  ReportBuildDict2Junit
   
   ReportBuildStatus  
 }

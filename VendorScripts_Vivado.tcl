@@ -13,6 +13,7 @@
 #    
 #  Revision History:
 #    Date      Version    Description
+#     5/2024   2024.05    Added ToolVersion variable 
 #     2/2022   2022.02    Added template of procedures needed for coverage support
 #     4/2021   2021.02    Initial revision, tested under Vivado 2020.1
 #

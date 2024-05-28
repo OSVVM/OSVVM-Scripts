@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     5/2024   2024.05    Added ToolVersion variable 
 #     5/2022   2022.05    Coverage report name based on TestCaseName rather than LibraryUnit
 #                         Updated variable naming 
 #     2/2022   2022.02    Added Coverage Collection

@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     5/2024   2024.05    Added ToolVersion variable 
 #    12/2023   2024.01    Updated as 2023.02's OSVVM support is looking good.
 #    05/2022   2022.05    Updated variable naming 
 #     2/2022   2022.02    Added template of procedures needed for coverage support

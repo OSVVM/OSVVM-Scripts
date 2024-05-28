@@ -7,8 +7,9 @@
 #     Jim Lewis      email:  jim@synthworks.com
 #
 #  Description
-#    Convert OSVVM YAML build reports to HTML
-#    Visible externally:  Report2Html
+#    Convert OSVVM Build Dictionary into HTML Build Report
+#    Visible externally:  ReportBuildDict2Html
+#    Must call ReportBuildYaml2Dict first.
 #
 #  Developed by:
 #        SynthWorks Design Inc.
@@ -19,7 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#    05/2024   2024.05    Refactored. Decoupled.  Yaml = source of information.
+#    05/2024   2024.05    Refactored. Must call ReportBuildYaml2Dict first.
 #    04/2024   2024.04    Updated report formatting
 #    07/2023   2023.07    Updated file handler to search for user defined HTML headers
 #    12/2022   2022.12    Refactored to only use static OSVVM information
@@ -58,6 +59,7 @@ package require yaml
 #      Report2CoverageSubdirectory - value is "" if coverage not used
 #
 
+
 # -------------------------------------------------
 # ReportBuildDict2Html
 #
@@ -75,7 +77,7 @@ proc ReportBuildDict2Html {} {
   close $ResultsFile
 
   if {$ErrorCode} {
-    CallbackOnError_Report2Html ${ReportFileRoot}.html $errmsg
+    CallbackOnError_ReportBuildDict2Html ${ReportFileRoot}.html $errmsg
   }
 }
 
@@ -434,6 +436,14 @@ proc SumAlertCount {AlertCountDict} {
   return [expr [dict get $AlertCountDict Failure] + [dict get $AlertCountDict Error] + [dict get $AlertCountDict Warning]]
 }
 
+
+# -------------------------------------------------
+# Report2Html - provided for backward compatibility
+#
+proc Report2Html {BuildYamlFile} {
+  ReportBuildYaml2Dict ${BuildYamlFile}
+  ReportBuildDict2Html
+}
 
 
 

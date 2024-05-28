@@ -2,7 +2,9 @@
 
 | **Revision**  |   **Release Summary**                                                                         | 
 |---------------|-----------------------------------------------------------------------------------------------| 
-| 2024.04       |  OsvvmProjectScripts - OpenBuildHtml                                                      |
+| 2024.05       |  Updated Report formatting                                                      |
+|               |  Refactored Report2Html/Report2Junit to ReportBuildYaml2Dict/ReportBuildDict2Html/ReportBuildDict2Junit    |
+| 2024.03       |  OsvvmProjectScripts - OpenBuildHtml                                                      |
 |               |  Fixed issue WRT simulator ending in error and not being able to move transcript files    |
 |               |  Added variable OsvvmVersionCompatibility to control whether to use new or old OSVVM settings    |
 | 2023.09       |  OsvvmProjectScripts - build/include - file search now happens early for better messages  |
