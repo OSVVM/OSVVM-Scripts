@@ -1,4 +1,4 @@
-#  File Name:         Report2Html.tcl
+#  File Name:         ReportBuildDict2Html.tcl
 #  Purpose:           Convert OSVVM YAML build reports to HTML
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
@@ -59,218 +59,71 @@ package require yaml
 #
 
 # -------------------------------------------------
-# build
+# ReportBuildDict2Html
 #
-proc Report2Html {ReportFile} {
+proc ReportBuildDict2Html {} {
   variable ResultsFile
-  variable ReportBuildName
+  variable ReportFileRoot
 
-  # Extract BuildName and HtmlFileName from ReportFile
-  set ReportFileRoot  [file rootname $ReportFile]
-  set ReportBuildName [file tail $ReportFileRoot]
-  set FileName ${ReportFileRoot}.html
-  
-  
-  # Read the YAML file into a dictionary
-  set Report2HtmlDict [::yaml::yaml2dict -file ${ReportFile}]
-
-  # Open results file
-  set ResultsFile [open ${FileName} w]
+  # Open results file  
+  set ResultsFile [open ${ReportFileRoot}.html w]
   
   # Convert YAML file to HTML & catch results
-  set ErrorCode [catch {LocalReport2Html $Report2HtmlDict} errmsg]
+  set ErrorCode [catch {LocalReportBuildDict2Html} errmsg]
   
   # Close Results file - done here s.t. it is closed even if it fails
   close $ResultsFile
 
   if {$ErrorCode} {
-    CallbackOnError_Report2Html $ReportFile $errmsg
+    CallbackOnError_Report2Html ${ReportFileRoot}.html $errmsg
   }
 }
 
 # -------------------------------------------------
-# build
+# LocalReportBuildDict2Html
 #
-proc LocalReport2Html {Report2HtmlDict} {
+proc LocalReportBuildDict2Html {} {
   variable ResultsFile
   variable ReportBuildName
-
-  set VersionNum  [dict get $Report2HtmlDict Version]
-  
-  GetOsvvmPathSettings $Report2HtmlDict 
+  variable BuildDict
   
   CreateOsvvmReportHeader $ResultsFile "$ReportBuildName Build Report"
   
-  ElaborateTestSuites $Report2HtmlDict
-
-  CreateBuildReportSummary $Report2HtmlDict
+  CreateHtmlSummary $BuildDict
   
   CreateTestSuiteSummary 
   
-  CreateTestCaseSummaries $Report2HtmlDict
+  CreateTestCaseSummaries $BuildDict
   
   CreateOsvvmReportFooter $ResultsFile
-
-}
-
-# -------------------------------------------------
-# ReportBuildStatus
-#
-proc ReportBuildStatus {} {
-  variable ReportBuildName
-  variable ReportBuildErrorCode
-  variable ReportAnalyzeErrorCount
-  variable ReportSimulateErrorCount
-  variable BuildStatus 
-  variable TestCasesPassed 
-  variable TestCasesFailed 
-  variable TestCasesSkipped 
-  variable TestCasesRun 
-  
-  if {$BuildStatus eq "PASSED"} {
-    puts "Build: ${ReportBuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${ReportAnalyzeErrorCount},  Simulate Errors: ${ReportSimulateErrorCount}"
-  } else {
-    puts "BuildError: ${ReportBuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${ReportAnalyzeErrorCount},  Simulate Errors: ${ReportSimulateErrorCount},  Build Error Code: $ReportBuildErrorCode"
-  }
 }
 
 
 # -------------------------------------------------
-# ElaborateTestSuites
+# CreateHtmlSummary
 #
-proc ElaborateTestSuites {TestDict} {
-  variable BuildStatus "PASSED"
-  variable TestCasesPassed 0
-  variable TestCasesFailed 0
-  variable TestCasesSkipped 0
-  variable TestCasesRun 0
-  variable CreateTestCaseSummariesummary ""
-  variable HaveTestSuites
-  
-  set HaveTestSuites [dict exists $TestDict TestSuites]
-
-  if { $HaveTestSuites } {
-    foreach TestSuite [dict get $TestDict TestSuites] {
-      set SuitePassed 0
-      set SuiteFailed 0
-      set SuiteSkipped 0
-      set SuiteReqPassed 0
-      set SuiteReqGoal 0
-      set SuiteDisabledAlerts 0
-      set SuiteName [dict get $TestSuite Name]
-      foreach TestCase [dict get $TestSuite TestCases] {
-        set TestName    [dict get $TestCase TestCaseName]
-        if { [dict exists $TestCase Results] } { 
-          set TestStatus  [dict get $TestCase Status]
-          set TestResults [dict get $TestCase Results]
-          if { $TestStatus ne "SKIPPED" } {
-            set TestReqGoal   [dict get $TestResults RequirementsGoal]
-            set TestReqPassed [dict get $TestResults RequirementsPassed]
-            set SuiteDisabledAlerts [expr $SuiteDisabledAlerts + [SumAlertCount [dict get $TestResults DisabledAlertCount]]]
-            set VhdlName [dict get $TestCase Name]
-          } else {
-            set TestReqGoal   0
-            set TestReqPassed 0
-            set VhdlName $TestName
-          }
-        } else {
-          set TestStatus  "FAILED"
-          set TestReqGoal   0
-          set TestReqPassed 0
-          set VhdlName $TestName
-        }
-        if { $TestStatus eq "SKIPPED" } {
-          incr SuiteSkipped
-          incr TestCasesSkipped
-        } else {
-          incr TestCasesRun
-          if { ${TestName} ne ${VhdlName} } {
-            incr SuiteFailed
-            incr TestCasesFailed
-          } elseif { $TestStatus eq "PASSED" } {
-            incr SuitePassed
-            incr TestCasesPassed
-            if { $TestReqGoal > 0 } {
-              incr SuiteReqGoal
-              if { $TestReqPassed >= $TestReqGoal } {
-                incr SuiteReqPassed
-              }
-            }
-          } else {
-            incr SuiteFailed
-            incr TestCasesFailed
-          }
-        }
-      }
-      if {[dict exists $TestSuite ElapsedTime]} {
-        set SuiteElapsedTime [dict get $TestSuite ElapsedTime]
-      } else {
-        set SuiteElapsedTime 0
-      }
-      if { $SuitePassed > 0 && $SuiteFailed == 0 } {
-        set SuiteStatus "PASSED"
-      } else {
-        set SuiteStatus "FAILED"
-        set BuildStatus "FAILED"
-      }
-      set SuiteDict [dict create Name       $SuiteName]
-      dict append SuiteDict Status          $SuiteStatus
-      dict append SuiteDict PASSED          $SuitePassed
-      dict append SuiteDict FAILED          $SuiteFailed
-      dict append SuiteDict SKIPPED         $SuiteSkipped
-      dict append SuiteDict ReqPassed       $SuiteReqPassed
-      dict append SuiteDict ReqGoal         $SuiteReqGoal
-      dict append SuiteDict DisabledAlerts  $SuiteDisabledAlerts
-      dict append SuiteDict ElapsedTime     $SuiteElapsedTime
-      lappend CreateTestCaseSummariesummary $SuiteDict
-    }
-  }
-}
-
-# -------------------------------------------------
-# CreateBuildReportSummary
-#
-proc CreateBuildReportSummary {TestDict} {
+proc CreateHtmlSummary {TestDict} {
   variable ResultsFile
   variable ReportBuildName
+  
   variable ReportBuildErrorCode
   variable ReportAnalyzeErrorCount
   variable ReportSimulateErrorCount
   variable BuildStatus 
+  variable ReportStartTime
+  variable ReportFinishTime
+  variable ElapsedTimeSeconds
+  variable ElapsedTimeSecondsInt
+  variable ElapsedTimeHms
+  variable ReportSimulator
+  variable ReportSimulatorVersion
+  variable OsvvmVersion
+  variable RequirementsRelativeHtml
+
   variable TestCasesPassed 
   variable TestCasesFailed 
   variable TestCasesSkipped 
   variable TestCasesRun 
-
-  if {[info exists CreateTestCaseSummariesummary]} {
-    unset CreateTestCaseSummariesummary
-  }
-
-#  set ReportBuildName [dict get $TestDict BuildName] ; # now comes from FileName
-
-  if { [dict exists $TestDict BuildInfo] } {
-    set RunInfo   [dict get $TestDict BuildInfo] 
-  } else {
-    set RunInfo   [dict create BuildErrorCode 1]
-  }
-  if {[dict exists $RunInfo BuildErrorCode]} {
-    set ReportBuildErrorCode [dict get $RunInfo BuildErrorCode]
-  } else {
-    set ReportBuildErrorCode 1
-  }
-  if {[dict exists $RunInfo AnalyzeErrorCount]} {
-    set ReportAnalyzeErrorCount [dict get $RunInfo AnalyzeErrorCount]
-  } else {
-    set ReportAnalyzeErrorCount 0
-  }
-  if {[dict exists $RunInfo SimulateErrorCount]} {
-    set ReportSimulateErrorCount [dict get $RunInfo SimulateErrorCount]
-  } else {
-    set ReportSimulateErrorCount 0
-  }
-  if {($ReportBuildErrorCode != 0) || $ReportAnalyzeErrorCount || $ReportSimulateErrorCount} {
-    set BuildStatus "FAILED"
-  }
   
   set PassedClass  ""
   set FailedClass  ""
@@ -311,39 +164,18 @@ proc CreateBuildReportSummary {TestDict} {
   puts $ResultsFile "          <tr ${SimulateClass}><td>Simulate Failures</td> <td>$ReportSimulateErrorCount</td></tr>"
 
   # Print BuildInfo
-  set BuildInfo $RunInfo
-  if {[dict exists $RunInfo StartTime]} {
-    set ReportStartTime [dict get $RunInfo StartTime]
-    puts $ResultsFile "          <tr><td>Start Time</td> <td>[IsoToOsvvmTime $ReportStartTime]</td></tr>"
+  if {$ReportStartTime ne ""} {
+    puts $ResultsFile "          <tr><td>Start Time</td> <td>$ReportStartTime</td></tr>"
   } 
-  if {[dict exists $RunInfo FinishTime]} {
-    set ReportFinishTime [dict get $RunInfo FinishTime]
-    puts $ResultsFile "          <tr><td>Finish Time</td> <td>[IsoToOsvvmTime $ReportFinishTime]</td></tr>"
+  if {$ReportFinishTime ne ""} {
+    puts $ResultsFile "          <tr><td>Finish Time</td> <td>$ReportFinishTime</td></tr>"
   } 
 
-  if {[dict exists $RunInfo Elapsed]} {
-    set ElapsedTimeSeconds [dict get $RunInfo Elapsed]
-  } else {
-    set ElapsedTimeSeconds 0.0
-  }
-  set ElapsedTimeSecondsInt [expr {round($ElapsedTimeSeconds)}]
-  set ElapsedTimeHms     [format %d:%02d:%02d [expr ($ElapsedTimeSecondsInt/(60*60))] [expr (($ElapsedTimeSecondsInt/60)%60)] [expr (${ElapsedTimeSecondsInt}%60)]]
   puts $ResultsFile "          <tr><td>Elapsed Time (h:m:s)</td>                <td>$ElapsedTimeHms</td></tr>"
-
-  if {[dict exists $RunInfo Simulator]} {
-    set ReportSimulator [dict get $RunInfo Simulator]
-  } else {
-    set ReportSimulator "Unknown"
-  } 
-  if {[dict exists $RunInfo SimulatorVersion]} {
-    set ReportSimulatorVersion [dict get $RunInfo SimulatorVersion]
-  } else {
-    set ReportSimulatorVersion "Unknown"
-  } 
   puts $ResultsFile "          <tr><td>Simulator (Version)</td> <td>${ReportSimulator} ($ReportSimulatorVersion)</td></tr>"
 
-  if {[dict exists $RunInfo OsvvmVersion]} {
-    puts $ResultsFile "          <tr><td>OSVVM Version</td> <td>[dict get $RunInfo OsvvmVersion]</td></tr>"
+  if {$OsvvmVersion ne ""} {
+    puts $ResultsFile "          <tr><td>OSVVM Version</td> <td>$OsvvmVersion</td></tr>"
   } 
 
   if {$::osvvm::Report2SimulationLogFile ne ""} {
@@ -353,8 +185,7 @@ proc CreateBuildReportSummary {TestDict} {
     puts $ResultsFile "          <tr><td>HTML Simulation Transcript</td><td><a href=\"${::osvvm::Report2SimulationHtmlLogFile}\">${ReportBuildName}_log.html</a></td></tr>"
   }
 
-  if {$::osvvm::Report2RequirementsSubdirectory ne ""} {
-    set RequirementsRelativeHtml [file join $::osvvm::Report2RequirementsSubdirectory ${ReportBuildName}_req.html]
+  if {$RequirementsRelativeHtml ne ""} {
     puts $ResultsFile "          <tr><td>Requirements Summary</td><td><a href=\"${RequirementsRelativeHtml}\">[file tail $RequirementsRelativeHtml]</a></td></tr>"
   }
 
@@ -377,7 +208,7 @@ proc CreateBuildReportSummary {TestDict} {
 #
 proc CreateTestSuiteSummary  {} {
   variable HaveTestSuites
-  variable CreateTestCaseSummariesummary
+  variable TestSuiteSummaryArrayOfDictionaries
   variable ResultsFile
   variable ReportBuildName
 
@@ -401,7 +232,7 @@ proc CreateTestSuiteSummary  {} {
     puts $ResultsFile "        </thead>"
     puts $ResultsFile "        <tbody>"
 
-    foreach TestSuite $CreateTestCaseSummariesummary {
+    foreach TestSuite $TestSuiteSummaryArrayOfDictionaries {
       set SuiteName [dict get $TestSuite Name]
       set SuiteStatus  [dict get $TestSuite Status]
 
@@ -603,13 +434,6 @@ proc SumAlertCount {AlertCountDict} {
   return [expr [dict get $AlertCountDict Failure] + [dict get $AlertCountDict Error] + [dict get $AlertCountDict Warning]]
 }
 
-# -------------------------------------------------
-# IsoToOsvvmTime
-#
-proc IsoToOsvvmTime {IsoTime} {
-  set TimeInSec [clock scan $IsoTime -format {%Y-%m-%dT%H:%M:%S%z} ]
-  return [clock format $TimeInSec -format {%Y-%m-%d - %H:%M:%S (%Z)}]
-}
 
 
 

@@ -50,8 +50,14 @@ package require yaml
   source ${::osvvm::OsvvmScriptDirectory}/ReportCov2Html.tcl
   source ${::osvvm::OsvvmScriptDirectory}/ReportScoreboard2Html.tcl
   source ${::osvvm::OsvvmScriptDirectory}/ReportSupport.tcl
-  source ${::osvvm::OsvvmScriptDirectory}/Report2Html.tcl
-  source ${::osvvm::OsvvmScriptDirectory}/Report2Junit.tcl
+  
+  source ${::osvvm::OsvvmScriptDirectory}/ReportBuildYaml2Dict.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/ReportBuildDict2Html.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/ReportBuildDict2Junit.tcl
+  
+#  source ${::osvvm::OsvvmScriptDirectory}/Report2Html.tcl
+#  source ${::osvvm::OsvvmScriptDirectory}/Report2Junit.tcl
+  
   source ${::osvvm::OsvvmScriptDirectory}/RequirementsMerge.tcl
   source ${::osvvm::OsvvmScriptDirectory}/Requirements2Html.tcl
   source ${::osvvm::OsvvmScriptDirectory}/Requirements2Csv.tcl
