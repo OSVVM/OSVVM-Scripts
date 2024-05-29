@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     5/2024   2024.05    Added ToolVersion variable 
 #    12/2022   2022.12    Updated StartTranscript, StopTranscript, Analyze, Simulate
 #     2/2022   2022.02    Added template of procedures needed for coverage support
 #    12/2021   2021.12    Updated to use relative paths.
@@ -50,7 +51,8 @@
   variable ToolVendor  "Cadence"
   variable ToolName    "Xcelium"
   variable ToolSupportsGenericPackages "false"
-  variable ToolNameVersion ${ToolName}-[lindex [exec xmvhdl -version] 2] 
+  variable ToolVersion     [lindex [exec xmvhdl -version] 2] 
+  variable ToolNameVersion ${ToolName}-${ToolVersion} 
 #   puts $ToolNameVersion
 
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 

@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    05/2024   2024.05    Updated for renaming during refactoring 
 #    05/2022   2022.05    Refactored StartUp.tcl to remove items 
 #                         shared by all StartUp scripts
 #    10/2021   2021.10    Loads OsvvmYamlSupport.tcl when YAML library available
@@ -69,8 +70,8 @@ namespace eval ::osvvm {
 variable OsvvmLibraries $::osvvm::OsvvmHomeDirectory
 
 # Load Base OSVVM Project Scripts and Vendor Specific Scripts
-source ${::osvvm::OsvvmScriptDirectory}/CreateBuildYamlReports.tcl
-source ${::osvvm::OsvvmScriptDirectory}/OsvvmProjectScripts.tcl
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCreateYamlReports.tcl
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCore.tcl
 namespace eval ::osvvm {
   source ${::osvvm::OsvvmScriptDirectory}/VendorScripts_${::osvvm::ScriptBaseName}.tcl
 }
@@ -78,9 +79,9 @@ namespace eval ::osvvm {
 # Load OSVVM YAML support if yaml support available 
 # Could be made conditional for only simulators
 if {[catch {package require yaml}]} {
-  source ${::osvvm::OsvvmScriptDirectory}/NoYamlPackage.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/StartUpYamlMockReports.tcl
 } else {
-  source ${::osvvm::OsvvmScriptDirectory}/OsvvmYamlSupport.tcl
+  source ${::osvvm::OsvvmScriptDirectory}/StartUpYamlLoadReports.tcl
 }
 
 source ${::osvvm::OsvvmScriptDirectory}/Log2Osvvm.tcl

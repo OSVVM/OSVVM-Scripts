@@ -18,12 +18,13 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    04/2024   2024.05    Updated report formatting
 #    07/2023   2023.07    Initial Revision
 #
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2023 by SynthWorks Design Inc.
+#  Copyright (c) 2023-2024 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -40,30 +41,19 @@
 
 package require yaml
 
-proc Requirements2Html {RequirementsYamlFile {TestCaseName ""} {TestSuiteName ""}} {
+proc Requirements2Html {RequirementsYamlFile {AdditionalPath ""} } {
   variable ResultsFile
 
   if {[file exists $RequirementsYamlFile]} {
-    if {$TestSuiteName eq ""} {
-      # Extract HTML file name and ReportName from YamlFile
-      set FileRoot [file rootname $RequirementsYamlFile]
-      set HtmlFileName ${FileRoot}.html
-      set ReportName [regsub {_req} [file tail $FileRoot] ""] 
-      
-      # Copy header file to results file and open results file
-      set HeaderFile [FindProjectFile ${ReportName}_requirements_header.html]
-      if {$HeaderFile eq ""} {
-        set HeaderFile [FindProjectFile requirements_header.html]
-      }
-      file copy -force $HeaderFile ${HtmlFileName}
-      set ResultsFile [open ${HtmlFileName} a]
-    } else {
-      OpenSimulationReportFile ${TestCaseName} ${TestSuiteName}
-      set ReportName $TestCaseName
-    }
+    # Extract HTML file name and ReportName from YamlFile
+    set FileRoot [file rootname $RequirementsYamlFile]
+    set HtmlFileName ${FileRoot}.html
+    set ReportName [regsub {_req} [file tail $FileRoot] ""] 
+    
+    set ResultsFile [open ${HtmlFileName} w]
     
     # Convert requirements YAML to HTML and catch errors
-    set ErrorCode [catch {LocalRequirements2Html $RequirementsYamlFile $ReportName} errmsg]
+    set ErrorCode [catch {LocalRequirements2Html $RequirementsYamlFile $ReportName $AdditionalPath} errmsg]
     close $ResultsFile
 
     if {$ErrorCode} {
@@ -73,14 +63,14 @@ proc Requirements2Html {RequirementsYamlFile {TestCaseName ""} {TestSuiteName ""
 }
 
 
-proc LocalRequirements2Html {RequirementsYamlFile ReportName} {
+proc LocalRequirements2Html { RequirementsYamlFile ReportName AdditionalPath } {
   variable ResultsFile
 
   set UnsortedRequirements2Dict [::yaml::yaml2dict -file ${RequirementsYamlFile}]
   
   set Requirements2Dict [lsort -index 1 $UnsortedRequirements2Dict]
   
-  RequirementsTableHeader $ReportName
+  RequirementsTableHeader $ReportName $AdditionalPath
   
   foreach item $Requirements2Dict {
     set Requirement [dict get $item Requirement]
@@ -96,43 +86,58 @@ proc LocalRequirements2Html {RequirementsYamlFile ReportName} {
       }
     }
   }  
-  
-  puts $ResultsFile "</table>"
-  puts $ResultsFile "<br>"
-  puts $ResultsFile "</details>"
-  puts $ResultsFile "<br><br>"
+  RequirementsTableFooter
 }
 
-proc RequirementsTableHeader { ReportName } {
+proc RequirementsTableHeader { ReportName AdditionalPath } {
   variable ResultsFile
 
-  puts $ResultsFile "<DIV STYLE=\"font-size:25px\"><BR></DIV>"
-  puts $ResultsFile "<details open><summary style=\"font-size: 16px;\"><strong>$ReportName Requirement Results</strong></summary>"
-  puts $ResultsFile "<DIV STYLE=\"font-size:10px\"><BR></DIV>"
-
-  puts $ResultsFile "<table>"
-  puts $ResultsFile "  <tr>"
-  puts $ResultsFile "      <th rowspan=\"2\">Requirement</th>"
-  puts $ResultsFile "      <th rowspan=\"2\">TestName</th>"
-  puts $ResultsFile "      <th rowspan=\"2\">Status</th>"
-  puts $ResultsFile "      <th colspan=\"2\">Requirements</th>"
-  puts $ResultsFile "      <th colspan=\"3\">Checks</th>"
-  puts $ResultsFile "      <th colspan=\"3\">Alert Counts</th>"
-  puts $ResultsFile "      <th colspan=\"3\">Disabled Alert Counts</th>"
-  puts $ResultsFile "  </tr>"
-  puts $ResultsFile "  <tr>"
-  puts $ResultsFile "      <th>Goal</th>"
-  puts $ResultsFile "      <th>Passed</th>"
-  puts $ResultsFile "      <th>Total</th>"
-  puts $ResultsFile "      <th>Passed</th>"
-  puts $ResultsFile "      <th>Failed</th>"
-  puts $ResultsFile "      <th>Failures</th>"
-  puts $ResultsFile "      <th>Errors</th>"
-  puts $ResultsFile "      <th>Warnings</th>"
-  puts $ResultsFile "      <th>Failures</th>"
-  puts $ResultsFile "      <th>Errors</th>"
-  puts $ResultsFile "      <th>Warnings</th>"
-  puts $ResultsFile "  </tr>"
+  puts $ResultsFile "<!DOCTYPE html>"
+  puts $ResultsFile "<html lang=\"en\">"
+  puts $ResultsFile "<head>"
+  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${AdditionalPath}../${::osvvm::CssSubdirectory}/CssOsvvmStyle.css\">"
+  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${AdditionalPath}../${::osvvm::CssSubdirectory}/Custom-Style.css\">"
+  puts $ResultsFile "  <title>$ReportName Requirement Results</title>"
+  puts $ResultsFile "</head>"
+  puts $ResultsFile "<body>"
+  puts $ResultsFile "<header>"
+  puts $ResultsFile "  <div class=\"summary-parent\">"
+  puts $ResultsFile "    <div class=\"summary-table\">"
+  puts $ResultsFile "      <h1>$ReportName Requirement Results</h1>"
+  puts $ResultsFile "    </div>"
+  puts $ResultsFile "    <div class=\"requirements-logo\">"
+  puts $ResultsFile "      <img src=\"${AdditionalPath}../${::osvvm::CssSubdirectory}/OsvvmLogo.png\" alt=\"OSVVM logo\">"
+  puts $ResultsFile "    </div>"
+  puts $ResultsFile "  </div>"
+  puts $ResultsFile "</header>"
+  puts $ResultsFile "<main>"
+  puts $ResultsFile "  <div class=\"RequirementsResults\">"
+  puts $ResultsFile "    <table class=\"RequirementsResults\">"
+  puts $ResultsFile "      <thead>"
+  puts $ResultsFile "        <tr>"
+  puts $ResultsFile "          <th rowspan=\"2\">Requirement</th>"
+  puts $ResultsFile "          <th rowspan=\"2\">TestName</th>"
+  puts $ResultsFile "          <th rowspan=\"2\">Status</th>"
+  puts $ResultsFile "          <th colspan=\"2\">Requirements</th>"
+  puts $ResultsFile "          <th colspan=\"3\">Checks</th>"
+  puts $ResultsFile "          <th colspan=\"3\">Alert Counts</th>"
+  puts $ResultsFile "          <th colspan=\"3\">Disabled Alert Counts</th>"
+  puts $ResultsFile "        </tr>"
+  puts $ResultsFile "        <tr>"
+  puts $ResultsFile "          <th>Goal</th>"
+  puts $ResultsFile "          <th>Passed</th>"
+  puts $ResultsFile "          <th>Total</th>"
+  puts $ResultsFile "          <th>Passed</th>"
+  puts $ResultsFile "          <th>Failed</th>"
+  puts $ResultsFile "          <th>Failures</th>"
+  puts $ResultsFile "          <th>Errors</th>"
+  puts $ResultsFile "          <th>Warnings</th>"
+  puts $ResultsFile "          <th>Failures</th>"
+  puts $ResultsFile "          <th>Errors</th>"
+  puts $ResultsFile "          <th>Warnings</th>"
+  puts $ResultsFile "        </tr>"
+  puts $ResultsFile "      </thead>"
+  puts $ResultsFile "      <tbody>"
 }
 
 proc WriteOneRequirement {TestCase {Requirement ""}} {
@@ -163,43 +168,39 @@ proc WriteOneRequirement {TestCase {Requirement ""}} {
   
   
   if { $Status eq "FAILED" } {
-    set StatusColor "#F00000"
+    set StatusClass "class=\"failed\""
   } elseif {$Status eq "PASSED" } {
-    set StatusColor "#00C000"
+    set StatusClass "class=\"passed\""
   } else {
-    set StatusColor "#D09000"
+    set StatusClass "class=\"skipped\""
   } 
-  set RequirementsColor  [expr {$PassedReq    < $Goal     ? "#D09000" : "#000000"}]
-  set PassedChecksColor  [expr {$PassedChecks < $Checked  ? "#D09000" : "#000000"}]
-  set ChecksColor        [expr {$Errors > 0               ? "#F00000" : ${PassedChecksColor}}]
+  set RequirementsClass  [expr {$PassedReq    < $Goal     ? "class=\"warning\"" : ""}]
+  set PassedChecksClass  [expr {$PassedChecks < $Checked  ? "class=\"warning\"" : ""}]
+  set ChecksClass        [expr {$Errors > 0               ? "class=\"failed\"" : ${PassedChecksClass}}]
 
-  set AlertFailureColor         [expr {$AlertFailure > 0         ? "#F00000" : "#000000"}]
-  set AlertErrorColor           [expr {$AlertError   > 0         ? "#F00000" : "#000000"}]
-  set AlertWarningColor         [expr {$AlertWarning > 0         ? "#F00000" : "#000000"}]
-  set DisabledAlertFailureColor [expr {$DisabledAlertFailure > 0 ? "#F00000" : "#000000"}]
-  set DisabledAlertErrorColor   [expr {$DisabledAlertError   > 0 ? "#F00000" : "#000000"}]
-  set DisabledAlertWarningColor [expr {$DisabledAlertWarning > 0 ? "#F00000" : "#000000"}]
+  set AlertFailureClass         [expr {$AlertFailure > 0         ? "class=\"failed\"" : ""}]
+  set AlertErrorClass           [expr {$AlertError   > 0         ? "class=\"failed\"" : ""}]
+  set AlertWarningClass         [expr {$AlertWarning > 0         ? "class=\"failed\"" : ""}]
+  set DisabledAlertFailureClass [expr {$DisabledAlertFailure > 0 ? "class=\"failed\"" : ""}]
+  set DisabledAlertErrorClass   [expr {$DisabledAlertError   > 0 ? "class=\"failed\"" : ""}]
+  set DisabledAlertWarningClass [expr {$DisabledAlertWarning > 0 ? "class=\"failed\"" : ""}]
 
-  puts $ResultsFile "  <tr>"
-  puts $ResultsFile "      <td>${Requirement}</td>"
-  puts $ResultsFile "      <td>${TestName}</td>"
-  puts $ResultsFile "      <td style=color:${StatusColor}>$Status</td>"
-  
-  puts $ResultsFile "      <td style=color:${RequirementsColor}>$Goal</td>"
-  puts $ResultsFile "      <td style=color:${RequirementsColor}>$PassedReq</td>"
-
-  puts $ResultsFile "      <td style=color:${ChecksColor}>$Checked</td>"
-  puts $ResultsFile "      <td style=color:${ChecksColor}>$PassedChecks</td>"
-  puts $ResultsFile "      <td style=color:${ChecksColor}>$Errors</td>"
-  
-  puts $ResultsFile "      <td style=color:${AlertFailureColor}>$AlertFailure</td>"
-  puts $ResultsFile "      <td style=color:${AlertErrorColor}>$AlertError</td>"
-  puts $ResultsFile "      <td style=color:${AlertWarningColor}>$AlertWarning</td>"
-  
-  puts $ResultsFile "      <td style=color:${DisabledAlertErrorColor}>$DisabledAlertFailure</td>"
-  puts $ResultsFile "      <td style=color:${DisabledAlertErrorColor}>$DisabledAlertError</td>"
-  puts $ResultsFile "      <td style=color:${DisabledAlertWarningColor}>$DisabledAlertWarning</td>"
-  puts $ResultsFile "  </tr>"
+  puts $ResultsFile "        <tr>"
+  puts $ResultsFile "            <td>${Requirement}</td>"
+  puts $ResultsFile "            <td>${TestName}</td>"
+  puts $ResultsFile "            <td ${StatusClass}>$Status</td>"
+  puts $ResultsFile "            <td ${RequirementsClass}>$Goal</td>"
+  puts $ResultsFile "            <td ${RequirementsClass}>$PassedReq</td>"
+  puts $ResultsFile "            <td ${ChecksClass}>$Checked</td>"
+  puts $ResultsFile "            <td ${ChecksClass}>$PassedChecks</td>"
+  puts $ResultsFile "            <td ${ChecksClass}>$Errors</td>"
+  puts $ResultsFile "            <td ${AlertFailureClass}>$AlertFailure</td>"
+  puts $ResultsFile "            <td ${AlertErrorClass}>$AlertError</td>"
+  puts $ResultsFile "            <td ${AlertWarningClass}>$AlertWarning</td>"
+  puts $ResultsFile "            <td ${DisabledAlertErrorClass}>$DisabledAlertFailure</td>"
+  puts $ResultsFile "            <td ${DisabledAlertErrorClass}>$DisabledAlertError</td>"
+  puts $ResultsFile "            <td ${DisabledAlertWarningClass}>$DisabledAlertWarning</td>"
+  puts $ResultsFile "        </tr>"
 }
 
 proc MergeTestCaseResults { TestCases } {
@@ -255,14 +256,23 @@ proc MergeTestCaseResults { TestCases } {
   
   set TestName Merged
   
-#  dict set NewDict TestName Merged Status $Status Results { \
-#    Goal $Goal Passed $Passed Errors $Errors Checked $Checked \
-#    AlertCount {Failure $AlertFailure Error $AlertError Warning $AlertWarning} \
-#    DisabledAlertCount {Failure $DisabledAlertFailure Error $DisabledAlertError Warning $DisabledAlertWarning} }
-
-#  return $NewDict
   return "TestName Merged Status $Status Results { \
     Goal $Goal PassedReq $PassedReq Passed $Passed Errors $Errors Checked $Checked \
     AlertCount {Failure $AlertFailure Error $AlertError Warning $AlertWarning} \
     DisabledAlertCount {Failure $DisabledAlertFailure Error $DisabledAlertError Warning $DisabledAlertWarning} }"
+}
+
+proc RequirementsTableFooter {} {
+  variable ResultsFile
+
+  puts $ResultsFile "      </tbody>"
+  puts $ResultsFile "    </table>"
+  puts $ResultsFile "  </div>"
+  puts $ResultsFile "</main>"
+  puts $ResultsFile "<footer>"
+  puts $ResultsFile "  <hr />"
+	puts $ResultsFile "  <p class=\"generated-by-osvvm\">Generated by OSVVM-Scripts ${::osvvm::OsvvmVersion} on [clock format [clock seconds] -format {%Y-%m-%d - %H:%M:%S (%Z)}].</p>"
+  puts $ResultsFile "</footer>"
+  puts $ResultsFile "</body>"
+  puts $ResultsFile "</html>"
 }

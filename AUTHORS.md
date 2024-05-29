@@ -9,18 +9,27 @@
 #### [Patrick Lehmann](https://opensource.ieee.org/patrick.lehmann)
 * Maintainer / Contributor
 
+## OSVVM Project Contributors - The people who contribute to OSVVM
+
+#### [Jim Lewis](https://opensource.ieee.org/jim)
+* Technical/Project lead
+* Maintainer / Contributor
+* email: jim (at) synthworks.com
+
+#### [Patrick Lehmann](https://opensource.ieee.org/patrick.lehmann)
+* Maintainer / Contributor
+
+### [Full contributors list](https://opensource.ieee.org/OSVVM/VerificationIP/-/graphs/master)
+
+
 ## Participating  
 The OSVVM project welcomes your participation with either 
 issue reports or pull requests.
-For details on [how to participate see](https://opensource.ieee.org/osvvm/OsvvmLibraries/-/blob/master/CONTRIBUTING.md)
-
-You can find the project
-[Contributors here](CONTRIBUTORS.md).
-
+For details on [how to participate see](https://github.com/OSVVM/OsvvmLibraries/blob/main/CONTRIBUTING.md)
 
 
 #### Copyright and License
-Copyright (C) 2020 by [OSVVM Authors](AUTHORS.md)   
+Copyright (C) 2020 - 2024 by [OSVVM Authors](AUTHORS.md)   
 
 This file is part of OSVVM.
 

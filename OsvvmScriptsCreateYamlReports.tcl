@@ -1,4 +1,4 @@
-#  File Name:         CreateBuildYaml.tcl
+#  File Name:         OsvvmScriptsCreateYamlReports.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
@@ -7,7 +7,7 @@
 #     Jim Lewis           email:  jim@synthworks.com
 #
 #  Description
-#    Procedures that create the OSVVM OsvvmRun.yml
+#    Support procedures to create the OSVVM YAML output
 #    Defines the format of the OsvvmRun.yml file
 #
 #  Developed by:
@@ -19,12 +19,14 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    05/2024   2024.05    Updated to Decouple Report2Html from OSVVM.  Yaml = source of information.
+#    04/2024   2024.04    Updated report formatting
 #    12/2022   2022.12    Refactored from OsvvmProjectScripts
 #
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2022 by SynthWorks Design Inc.
+#  Copyright (c) 2022-2024 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -41,9 +43,9 @@
 
 
 namespace eval ::osvvm {
-  variable  TclZone   [clock format [clock seconds] -format %z]
-  variable  IsoZone   [format "%s:%s" [string range $TclZone 0 2] [string range $TclZone 3 4]] 
-
+  variable  TclZone      [clock format [clock seconds] -format %z]
+  variable  IsoZone      [format "%s:%s" [string range $TclZone 0 2] [string range $TclZone 3 4]] 
+  variable  TimeZoneName [clock format [clock seconds] -format %Z]
 
 # -------------------------------------------------
 proc  ElapsedTimeMs {StartTimeMs} {
@@ -74,16 +76,9 @@ proc StartBuildYaml {BuildName} {
   puts "Starting Build at time [clock format $BuildStartTime -format %T]"
 
   set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} w]
-#  puts  $RunFile "BuildName: $BuildName"
   puts  $RunFile "Version: $::osvvm::OsvvmVersion"
   puts  $RunFile "Date: $StartTime"
-  puts  $RunFile "BuildInfo:"
-  puts  $RunFile "  Start Time: $StartTime"
-  puts  $RunFile "  Simulator: \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
-  puts  $RunFile "  Simulator Version: \"$::osvvm::ToolNameVersion\""
-  puts  $RunFile "  OSVVM Version: \"$::osvvm::OsvvmVersion\""
-#  set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${BuildName}]
-#  puts  $RunFile "  Simulation Transcript: <a href=\"${BuildTranscriptLinkPathPrefix}.log\">${BuildName}.log</a>"
+  WriteOsvvmSettingsYaml $RunFile
   close $RunFile
 }
 
@@ -100,29 +95,85 @@ proc FinishBuildYaml {BuildName} {
 
   set   BuildFinishTime     [clock seconds]
   set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
-  puts  $RunFile "OptionalInfo:"
-#  # OptionalInfo is not known until simulation finishes
-#  if {$::osvvm::TranscriptExtension eq "html"} {
-#    set BuildTranscriptLinkPathPrefix [file join ${::osvvm::LogSubdirectory} ${BuildName}]
-#    puts $RunFile "  HTML Simulation Transcript: <a href=\"${BuildTranscriptLinkPathPrefix}_log.html\">${BuildName}_log.html</a>"
-#  }
-#  set CodeCoverageFile [vendor_GetCoverageFileName ${BuildName}]
-#  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
-#    puts $RunFile "  Code Coverage: <a href=\"${::osvvm::CoverageSubdirectory}/${CodeCoverageFile}\">Code Coverage Results</a>"
-#  }
-  puts  $RunFile "  Finish Time: [GetIsoTime $BuildFinishTime]"
-  
-  puts  $RunFile "Run:"
+  puts  $RunFile "BuildInfo:"
+  puts  $RunFile "  StartTime:            [GetIsoTime $BuildStartTime]"
+  puts  $RunFile "  FinishTime:           [GetIsoTime $BuildFinishTime]"
+  puts  $RunFile "  Elapsed:              [ElapsedTimeMs $BuildStartTimeMs]"
+  puts  $RunFile "  Simulator:            \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
+  puts  $RunFile "  SimulatorVersion:     \"$::osvvm::ToolVersion\""
+  puts  $RunFile "  OsvvmVersion:         \"$::osvvm::OsvvmVersion\""
+
   puts  $RunFile "  BuildErrorCode:       $BuildErrorCode"
   puts  $RunFile "  AnalyzeErrorCount:    $AnalyzeErrorCount"
   puts  $RunFile "  SimulateErrorCount:   $BuildErrorCode"
-  puts  $RunFile "  Elapsed:  [ElapsedTimeMs $BuildStartTimeMs]"
+  
   close $RunFile
 
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   puts "Build Finish time [clock format $BuildFinishTime -format %T], Elapsed time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
 }
 
+# -------------------------------------------------
+proc WriteOsvvmSettingsYaml {ReportFile} {
+  
+  puts  $ReportFile "OsvvmSettingsInfo:"
+  puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OutputBaseDirectory\""
+  puts  $ReportFile "  ReportsSubdirectory:  \"$::osvvm::ReportsSubdirectory\""
+  puts  $ReportFile "  CssSubdirectory:      \"$::osvvm::CssSubdirectory\""  
+  if {$::osvvm::TranscriptExtension ne "none"} {
+    puts  $ReportFile "  SimulationLogFile: \"[file join ${::osvvm::LogSubdirectory} ${::osvvm::BuildName}.log]\""
+  } else {
+    puts  $ReportFile "  SimulationLogFile: \"\""
+  }
+  if {$::osvvm::TranscriptExtension eq "html"} {
+    puts  $ReportFile "  SimulationHtmlLogFile: \"[file join ${::osvvm::LogSubdirectory} ${::osvvm::BuildName}_log.html]\""
+  } else {
+    puts  $ReportFile "  SimulationHtmlLogFile: \"\""
+  }
+  puts  $ReportFile "  CssPngSourceDirectory:   \"${::osvvm::OsvvmScriptDirectory}\""
+  if {[file exists [file join $::osvvm::ReportsDirectory ${::osvvm::BuildName}_req.yml]]} {
+    puts  $ReportFile "  RequirementsSubdirectory: \"$::osvvm::ReportsSubdirectory\""
+  } else {
+    puts  $ReportFile "  RequirementsSubdirectory: \"\""
+  }
+  if {$::osvvm::RanSimulationWithCoverage eq "true"} {
+    set CodeCoverageFile [vendor_GetCoverageFileName ${::osvvm::BuildName}]
+    puts  $ReportFile "  CoverageSubdirectory:    \"[file join $::osvvm::CoverageSubdirectory  $CodeCoverageFile]\"" 
+  } else {
+    puts  $ReportFile "  CoverageSubdirectory: \"\""
+  }
+  
+  puts $ReportFile "  Report2CssFiles: \"$::osvvm::Report2CssFiles\""
+  puts $ReportFile "  Report2PngFile:  \"$::osvvm::Report2PngFile\""
+}
+
+# -------------------------------------------------
+proc WriteTestCaseSettingsYaml {FileName} {
+
+  set  SettingsFile [open ${FileName} w]
+  puts $SettingsFile "TestCaseName:           \"$::osvvm::TestCaseName\""
+	if {[info exists ::osvvm::TestSuiteName]} {
+    puts $SettingsFile "TestSuiteName:          \"$::osvvm::TestSuiteName\""
+  } else {
+    puts $SettingsFile "TestSuiteName:          \"\""
+  }
+  puts $SettingsFile "BuildName:              \"$::osvvm::BuildName\""
+  puts $SettingsFile "GenericList:            \"$::osvvm::GenericList\""
+  puts $SettingsFile "TestCaseFileName:       \"$::osvvm::TestCaseFileName\""
+  puts $SettingsFile "GenericNames:           \"$::osvvm::GenericNames\""
+  
+  puts $SettingsFile "TestSuiteDirectory:    \"$::osvvm::TestSuiteDirectory\""
+  puts $SettingsFile "RequirementsYamlFile:  \"$::osvvm::RequirementsYamlFile\""
+  puts $SettingsFile "AlertYamlFile:         \"$::osvvm::AlertYamlFile\""
+  puts $SettingsFile "CovYamlFile:           \"$::osvvm::CovYamlFile\""
+  puts $SettingsFile "ScoreboardFiles:       \"$::osvvm::ScoreboardFiles\""
+  puts $SettingsFile "ScoreboardNames:       \"$::osvvm::ScoreboardNames\""
+  puts $SettingsFile "TranscriptFiles:       \"$::osvvm::TranscriptFiles\""
+  
+  WriteOsvvmSettingsYaml $SettingsFile
+  
+  close $SettingsFile
+}
 
 # -------------------------------------------------
 proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
@@ -168,6 +219,7 @@ proc StartSimulateBuildYaml {TestName} {
 }
 
 
+# -------------------------------------------------
 proc FinishSimulateBuildYaml {} {
   variable TestCaseFileName
   variable SimulateStartTime

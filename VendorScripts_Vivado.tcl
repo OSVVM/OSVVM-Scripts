@@ -13,6 +13,7 @@
 #    
 #  Revision History:
 #    Date      Version    Description
+#     5/2024   2024.05    Added ToolVersion variable 
 #     2/2022   2022.02    Added template of procedures needed for coverage support
 #     4/2021   2021.02    Initial revision, tested under Vivado 2020.1
 #
@@ -41,7 +42,8 @@
   variable ToolVendor  "Xilinx"
   variable ToolName    "Vivado"
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
-  variable ToolNameVersion "${ToolName}-[version -short]"
+  variable ToolVersion [version -short]
+  variable ToolNameVersion ${ToolName}-${ToolVersion}  
 #   puts $ToolNameVersion
   
   # Quite unfortunately, much of Vivado doesn't support VHDL-2008 properly.

@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     5/2024   2024.05    Added ToolVersion variable 
 #     1/2023   2023.01    Added options for CoSim 
 #     5/2022   2022.05    Updated variable naming 
 #     2/2022   2022.02    Added template of procedures needed for coverage support
@@ -63,7 +64,9 @@
   }
   
   regexp {GHDL\s+\d+\.\d+\S*} [exec ghdl --version] VersionString
-  variable ToolNameVersion [regsub {\s+} $VersionString -]
+  variable ToolVersion [regsub {GHDL\s+} $VersionString ""]
+  variable ToolNameVersion ${ToolName}-${ToolVersion}
+#  variable ToolNameVersion [regsub {\s+} $VersionString -]
 #   puts $ToolNameVersion
 
 #  variable GhdlRunOptions ""

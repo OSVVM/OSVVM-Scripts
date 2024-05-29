@@ -1,0 +1,212 @@
+/*
+#  File Name:         CssOsvvmStyles.css 
+#  Purpose:           CSS for OSVVM HTML reports 
+#  Revision:          OSVVM MODELS STANDARD VERSION
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Patrick Lehmann  
+#     Jim Lewis          email:  jim@synthworks.com
+#
+#  Description
+#    CSS for OSVVM HTML reports
+#
+#
+#  Revision History:
+#    Date      Version    Description
+#    05/2024   2024.05    Initial Revision
+#
+#
+#  This file is part of OSVVM.
+#
+#  Copyright (c) 2024 by SynthWorks Design Inc.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+*/
+
+
+body {
+    margin: 10px 20px;
+    font-family: "Segoe UI", "Trebuchet MS", Verdana, Tahoma, sans-serif;
+/*    font-size: 14px;*/
+    font-size: 90%;
+}
+
+header {
+}
+
+main {
+    max-width: 1200px;
+}
+
+footer {
+}
+
+hr {
+    margin: 30px 0px 30px 0px;
+}
+
+footer hr {
+    margin: 30px 0px 0px 0px;
+}
+
+h1 {
+}
+
+h2:not(:first-child) {
+    margin-top: 30px;
+}
+
+div.summary-parent {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+div.summary-logo img {
+    vertical-align: top;
+    max-width: 400px;
+    margin-left: 20px;
+}
+
+div.requirements-logo img {
+    float: center;
+    vertical-align: middle;
+    max-width: 200px;
+    margin: 10px 40px 10px 80px;
+}
+
+div.analysis-results {
+}
+
+div.simulation-results {
+}
+
+div.testsuites {
+}
+
+div.testsuite-results {
+}
+
+details.testsuite-details {
+    margin-top: 20px;
+}
+
+summary {
+    margin-top: 20px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 1.5em;
+}
+
+summary.subtitle {
+    margin-top: 20px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+summary.subindented {
+    margin: 20px 20px 5px 20px;
+    font-weight: bold;
+    font-size: 1em;
+}
+
+table.CoverageSettings, table.CoverageTable {
+    margin: 0px 20px 0px 40px;
+}
+
+
+details summary b {
+    font-weight: bold;
+}
+
+table, th, td {
+    border: 1px solid #CCCCCC;
+    border-collapse: collapse;
+    padding: 4px 15px 3px 15px;
+}
+
+table.testsuite-summary-table {
+}
+
+table.testsuite-details-table {
+    width: 100%;
+}
+
+thead {
+    background-color: rgba(0,187, 255, 0.5); /* #88d0ff; */
+    font-weight: bold;
+}
+
+thead tr.column-header {
+    height: 40px;
+}
+
+tbody {
+    text-align: left;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #f8f8f8;
+}
+
+tbody tr:hover {
+    background-color: #FFFF00;
+}
+
+td {
+  text-align: left;
+}
+td:nth-child(n+3) {
+  text-align: right;
+}
+table.AlertSettings td {
+  text-align: left;
+}
+table.RequirementsResults td:nth-child(3) {
+  text-align: left;
+}
+
+tfoot {
+    background-color: #e0e0e0;
+    font-weight: bold;
+}
+
+.passed {
+    color: #00C000
+}
+
+.failed {
+    color: #c40000
+}
+
+.skipped {
+    color: #D09000
+}
+
+.warning {
+    color: #D09000
+}
+
+.number {
+  text-align: right;
+}
+
+summary > b {
+    font-weight: bold;
+}
+
+/* #logo {
+    width: 100%;
+}*/

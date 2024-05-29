@@ -1,4 +1,4 @@
-#  File Name:         OsvvmProjectScripts.tcl
+#  File Name:         OsvvmScriptsCore.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#     5/2024   2024.05    Updated for refactor of Simulate2Html.   Renamed in prep for breaking file into smaller chunks. 
 #     3/2024   2024.03    Updated CreateOsvvmScriptSettingsPkg and added FindOsvvmSettingsDirectory 
 #     9/2023   2023.09    Updated messaging for file not found by build/include 
 #                         Made UnsetLibraryVars visible
@@ -411,6 +412,7 @@ proc LocalBuild {BuildName Path_Or_File args} {
 
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
+  CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
   StartBuildYaml $BuildName
   
   CallbackBefore_Build ${Path_Or_File}
@@ -422,7 +424,7 @@ proc LocalBuild {BuildName Path_Or_File args} {
     set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
     set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${BuildName} ${TestSuiteName}_req.yml]
     MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
-    Requirements2Html $RequirementsResultsFile
+    Requirements2Html $RequirementsResultsFile "../"
     
     FinalizeTestSuite $TestSuiteName
     FinishTestSuiteBuildYaml
@@ -450,11 +452,13 @@ proc AfterBuildReports {BuildName} {
   after 1000
   set BuildYamlFile [file join ${::osvvm::OutputBaseDirectory} ${BuildName}.yml]
   file rename -force ${::osvvm::OsvvmBuildYamlFile} ${BuildYamlFile}
-  Report2Html  ${BuildYamlFile}
+  CreateBuildReports ${BuildYamlFile}
+#  ReportBuildYaml2Dict ${BuildYamlFile}
+#  ReportBuildDict2Html
+#  ReportBuildDict2Junit
   if {($::osvvm::SimulateInteractive) && ($::osvvm::OpenBuildHtmlFile)} {
     OpenBuildHtml ${BuildName}
   }
-  Report2Junit ${BuildYamlFile}
   
   ReportBuildStatus  
 }
@@ -1034,6 +1038,7 @@ proc simulate {LibraryUnit args} {
   set SavedInteractive [GetInteractiveMode] 
   if {!($::osvvm::BuildStarted)} {
     SetInteractiveMode "true"
+    CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
   }
 
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
@@ -1118,7 +1123,12 @@ proc LocalSimulate {LibraryUnit args} {
 
 proc AfterSimulateReports {} {
 
-  Simulate2Html ${::osvvm::TestCaseName} ${::osvvm::TestSuiteName} ${::osvvm::BuildName} ${::osvvm::GenericList}
+  SimulateDoneMoveTestCaseFiles 
+  set TestCaseSettingsFile [file join ${::osvvm::TestSuiteDirectory} ${::osvvm::TestCaseFileName}_settings.yml]
+  
+  WriteTestCaseSettingsYaml $TestCaseSettingsFile
+
+  Simulate2Html $TestCaseSettingsFile
   
   FinishSimulateBuildYaml 
 }
@@ -1224,6 +1234,18 @@ proc ToGenericCommand {GenericList} {
   return $Commands
 }
 
+#--------------------------------------------------------------
+proc ToGenericNames {GenericList} {
+
+  set Names ""
+  if {${GenericList} ne ""} {
+    foreach GenericName $GenericList {
+      set Names ${Names}_[lindex $GenericName 0]_[lindex $GenericName 1]
+    }
+  }
+  return $Names
+}
+
 # -------------------------------------------------
 proc DoWaves {args} {
   if {![catch {info body vendor_DoWaves} err]} {
@@ -1279,7 +1301,7 @@ proc TestSuite {SuiteName} {
     set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
     set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${::osvvm::BuildName} ${TestSuiteName}_req.yml]
     MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
-    Requirements2Html $RequirementsResultsFile
+    Requirements2Html $RequirementsResultsFile "../"
     
     # Finish previous test suite before ending current one
     FinalizeTestSuite $TestSuiteName
@@ -1877,6 +1899,141 @@ proc InstallProject { {ProjectDir $OsvvmLibraries} {ProjectBuildScript $ProjectD
   cd $StartingDirectory
   SetLibraryDirectory $StartingLibraryDirectory
 #  variable ::osvvm::VhdlLibraryDirectory $StartingVhdlLibraryDirectory
+}
+
+#--------------------------------------------------------------
+# SimulateDoneMoveTestCaseFiles
+#
+proc SimulateDoneMoveTestCaseFiles {} {
+  variable OsvvmTemporaryOutputDirectory
+  variable TestCaseName
+  variable TestCaseFileName
+  variable GenericList
+  variable GenericNames
+  variable TestSuiteName
+#  variable BuildName
+
+  variable RequirementsYamlFile 
+  variable AlertYamlFile              
+  variable CovYamlFile          
+  variable ScoreboardFiles             
+  variable ScoreboardNames          
+  variable SimGenericNames
+  variable TestSuiteDirectory
+#  variable SimulationHtmlLogFile
+  variable TranscriptFiles
+
+
+  set TestSuiteDirectory [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
+# TODO!! check and see when these directories need creating.  If not until here, then 
+# Create them here? - or in TestSuite as then it is done once per TestSuite?
+# Creating This directory and results/TestSuiteName are done by testsuite, but maybe should be done here
+  CreateDirectory $TestSuiteDirectory   ;  
+  
+  set RequirementsYamlSourceFile [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_req.yml]
+  if {[file exists ${RequirementsYamlSourceFile}]} {
+    set RequirementsYamlFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_req.yml]
+    file rename -force $RequirementsYamlSourceFile  $RequirementsYamlFile
+  } else { set RequirementsYamlFile "" }
+
+  set AlertYamlSourceFile        [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_alerts.yml]
+  if {[file exists ${AlertYamlSourceFile}]} {
+    set AlertYamlFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_alerts.yml]
+    file rename -force $AlertYamlSourceFile $AlertYamlFile
+  } else { set AlertYamlFile "" }
+
+  set CovYamlSourceFile          [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_cov.yml]
+  if {[file exists ${CovYamlSourceFile}]} {
+    set CovYamlFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_cov.yml]
+    file rename -force $CovYamlSourceFile  $CovYamlFile
+  } else { set CovYamlFile "" }
+  
+  set SbBaseYamlFile            ${TestCaseName}_sb_
+  set SbSourceFiles [glob -nocomplain [file join $OsvvmTemporaryOutputDirectory ${SbBaseYamlFile}*.yml] ]
+  set ScoreboardFiles ""
+  set ScoreboardNames ""
+  if {$SbSourceFiles ne ""} {
+    foreach SbSourceFile ${SbSourceFiles} {
+      set SbName [regsub ${SbBaseYamlFile} [file rootname [file tail $SbSourceFile]] ""]
+      set SbDestFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_${SbName}.yml]
+      file rename -force $SbSourceFile  $SbDestFile
+      lappend ScoreboardNames $SbName
+      lappend ScoreboardFiles $SbDestFile
+    }
+  }
+  
+  set TranscriptFiles ""
+  if {[file exists ${::osvvm::TranscriptYamlFile}]} {
+    set TranscriptFileArray [::yaml::yaml2dict -file ${::osvvm::TranscriptYamlFile}]
+    foreach TranscriptFile $TranscriptFileArray {
+      set TranscriptBaseName  [file tail $TranscriptFile]
+      set TranscriptRootBaseName  [file rootname $TranscriptBaseName]
+      set TranscriptExtension     [file extension $TranscriptBaseName]
+      set TranscriptGenericName   ${TranscriptRootBaseName}${::osvvm::GenericNames}${TranscriptExtension}
+      set TranscriptDestFile [file join ${::osvvm::ResultsDirectory} ${TestSuiteName} ${TranscriptGenericName}]
+      if {[file normalize ${TranscriptFile}] ne [file normalize ${TranscriptDestFile}]} {
+        if {[file exists ${TranscriptFile}]} {
+          # Check required since if file is open, closed, then re-opened, 
+          # it will be in the file more than once
+          CreateDirectory [file join ${::osvvm::ResultsDirectory} ${TestSuiteName}]
+#          file rename -force ${TranscriptFile}  ${TranscriptDestFile}
+          file copy -force ${TranscriptFile}  ${TranscriptDestFile}
+          lappend TranscriptFiles ${TranscriptDestFile}
+          if {[catch {file delete -force ${TranscriptFile}} err]} {
+            # end simulation to try to free locks on the file, and try to delete again
+            if {!$::osvvm::SimulateInteractive} {
+              EndSimulation  
+              file delete -force ${TranscriptFile}
+            }
+          } 
+        }
+      }
+    }
+    # Remove file so it does not impact any following simulation
+    file delete -force -- ${::osvvm::TranscriptYamlFile}
+  }
+
+##  CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
+#  FindCssPngFiles ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
+#  
+#  if {([GetTranscriptType] eq "html") && ($BuildName ne "")} {
+#    set SimulationHtmlLogFile [file join ${::osvvm::LogSubdirectory} ${BuildName}_log.html]
+#  } else { set SimulationHtmlLogFile "" }
+}
+
+# -------------------------------------------------
+# CopyCssAndPngFiles
+#
+proc CopyCssAndPngFiles {CssSourceDirectory BaseDirectory CssTargetSubdirectory} {
+  variable Report2CssFiles
+  variable Report2PngFile
+  
+  CreateDirectory [file join $BaseDirectory  $CssTargetSubdirectory]
+  
+  # Note files are linked into the HTML in glob order (alphabetical but may be OS dependent WRT upper case)
+  set CssFiles [glob -nocomplain [file join ${CssSourceDirectory} *.css]]
+  set Report2CssFiles ""
+  if {$CssFiles ne ""} {
+    foreach CssFileWithPath ${CssFiles} {
+      set CssFile [file join $CssTargetSubdirectory [file tail $CssFileWithPath]]
+      file copy -force ${CssFileWithPath}  [file join $BaseDirectory  $CssFile]
+      # HTML file is relative to the BaseDirectory
+      lappend Report2CssFiles $CssFile
+    }
+  }
+  
+  # There should only be one *.png file.
+  set PngFiles [glob -nocomplain [file join ${CssSourceDirectory} *.png]]
+  set LastPngFile ""
+  if {$PngFiles ne ""} {
+    foreach PngFileWithPath ${PngFiles} {
+      set LastPngFile $PngFileWithPath
+    }
+  }
+  # There should be only one PNG file, so only copy the last one we find.
+  set PngDestFile [file join $CssTargetSubdirectory [file tail $LastPngFile]]
+  file copy -force ${LastPngFile} [file join $BaseDirectory $PngDestFile]
+  set Report2PngFile $PngDestFile
 }
 
 # -------------------------------------------------

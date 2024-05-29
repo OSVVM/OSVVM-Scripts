@@ -1294,7 +1294,7 @@ by calling Simulate2Html as follows.
 
 .. code:: tcl
 
-   Simulate2Html <TestCaseName> <TestSuiteName> <TestCaseFileName>
+   Simulate2Html <PathToFile>/<TestCaseFileName>.yml
    
 If no generics are set, then TestCaseFileName is the same as TestCaseName.  
 If generics are set, TestCaseFileName is TestCaseName_GenericName_Value.

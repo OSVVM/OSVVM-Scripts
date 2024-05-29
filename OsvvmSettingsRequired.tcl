@@ -56,7 +56,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2024.03a
+  variable OsvvmVersion 2024.05
 
   if {![info exists OsvvmVersionCompatibility]} {
     variable OsvvmVersionCompatibility $OsvvmVersion
@@ -110,6 +110,8 @@ namespace eval ::osvvm {
     variable ResultsDirectory     [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
     variable CoverageDirectory    [file join ${OutputBaseDirectory} ${CoverageSubdirectory}]
     variable LogDirectory         [file join ${OutputBaseDirectory} ${LogSubdirectory}]
+    variable CssSubdirectory      [file join ${ReportsSubdirectory}]
+    variable CssDirectory         [file join ${OutputBaseDirectory} ${CssSubdirectory}]
 
   #
   #  Initialize OSVVM Internals
