@@ -368,15 +368,15 @@ proc build {{Path_Or_File "."} args} {
       #  Catch any errors from the build and handle them below
       set BuildErrorCode [catch {LocalBuild $BuildName $IncludeFile {*}$args} BuildErrMsg]
       set LocalBuildErrorInfo $::errorInfo
+      
+      set ReportYamlErrorCode [catch {FinishBuildYaml $BuildName} BuildYamlErrMsg]
+      set LocalBuildYamlErrorInfo $::errorInfo
+
       set BuildStarted "false"
       
       # Try to create reports, even if the build failed
       set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
       set LocalReportErrorInfo $::errorInfo
-
-      if {($ReportErrorCode != 0) || ($ScriptErrorCount != 0)} {  
-        CallbackOnError_AfterBuildReports $LocalReportErrorInfo
-      } 
 
       StopTranscript ${BuildName}
       
@@ -386,15 +386,19 @@ proc build {{Path_Or_File "."} args} {
       set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
       set Log2ErrorInfo $::errorInfo
 
+      # Run Callbacks on Error after trying to produce all reports
       if {$BuildErrorCode != 0 || $AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
         CallbackOnError_Build $Path_Or_File $BuildErrMsg $LocalBuildErrorInfo 
+      } 
+      if {($ReportErrorCode != 0) || ($ScriptErrorCount != 0)} {  
+        CallbackOnError_AfterBuildReports $LocalReportErrorInfo
       } 
       # Fail on Test Case Errors
       if {($::osvvm::BuildStatus eq "FAILED") && ($::osvvm::FailOnTestCaseErrors)} {
           error "Test finished with Test Case Errors"
       }
       # Fail on Report / Script Errors?
-      if {($ReportErrorCode != 0) || ($Log2ErrorCode != 0) || ($ScriptErrorCount != 0)} {  
+      if {($ReportYamlErrorCode != 0) || ($ReportErrorCode != 0) || ($Log2ErrorCode != 0) || ($ScriptErrorCount != 0)} {  
         # End Simulation with errors
         if {$::osvvm::FailOnReportErrors} {
           error "Test finished with either Report or Script (wave.do) errors."
@@ -443,7 +447,6 @@ proc LocalBuild {BuildName Path_Or_File args} {
     vendor_ReportCodeCoverage $BuildName $::osvvm::CoverageDirectory
   }
 
-  FinishBuildYaml $BuildName
 }
 
 proc AfterBuildReports {BuildName} {

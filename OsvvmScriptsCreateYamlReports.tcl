@@ -78,7 +78,6 @@ proc StartBuildYaml {BuildName} {
   set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} w]
   puts  $RunFile "Version: $::osvvm::OsvvmVersion"
   puts  $RunFile "Date: $StartTime"
-  WriteOsvvmSettingsYaml $RunFile
   close $RunFile
 }
 
@@ -107,6 +106,8 @@ proc FinishBuildYaml {BuildName} {
   puts  $RunFile "  AnalyzeErrorCount:    $AnalyzeErrorCount"
   puts  $RunFile "  SimulateErrorCount:   $BuildErrorCode"
   
+  WriteOsvvmSettingsYaml $RunFile
+
   close $RunFile
 
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
