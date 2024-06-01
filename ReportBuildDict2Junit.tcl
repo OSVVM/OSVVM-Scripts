@@ -77,8 +77,8 @@ proc LocalReportBuildDict2Junit {} {
 
   if { $HaveTestSuites } {
     CreateJunitTestSuiteSummaries $BuildDict $TestSuiteSummaryArrayOfDictionaries 
-    puts $ResultsFile "</testsuites>"
   }
+  puts $ResultsFile "</testsuites>"
 }
 
 # -------------------------------------------------
@@ -89,6 +89,7 @@ proc CreateJunitSummary {TestDict} {
   variable ReportBuildName
 
   variable ReportStartTime
+  variable ReportIsoStartTime
   variable ElapsedTimeSeconds
   variable OsvvmVersion
 
@@ -103,7 +104,7 @@ proc CreateJunitSummary {TestDict} {
   puts $ResultsFile "<testsuites "
   puts $ResultsFile "   name=\"$ReportBuildName\""
 #  puts $ResultsFile "   timestamp=\"[dict get $BuildInfo Date]\""
-  puts $ResultsFile "   timestamp=\"$ReportStartTime\""
+  puts $ResultsFile "   timestamp=\"$ReportIsoStartTime\""
 #  puts $ResultsFile "   id=\"[dict get $BuildInfo Version]\""
   puts $ResultsFile "   id=\"$OsvvmVersion\""
   puts $ResultsFile "   time=\"$ElapsedTimeSeconds\""

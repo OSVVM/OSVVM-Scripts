@@ -232,6 +232,7 @@ proc GetBuildStatus {TestDict} {
   variable ReportSimulateErrorCount
   variable BuildStatus 
   variable ReportStartTime
+  variable ReportIsoStartTime
   variable ReportFinishTime
   variable ElapsedTimeSeconds
   variable ElapsedTimeSecondsInt
@@ -269,8 +270,10 @@ proc GetBuildStatus {TestDict} {
   # Print BuildInfo
   set BuildInfo $RunInfo
   if {[dict exists $RunInfo StartTime]} {
-    set ReportStartTime [IsoToOsvvmTime [dict get $RunInfo StartTime]]
+    set ReportIsoStartTime [dict get $RunInfo StartTime]
+    set ReportStartTime [IsoToOsvvmTime $ReportIsoStartTime]
   } else {
+    set ReportIsoStartTime ""
     set ReportStartTime ""
   } 
   if {[dict exists $RunInfo FinishTime]} {
