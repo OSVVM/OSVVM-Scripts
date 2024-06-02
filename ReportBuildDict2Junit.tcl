@@ -92,6 +92,8 @@ proc CreateJunitSummary {TestDict} {
   variable ReportIsoStartTime
   variable ElapsedTimeSeconds
   variable OsvvmVersion
+  variable ReportSimulator
+  variable ReportSimulatorVersion
 
   variable TestCasesPassed 
   variable TestCasesFailed 
@@ -106,13 +108,19 @@ proc CreateJunitSummary {TestDict} {
 #  puts $ResultsFile "   timestamp=\"[dict get $BuildInfo Date]\""
   puts $ResultsFile "   timestamp=\"$ReportIsoStartTime\""
 #  puts $ResultsFile "   id=\"[dict get $BuildInfo Version]\""
-  puts $ResultsFile "   id=\"$OsvvmVersion\""
   puts $ResultsFile "   time=\"$ElapsedTimeSeconds\""
   puts $ResultsFile "   tests=\"$TestCasesRun\""
   puts $ResultsFile "   failures=\"$TestCasesFailed\""
   puts $ResultsFile "   errors=\"0\""
   puts $ResultsFile "   skipped=\"$TestCasesSkipped\""
   puts $ResultsFile ">"
+  puts $ResultsFile "<properties> "
+  puts $ResultsFile "  <property name=\"OsvvmVersion\" value=\"$OsvvmVersion\" /> "
+  puts $ResultsFile "  <property name=\"Simulator\" value=\"$ReportSimulator\" /> "
+  puts $ResultsFile "  <property name=\"SimulatorVersion\" value=\"$ReportSimulatorVersion\" /> "
+
+  puts $ResultsFile "</properties> "
+  
 }
 
 # -------------------------------------------------

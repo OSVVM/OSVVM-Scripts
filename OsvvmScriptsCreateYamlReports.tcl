@@ -43,6 +43,10 @@
 
 
 namespace eval ::osvvm {
+
+package require fileutil
+
+
   variable  TclZone      [clock format [clock seconds] -format %z]
   variable  IsoZone      [format "%s:%s" [string range $TclZone 0 2] [string range $TclZone 3 4]] 
   variable  TimeZoneName [clock format [clock seconds] -format %Z]
@@ -131,7 +135,12 @@ proc WriteOsvvmSettingsYaml {ReportFile} {
   } else {
     puts  $ReportFile "  SimulationHtmlLogFile: \"\""
   }
-  puts  $ReportFile "  CssPngSourceDirectory:   \"${::osvvm::OsvvmScriptDirectory}\""
+  
+  if {[catch {set CssPngSourceDirectoryRel [::fileutil::relative [pwd] $::osvvm::OsvvmScriptDirectory]} errmsg]}  {
+    set CssPngSourceDirectoryRel $::osvvm::OsvvmScriptDirectory
+  }
+  puts  $ReportFile "  CssPngSourceDirectory:   \"${CssPngSourceDirectoryRel}\""
+  
   if {[file exists [file join $::osvvm::ReportsDirectory ${::osvvm::BuildName}_req.yml]]} {
     puts  $ReportFile "  RequirementsSubdirectory: \"$::osvvm::ReportsSubdirectory\""
   } else {
