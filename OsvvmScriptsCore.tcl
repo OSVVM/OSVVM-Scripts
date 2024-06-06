@@ -1127,7 +1127,7 @@ proc LocalSimulate {LibraryUnit args} {
 proc AfterSimulateReports {} {
 
   SimulateDoneMoveTestCaseFiles 
-  set TestCaseSettingsFile [file join ${::osvvm::TestSuiteDirectory} ${::osvvm::TestCaseFileName}.yml]
+  set TestCaseSettingsFile [file join ${::osvvm::TestSuiteDirectory} ${::osvvm::TestCaseFileName}_run.yml]
   
   WriteTestCaseSettingsYaml $TestCaseSettingsFile
 
