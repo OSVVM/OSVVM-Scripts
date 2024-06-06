@@ -289,7 +289,7 @@ proc AlertWrite {AlertDict {Prefix ""}} {
        
     set Children [dict get $AlertDict Children]
     foreach Child $Children {
-      set NewPrefix "  ${Prefix}"
+      set NewPrefix "&emsp; ${Prefix}"
       AlertWrite $Child ${NewPrefix}
     }
   }
