@@ -193,6 +193,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestSuiteName
   variable TestCaseFileName
   variable SimulateOptions
+  global aldec
 
   if {($::osvvm::Debug)} {
     set DebugOptions "+access +r"
@@ -253,7 +254,7 @@ proc vendor_GetCoverageFileName {TestName} {
   return $CoverageFileName
 }
 
-proc vendor_OpenBuildHtml {BuildHtmlFile BuildName} {
-  catch {framework.window.close -window $BuildName} Msg
-  system.open "$BuildHtmlFile" -title $BuildName
-}
+# proc vendor_OpenBuildHtml {BuildHtmlFile BuildName} {
+#   catch {framework.window.close -window $BuildName} Msg
+#   system.open "$BuildHtmlFile" -title $BuildName
+# }
