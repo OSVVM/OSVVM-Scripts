@@ -174,6 +174,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ToolVendor
   variable TestSuiteName
   variable TestCaseFileName
+  global aldec            ; #  required for matlab cosim
 
   puts "vendor simulate LN=$LibraryName LU=$LibraryUnit A=$args"
   set SimulateOptions [concat {*}${args} {*}${::osvvm::GenericOptions} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]

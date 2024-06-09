@@ -193,7 +193,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestSuiteName
   variable TestCaseFileName
   variable SimulateOptions
-  global aldec
+  global aldec            ; #  required for matlab cosim
 
   if {($::osvvm::Debug)} {
     set DebugOptions "+access +r"
