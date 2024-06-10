@@ -262,6 +262,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestSuiteName
   variable TestCaseFileName
   global sim_working_folder
+  global aldec            ; #  required for matlab cosim
 
   set sim_working_folder $::osvvm::CurrentSimulationDirectory
 
