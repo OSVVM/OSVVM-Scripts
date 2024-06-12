@@ -370,15 +370,16 @@ proc CreateTestCaseSummaries {TestDict} {
         if { [dict exists $TestCase TestCaseGenerics] } { 
           set TestCaseGenerics [dict get $TestCase TestCaseGenerics]
           if {${TestCaseGenerics} ne ""} {
+            set GenericValueList [dict values $TestCaseGenerics] 
             set i 0
-            set ListLen [llength ${TestCaseGenerics}]
+            set ListLen [llength ${GenericValueList}]
             append TestCaseName " (" 
-            foreach GenericName $TestCaseGenerics {
+            foreach GenericValue $GenericValueList {
               incr i
               if {$i != $ListLen} {
-                append TestCaseName [lindex $GenericName 1] " ,"
+                append TestCaseName $GenericValue " ,"
               } else {
-                append TestCaseName [lindex $GenericName 1] ")"
+                append TestCaseName $GenericValue ")"
               }
             }
           }

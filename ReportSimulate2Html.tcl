@@ -65,11 +65,11 @@ proc Simulate2Html {SettingsFileWithPath} {
   set TestCaseName     $::osvvm::Report2TestCaseName  
   set TestSuiteName    $::osvvm::Report2TestSuiteName 
   set BuildName        $::osvvm::Report2BuildName     
-  set GenericList      $::osvvm::Report2GenericList   
+  set GenericDict      $::osvvm::Report2GenericDict   
 
   
 
-  CreateTestCaseSummaryTable ${TestCaseName} ${TestSuiteName} ${BuildName} ${GenericList}
+  CreateTestCaseSummaryTable ${TestCaseName} ${TestSuiteName} ${BuildName} ${GenericDict}
   
   if {[file exists ${Report2AlertYamlFile}]} {
     Alert2Html ${TestCaseName} ${TestSuiteName} ${Report2AlertYamlFile}
@@ -84,8 +84,8 @@ proc Simulate2Html {SettingsFileWithPath} {
     Cov2Html ${TestCaseName} ${TestSuiteName} ${Report2CovYamlFile}
   }
   
-  if {$::osvvm::Report2ScoreboardNames ne ""} {
-    foreach SbName ${::osvvm::Report2ScoreboardNames} SbFile ${::osvvm::Report2ScoreboardFiles} {
+  if {$::osvvm::Report2ScoreboardDict ne ""} {
+    foreach {SbName SbFile} ${::osvvm::Report2ScoreboardDict} {
       Scoreboard2Html ${TestCaseName} ${TestSuiteName} ${SbFile} Scoreboard_${SbName}
     }
   }
@@ -105,12 +105,12 @@ proc OpenSimulationReportFile {FileName {initialize 0}} {
 }
 
 #--------------------------------------------------------------
-proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericList} {
+proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDict} {
   variable ResultsFile
 
   OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml] 1
 
-  set ErrorCode [catch {LocalCreateTestCaseSummaryTable $TestCaseName $TestSuiteName $BuildName $GenericList} errmsg]
+  set ErrorCode [catch {LocalCreateTestCaseSummaryTable $TestCaseName $TestSuiteName $BuildName $GenericDict} errmsg]
   
   close $ResultsFile
 
@@ -120,7 +120,7 @@ proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericLis
 }
 
 #--------------------------------------------------------------
-proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericList} {
+proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDict} {
   variable ResultsFile
 
   if {$::osvvm::Report2ReportsSubdirectory eq ""} {
@@ -141,9 +141,9 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   puts $ResultsFile "        <tbody>"
 
   # Print the Generics
-  if {${GenericList} ne ""} {
-    foreach GenericName $GenericList {
-      puts $ResultsFile "          <tr><td>Generic: [lindex $GenericName 0] = [lindex $GenericName 1]</td></tr>"
+  if {${GenericDict} ne ""} {
+    foreach {GenericName GenericValue} $GenericDict {
+      puts $ResultsFile "          <tr><td>Generic: $GenericName = $GenericValue</td></tr>"
     }
   }
 
@@ -154,8 +154,8 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
     puts $ResultsFile "          <tr><td><a href=\"#FunctionalCoverage\">Functional Coverage Report(s)</a></td></tr>"
   }
   
-  if {$::osvvm::Report2ScoreboardNames ne ""} {
-    foreach SbName ${::osvvm::Report2ScoreboardNames} {
+  if {$::osvvm::Report2ScoreboardDict ne ""} {
+    foreach SbName [dict keys ${::osvvm::Report2ScoreboardDict}] {
       puts $ResultsFile "          <tr><td><a href=\"#Scoreboard_${SbName}\">ScoreboardPkg_${SbName} Report(s)</a></td></tr>"
     }
   }

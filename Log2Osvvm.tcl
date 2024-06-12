@@ -193,8 +193,8 @@ namespace eval ::osvvm {
     } elseif {[regexp {^simulate} $LineOfLogFile] } {
       set GenericNames ""
       if {[regexp {generic} $LineOfLogFile] } {
-        set GenericList [regsub {\].*} [regsub -all {[^\[]*\[generic ([^\]]*)} $LineOfLogFile {\1 }] ""]
-        foreach {name val} $GenericList {
+        set GenericDict [regsub {\].*} [regsub -all {[^\[]*\[generic ([^\]]*)} $LineOfLogFile {\1 }] ""]
+        foreach {name val} $GenericDict {
           set GenericNames ${GenericNames}_${name}_${val}
         }
       }

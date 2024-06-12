@@ -119,6 +119,35 @@ proc FinishBuildYaml {BuildName} {
 }
 
 # -------------------------------------------------
+proc WriteDictOfDict2Yaml {YamlFile DictName {DictValues ""} {Prefix ""} } {
+  if {$DictValues eq ""} {
+    puts $YamlFile "${Prefix}${DictName}:            \"\""
+  } else {
+    puts $YamlFile "${Prefix}${DictName}:"
+    foreach {Name Value} $DictValues {
+      puts $YamlFile "${Prefix}  ${Name}: \"$Value\""
+    }
+  }
+}
+
+# -------------------------------------------------
+proc WriteDictOfList2Yaml {YamlFile DictName {ListValues ""}} {
+  if {$ListValues eq ""} {
+    puts $YamlFile "$DictName:            \"\""
+  } else {
+    puts $YamlFile "$DictName:"
+    foreach Name $ListValues {
+      puts $YamlFile "  - \"${Name}\""
+    }
+  }
+}
+
+# -------------------------------------------------
+proc WriteDictOfString2Yaml {YamlFile DictName {StringValue ""}} {
+  puts $YamlFile "$DictName: \"$StringValue\""
+}
+
+# -------------------------------------------------
 proc WriteOsvvmSettingsYaml {ReportFile} {
   
   puts  $ReportFile "OsvvmSettingsInfo:"
@@ -160,29 +189,29 @@ proc WriteOsvvmSettingsYaml {ReportFile} {
 # -------------------------------------------------
 proc WriteTestCaseSettingsYaml {FileName} {
 
-  set  SettingsFile [open ${FileName} w]
-  puts $SettingsFile "TestCaseName:           \"$::osvvm::TestCaseName\""
+  set  YamlFile [open ${FileName} w]
+  WriteDictOfString2Yaml $YamlFile TestCaseName $::osvvm::TestCaseName
 	if {[info exists ::osvvm::TestSuiteName]} {
-    puts $SettingsFile "TestSuiteName:          \"$::osvvm::TestSuiteName\""
+    WriteDictOfString2Yaml $YamlFile TestSuiteName  $::osvvm::TestSuiteName
   } else {
-    puts $SettingsFile "TestSuiteName:          \"\""
+    WriteDictOfString2Yaml $YamlFile TestSuiteName
   }
-  puts $SettingsFile "BuildName:              \"$::osvvm::BuildName\""
-  puts $SettingsFile "GenericList:            \"$::osvvm::GenericList\""
-  puts $SettingsFile "TestCaseFileName:       \"$::osvvm::TestCaseFileName\""
-  puts $SettingsFile "GenericNames:           \"$::osvvm::GenericNames\""
+  WriteDictOfString2Yaml $YamlFile BuildName $::osvvm::BuildName
+  WriteDictOfDict2Yaml   $YamlFile GenericDict $::osvvm::GenericDict
+
+  WriteDictOfString2Yaml $YamlFile TestSuiteDirectory    $::osvvm::TestSuiteDirectory
+  WriteDictOfString2Yaml $YamlFile RequirementsYamlFile  $::osvvm::RequirementsYamlFile
+  WriteDictOfString2Yaml $YamlFile AlertYamlFile         $::osvvm::AlertYamlFile
+  WriteDictOfString2Yaml $YamlFile CovYamlFile           $::osvvm::CovYamlFile
+  WriteDictOfDict2Yaml   $YamlFile ScoreboardDict        $::osvvm::ScoreboardDict
+  WriteDictOfList2Yaml   $YamlFile TranscriptFiles       $::osvvm::TranscriptFiles
+
+  WriteDictOfString2Yaml $YamlFile TestCaseFileName      $::osvvm::TestCaseFileName
+  WriteDictOfString2Yaml $YamlFile GenericNames          $::osvvm::GenericNames
+
+  WriteOsvvmSettingsYaml $YamlFile
   
-  puts $SettingsFile "TestSuiteDirectory:    \"$::osvvm::TestSuiteDirectory\""
-  puts $SettingsFile "RequirementsYamlFile:  \"$::osvvm::RequirementsYamlFile\""
-  puts $SettingsFile "AlertYamlFile:         \"$::osvvm::AlertYamlFile\""
-  puts $SettingsFile "CovYamlFile:           \"$::osvvm::CovYamlFile\""
-  puts $SettingsFile "ScoreboardFiles:       \"$::osvvm::ScoreboardFiles\""
-  puts $SettingsFile "ScoreboardNames:       \"$::osvvm::ScoreboardNames\""
-  puts $SettingsFile "TranscriptFiles:       \"$::osvvm::TranscriptFiles\""
-  
-  WriteOsvvmSettingsYaml $SettingsFile
-  
-  close $SettingsFile
+  close $YamlFile
 }
 
 # -------------------------------------------------
@@ -246,7 +275,8 @@ proc FinishSimulateBuildYaml {} {
   
   set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
   puts  $RunFile "        TestCaseFileName: \"$TestCaseFileName\""
-  puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericList\""
+  WriteDictOfDict2Yaml $RunFile TestCaseGenerics $::osvvm::GenericDict  "        "
+#  puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericDict\""
   puts  $RunFile "        ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
   close $RunFile
 }

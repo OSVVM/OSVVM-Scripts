@@ -1061,7 +1061,7 @@ proc simulate {LibraryUnit args} {
   if {[info exists ::osvvm::TestCaseName]} {
     unset ::osvvm::TestCaseName
   }
-  set ::osvvm::GenericList           ""
+  set ::osvvm::GenericDict           ""
   set ::osvvm::GenericNames          ""
   set ::osvvm::GenericOptions        ""
   set ::osvvm::RunningCoSim          "false"
@@ -1107,8 +1107,8 @@ proc LocalSimulate {LibraryUnit args} {
 
   StartSimulateBuildYaml $TestCaseName
   set SimArgs [concat $LibraryUnit {*}$args]
-  if {$::osvvm::GenericList ne ""} {
-    set SimArgs "$SimArgs [ToGenericCommand $::osvvm::GenericList]"
+  if {$::osvvm::GenericDict ne ""} {
+    set SimArgs "$SimArgs [ToGenericCommand $::osvvm::GenericDict]"
   }
   puts "simulate $SimArgs"              ; # EchoOsvvmCmd
 
@@ -1209,11 +1209,11 @@ proc CoSim {} {
 
 # -------------------------------------------------
 proc generic {Name Value} {
-  variable GenericList
+  variable GenericDict
   variable GenericNames
   variable GenericOptions
   
-  lappend GenericList "$Name $Value"
+  dict append GenericDict $Name $Value
   set GenericNames ${GenericNames}_${Name}_${Value}
 #x  lappend GenericOptions [vendor_generic ${Name} ${Value}] 
   append GenericOptions " " [vendor_generic ${Name} ${Value}]
@@ -1221,12 +1221,12 @@ proc generic {Name Value} {
 }
 
 #--------------------------------------------------------------
-proc ToGenericCommand {GenericList} {
+proc ToGenericCommand {GenericDict} {
 
   set Commands ""
-  if {${GenericList} ne ""} {
-    foreach GenericName $GenericList {
-      set NewCommand "\[generic [lindex $GenericName 0] [lindex $GenericName 1]\]"
+  if {${GenericDict} ne ""} {
+    foreach {GenericName GenericValue} $GenericDict {
+      set NewCommand "\[generic $GenericName $GenericValue\]"
       if {$Commands eq ""} {
         set Commands "$NewCommand"
       } else {
@@ -1238,12 +1238,12 @@ proc ToGenericCommand {GenericList} {
 }
 
 #--------------------------------------------------------------
-proc ToGenericNames {GenericList} {
+proc ToGenericNames {GenericDict} {
 
   set Names ""
-  if {${GenericList} ne ""} {
-    foreach GenericName $GenericList {
-      set Names ${Names}_[lindex $GenericName 0]_[lindex $GenericName 1]
+  if {${GenericDict} ne ""} {
+    foreach {GenericName GenericValue} $GenericDict {
+      set Names ${Names}_${GenericName}_${GenericValue}
     }
   }
   return $Names
@@ -1349,8 +1349,8 @@ proc RunTest {FileName {SimName ""} args} {
   variable CompoundCommand
 
   set RunArgs [concat $FileName $SimName]
-  if {$::osvvm::GenericList ne ""} {
-    set RunArgs "$RunArgs [ToGenericCommand $::osvvm::GenericList]"
+  if {$::osvvm::GenericDict ne ""} {
+    set RunArgs "$RunArgs [ToGenericCommand $::osvvm::GenericDict]"
   }
   puts "RunTest $RunArgs"               ; # EchoOsvvmCmd
   set CompoundCommand TRUE
@@ -1911,16 +1911,15 @@ proc SimulateDoneMoveTestCaseFiles {} {
   variable OsvvmTemporaryOutputDirectory
   variable TestCaseName
   variable TestCaseFileName
-  variable GenericList
+  variable GenericDict
   variable GenericNames
   variable TestSuiteName
 #  variable BuildName
 
   variable RequirementsYamlFile 
   variable AlertYamlFile              
-  variable CovYamlFile          
-  variable ScoreboardFiles             
-  variable ScoreboardNames          
+  variable CovYamlFile  
+  variable ScoreboardDict  
   variable SimGenericNames
   variable TestSuiteDirectory
 #  variable SimulationHtmlLogFile
@@ -1953,15 +1952,13 @@ proc SimulateDoneMoveTestCaseFiles {} {
   
   set SbBaseYamlFile            ${TestCaseName}_sb_
   set SbSourceFiles [glob -nocomplain [file join $OsvvmTemporaryOutputDirectory ${SbBaseYamlFile}*.yml] ]
-  set ScoreboardFiles ""
-  set ScoreboardNames ""
+  set ScoreboardDict ""
   if {$SbSourceFiles ne ""} {
     foreach SbSourceFile ${SbSourceFiles} {
       set SbName [regsub ${SbBaseYamlFile} [file rootname [file tail $SbSourceFile]] ""]
       set SbDestFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_${SbName}.yml]
       file rename -force $SbSourceFile  $SbDestFile
-      lappend ScoreboardNames $SbName
-      lappend ScoreboardFiles $SbDestFile
+      dict append ScoreboardDict $SbName $SbDestFile
     }
   }
   

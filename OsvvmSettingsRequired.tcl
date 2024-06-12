@@ -56,7 +56,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2024.05b
+  variable OsvvmVersion 2024.06-Dev
 
   if {![info exists OsvvmVersionCompatibility]} {
     variable OsvvmVersionCompatibility $OsvvmVersion
@@ -138,7 +138,7 @@ namespace eval ::osvvm {
     variable BuildName             ""
     variable BuildStatus           "FAILED"
     variable LastBuildName         ""
-    variable GenericList           ""
+    variable GenericDict           ""
     variable GenericNames          ""
     variable GenericOptions        ""
     variable RunningCoSim              "false"

@@ -153,15 +153,16 @@ proc GetTestCaseSettings {SettingsFileName} {
   variable Report2TestCaseName                 [dict get $TestDict TestCaseName        ]
   variable Report2TestSuiteName                [dict get $TestDict TestSuiteName       ]
   variable Report2BuildName                    [dict get $TestDict BuildName           ]
-  variable Report2GenericList                  [dict get $TestDict GenericList         ]
+  variable Report2GenericDict                  [dict get $TestDict GenericDict         ]
+  
   variable Report2TestCaseFileName             [dict get $TestDict TestCaseFileName    ]
   variable Report2GenericNames                 [dict get $TestDict GenericNames        ]
+  
   variable Report2TestSuiteDirectory           [dict get $TestDict TestSuiteDirectory  ]
   variable Report2RequirementsYamlFile         [dict get $TestDict RequirementsYamlFile]
   variable Report2AlertYamlFile                [dict get $TestDict AlertYamlFile       ]
   variable Report2CovYamlFile                  [dict get $TestDict CovYamlFile         ]
-  variable Report2ScoreboardFiles              [dict get $TestDict ScoreboardFiles     ]
-  variable Report2ScoreboardNames              [dict get $TestDict ScoreboardNames     ]
+  variable Report2ScoreboardDict               [dict get $TestDict ScoreboardDict      ]
   variable Report2TranscriptFiles              [dict get $TestDict TranscriptFiles     ]
 
   variable Report2TestCaseHtml [file join $Report2TestSuiteDirectory ${Report2TestCaseFileName}.html]
