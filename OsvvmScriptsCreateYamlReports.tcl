@@ -80,7 +80,7 @@ proc StartBuildYaml {BuildName} {
   puts "Starting Build at time [clock format $BuildStartTime -format %T]"
 
   set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} w]
-  puts  $RunFile "Version: $::osvvm::OsvvmVersion"
+  puts  $RunFile "Version: $::osvvm::OsvvmBuildYamlVersion"
   puts  $RunFile "Date: $StartTime"
   close $RunFile
 }
@@ -131,20 +131,20 @@ proc WriteDictOfDict2Yaml {YamlFile DictName {DictValues ""} {Prefix ""} } {
 }
 
 # -------------------------------------------------
-proc WriteDictOfList2Yaml {YamlFile DictName {ListValues ""}} {
+proc WriteDictOfList2Yaml {YamlFile DictName {ListValues ""} {Prefix ""} } {
   if {$ListValues eq ""} {
-    puts $YamlFile "$DictName:            \"\""
+    puts $YamlFile "${Prefix}${DictName}:            \"\""
   } else {
-    puts $YamlFile "$DictName:"
+    puts $YamlFile "${Prefix}${DictName}:"
     foreach Name $ListValues {
-      puts $YamlFile "  - \"${Name}\""
+      puts $YamlFile "${Prefix}  - \"${Name}\""
     }
   }
 }
 
 # -------------------------------------------------
-proc WriteDictOfString2Yaml {YamlFile DictName {StringValue ""}} {
-  puts $YamlFile "$DictName: \"$StringValue\""
+proc WriteDictOfString2Yaml {YamlFile DictName {StringValue ""} {Prefix ""} } {
+  puts $YamlFile "${Prefix}${DictName}: \"$StringValue\""
 }
 
 # -------------------------------------------------
@@ -182,7 +182,7 @@ proc WriteOsvvmSettingsYaml {ReportFile} {
     puts  $ReportFile "  CoverageSubdirectory: \"\""
   }
   
-  puts $ReportFile "  Report2CssFiles: \"$::osvvm::Report2CssFiles\""
+  WriteDictOfList2Yaml   $ReportFile Report2CssFiles   $::osvvm::Report2CssFiles "  "
   puts $ReportFile "  Report2PngFile:  \"$::osvvm::Report2PngFile\""
 }
 
@@ -190,6 +190,7 @@ proc WriteOsvvmSettingsYaml {ReportFile} {
 proc WriteTestCaseSettingsYaml {FileName} {
 
   set  YamlFile [open ${FileName} w]
+  WriteDictOfString2Yaml $YamlFile Version $::osvvm::OsvvmTestCaseYamlVersion
   WriteDictOfString2Yaml $YamlFile TestCaseName $::osvvm::TestCaseName
 	if {[info exists ::osvvm::TestSuiteName]} {
     WriteDictOfString2Yaml $YamlFile TestSuiteName  $::osvvm::TestSuiteName
