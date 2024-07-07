@@ -144,6 +144,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
       
       if { [dict exists $TestCase Results] } { 
         set TestResults [dict get $TestCase Results]
+        set AffirmCount [dict get $TestResults AffirmCount]
         set TestStatus  [dict get $TestCase Status]
         set VhdlName    [dict get $TestCase Name]
         if { $TestStatus ne "SKIPPED" } {
@@ -177,6 +178,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
       puts $ResultsFile "   name=\"$ResolvedTestName\""
 #      puts $ResultsFile "   classname=\"$VhdlName\""
       puts $ResultsFile "   classname=\"$TestSuiteName\""
+      puts $ResultsFile "   assertions=\"$AffirmCount\""
       puts $ResultsFile "   time=\"$ElapsedTime\""
       puts $ResultsFile ">"
       
@@ -186,6 +188,17 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
       } elseif { $TestStatus eq "SKIPPED" } {
         set Reason [dict get $TestResults Reason]
         puts $ResultsFile "<skipped message=\"$Reason\">$Reason</skipped>"
+      }
+      
+      if { [dict exists $TestCase Generics] } { 
+        set TestCaseGenerics [dict get $TestCase Generics]
+        if {${TestCaseGenerics} ne ""} {
+          puts $ResultsFile "<properties> "
+          foreach {GenericName GenericValue} $TestCaseGenerics {
+            puts $ResultsFile "  <property name=\"generic\" value=\"${GenericName}=${GenericValue}\"> "
+          }
+          puts $ResultsFile "</properties> "
+        }
       }
       puts $ResultsFile "</testcase>"
     }
