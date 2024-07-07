@@ -49,11 +49,11 @@ package require yaml
 
 #  Notes:  
 #  The following variables are set by GetPathSettings that read the YAML file
-#      Report2CssDirectory 
+#      Report2HtmlThemeDirectory 
 #      Report2BaseDirectory
 #      Report2ReportsSubdirectory
 #      Report2LogSubdirectory
-#      Report2CssPngSourceDirectory
+#      Report2HtmlThemeSourceDirectory
 #      Report2RequirementsSubdirectory - value is "" if requirements not used
 #      Report2CoverageSubdirectory - value is "" if coverage not used
 #

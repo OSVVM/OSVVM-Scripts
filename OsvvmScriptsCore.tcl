@@ -416,7 +416,7 @@ proc LocalBuild {BuildName Path_Or_File args} {
 
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
-  CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
+  CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
   StartBuildYaml $BuildName
   
   CallbackBefore_Build ${Path_Or_File}
@@ -1041,7 +1041,7 @@ proc simulate {LibraryUnit args} {
   set SavedInteractive [GetInteractiveMode] 
   if {!($::osvvm::BuildStarted)} {
     SetInteractiveMode "true"
-    CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
+    CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
   }
 
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
@@ -1993,8 +1993,8 @@ proc SimulateDoneMoveTestCaseFiles {} {
     file delete -force -- ${::osvvm::TranscriptYamlFile}
   }
 
-##  CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
-#  FindCssPngFiles ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
+##  CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
+#  FindHtmlThemeFiles ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
 #  
 #  if {([GetTranscriptType] eq "html") && ($BuildName ne "")} {
 #    set SimulationHtmlLogFile [file join ${::osvvm::LogSubdirectory} ${BuildName}_log.html]
@@ -2002,20 +2002,20 @@ proc SimulateDoneMoveTestCaseFiles {} {
 }
 
 # -------------------------------------------------
-# CopyCssAndPngFiles
+# CopyHtmlThemeFiles
 #
-proc CopyCssAndPngFiles {CssSourceDirectory BaseDirectory CssTargetSubdirectory} {
+proc CopyHtmlThemeFiles {HtmlThemeSourceDirectory BaseDirectory HtmlThemeTargetSubdirectory} {
   variable Report2CssFiles
   variable Report2PngFile
   
-  CreateDirectory [file join $BaseDirectory  $CssTargetSubdirectory]
+  CreateDirectory [file join $BaseDirectory  $HtmlThemeTargetSubdirectory]
   
   # Note files are linked into the HTML in glob order (alphabetical but may be OS dependent WRT upper case)
-  set CssFiles [glob -nocomplain [file join ${CssSourceDirectory} *.css]]
+  set CssFiles [glob -nocomplain [file join ${HtmlThemeSourceDirectory} *.css]]
   set Report2CssFiles ""
   if {$CssFiles ne ""} {
     foreach CssFileWithPath ${CssFiles} {
-      set CssFile [file join $CssTargetSubdirectory [file tail $CssFileWithPath]]
+      set CssFile [file join $HtmlThemeTargetSubdirectory [file tail $CssFileWithPath]]
       file copy -force ${CssFileWithPath}  [file join $BaseDirectory  $CssFile]
       # HTML file is relative to the BaseDirectory
       lappend Report2CssFiles $CssFile
@@ -2023,7 +2023,7 @@ proc CopyCssAndPngFiles {CssSourceDirectory BaseDirectory CssTargetSubdirectory}
   }
   
   # There should only be one *.png file.
-  set PngFiles [glob -nocomplain [file join ${CssSourceDirectory} *.png]]
+  set PngFiles [glob -nocomplain [file join ${HtmlThemeSourceDirectory} *.png]]
   set LastPngFile ""
   if {$PngFiles ne ""} {
     foreach PngFileWithPath ${PngFiles} {
@@ -2031,7 +2031,7 @@ proc CopyCssAndPngFiles {CssSourceDirectory BaseDirectory CssTargetSubdirectory}
     }
   }
   # There should be only one PNG file, so only copy the last one we find.
-  set PngDestFile [file join $CssTargetSubdirectory [file tail $LastPngFile]]
+  set PngDestFile [file join $HtmlThemeTargetSubdirectory [file tail $LastPngFile]]
   file copy -force ${LastPngFile} [file join $BaseDirectory $PngDestFile]
   set Report2PngFile $PngDestFile
 }

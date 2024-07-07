@@ -117,8 +117,8 @@ namespace eval ::osvvm {
     variable ResultsDirectory     [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
     variable CoverageDirectory    [file join ${OutputBaseDirectory} ${CoverageSubdirectory}]
     variable LogDirectory         [file join ${OutputBaseDirectory} ${LogSubdirectory}]
-    variable CssSubdirectory      [file join ${ReportsSubdirectory}]
-    variable CssDirectory         [file join ${OutputBaseDirectory} ${CssSubdirectory}]
+    variable HtmlThemeSubdirectory      [file join ${ReportsSubdirectory}]
+    variable HtmlThemeDirectory         [file join ${OutputBaseDirectory} ${HtmlThemeSubdirectory}]
 
   #
   #  Initialize OSVVM Internals

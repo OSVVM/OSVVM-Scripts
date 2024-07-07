@@ -50,11 +50,11 @@ package require yaml
 
 #  Notes:  
 #  The following variables are set by GetPathSettings that read the YAML file
-#      Report2CssDirectory 
+#      Report2HtmlThemeDirectory 
 #      Report2BaseDirectory
 #      Report2ReportsSubdirectory
 #      Report2LogSubdirectory
-#      Report2CssPngSourceDirectory
+#      Report2HtmlThemeSourceDirectory
 #      Report2RequirementsSubdirectory - value is "" if requirements not used
 #      Report2CoverageSubdirectory - value is "" if coverage not used
 #
@@ -367,8 +367,8 @@ proc CreateTestCaseSummaries {TestDict} {
         }
         set TestCaseHtmlFile [file join ${ReportsDirectory} ${TestFileName}.html]
         set TestCaseName $TestName
-        if { [dict exists $TestCase TestCaseGenerics] } { 
-          set TestCaseGenerics [dict get $TestCase TestCaseGenerics]
+        if { [dict exists $TestCase Generics] } { 
+          set TestCaseGenerics [dict get $TestCase Generics]
           if {${TestCaseGenerics} ne ""} {
             set GenericValueList [dict values $TestCaseGenerics] 
             set i 0
