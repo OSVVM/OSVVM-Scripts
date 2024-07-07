@@ -102,7 +102,11 @@ proc FinishBuildYaml {BuildName} {
   puts  $RunFile "  StartTime:            [GetIsoTime $BuildStartTime]"
   puts  $RunFile "  FinishTime:           [GetIsoTime $BuildFinishTime]"
   puts  $RunFile "  Elapsed:              [ElapsedTimeMs $BuildStartTimeMs]"
-  puts  $RunFile "  Simulator:            \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
+  if {$::osvvm::ToolArgs eq ""} {
+    puts  $RunFile "  Simulator:            \"${::osvvm::ToolName}\""
+  } else { 
+    puts  $RunFile "  Simulator:            \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
+  }
   puts  $RunFile "  SimulatorVersion:     \"$::osvvm::ToolVersion\""
   puts  $RunFile "  OsvvmVersion:         \"$::osvvm::OsvvmVersion\""
 
@@ -121,7 +125,8 @@ proc FinishBuildYaml {BuildName} {
 # -------------------------------------------------
 proc WriteDictOfDict2Yaml {YamlFile DictName {DictValues ""} {Prefix ""} } {
   if {$DictValues eq ""} {
-    puts $YamlFile "${Prefix}${DictName}:            \"\""
+    puts $YamlFile "${Prefix}${DictName}:            {}"
+#    puts $YamlFile "${Prefix}${DictName}:            \"\""
   } else {
     puts $YamlFile "${Prefix}${DictName}:"
     foreach {Name Value} $DictValues {
@@ -165,10 +170,10 @@ proc WriteOsvvmSettingsYaml {ReportFile} {
     puts  $ReportFile "  SimulationHtmlLogFile: \"\""
   }
   
-  if {[catch {set CssPngSourceDirectoryRel [::fileutil::relative [pwd] $::osvvm::OsvvmScriptDirectory]} errmsg]}  {
-    set CssPngSourceDirectoryRel $::osvvm::OsvvmScriptDirectory
-  }
-  puts  $ReportFile "  CssPngSourceDirectory:   \"${CssPngSourceDirectoryRel}\""
+#   if {[catch {set CssPngSourceDirectoryRel [::fileutil::relative [pwd] $::osvvm::OsvvmScriptDirectory]} errmsg]}  {
+#     set CssPngSourceDirectoryRel $::osvvm::OsvvmScriptDirectory
+#   }
+#   puts  $ReportFile "  CssPngSourceDirectory:   \"${CssPngSourceDirectoryRel}\""
   
   if {[file exists [file join $::osvvm::ReportsDirectory ${::osvvm::BuildName}_req.yml]]} {
     puts  $ReportFile "  RequirementsSubdirectory: \"$::osvvm::ReportsSubdirectory\""
