@@ -195,7 +195,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
         if {${TestCaseGenerics} ne ""} {
           puts $ResultsFile "<properties> "
           foreach {GenericName GenericValue} $TestCaseGenerics {
-            puts $ResultsFile "  <property name=\"generic\" value=\"${GenericName}=${GenericValue}\"> "
+            puts $ResultsFile "  <property name=\"generic\" value=\"${GenericName}=${GenericValue}\" /> "
           }
           puts $ResultsFile "</properties> "
         }
