@@ -144,7 +144,11 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
       
       if { [dict exists $TestCase Results] } { 
         set TestResults [dict get $TestCase Results]
-        set AffirmCount [dict get $TestResults AffirmCount]
+        if { [dict exists $TestResults AffirmCount] } {
+          set AffirmCount [dict get $TestResults AffirmCount]
+        } else {
+          set AffirmCount 0
+        }
         set TestStatus  [dict get $TestCase Status]
         set VhdlName    [dict get $TestCase Name]
         if { $TestStatus ne "SKIPPED" } {
