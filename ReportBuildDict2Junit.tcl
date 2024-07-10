@@ -165,6 +165,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
         set TestStatus  "FAILED"
         set VhdlName    $TestName
         set ElapsedTime 0
+        set AffirmCount 0
         set Reason "Test did not run"
       }
       
