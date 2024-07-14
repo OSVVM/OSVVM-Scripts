@@ -44,8 +44,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-
-
 #
 # DO NOT CHANGE THESE SETTINGS
 #   These settings are required by OSVVM to function properly
@@ -56,9 +54,9 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2024.06-Dev
-  variable OsvvmBuildYamlVersion      2024.06
-  variable OsvvmTestCaseYamlVersion   2024.06
+  variable OsvvmVersion 2024.07-Dev
+  variable OsvvmBuildYamlVersion      2024.07
+  variable OsvvmTestCaseYamlVersion   2024.07
  # The following are set in VHDL code.  Either need to pass these or have it directly in the VHDL Code.
   variable OsvvmAlertYamlVersion        InVhdlCodeVersionTbd
   variable OsvvmCoverageYamlVersion     InVhdlCodeVersionTbd
@@ -68,6 +66,13 @@ namespace eval ::osvvm {
   if {![info exists OsvvmVersionCompatibility]} {
     variable OsvvmVersionCompatibility $OsvvmVersion
   }
+  if {![info exists FailOnNoChecks]} {
+    variable FailOnNoChecks [expr [string compare $OsvvmVersionCompatibility "2024.07"] >= 0]
+  }
+  if {![info exists ClockResetVersion]} {
+    variable ClockResetVersion $OsvvmVersion
+  }
+
 
   # 
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
