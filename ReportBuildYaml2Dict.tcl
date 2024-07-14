@@ -178,10 +178,10 @@ proc ElaborateTestSuites {TestDict} {
           incr TestCasesSkipped
         } else {
           incr TestCasesRun
-          if { ${TestName} ne ${VhdlName} } {
+          if { ${TestName} ne ${VhdlName}  } {
             incr SuiteFailed
             incr TestCasesFailed
-          } elseif { $TestStatus eq "PASSED" } {
+          } elseif { ($TestStatus eq "PASSED") || (($TestStatus eq "NOCHECKS") && !($::osvvm::FailOnNoChecks)) } {
             incr SuitePassed
             incr TestCasesPassed
             if { $TestReqGoal > 0 } {
@@ -191,6 +191,9 @@ proc ElaborateTestSuites {TestDict} {
               }
             }
           } else {
+            # TestStatus = FAILED or TIMEOUT
+            # TestStatus = NOCHECKS if OsvvmVersionCompatibility is 2024.07 (or later) or
+            #    FailOnNoChecks is set to TRUE in OsvvmSettingsLocal.tcl
             incr SuiteFailed
             incr TestCasesFailed
           }
