@@ -63,7 +63,9 @@
     variable console {}
   }
   
-  regexp {GHDL\s+\d+\.\d+\S*} [exec ghdl --version] VersionString
+  set ghdl {*}[auto_execok ghdl]
+  
+  regexp {GHDL\s+\d+\.\d+\S*} [exec $ghdl --version] VersionString
   variable ToolVersion [regsub {GHDL\s+} $VersionString ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 #  variable ToolNameVersion [regsub {\s+} $VersionString -]
@@ -170,8 +172,8 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
 
   set  AnalyzeOptions [concat --std=${VhdlShortVersion} -Wno-library -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${args} ${FileName}]
   puts "ghdl -a $AnalyzeOptions"
-#  exec ghdl -a {*}$AnalyzeOptions
-  if {[catch {exec ghdl -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
+#  exec $ghdl -a {*}$AnalyzeOptions
+  if {[catch {exec $ghdl -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
     PrintWithPrefix "Error:" $AnalyzeErrorMessage
     error "Failed: analyze $FileName"
   } else {
@@ -241,7 +243,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set SimulateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit} {*}${LocalRunOptions}]
   puts "ghdl $runcmd ${SimulateOptions}" 
   
-  set SimulateErrorCode [catch {exec ghdl $runcmd {*}${SimulateOptions}} SimulateErrorMessage] 
+  set SimulateErrorCode [catch {exec $ghdl $runcmd {*}${SimulateOptions}} SimulateErrorMessage] 
 #  if {[file exists ${LibraryUnit}.ghw]} {
 #    file rename -force ${LibraryUnit}.ghw ${LocalReportDirectory}/${LibraryUnit}.ghw
 #  }
