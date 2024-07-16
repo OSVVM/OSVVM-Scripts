@@ -193,6 +193,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestSuiteName
   variable TestCaseFileName
   variable SimulateOptions
+  variable WaveFiles
   global aldec            ; #  required for matlab cosim
 
   if {($::osvvm::Debug)} {
@@ -212,12 +213,30 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   if {$::osvvm::LogSignals} {
     log -rec [env]/*
   }
+  if {$WaveFiles ne ""} {
+    foreach wave $WaveFiles {
+      do $wave
+    }
+  }
+  set WaveFiles ""
   run -all 
   
   # Save Coverage Information 
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.acdb -testname ${TestCaseFileName}
   }
+}
+
+# -------------------------------------------------
+proc vendor_DoWaves {args} {
+  variable WaveFiles
+  
+  if {$args ne ""} {
+    foreach wave {*}$args {
+      lappend WaveFiles $wave 
+    }
+  }
+  return ""
 }
 
 # -------------------------------------------------

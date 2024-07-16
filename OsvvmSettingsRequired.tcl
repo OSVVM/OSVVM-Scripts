@@ -128,6 +128,9 @@ namespace eval ::osvvm {
   #
   #  Initialize OSVVM Internals
   #
+    # Wave files for a single simulation run - set by vendor_DoWaves for some simulators
+    variable WaveFiles ""
+
   
     #
     # Extended TCL information about errors - for debugging
