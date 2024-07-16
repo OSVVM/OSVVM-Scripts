@@ -197,6 +197,7 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
+  variable ghdl
   variable VhdlShortVersion
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable GHDL_WORKING_LIBRARY_PATH
