@@ -70,7 +70,7 @@ namespace eval ::osvvm {
     variable FailOnNoChecks [expr [string compare $OsvvmVersionCompatibility "2024.07"] >= 0]
   }
   if {![info exists ClockResetVersion]} {
-    variable ClockResetVersion $OsvvmVersion
+    variable ClockResetVersion $OsvvmVersionCompatibility
   }
 
 
