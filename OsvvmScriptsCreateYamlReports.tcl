@@ -80,7 +80,7 @@ proc StartBuildYaml {BuildName} {
   puts "Starting Build at time [clock format $BuildStartTime -format %T]"
 
   set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} w]
-  puts  $RunFile "Version: $::osvvm::OsvvmBuildYamlVersion"
+  puts  $RunFile "Version: \"$::osvvm::OsvvmBuildYamlVersion\""
   puts  $RunFile "Date: $StartTime"
   close $RunFile
 }
