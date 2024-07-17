@@ -21,6 +21,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    07/2024   2024.07    Added detection for Siemen's Visualizer 
 #    05/2022   2022.05    Refactored StartUp.tcl to move items 
 #                         shared by all StartUp scripts to StartUpShared.tcl
 #    01/2022   2022.01    New StartUp algorithm for detecting ActiveHDL's VSimSA.
@@ -89,6 +90,9 @@ namespace eval ::osvvm {
     
   } elseif {$ToolExecutableName eq "vish" || $ToolExecutableName eq "vsimk"} {
     variable ScriptBaseName "Siemens"
+    
+  } elseif {$ToolExecutableName eq "hdlclient"} {
+    variable ScriptBaseName "Visualizer"
     
   } elseif {[string match -nocase $ToolExecutableName "vivado"]} {
     variable ScriptBaseName "Vivado"
