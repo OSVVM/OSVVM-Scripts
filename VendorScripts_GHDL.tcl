@@ -63,8 +63,14 @@
     variable console {}
   }
   
-  set ghdl {*}[auto_execok ghdl]
-  
+#  set ghdl {*}[auto_execok ghdl]
+  if { [info exists ::env(MSYSTEM)] } {
+    # running on MSYS2 - convert which with cygpath
+    set ghdl [exec cygpath -m [exec which ghdl]]
+  } else {
+    set ghdl [exec which ghdl]
+  }
+   
   regexp {GHDL\s+\d+\.\d+\S*} [exec $ghdl --version] VersionString
   variable ToolVersion [regsub {GHDL\s+} $VersionString ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
