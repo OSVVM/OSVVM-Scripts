@@ -209,7 +209,7 @@ proc include {Path_Or_File args} {
 
 proc LocalInclude {PathAndFile args} {
   variable CurrentWorkingDirectory
-  
+
 # probably remove.  Redundant with analyze and simulate
   # If a library does not exist, then create the default
   CheckLibraryExists
@@ -234,6 +234,28 @@ proc LocalInclude {PathAndFile args} {
   set index  1
   foreach arg $::argv {set ::ARGV($index) $arg ; incr index 1}
 
+  set IncludeErrorCode [catch {LocalRunInclude $PathAndFile {*}$args} IncludeErrMsg]
+  set IncludeErrorInfo $::errorInfo 
+  
+  #  Restore CurrentWorkingDirectory, $::argv0, $::argv, $::argc
+  set CurrentWorkingDirectory ${SaveCurrentWorkingDirectory}
+  set ::argv0   $SaveArgv0
+  set ::argv    $SaveArgv 
+  set ::argc    $SaveArgc 
+  set ::ARGC    $::argc
+  set ::ARGV(0) $::argv0
+  set index  1
+  foreach arg $::argv {set ::ARGV($index) $arg ; incr index 1}
+  
+  # Re-signal error after restoring CurrentWorkingDirectory and argv ...
+  if {$IncludeErrorCode != 0} {   
+    error $IncludeErrMsg $IncludeErrorInfo 
+  } 
+}
+
+proc LocalRunInclude {PathAndFile args} {
+  variable CurrentWorkingDirectory
+  
   # Use the RootDir of PathAndFile as the CurrentWorkingDirectory
   set RootDir  [file dirname $PathAndFile]
   puts "set CurrentWorkingDirectory ${RootDir}"
@@ -259,16 +281,6 @@ proc LocalInclude {PathAndFile args} {
     puts "IterateFile ${PathAndFile} analyze"
     IterateFile ${PathAndFile} "analyze"
   }
-
-  #  Restore CurrentWorkingDirectory, $::argv0, $::argv, $::argc
-  set CurrentWorkingDirectory ${SaveCurrentWorkingDirectory}
-  set ::argv0   $SaveArgv0
-  set ::argv    $SaveArgv 
-  set ::argc    $SaveArgc 
-  set ::ARGC    $::argc
-  set ::ARGV(0) $::argv0
-  set index  1
-  foreach arg $::argv {set ::ARGV($index) $arg ; incr index 1}
 }
 
 
@@ -1046,13 +1058,16 @@ proc simulate {LibraryUnit args} {
 
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
   set LocalSimulateErrorInfo $::errorInfo
-  SetInteractiveMode $SavedInteractive  ; # Restore original value
   
-  if {($SimulateErrorCode != 0) && (!$::osvvm::SimulateInteractive)} {
+#  if {($SimulateErrorCode != 0) && (!$::osvvm::SimulateInteractive)} {}
     # if simulate ended in error, EndSimulation to close open files.
+  if {!$::osvvm::SimulateInteractive} {
+    # if not interactive end the simulation
     EndSimulation
     unset vendor_simulate_started
   }
+  
+  SetInteractiveMode $SavedInteractive  ; # Restore original value
   
   set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
   set LocalReportErrorInfo $::errorInfo
@@ -1980,11 +1995,13 @@ proc SimulateDoneMoveTestCaseFiles {} {
           file copy -force ${TranscriptFile}  ${TranscriptDestFile}
           lappend TranscriptFiles ${TranscriptDestFile}
           if {[catch {file delete -force ${TranscriptFile}} err]} {
+            puts "ScriptError: Cannot delete ${TranscriptFile}.  Simulation crashed and did not close it.   SimulationInteractive is $::osvvm::SimulateInteractive so cannot EndSimulation"
             # end simulation to try to free locks on the file, and try to delete again
-            if {!$::osvvm::SimulateInteractive} {
-              EndSimulation  
-              file delete -force ${TranscriptFile}
-            }
+# Redundant with steps in simulate
+#            if {!$::osvvm::SimulateInteractive} {}
+#              EndSimulation  
+#              file delete -force ${TranscriptFile}
+#            
           } 
         }
       }
