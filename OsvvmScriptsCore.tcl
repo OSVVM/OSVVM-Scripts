@@ -426,6 +426,7 @@ proc LocalBuild {BuildName Path_Or_File args} {
   variable TestSuiteName
   variable OutputBaseDirectory
 
+  puts "" ; # ensure that the next print is at the start of a line
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
   CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
@@ -1059,10 +1060,9 @@ proc simulate {LibraryUnit args} {
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
   set LocalSimulateErrorInfo $::errorInfo
   
-#  if {($SimulateErrorCode != 0) && (!$::osvvm::SimulateInteractive)} {}
+  if {($SimulateErrorCode != 0) && (!$::osvvm::SimulateInteractive)} {
     # if simulate ended in error, EndSimulation to close open files.
-  if {!$::osvvm::SimulateInteractive} {
-    # if not interactive end the simulation
+    # $osvvm_testbench/AlertLogPkg tests require extra run after simulate.  
     EndSimulation
     unset vendor_simulate_started
   }
@@ -1996,12 +1996,14 @@ proc SimulateDoneMoveTestCaseFiles {} {
           lappend TranscriptFiles ${TranscriptDestFile}
           if {[catch {file delete -force ${TranscriptFile}} err]} {
             puts "ScriptError: Cannot delete ${TranscriptFile}.  Simulation crashed and did not close it.   SimulationInteractive is $::osvvm::SimulateInteractive so cannot EndSimulation"
-            # end simulation to try to free locks on the file, and try to delete again
-# Redundant with steps in simulate
-#            if {!$::osvvm::SimulateInteractive} {}
-#              EndSimulation  
-#              file delete -force ${TranscriptFile}
-#            
+            # end simulation to try to free locks on the file, and try to delete again - in the event the test case forgot TranscriptClose
+            if {!$::osvvm::SimulateInteractive} {
+              EndSimulation  
+              file delete -force ${TranscriptFile}
+            } else {
+              puts "ScriptError:  Transcript file ${TranscriptFile} is open and cannot be deleted by scripts."
+              puts "ScriptError:  Either test case did not run to completion or it is missing TranscriptClose at the end of the test case."
+            }
           } 
         }
       }

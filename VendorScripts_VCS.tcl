@@ -53,7 +53,8 @@
   variable ToolName    "VCS"
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
 #  variable ToolNameVersion "${ToolName}-T2022.06"
-  variable ToolVersion "T2022.06"
+#  variable ToolVersion "T2022.06"
+  variable ToolVersion [regsub {vhdlan.*: } [exec vhdlan -V] ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 #   puts $ToolNameVersion
 
