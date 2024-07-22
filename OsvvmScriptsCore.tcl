@@ -1581,10 +1581,10 @@ proc GetDebugMode {} {
 }
 
 proc SetLogSignals {{Options "true"}} {
-  variable LogSignals
-  set LogSignalsIsSet "true"
-  set LogSignals $Options
+  set ::osvvm::LogSignalsIsSet "true"
+  set ::osvvm::LogSignals $Options
 }
+
 proc GetLogSignals {} {
   variable LogSignals
   return $LogSignals
