@@ -304,8 +304,13 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   } else {
     set SimulateOptions "-voptargs=$::osvvm::DebugOptions"
   }
-
-  set SimulateOptions [concat $SimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
+ 
+  if {$::osvvm::SaveWaves} {
+    set WaveOptions "-wlf [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName} ${LibraryUnit}.wlf]"
+  } else {
+    set WaveOptions ""
+  }
+  set SimulateOptions [concat $SimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} ${WaveOptions} -suppress 8683 -suppress 8684]
 
 #  puts "vsim {*}${SimulateOptions}"
   eval $::osvvm::shell vsim {*}${SimulateOptions}

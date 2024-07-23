@@ -220,16 +220,17 @@ proc vendor_end_previous_simulation {} {
   variable NoGui
 
   # close junk in source window
-  if {! $NoGui} {
-    if {![catch {noview} msg]} {
-      foreach index [array names SourceMap] { 
-        noview source [file tail $index] 
-      }
-    }
-  }  
+#  if {! $NoGui} {
+#    catch {noview source}
+#    catch {noview source}
+#    if {![catch {noview} msg]} {
+#      foreach index [array names SourceMap] { 
+#        noview source [file tail $index] 
+#      }
+#    }
+#  }  
   
-#  quit -sim
-  quit 
+  quit -design
 }
 
 # -------------------------------------------------
