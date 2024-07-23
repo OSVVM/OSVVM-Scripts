@@ -277,19 +277,9 @@ proc vendor_generic {Name Value} {
 proc CreateGenericFile {GenericDict} {
 
   set GenericsFile [open "synopsys_generics.txt" w]
-  
   foreach {GenericName GenericValue} $GenericDict {
-  
-# $LibraryUnit must be top level testbench and not configuration name which it often can be.
-# by doing GenericName, it will get all of the generics in the design hierarchy
-# Alternately GenericName can have the path already specified
-#
-#    if {[string index $GenericName 1] eq "/"} {
-#      set ResolvedGenericName $GenericName
-#    } else {
-#      set ResolvedGenericName "/${LibraryUnit}/${GenericName}"
-#    }
-    puts $GenericsFile "assign ${GenericValue} ${ResolvedGenericName}"
+    # cannot do /$LibraryUnit/$GenericName as LibraryUnit may be a configuration name
+    puts $GenericsFile "assign ${GenericValue} ${GenericName}"
   }
   close $GenericsFile
 }
