@@ -244,8 +244,15 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 #  } else {
 #    puts $SimulateErrorMessage
 #  }
+
+  if {$::osvvm::GenericDict ne ""} {
+    set SynopsysGenericOptions "-g synopsys_generics.txt"
+    CreateGenericFile ${LibraryUnit} ${::osvvm::GenericDict}
+  } else {
+    set SynopsysGenericOptions ""
+  }
   
-  set SimulateOptions [concat {*}${ExtendedRunOptions} -ucli -do temp_Synopsys_run.tcl]
+  set SimulateOptions [concat {*}${ExtendedRunOptions} {*}${SynopsysGenericOptions} -ucli -do temp_Synopsys_run.tcl]
   puts "./simv ${SimulateOptions}" 
   set SimVErrorCode [catch {exec ./simv {*}${SimulateOptions}} SimulateErrorMessage]
 #  puts "SimVErrorCode $SimVErrorCode" ; # returns 0 on success
@@ -262,9 +269,27 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
 # -------------------------------------------------
 proc vendor_generic {Name Value} {
-  
-  return "-g${Name}=${Value}"
+  # Not used.  gvalue requires integer and real number values
+  return "-gvalue ${Name}=${Value}"
 }
+
+# -------------------------------------------------
+proc CreateGenericFile {LibraryUnit GenericDict} {
+
+  set GenericsFile [open "synopsys_generics.txt" w]
+  
+  foreach {GenericName GenericValue} $GenericDict {
+    if {[string index $GenericName 1] eq "/"} {
+      set ResolvedGenericName $GenericName
+    } else {
+      set ResolvedGenericName "/${LibraryUnit}/${GenericName}"
+    }
+    puts $GenericsFile "assign ${GenericValue} ${ResolvedGenericName}"
+  }
+  close $GenericsFile
+}
+
+
 
 # -------------------------------------------------
 # Merge Coverage
