@@ -246,8 +246,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 #  }
 
   if {$::osvvm::GenericDict ne ""} {
-    set SynopsysGenericOptions "-g synopsys_generics.txt"
-    CreateGenericFile ${LibraryUnit} ${::osvvm::GenericDict}
+    set SynopsysGenericOptions "-lca -g synopsys_generics.txt"
+    CreateGenericFile ${::osvvm::GenericDict}
   } else {
     set SynopsysGenericOptions ""
   }
@@ -274,16 +274,21 @@ proc vendor_generic {Name Value} {
 }
 
 # -------------------------------------------------
-proc CreateGenericFile {LibraryUnit GenericDict} {
+proc CreateGenericFile {GenericDict} {
 
   set GenericsFile [open "synopsys_generics.txt" w]
   
   foreach {GenericName GenericValue} $GenericDict {
-    if {[string index $GenericName 1] eq "/"} {
-      set ResolvedGenericName $GenericName
-    } else {
-      set ResolvedGenericName "/${LibraryUnit}/${GenericName}"
-    }
+  
+# $LibraryUnit must be top level testbench and not configuration name which it often can be.
+# by doing GenericName, it will get all of the generics in the design hierarchy
+# Alternately GenericName can have the path already specified
+#
+#    if {[string index $GenericName 1] eq "/"} {
+#      set ResolvedGenericName $GenericName
+#    } else {
+#      set ResolvedGenericName "/${LibraryUnit}/${GenericName}"
+#    }
     puts $GenericsFile "assign ${GenericValue} ${ResolvedGenericName}"
   }
   close $GenericsFile
