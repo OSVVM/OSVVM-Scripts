@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    07/2024   2024.07    Updated handling of Coverage models with 0 weight
 #    05/2024   2024.05    Minor updates during Simulate2Html refactoring
 #    04/2024   2024.04    Updated report formatting
 #    06/2022   2022.06    Print PASSED/FAILED with Coverage HTML

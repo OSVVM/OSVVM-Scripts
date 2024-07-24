@@ -1,4 +1,4 @@
-#  File Name:         VendorScripts_Mentor.tcl
+#  File Name:         VendorScripts_Visualizer.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 
@@ -19,23 +19,12 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#     5/2022   2022.05    Coverage report name based on TestCaseName rather than LibraryUnit
-#                         Updated variable naming 
-#     2/2022   2022.02    Added Coverage Collection
-#    12/2021   2021.12    Updated to use relative paths.
-#     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate
-#     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
-#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
-#     1/2020   2020.01    Updated Licenses to Apache
-#     2/2019   Beta       Project descriptors in .pro which execute 
-#                         as TCL scripts in conjunction with the library 
-#                         procedures
-#    11/2018   Alpha      Project descriptors in .files and .dirs files
+#     7/2024   2024.07    Initial.   Derived from VendorScripts_Siemens
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.    
+#  Copyright (c) 2018 - 2024 by SynthWorks Design Inc.    
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.

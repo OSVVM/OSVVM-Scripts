@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Added ability to find nvc on the search path
 #     5/2024   2024.05    Added ToolVersion variable 
 #     1/2023   2023.01    Added options for CoSim 
 #     5/2022   2022.05    Updated variable naming 

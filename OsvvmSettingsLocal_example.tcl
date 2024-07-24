@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Examples for setting FailOnNoChecks and ClockResetVersion
 #     3/2024   2024.03    Added OsvvmVersionCompatibility
 #     6/2022   2022.06    Initial
 #

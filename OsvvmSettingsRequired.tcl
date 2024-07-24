@@ -20,6 +20,8 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Set FailOnNoChecks and ClockResetVersion if not already set in OsvvmSettingsLocal (user defined)
+#                         Naming updates.  Added WaveFiles default. 
 #     3/2024   2024.03    Revision Update for release
 #                         Added default values for argc, argv, argv0 for questa -batch
 #                         Sets OsvvmVersionCompatibility if it is not set in LocalScriptDefaults.tcl

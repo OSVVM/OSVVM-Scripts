@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    07/2024   2024.07    Handling for GenericDict and naming updates.
 #    05/2024   2024.05    Refactored. Must call ReportBuildYaml2Dict first.
 #    04/2024   2024.04    Updated report formatting
 #    07/2023   2023.07    Updated file handler to search for user defined HTML headers

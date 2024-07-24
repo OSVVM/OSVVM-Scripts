@@ -21,6 +21,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    07/2024   2024.07    Reporting for Affirm Counts and Generics
 #    05/2024   2024.05    Refactored. 
 #    04/2024   2024.04    Updated report formatting
 #    12/2022   2022.12    Refactored to only use static OSVVM information

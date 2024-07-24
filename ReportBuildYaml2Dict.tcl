@@ -19,6 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    07/2024   2024.07    Handling NOCHECKS as FAIL or PASS.  Naming updates
 #    05/2024   2024.05    Refactored. Decoupled.  Yaml = source of information.
 #    04/2024   2024.04    Updated report formatting
 #    07/2023   2023.07    Updated file handler to search for user defined HTML headers

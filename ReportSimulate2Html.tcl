@@ -19,6 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    07/2024   2024.07    Changed *List to *Dict for Scoreboard and Generic
 #    05/2024   2024.05    Refactored.  Separating file copy from creating HTML.  New Call interface.
 #    04/2024   2024.04    Updated report formatting
 #    03/2024   2024.03    Updated handling of TranscriptFile to account for simulator still having it open (due to abnormal exit)

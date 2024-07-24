@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Added SaveWaves functionality to save the wlf files 
 #     5/2022   2022.05    Coverage report name based on TestCaseName rather than LibraryUnit
 #                         Updated variable naming 
 #     2/2022   2022.02    Added Coverage Collection

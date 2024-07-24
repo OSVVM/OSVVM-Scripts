@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Updated ToolVersion to run vhdlan 
 #     5/2024   2024.05    Added ToolVersion variable 
 #    12/2022   2022.12    Updated StartTranscript, StopTranscript, Analyze, Simulate
 #    05/2022   2022.05    Updated naming

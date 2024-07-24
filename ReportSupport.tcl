@@ -18,6 +18,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    07/2024   2024.07    Updated variable naming.  Changed GenericList to Report2GenericDict
 #    05/2024   2024.05    Initial Revision
 #
 #

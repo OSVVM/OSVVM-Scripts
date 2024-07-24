@@ -19,6 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Updated YAML output and naming
 #    05/2024   2024.05    Updated to Decouple Report2Html from OSVVM.  Yaml = source of information.
 #    04/2024   2024.04    Updated report formatting
 #    12/2022   2022.12    Refactored from OsvvmProjectScripts

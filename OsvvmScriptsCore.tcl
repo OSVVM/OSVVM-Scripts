@@ -20,6 +20,8 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Updated LocalInclude to better restore state if it fails
+#                         Fixed settings in SetLogSignals.
 #     5/2024   2024.05    Updated for refactor of Simulate2Html.   Renamed in prep for breaking file into smaller chunks. 
 #     3/2024   2024.03    Updated CreateOsvvmScriptSettingsPkg and added FindOsvvmSettingsDirectory 
 #     9/2023   2023.09    Updated messaging for file not found by build/include 
@@ -1062,7 +1064,8 @@ proc simulate {LibraryUnit args} {
   
   if {($SimulateErrorCode != 0) && (!$::osvvm::SimulateInteractive)} {
     # if simulate ended in error, EndSimulation to close open files.
-    # $osvvm_testbench/AlertLogPkg tests require extra run after simulate.  
+    # $osvvm_testbench/AlertLogPkg tests require extra run after simulate 
+    # so checking only SimulateInteractive not sufficient  
     EndSimulation
     unset vendor_simulate_started
   }
