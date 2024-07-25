@@ -271,7 +271,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 # -------------------------------------------------
 proc vendor_generic {Name Value} {
   # Not used.  gvalue requires integer and real number values
-  return "-gvalue ${Name}=${Value}"
+  return "-gv ${Name}=${Value} "
 }
 
 # -------------------------------------------------

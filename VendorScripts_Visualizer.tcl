@@ -218,8 +218,13 @@ proc vendor_end_previous_simulation {} {
 #      }
 #    }
 #  }  
-  
-  quit -design
+  # wait 1 sec before and after quit to see if it impacts Visualizer issues.
+  puts "1 second before quit -sim"
+  after 2000
+  puts "quit -sim"
+  quit -sim
+  after 2000
+  puts "1 second after quit -sim"
 }
 
 # -------------------------------------------------
@@ -303,10 +308,14 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions  -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
 
 
-#  puts "vopt {*}${OptimizeOptions}"
+  puts "vopt {*}${OptimizeOptions}"
   eval $::osvvm::shell vopt {*}${OptimizeOptions}
+  
+  after 1000
+  puts "1 sec vopt"
 
-#  puts "vsim {*}${SimulateOptions}"
+
+  puts "vsim {*}${SimulateOptions}"
   eval $::osvvm::shell vsim {*}${SimulateOptions}
   
   # Historical name.  Must be run with "do" for actions to work
