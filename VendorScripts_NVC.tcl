@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Added ability to find nvc on the search path
 #     5/2024   2024.05    Added ToolVersion variable 
 #     1/2023   2023.01    Added options for CoSim 
 #    10/2022              Initial Version based on VendorScripts_GHDL.tcl
@@ -57,7 +58,15 @@
     variable console {}
   }
   
-  regexp {nvc\s+\d+\.\d+\S*} [exec nvc --version] VersionString
+#  set nvc {*}[auto_execok nvc]
+  if { [info exists ::env(MSYSTEM)] } {
+    # running on MSYS2 - convert which with cygpath
+    set nvc [exec cygpath -m [exec which nvc]]
+  } else {
+    set nvc [exec which nvc]
+  }
+  
+  regexp {nvc\s+\d+\.\d+\S*} [exec $nvc --version] VersionString
   variable ToolVersion [regsub {nvc\s+} $VersionString ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 #  variable ToolNameVersion [regsub {\s+} $VersionString -]
@@ -102,6 +111,7 @@ proc NvcLibraryPath {LibraryName PathToLib} {
 }
 
 proc vendor_library {LibraryName PathToLib} {
+  variable nvc 
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable NVC_WORKING_LIBRARY_PATH
   variable VhdlShortVersion
@@ -110,7 +120,7 @@ proc vendor_library {LibraryName PathToLib} {
 
   set  GlobalOptions [concat --std=${VhdlShortVersion} --work=${LibraryName}:${PathAndLib}.${VhdlShortVersion}]
   puts "nvc ${GlobalOptions} --init"
-  if {[catch {exec nvc {*}${GlobalOptions} --init} InitErrorMessage]} {
+  if {[catch {exec $nvc {*}${GlobalOptions} --init} InitErrorMessage]} {
     puts $InitErrorMessage
     error "Failed: library init $LibraryName ($PathAndLib)"
   }
@@ -157,6 +167,7 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 # analyze
 #
 proc vendor_analyze_vhdl {LibraryName FileName args} {
+  variable nvc 
   variable VhdlShortVersion
 ##  variable console
 ##  variable NVC_TRANSCRIPT_FILE
@@ -167,7 +178,7 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
   set  GlobalOptions [concat --std=${VhdlShortVersion} -H 128m --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
   set  AnalyzeOptions [concat {*}${args} ${FileName}]
   puts "nvc ${GlobalOptions} -a $AnalyzeOptions"
-  if {[catch {exec nvc {*}${GlobalOptions} -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
+  if {[catch {exec $nvc {*}${GlobalOptions} -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
     PrintWithPrefix "Error:" $AnalyzeErrorMessage
     error "Failed: analyze $FileName"
   } else {
@@ -191,6 +202,7 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
+  variable nvc 
   variable VhdlShortVersion
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable NVC_WORKING_LIBRARY_PATH
@@ -225,14 +237,14 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   
 # Running NVC with separate elaborate and simulate - Nick recommended switching to doing this in one step
   puts "nvc ${GlobalOptions} -e ${ElaborateOptions}" 
-  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions}} ElaborateMessage]} { 
+  if { [catch {exec $nvc {*}${GlobalOptions} -e {*}${ElaborateOptions}} ElaborateMessage]} { 
     PrintWithPrefix "Elaborate Error:"  $ElaborateMessage
     error "Failed: simulate $LibraryUnit"
   } else {
     puts $ElaborateMessage
   }
   puts "nvc ${GlobalOptions} -r ${RunOptions}" 
-  if { [catch {exec nvc {*}${GlobalOptions} -r {*}${RunOptions} 2>@1} SimulateMessage]} {
+  if { [catch {exec $nvc {*}${GlobalOptions} -r {*}${RunOptions} 2>@1} SimulateMessage]} {
 #    error "Failed: simulate $LibraryUnit"
     PrintWithPrefix "Error:" $SimulateMessage
     error "Failed: simulate $LibraryUnit"
@@ -241,8 +253,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   }
 
 # #  puts "nvc ${GlobalOptions} -e ${ElaborateOptions} --jit --no-save -r ${RunOptions}"
-# ##  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} >@ stdout 2>@ stdout} SimulateMessage] } {  }
-# #  if { [catch {exec nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} 2>@1} SimulateMessage] } {  
+# ##  if { [catch {exec $nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} >@ stdout 2>@ stdout} SimulateMessage] } {  }
+# #  if { [catch {exec $nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} 2>@1} SimulateMessage] } {  
 # #    PrintWithPrefix "Error:" $SimulateMessage
 # #    error "Failed: simulate $LibraryUnit"
 # #  } else {

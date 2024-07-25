@@ -18,6 +18,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    07/2024   2024.07    Updated variable naming.  Changed GenericList to Report2GenericDict
 #    05/2024   2024.05    Initial Revision
 #
 #
@@ -75,9 +76,9 @@ proc CreateOsvvmReportFooter {ResultsFile} {
 }
 
 # -------------------------------------------------
-# FindCssPngFiles
+# FindHtmlThemeFiles
 #
-# proc FindCssPngFiles {BaseDirectory CssTargetSubdirectory} {
+# proc FindHtmlThemeFiles {BaseDirectory CssTargetSubdirectory} {
 #   variable Report2CssFiles
 #   variable Report2PngFile
 #   
@@ -136,7 +137,7 @@ proc GetOsvvmPathSettings {TestDict} {
   set SettingsInfoDict                         [dict get $TestDict OsvvmSettingsInfo]
   variable Report2BaseDirectory                [dict get $SettingsInfoDict BaseDirectory]
   variable Report2ReportsSubdirectory          [dict get $SettingsInfoDict ReportsSubdirectory]
-  variable Report2CssSubdirectory              [dict get $SettingsInfoDict CssSubdirectory]
+#  variable Report2HtmlThemeSubdirectory              [dict get $SettingsInfoDict HtmlThemeSubdirectory]
   variable Report2SimulationLogFile            [dict get $SettingsInfoDict SimulationLogFile]
   variable Report2SimulationHtmlLogFile        [dict get $SettingsInfoDict SimulationHtmlLogFile]
   variable Report2RequirementsSubdirectory     [dict get $SettingsInfoDict RequirementsSubdirectory]
@@ -153,7 +154,7 @@ proc GetTestCaseSettings {SettingsFileName} {
   variable Report2TestCaseName                 [dict get $TestDict TestCaseName        ]
   variable Report2TestSuiteName                [dict get $TestDict TestSuiteName       ]
   variable Report2BuildName                    [dict get $TestDict BuildName           ]
-  variable Report2GenericDict                  [dict get $TestDict GenericDict         ]
+  variable Report2GenericDict                  [dict get $TestDict Generics            ]
   
   variable Report2TestCaseFileName             [dict get $TestDict TestCaseFileName    ]
   variable Report2GenericNames                 [dict get $TestDict GenericNames        ]

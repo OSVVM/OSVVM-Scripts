@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Added DoWaves capability 
 #     5/2024   2024.05    Added ToolVersion variable 
 #     5/2022   2022.05    Coverage report name based on TestCaseName rather than LibraryUnit
 #                         Updated variable naming 
@@ -261,6 +262,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ToolVendor
   variable TestSuiteName
   variable TestCaseFileName
+  variable WaveFiles
   global sim_working_folder
   global aldec            ; #  required for matlab cosim
 
@@ -285,6 +287,12 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
     log -rec [env]/*
     cd $MY_START_DIR
   }
+  if {$WaveFiles ne ""} {
+    foreach wave $WaveFiles {
+      do $wave
+    }
+  }
+  set WaveFiles ""
   run -all
   cd $MY_START_DIR
   
@@ -292,6 +300,18 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.acdb -testname ${TestCaseFileName}
   }
+}
+
+# -------------------------------------------------
+proc vendor_DoWaves {args} {
+  variable WaveFiles
+  
+  if {$args ne ""} {
+    foreach wave {*}$args {
+      lappend WaveFiles $wave 
+    }
+  }
+  return ""
 }
 
 # -------------------------------------------------

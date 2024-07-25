@@ -18,6 +18,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    04/2024   2024.05    Replaced CssSubdirectory with HtmlThemeSubdirectory
 #    04/2024   2024.05    Updated report formatting
 #    07/2023   2023.07    Initial Revision
 #
@@ -95,8 +96,8 @@ proc RequirementsTableHeader { ReportName AdditionalPath } {
   puts $ResultsFile "<!DOCTYPE html>"
   puts $ResultsFile "<html lang=\"en\">"
   puts $ResultsFile "<head>"
-  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${AdditionalPath}../${::osvvm::CssSubdirectory}/CssOsvvmStyle.css\">"
-  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${AdditionalPath}../${::osvvm::CssSubdirectory}/Custom-Style.css\">"
+  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${AdditionalPath}../${::osvvm::HtmlThemeSubdirectory}/CssOsvvmStyle.css\">"
+  puts $ResultsFile "  <link rel=\"stylesheet\" href=\"${AdditionalPath}../${::osvvm::HtmlThemeSubdirectory}/Custom-Style.css\">"
   puts $ResultsFile "  <title>$ReportName Requirement Results</title>"
   puts $ResultsFile "</head>"
   puts $ResultsFile "<body>"
@@ -106,7 +107,7 @@ proc RequirementsTableHeader { ReportName AdditionalPath } {
   puts $ResultsFile "      <h1>$ReportName Requirement Results</h1>"
   puts $ResultsFile "    </div>"
   puts $ResultsFile "    <div class=\"requirements-logo\">"
-  puts $ResultsFile "      <img src=\"${AdditionalPath}../${::osvvm::CssSubdirectory}/OsvvmLogo.png\" alt=\"OSVVM logo\">"
+  puts $ResultsFile "      <img src=\"${AdditionalPath}../${::osvvm::HtmlThemeSubdirectory}/OsvvmLogo.png\" alt=\"OSVVM logo\">"
   puts $ResultsFile "    </div>"
   puts $ResultsFile "  </div>"
   puts $ResultsFile "</header>"

@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    07/2024   2024.07    Handling for GenericDict and naming updates.
 #    05/2024   2024.05    Refactored. Must call ReportBuildYaml2Dict first.
 #    04/2024   2024.04    Updated report formatting
 #    07/2023   2023.07    Updated file handler to search for user defined HTML headers
@@ -50,11 +51,11 @@ package require yaml
 
 #  Notes:  
 #  The following variables are set by GetPathSettings that read the YAML file
-#      Report2CssDirectory 
+#      Report2HtmlThemeDirectory 
 #      Report2BaseDirectory
 #      Report2ReportsSubdirectory
 #      Report2LogSubdirectory
-#      Report2CssPngSourceDirectory
+#      Report2HtmlThemeSourceDirectory
 #      Report2RequirementsSubdirectory - value is "" if requirements not used
 #      Report2CoverageSubdirectory - value is "" if coverage not used
 #
@@ -367,8 +368,8 @@ proc CreateTestCaseSummaries {TestDict} {
         }
         set TestCaseHtmlFile [file join ${ReportsDirectory} ${TestFileName}.html]
         set TestCaseName $TestName
-        if { [dict exists $TestCase TestCaseGenerics] } { 
-          set TestCaseGenerics [dict get $TestCase TestCaseGenerics]
+        if { [dict exists $TestCase Generics] } { 
+          set TestCaseGenerics [dict get $TestCase Generics]
           if {${TestCaseGenerics} ne ""} {
             set GenericValueList [dict values $TestCaseGenerics] 
             set i 0

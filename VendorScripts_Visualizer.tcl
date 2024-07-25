@@ -1,4 +1,4 @@
-#  File Name:         VendorScripts_Mentor.tcl
+#  File Name:         VendorScripts_Visualizer.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
 # 
@@ -19,24 +19,12 @@
 # 
 #  Revision History:
 #    Date      Version    Description
-#     7/2024   2024.07    Added SaveWaves functionality to save the wlf files 
-#     5/2022   2022.05    Coverage report name based on TestCaseName rather than LibraryUnit
-#                         Updated variable naming 
-#     2/2022   2022.02    Added Coverage Collection
-#    12/2021   2021.12    Updated to use relative paths.
-#     3/2021   2021.03    In Simulate, added optional scripts to run as part of simulate
-#     2/2021   2021.02    Refactored variable settings to here from ToolConfiguration.tcl
-#     7/2020   2020.07    Refactored tool execution for simpler vendor customization
-#     1/2020   2020.01    Updated Licenses to Apache
-#     2/2019   Beta       Project descriptors in .pro which execute 
-#                         as TCL scripts in conjunction with the library 
-#                         procedures
-#    11/2018   Alpha      Project descriptors in .files and .dirs files
+#     7/2024   2024.07    Initial.   Derived from VendorScripts_Siemens
 #
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.    
+#  Copyright (c) 2018 - 2024 by SynthWorks Design Inc.    
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -67,13 +55,9 @@
   if {[info exists ::ToolName]} {
     variable ToolName $::ToolName
   } else {
-#    if {[lindex [split [vsimVersionString]] 2] eq "ModelSim"} {}
-    if {[lindex [split $VersionString] 2] eq "ModelSim"} {
-      variable ToolName   "ModelSim"
-    } else {
-      variable ToolName   "QuestaSim"
-    }
+    variable ToolName "Visualizer"
   }
+  
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   
   if {![catch {batch_mode} msg]} {
@@ -82,35 +66,42 @@
     if {[batch_mode]} {
       variable ToolArgs $argv
       variable NoGui "true"
+      variable SiemensSimulateOptions "-batch"
+      variable DebugOptions "-debug"
     } else {
       variable ToolArgs "-gui"
       variable NoGui "false"
+      variable SiemensSimulateOptions "-visualizer -qwavedb=+signal"
+      variable DebugOptions "-debug,livesim -designfile design.bin"
     }
   } else {
     # Started from Shell
-    variable SiemensSimulateOptions "-batch"
     variable shell "exec"
     variable ToolArgs "none"
     variable NoGui "true"
+    variable SiemensSimulateOptions "-batch"
+    variable DebugOptions "-debug"
   }
   
   if {![catch {vsimVersion} msg]} {
     variable ToolVersion [vsimVersion]
   } else {
-    set ToolVersion tbd
+    variable ToolVersion tbd
+  }
+  
+  # Set if not set
+  if {![info exists ::VoptArgs]} {
+    set ::VoptArgs " "
+  }
+  if {![info exists ::VsimArgs]} {
+    set ::VsimArgs " "
   }
 
 #  variable ToolVersion [vsimVersion]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 #   puts $ToolNameVersion
-  
-  if {$ToolVersion >= 2020.01} {
-#    variable DebugOptions "-debug,cell"
-    variable DebugOptions "+acc"
-  } else {
-    variable DebugOptions "+acc"
-  }
 
+  
 # -------------------------------------------------
 # StartTranscript / StopTranscxript
 #
@@ -218,15 +209,22 @@ proc vendor_end_previous_simulation {} {
   variable NoGui
 
   # close junk in source window
-  if {! $NoGui} {
-    if {![catch {noview} msg]} {
-      foreach index [array names SourceMap] { 
-        noview source [file tail $index] 
-      }
-    }
-  }  
-  
+#  if {! $NoGui} {
+#    catch {noview source}
+#    catch {noview source}
+#    if {![catch {noview} msg]} {
+#      foreach index [array names SourceMap] { 
+#        noview source [file tail $index] 
+#      }
+#    }
+#  }  
+  # wait 1 sec before and after quit to see if it impacts Visualizer issues.
+  puts "1 second before quit -sim"
+  after 2000
+  puts "quit -sim"
   quit -sim
+  after 2000
+  puts "1 second after quit -sim"
 }
 
 # -------------------------------------------------
@@ -301,19 +299,23 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestCaseFileName
   
   if {($::osvvm::NoGui) || !($::osvvm::Debug)} {
-    set SimulateOptions $::osvvm::SiemensSimulateOptions
+	  set OptimizeOptions $::osvvm::DebugOptions
   } else {
-    set SimulateOptions "-voptargs=$::osvvm::DebugOptions"
+	  set OptimizeOptions " "
   }
- 
-  if {$::osvvm::SaveWaves} {
-    set WaveOptions "-wlf [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName} ${LibraryUnit}.wlf]"
-  } else {
-    set WaveOptions ""
-  }
-  set SimulateOptions [concat $SimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} ${WaveOptions} -suppress 8683 -suppress 8684]
 
-#  puts "vsim {*}${SimulateOptions}"
+  set OptimizeOptions [concat $::VoptArgs $OptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt ]
+  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions  -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
+
+
+  puts "vopt {*}${OptimizeOptions}"
+  eval $::osvvm::shell vopt {*}${OptimizeOptions}
+  
+  after 1000
+  puts "1 sec vopt"
+
+
+  puts "vsim {*}${SimulateOptions}"
   eval $::osvvm::shell vsim {*}${SimulateOptions}
   
   # Historical name.  Must be run with "do" for actions to work
@@ -323,9 +325,6 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   
   SimulateRunScripts ${LibraryUnit}
   
-  if {$::osvvm::LogSignals} {
-    add log -r [env]/*
-  }
   run -all 
   
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {

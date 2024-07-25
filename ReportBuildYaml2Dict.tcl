@@ -19,6 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    07/2024   2024.07    Handling NOCHECKS as FAIL or PASS.  Naming updates
 #    05/2024   2024.05    Refactored. Decoupled.  Yaml = source of information.
 #    04/2024   2024.04    Updated report formatting
 #    07/2023   2023.07    Updated file handler to search for user defined HTML headers
@@ -49,11 +50,11 @@ package require yaml
 
 #  Notes:  
 #  The following variables are set by GetPathSettings that read the YAML file
-#      Report2CssDirectory 
+#      Report2HtmlThemeDirectory 
 #      Report2BaseDirectory
 #      Report2ReportsSubdirectory
 #      Report2LogSubdirectory
-#      Report2CssPngSourceDirectory
+#      Report2HtmlThemeSourceDirectory
 #      Report2RequirementsSubdirectory - value is "" if requirements not used
 #      Report2CoverageSubdirectory - value is "" if coverage not used
 #
@@ -178,10 +179,10 @@ proc ElaborateTestSuites {TestDict} {
           incr TestCasesSkipped
         } else {
           incr TestCasesRun
-          if { ${TestName} ne ${VhdlName} } {
+          if { ${TestName} ne ${VhdlName}  } {
             incr SuiteFailed
             incr TestCasesFailed
-          } elseif { $TestStatus eq "PASSED" } {
+          } elseif { ($TestStatus eq "PASSED") || (($TestStatus eq "NOCHECKS") && !($::osvvm::FailOnNoChecks)) } {
             incr SuitePassed
             incr TestCasesPassed
             if { $TestReqGoal > 0 } {
@@ -191,6 +192,9 @@ proc ElaborateTestSuites {TestDict} {
               }
             }
           } else {
+            # TestStatus = FAILED or TIMEOUT
+            # TestStatus = NOCHECKS if OsvvmVersionCompatibility is 2024.07 (or later) or
+            #    FailOnNoChecks is set to TRUE in OsvvmSettingsLocal.tcl
             incr SuiteFailed
             incr TestCasesFailed
           }

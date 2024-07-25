@@ -2,6 +2,12 @@
 
 | **Revision**  |   **Release Summary**                                                                         | 
 |---------------|-----------------------------------------------------------------------------------------------| 
+| 2024.07       |  Yaml output updates. Junit report affirm counts and generics as properties.                  |
+|               |  Handling Status NOCHECKS as FAIL (default) or pass) controlled by variagble FailOnNoChecks   |
+|               |  Updated handling for coverage models with weight 0                                           |
+|               |  Updated LocalInclude for better error handling and restoring state.  Fixed settings in SetLogSignals |
+|               |  Control for ClockResetVersion.  Siemens Visualizer support.  Added SaveWaves for Questa      |
+|               |  Added DoWaves support for Aldec                                                              |
 | 2024.05       |  Updated Report formatting                                                      |
 |               |  Refactored Report2Html/Report2Junit to ReportBuildYaml2Dict/ReportBuildDict2Html/ReportBuildDict2Junit    |
 | 2024.03       |  OsvvmProjectScripts - OpenBuildHtml                                                      |

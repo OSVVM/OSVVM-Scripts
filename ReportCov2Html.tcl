@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#    07/2024   2024.07    Updated handling of Coverage models with 0 weight
 #    05/2024   2024.05    Minor updates during Simulate2Html refactoring
 #    04/2024   2024.04    Updated report formatting
 #    06/2022   2022.06    Print PASSED/FAILED with Coverage HTML
@@ -73,23 +74,34 @@ proc LocalCov2Html {TestCaseName TestSuiteName CovYamlFile} {
   set WritePassFail [dict get $CovSettings WritePassFail]
   set Coverage      [dict get $TestDict Coverage]
   puts $ResultsFile "    <p>Total Coverage: $Coverage</p>"
+  set FoundZeroWeight FALSE
   
   foreach ModelDict [dict get $TestDict Models] {
-    puts $ResultsFile "    <details open><summary class=\"subtitle\">[dict get $ModelDict Name] Coverage Model &emsp; &emsp; Coverage: [format %.1f [dict get $ModelDict Coverage]]</summary>"
-    OsvvmCovInfo2Html $ModelDict
-    OsvvmCovBins2Html $ModelDict $WritePassFail
+    set ModelName [dict get $ModelDict Name]
+    set CovModelSettings [dict get $ModelDict Settings] 
+    set CovWeight        [dict get $CovModelSettings CovWeight] 
+    if {$CovWeight < 1} {
+      if {!$FoundZeroWeight} {
+        puts $ResultsFile "    <details><summary class=\"subtitle\">Coverage Models with CovWeight = 0.  Ignored in GetCov calculations.  Used for OSVVM DelayCoverage. </summary>"
+        set FoundZeroWeight TRUE
+      }
+    }
+    puts $ResultsFile "    <details open><summary class=\"subtitle\">$ModelName Coverage Model &emsp; &emsp; Coverage: [format %.1f [dict get $ModelDict Coverage]]</summary>"
+    OsvvmCovInfo2Html $ModelName $CovModelSettings
+    OsvvmCovBins2Html $ModelName $ModelDict $WritePassFail $CovWeight
+    puts $ResultsFile "    </details>"
+  }
+  if {$FoundZeroWeight} {
     puts $ResultsFile "    </details>"
   }
   puts $ResultsFile "  </div>"
 }
 
-proc OsvvmCovInfo2Html {ModelDict} {
+proc OsvvmCovInfo2Html {ModelName CovModelSettings} {
   variable ResultsFile
   
-  set CovModelSettings [dict get $ModelDict Settings] 
-  
   puts $ResultsFile "      <div class=\"CoverageSettings\">"
-  puts $ResultsFile "        <details><summary class=\"subindented\">[dict get $ModelDict Name] Coverage Settings</summary>"
+  puts $ResultsFile "        <details><summary class=\"subindented\">$ModelName Coverage Settings</summary>"
   puts $ResultsFile "          <table class=\"CoverageSettings\">"
   puts $ResultsFile "            <thead>"
   puts $ResultsFile "              <tr>"
@@ -113,16 +125,14 @@ proc OsvvmCovInfo2Html {ModelDict} {
   puts $ResultsFile "      </div>"
 }
 
-proc OsvvmCovBins2Html {ModelDict WritePassFail} {
+proc OsvvmCovBins2Html {ModelName ModelDict WritePassFail CovWeight} {
   variable ResultsFile
   
-  set CovModelSettings [dict get $ModelDict Settings] 
-  set CovWeight        [dict get $CovModelSettings CovWeight] 
   set BinInfoDict      [dict get $ModelDict BinInfo] 
   set BinsArray        [dict get $ModelDict Bins]
 
   puts $ResultsFile "      <div class=\"CoverageTable\">"
-  puts $ResultsFile "        <details open><summary class=\"subindented\">[dict get $ModelDict Name] Coverage Bins</summary>"
+  puts $ResultsFile "        <details open><summary class=\"subindented\">$ModelName Coverage Bins</summary>"
   puts $ResultsFile "          <table class=\"CoverageTable\">"
   puts $ResultsFile "            <thead>"
   puts $ResultsFile "              <tr>"
@@ -167,13 +177,17 @@ proc OsvvmCovBins2Html {ModelDict WritePassFail} {
       if {$CovWeight > 0} {
         if {$CovType eq "COUNT"} {
           set CovPassed [expr {$CovCount >= $CovAtLeast}]
-        } else {
-          set CovPassed [expr {$CovCount != 0}]
+        } elseif {$CovType eq "ILLEGAL"} {
+          set CovPassed [expr {$CovCount == 0}]
         }
-        if {$CovPassed} {
-          puts $ResultsFile "                <td class=\"passed\">PASSED</td>"
+        if {$CovType ne "IGNORE"} {
+          if {$CovPassed} {
+            puts $ResultsFile "                <td class=\"passed\">PASSED</td>"
+          } else {
+            puts $ResultsFile "                <td class=\"failed\">FAILED</td>"
+          }
         } else {
-          puts $ResultsFile "                <td class=\"failed\">FAILED</td>"
+          puts $ResultsFile "                <td>IGNORED</td>"
         }
       } else {
           puts $ResultsFile "                <td>-</td>"

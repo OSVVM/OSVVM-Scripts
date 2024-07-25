@@ -21,6 +21,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    07/2024   2024.07    Reporting for Affirm Counts and Generics
 #    05/2024   2024.05    Refactored. 
 #    04/2024   2024.04    Updated report formatting
 #    12/2022   2022.12    Refactored to only use static OSVVM information
@@ -144,6 +145,11 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
       
       if { [dict exists $TestCase Results] } { 
         set TestResults [dict get $TestCase Results]
+        if { [dict exists $TestResults AffirmCount] } {
+          set AffirmCount [dict get $TestResults AffirmCount]
+        } else {
+          set AffirmCount 0
+        }
         set TestStatus  [dict get $TestCase Status]
         set VhdlName    [dict get $TestCase Name]
         if { $TestStatus ne "SKIPPED" } {
@@ -160,6 +166,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
         set TestStatus  "FAILED"
         set VhdlName    $TestName
         set ElapsedTime 0
+        set AffirmCount 0
         set Reason "Test did not run"
       }
       
@@ -177,6 +184,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
       puts $ResultsFile "   name=\"$ResolvedTestName\""
 #      puts $ResultsFile "   classname=\"$VhdlName\""
       puts $ResultsFile "   classname=\"$TestSuiteName\""
+      puts $ResultsFile "   assertions=\"$AffirmCount\""
       puts $ResultsFile "   time=\"$ElapsedTime\""
       puts $ResultsFile ">"
       
@@ -186,6 +194,17 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
       } elseif { $TestStatus eq "SKIPPED" } {
         set Reason [dict get $TestResults Reason]
         puts $ResultsFile "<skipped message=\"$Reason\">$Reason</skipped>"
+      }
+      
+      if { [dict exists $TestCase Generics] } { 
+        set TestCaseGenerics [dict get $TestCase Generics]
+        if {${TestCaseGenerics} ne ""} {
+          puts $ResultsFile "<properties> "
+          foreach {GenericName GenericValue} $TestCaseGenerics {
+            puts $ResultsFile "  <property name=\"generic\" value=\"${GenericName}=${GenericValue}\" /> "
+          }
+          puts $ResultsFile "</properties> "
+        }
       }
       puts $ResultsFile "</testcase>"
     }

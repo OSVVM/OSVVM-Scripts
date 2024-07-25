@@ -20,6 +20,8 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Updated LocalInclude to better restore state if it fails
+#                         Fixed settings in SetLogSignals.
 #     5/2024   2024.05    Updated for refactor of Simulate2Html.   Renamed in prep for breaking file into smaller chunks. 
 #     3/2024   2024.03    Updated CreateOsvvmScriptSettingsPkg and added FindOsvvmSettingsDirectory 
 #     9/2023   2023.09    Updated messaging for file not found by build/include 
@@ -209,7 +211,7 @@ proc include {Path_Or_File args} {
 
 proc LocalInclude {PathAndFile args} {
   variable CurrentWorkingDirectory
-  
+
 # probably remove.  Redundant with analyze and simulate
   # If a library does not exist, then create the default
   CheckLibraryExists
@@ -234,6 +236,28 @@ proc LocalInclude {PathAndFile args} {
   set index  1
   foreach arg $::argv {set ::ARGV($index) $arg ; incr index 1}
 
+  set IncludeErrorCode [catch {LocalRunInclude $PathAndFile {*}$args} IncludeErrMsg]
+  set IncludeErrorInfo $::errorInfo 
+  
+  #  Restore CurrentWorkingDirectory, $::argv0, $::argv, $::argc
+  set CurrentWorkingDirectory ${SaveCurrentWorkingDirectory}
+  set ::argv0   $SaveArgv0
+  set ::argv    $SaveArgv 
+  set ::argc    $SaveArgc 
+  set ::ARGC    $::argc
+  set ::ARGV(0) $::argv0
+  set index  1
+  foreach arg $::argv {set ::ARGV($index) $arg ; incr index 1}
+  
+  # Re-signal error after restoring CurrentWorkingDirectory and argv ...
+  if {$IncludeErrorCode != 0} {   
+    error $IncludeErrMsg $IncludeErrorInfo 
+  } 
+}
+
+proc LocalRunInclude {PathAndFile args} {
+  variable CurrentWorkingDirectory
+  
   # Use the RootDir of PathAndFile as the CurrentWorkingDirectory
   set RootDir  [file dirname $PathAndFile]
   puts "set CurrentWorkingDirectory ${RootDir}"
@@ -259,16 +283,6 @@ proc LocalInclude {PathAndFile args} {
     puts "IterateFile ${PathAndFile} analyze"
     IterateFile ${PathAndFile} "analyze"
   }
-
-  #  Restore CurrentWorkingDirectory, $::argv0, $::argv, $::argc
-  set CurrentWorkingDirectory ${SaveCurrentWorkingDirectory}
-  set ::argv0   $SaveArgv0
-  set ::argv    $SaveArgv 
-  set ::argc    $SaveArgc 
-  set ::ARGC    $::argc
-  set ::ARGV(0) $::argv0
-  set index  1
-  foreach arg $::argv {set ::ARGV($index) $arg ; incr index 1}
 }
 
 
@@ -414,9 +428,10 @@ proc LocalBuild {BuildName Path_Or_File args} {
   variable TestSuiteName
   variable OutputBaseDirectory
 
+  puts "" ; # ensure that the next print is at the start of a line
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
-  CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
+  CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
   StartBuildYaml $BuildName
   
   CallbackBefore_Build ${Path_Or_File}
@@ -1041,18 +1056,21 @@ proc simulate {LibraryUnit args} {
   set SavedInteractive [GetInteractiveMode] 
   if {!($::osvvm::BuildStarted)} {
     SetInteractiveMode "true"
-    CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
+    CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
   }
 
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
   set LocalSimulateErrorInfo $::errorInfo
-  SetInteractiveMode $SavedInteractive  ; # Restore original value
   
   if {($SimulateErrorCode != 0) && (!$::osvvm::SimulateInteractive)} {
     # if simulate ended in error, EndSimulation to close open files.
+    # $osvvm_testbench/AlertLogPkg tests require extra run after simulate 
+    # so checking only SimulateInteractive not sufficient  
     EndSimulation
     unset vendor_simulate_started
   }
+  
+  SetInteractiveMode $SavedInteractive  ; # Restore original value
   
   set ReportErrorCode [catch {AfterSimulateReports} ReportErrMsg]
   set LocalReportErrorInfo $::errorInfo
@@ -1566,10 +1584,10 @@ proc GetDebugMode {} {
 }
 
 proc SetLogSignals {{Options "true"}} {
-  variable LogSignals
-  set LogSignalsIsSet "true"
-  set LogSignals $Options
+  set ::osvvm::LogSignalsIsSet "true"
+  set ::osvvm::LogSignals $Options
 }
+
 proc GetLogSignals {} {
   variable LogSignals
   return $LogSignals
@@ -1980,10 +1998,14 @@ proc SimulateDoneMoveTestCaseFiles {} {
           file copy -force ${TranscriptFile}  ${TranscriptDestFile}
           lappend TranscriptFiles ${TranscriptDestFile}
           if {[catch {file delete -force ${TranscriptFile}} err]} {
-            # end simulation to try to free locks on the file, and try to delete again
+            puts "ScriptError: Cannot delete ${TranscriptFile}.  Simulation crashed and did not close it.   SimulationInteractive is $::osvvm::SimulateInteractive so cannot EndSimulation"
+            # end simulation to try to free locks on the file, and try to delete again - in the event the test case forgot TranscriptClose
             if {!$::osvvm::SimulateInteractive} {
               EndSimulation  
               file delete -force ${TranscriptFile}
+            } else {
+              puts "ScriptError:  Transcript file ${TranscriptFile} is open and cannot be deleted by scripts."
+              puts "ScriptError:  Either test case did not run to completion or it is missing TranscriptClose at the end of the test case."
             }
           } 
         }
@@ -1993,8 +2015,8 @@ proc SimulateDoneMoveTestCaseFiles {} {
     file delete -force -- ${::osvvm::TranscriptYamlFile}
   }
 
-##  CopyCssAndPngFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
-#  FindCssPngFiles ${::osvvm::OutputBaseDirectory} $::osvvm::CssSubdirectory
+##  CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
+#  FindHtmlThemeFiles ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
 #  
 #  if {([GetTranscriptType] eq "html") && ($BuildName ne "")} {
 #    set SimulationHtmlLogFile [file join ${::osvvm::LogSubdirectory} ${BuildName}_log.html]
@@ -2002,20 +2024,20 @@ proc SimulateDoneMoveTestCaseFiles {} {
 }
 
 # -------------------------------------------------
-# CopyCssAndPngFiles
+# CopyHtmlThemeFiles
 #
-proc CopyCssAndPngFiles {CssSourceDirectory BaseDirectory CssTargetSubdirectory} {
+proc CopyHtmlThemeFiles {HtmlThemeSourceDirectory BaseDirectory HtmlThemeTargetSubdirectory} {
   variable Report2CssFiles
   variable Report2PngFile
   
-  CreateDirectory [file join $BaseDirectory  $CssTargetSubdirectory]
+  CreateDirectory [file join $BaseDirectory  $HtmlThemeTargetSubdirectory]
   
   # Note files are linked into the HTML in glob order (alphabetical but may be OS dependent WRT upper case)
-  set CssFiles [glob -nocomplain [file join ${CssSourceDirectory} *.css]]
+  set CssFiles [glob -nocomplain [file join ${HtmlThemeSourceDirectory} *.css]]
   set Report2CssFiles ""
   if {$CssFiles ne ""} {
     foreach CssFileWithPath ${CssFiles} {
-      set CssFile [file join $CssTargetSubdirectory [file tail $CssFileWithPath]]
+      set CssFile [file join $HtmlThemeTargetSubdirectory [file tail $CssFileWithPath]]
       file copy -force ${CssFileWithPath}  [file join $BaseDirectory  $CssFile]
       # HTML file is relative to the BaseDirectory
       lappend Report2CssFiles $CssFile
@@ -2023,7 +2045,7 @@ proc CopyCssAndPngFiles {CssSourceDirectory BaseDirectory CssTargetSubdirectory}
   }
   
   # There should only be one *.png file.
-  set PngFiles [glob -nocomplain [file join ${CssSourceDirectory} *.png]]
+  set PngFiles [glob -nocomplain [file join ${HtmlThemeSourceDirectory} *.png]]
   set LastPngFile ""
   if {$PngFiles ne ""} {
     foreach PngFileWithPath ${PngFiles} {
@@ -2031,7 +2053,7 @@ proc CopyCssAndPngFiles {CssSourceDirectory BaseDirectory CssTargetSubdirectory}
     }
   }
   # There should be only one PNG file, so only copy the last one we find.
-  set PngDestFile [file join $CssTargetSubdirectory [file tail $LastPngFile]]
+  set PngDestFile [file join $HtmlThemeTargetSubdirectory [file tail $LastPngFile]]
   file copy -force ${LastPngFile} [file join $BaseDirectory $PngDestFile]
   set Report2PngFile $PngDestFile
 }

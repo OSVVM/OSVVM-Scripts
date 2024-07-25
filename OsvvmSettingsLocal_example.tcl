@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Examples for setting FailOnNoChecks and ClockResetVersion
 #     3/2024   2024.03    Added OsvvmVersionCompatibility
 #     6/2022   2022.06    Initial
 #
@@ -59,6 +60,11 @@ namespace eval ::osvvm {
     # variable OsvvmVersionCompatibility $OsvvmVersion                 ;# default - format is:  YYYY.MMr.  YYYY= year.  MM= Month number.  r is a,b,c as minor revision tag 
     # variable OsvvmVersionCompatibility 2023.99                       ;# Use values established in 2023, but no updated values from 2024 or later
 
+    # for 2024.07, FailOnNoChecks 1 (TRUE), 0 (FALSE).  1 is the default if OsvvmVersionCompatibility >= 2024.07 
+    # variable FailOnNoChecks 0
+
+    # for 2024.07, ClockResetVersion setting of less that 2024.07 selects version that was used prior to 2024.07
+    # variable ClockResetVersion 2024.05
 
     #  Base directory for other OSVVM created directories 
     #  variable OutputBaseDirectory        ""                          ;# put output in $CurrentSimulationDirectory

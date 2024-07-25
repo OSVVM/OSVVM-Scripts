@@ -19,6 +19,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Updated YAML output and naming
 #    05/2024   2024.05    Updated to Decouple Report2Html from OSVVM.  Yaml = source of information.
 #    04/2024   2024.04    Updated report formatting
 #    12/2022   2022.12    Refactored from OsvvmProjectScripts
@@ -80,7 +81,7 @@ proc StartBuildYaml {BuildName} {
   puts "Starting Build at time [clock format $BuildStartTime -format %T]"
 
   set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} w]
-  puts  $RunFile "Version: $::osvvm::OsvvmBuildYamlVersion"
+  puts  $RunFile "Version: \"$::osvvm::OsvvmBuildYamlVersion\""
   puts  $RunFile "Date: $StartTime"
   close $RunFile
 }
@@ -102,7 +103,11 @@ proc FinishBuildYaml {BuildName} {
   puts  $RunFile "  StartTime:            [GetIsoTime $BuildStartTime]"
   puts  $RunFile "  FinishTime:           [GetIsoTime $BuildFinishTime]"
   puts  $RunFile "  Elapsed:              [ElapsedTimeMs $BuildStartTimeMs]"
-  puts  $RunFile "  Simulator:            \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
+  if {$::osvvm::ToolArgs eq ""} {
+    puts  $RunFile "  Simulator:            \"${::osvvm::ToolName}\""
+  } else { 
+    puts  $RunFile "  Simulator:            \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
+  }
   puts  $RunFile "  SimulatorVersion:     \"$::osvvm::ToolVersion\""
   puts  $RunFile "  OsvvmVersion:         \"$::osvvm::OsvvmVersion\""
 
@@ -121,7 +126,8 @@ proc FinishBuildYaml {BuildName} {
 # -------------------------------------------------
 proc WriteDictOfDict2Yaml {YamlFile DictName {DictValues ""} {Prefix ""} } {
   if {$DictValues eq ""} {
-    puts $YamlFile "${Prefix}${DictName}:            \"\""
+    puts $YamlFile "${Prefix}${DictName}:            {}"
+#    puts $YamlFile "${Prefix}${DictName}:            \"\""
   } else {
     puts $YamlFile "${Prefix}${DictName}:"
     foreach {Name Value} $DictValues {
@@ -153,7 +159,7 @@ proc WriteOsvvmSettingsYaml {ReportFile} {
   puts  $ReportFile "OsvvmSettingsInfo:"
   puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OutputBaseDirectory\""
   puts  $ReportFile "  ReportsSubdirectory:  \"$::osvvm::ReportsSubdirectory\""
-  puts  $ReportFile "  CssSubdirectory:      \"$::osvvm::CssSubdirectory\""  
+#  puts  $ReportFile "  HtmlThemeSubdirectory:      \"$::osvvm::HtmlThemeSubdirectory\""  
   if {$::osvvm::TranscriptExtension ne "none"} {
     puts  $ReportFile "  SimulationLogFile: \"[file join ${::osvvm::LogSubdirectory} ${::osvvm::BuildName}.log]\""
   } else {
@@ -165,10 +171,10 @@ proc WriteOsvvmSettingsYaml {ReportFile} {
     puts  $ReportFile "  SimulationHtmlLogFile: \"\""
   }
   
-  if {[catch {set CssPngSourceDirectoryRel [::fileutil::relative [pwd] $::osvvm::OsvvmScriptDirectory]} errmsg]}  {
-    set CssPngSourceDirectoryRel $::osvvm::OsvvmScriptDirectory
-  }
-  puts  $ReportFile "  CssPngSourceDirectory:   \"${CssPngSourceDirectoryRel}\""
+#   if {[catch {set HtmlThemeSourceDirectoryRel [::fileutil::relative [pwd] $::osvvm::OsvvmScriptDirectory]} errmsg]}  {
+#     set HtmlThemeSourceDirectoryRel $::osvvm::OsvvmScriptDirectory
+#   }
+#   puts  $ReportFile "  HtmlThemeSourceDirectory:   \"${HtmlThemeSourceDirectoryRel}\""
   
   if {[file exists [file join $::osvvm::ReportsDirectory ${::osvvm::BuildName}_req.yml]]} {
     puts  $ReportFile "  RequirementsSubdirectory: \"$::osvvm::ReportsSubdirectory\""
@@ -198,7 +204,7 @@ proc WriteTestCaseSettingsYaml {FileName} {
     WriteDictOfString2Yaml $YamlFile TestSuiteName
   }
   WriteDictOfString2Yaml $YamlFile BuildName $::osvvm::BuildName
-  WriteDictOfDict2Yaml   $YamlFile GenericDict $::osvvm::GenericDict
+  WriteDictOfDict2Yaml   $YamlFile Generics $::osvvm::GenericDict
 
   WriteDictOfString2Yaml $YamlFile TestSuiteDirectory    $::osvvm::TestSuiteDirectory
   WriteDictOfString2Yaml $YamlFile RequirementsYamlFile  $::osvvm::RequirementsYamlFile
@@ -276,7 +282,7 @@ proc FinishSimulateBuildYaml {} {
   
   set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
   puts  $RunFile "        TestCaseFileName: \"$TestCaseFileName\""
-  WriteDictOfDict2Yaml $RunFile TestCaseGenerics $::osvvm::GenericDict  "        "
+  WriteDictOfDict2Yaml $RunFile Generics $::osvvm::GenericDict  "        "
 #  puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericDict\""
   puts  $RunFile "        ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
   close $RunFile

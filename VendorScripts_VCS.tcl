@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Updated ToolVersion to run vhdlan 
 #     5/2024   2024.05    Added ToolVersion variable 
 #    12/2022   2022.12    Updated StartTranscript, StopTranscript, Analyze, Simulate
 #    05/2022   2022.05    Updated naming
@@ -53,7 +54,8 @@
   variable ToolName    "VCS"
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
 #  variable ToolNameVersion "${ToolName}-T2022.06"
-  variable ToolVersion "T2022.06"
+#  variable ToolVersion "T2022.06"
+  variable ToolVersion [regsub {vhdlan.*: } [exec vhdlan -V] ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 #   puts $ToolNameVersion
 
@@ -243,8 +245,15 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 #  } else {
 #    puts $SimulateErrorMessage
 #  }
+
+  if {$::osvvm::GenericDict ne ""} {
+    set SynopsysGenericOptions "-lca -g synopsys_generics.txt"
+    CreateGenericFile ${::osvvm::GenericDict}
+  } else {
+    set SynopsysGenericOptions ""
+  }
   
-  set SimulateOptions [concat {*}${ExtendedRunOptions} -ucli -do temp_Synopsys_run.tcl]
+  set SimulateOptions [concat {*}${ExtendedRunOptions} {*}${SynopsysGenericOptions} -ucli -do temp_Synopsys_run.tcl]
   puts "./simv ${SimulateOptions}" 
   set SimVErrorCode [catch {exec ./simv {*}${SimulateOptions}} SimulateErrorMessage]
 #  puts "SimVErrorCode $SimVErrorCode" ; # returns 0 on success
@@ -261,9 +270,22 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
 # -------------------------------------------------
 proc vendor_generic {Name Value} {
-  
-  return "-g${Name}=${Value}"
+  # Not used.  gvalue requires integer and real number values
+  return "-gv ${Name}=${Value} "
 }
+
+# -------------------------------------------------
+proc CreateGenericFile {GenericDict} {
+
+  set GenericsFile [open "synopsys_generics.txt" w]
+  foreach {GenericName GenericValue} $GenericDict {
+    # cannot do /$LibraryUnit/$GenericName as LibraryUnit may be a configuration name
+    puts $GenericsFile "assign ${GenericValue} ${GenericName}"
+  }
+  close $GenericsFile
+}
+
+
 
 # -------------------------------------------------
 # Merge Coverage

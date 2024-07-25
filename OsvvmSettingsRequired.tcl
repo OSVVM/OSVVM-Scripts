@@ -20,6 +20,8 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Set FailOnNoChecks and ClockResetVersion if not already set in OsvvmSettingsLocal (user defined)
+#                         Naming updates.  Added WaveFiles default. 
 #     3/2024   2024.03    Revision Update for release
 #                         Added default values for argc, argv, argv0 for questa -batch
 #                         Sets OsvvmVersionCompatibility if it is not set in LocalScriptDefaults.tcl
@@ -44,8 +46,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-
-
 #
 # DO NOT CHANGE THESE SETTINGS
 #   These settings are required by OSVVM to function properly
@@ -56,9 +56,9 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2024.06-Dev
-  variable OsvvmBuildYamlVersion      2024.06
-  variable OsvvmTestCaseYamlVersion   2024.06
+  variable OsvvmVersion 2024.07
+  variable OsvvmBuildYamlVersion      2024.07
+  variable OsvvmTestCaseYamlVersion   2024.07
  # The following are set in VHDL code.  Either need to pass these or have it directly in the VHDL Code.
   variable OsvvmAlertYamlVersion        InVhdlCodeVersionTbd
   variable OsvvmCoverageYamlVersion     InVhdlCodeVersionTbd
@@ -68,6 +68,13 @@ namespace eval ::osvvm {
   if {![info exists OsvvmVersionCompatibility]} {
     variable OsvvmVersionCompatibility $OsvvmVersion
   }
+  if {![info exists FailOnNoChecks]} {
+    variable FailOnNoChecks [expr [string compare $OsvvmVersionCompatibility "2024.07"] >= 0]
+  }
+  if {![info exists ClockResetVersion]} {
+    variable ClockResetVersion $OsvvmVersionCompatibility
+  }
+
 
   # 
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
@@ -117,12 +124,15 @@ namespace eval ::osvvm {
     variable ResultsDirectory     [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
     variable CoverageDirectory    [file join ${OutputBaseDirectory} ${CoverageSubdirectory}]
     variable LogDirectory         [file join ${OutputBaseDirectory} ${LogSubdirectory}]
-    variable CssSubdirectory      [file join ${ReportsSubdirectory}]
-    variable CssDirectory         [file join ${OutputBaseDirectory} ${CssSubdirectory}]
+    variable HtmlThemeSubdirectory      [file join ${ReportsSubdirectory}]
+    variable HtmlThemeDirectory         [file join ${OutputBaseDirectory} ${HtmlThemeSubdirectory}]
 
   #
   #  Initialize OSVVM Internals
   #
+    # Wave files for a single simulation run - set by vendor_DoWaves for some simulators
+    variable WaveFiles ""
+
   
     #
     # Extended TCL information about errors - for debugging

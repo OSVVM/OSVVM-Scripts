@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     7/2024   2024.07    Added ability to find nvc on the search path
 #     5/2024   2024.05    Added ToolVersion variable 
 #     1/2023   2023.01    Added options for CoSim 
 #     5/2022   2022.05    Updated variable naming 
@@ -63,7 +64,15 @@
     variable console {}
   }
   
-  regexp {GHDL\s+\d+\.\d+\S*} [exec ghdl --version] VersionString
+#  set ghdl {*}[auto_execok ghdl]
+  if { [info exists ::env(MSYSTEM)] } {
+    # running on MSYS2 - convert which with cygpath
+    set ghdl [exec cygpath -m [exec which ghdl]]
+  } else {
+    set ghdl [exec which ghdl]
+  }
+   
+  regexp {GHDL\s+\d+\.\d+\S*} [exec $ghdl --version] VersionString
   variable ToolVersion [regsub {GHDL\s+} $VersionString ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 #  variable ToolNameVersion [regsub {\s+} $VersionString -]
@@ -170,8 +179,8 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
 
   set  AnalyzeOptions [concat --std=${VhdlShortVersion} -Wno-library -Wno-hide --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} {*}${VHDL_RESOURCE_LIBRARY_PATHS} {*}${args} ${FileName}]
   puts "ghdl -a $AnalyzeOptions"
-#  exec ghdl -a {*}$AnalyzeOptions
-  if {[catch {exec ghdl -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
+#  exec $ghdl -a {*}$AnalyzeOptions
+  if {[catch {exec $ghdl -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
     PrintWithPrefix "Error:" $AnalyzeErrorMessage
     error "Failed: analyze $FileName"
   } else {
@@ -195,6 +204,7 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
+  variable ghdl
   variable VhdlShortVersion
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable GHDL_WORKING_LIBRARY_PATH
@@ -241,7 +251,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set SimulateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit} {*}${LocalRunOptions}]
   puts "ghdl $runcmd ${SimulateOptions}" 
   
-  set SimulateErrorCode [catch {exec ghdl $runcmd {*}${SimulateOptions}} SimulateErrorMessage] 
+  set SimulateErrorCode [catch {exec $ghdl $runcmd {*}${SimulateOptions}} SimulateErrorMessage] 
 #  if {[file exists ${LibraryUnit}.ghw]} {
 #    file rename -force ${LibraryUnit}.ghw ${LocalReportDirectory}/${LibraryUnit}.ghw
 #  }
