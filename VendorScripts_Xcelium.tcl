@@ -159,7 +159,7 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
 ###  exec       xmvhdl -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
 ####  exec       xmvhdl -CDSLIB cds.lib -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update ${FileName}  |& tee -a ${VENDOR_TRANSCRIPT_FILE}
 
-  set  AnalyzeOptions [concat -v200x -messages -inc_v200x_pkg -controlrelax ALWGLOBAL -ENB_SLV_SULV_INTOPT -w ${LibraryName} -update {*}${args} ${FileName}]
+  set  AnalyzeOptions [concat -v200x -messages -IEEE2008 -controlrelax ALWGLOBAL -w ${LibraryName} -update {*}${args} ${FileName}]
   puts "xmvhdl $AnalyzeOptions"
   if {[catch {exec xmvhdl {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
     PrintWithPrefix "Error:" $AnalyzeErrorMessage
@@ -205,6 +205,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   # Building the temp_Cadence_run.tcl Script
   set RunFile [open "temp_Cadence_run.tcl" w]
 
+  puts  $RunFile "set assert_stop_level failure"
   puts  $RunFile "set intovf_severity_level WARNING"
 
   # Project Vendor script
