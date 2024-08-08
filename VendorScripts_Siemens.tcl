@@ -57,7 +57,10 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Siemens"
   
-  
+  SetVHDLVersion 2019
+
+# #!!  vsimId
+
   if {![catch {vsimVersionString} msg]} {
     set VersionString [vsimVersionString]
   } else {

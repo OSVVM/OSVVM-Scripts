@@ -80,23 +80,25 @@ namespace eval ::osvvm {
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
   #    Call OSVVM functions to do parameter checking and normalization
   #
+  if {![info exists VhdlVersion]} {
     SetVHDLVersion         $DefaultVHDLVersion
+  }
   #  SetSimulatorResolution $SimulateTimeUnits  ;# SimulateTimeUnits is the definitive value
-    SetTranscriptType      $TranscriptExtension
-    SetLibraryDirectory    $VhdlLibraryParentDirectory 
+  SetTranscriptType      $TranscriptExtension
+  SetLibraryDirectory    $VhdlLibraryParentDirectory 
     
   #
   # Set argv0, argv, and argc in the event the tool forgets to.
   #
-    if {![info exists ::argv0]} {
-    variable ::argv0  ""
-    }
-    if {![info exists ::argv]} {
-    variable ::argv  ""
-    }
-    if {![info exists ::argc]} {
-    variable ::argc  ""
-    }
+  if {![info exists ::argv0]} {
+  variable ::argv0  ""
+  }
+  if {![info exists ::argv]} {
+  variable ::argv  ""
+  }
+  if {![info exists ::argc]} {
+  variable ::argc  ""
+  }
 
   
   #

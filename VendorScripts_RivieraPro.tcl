@@ -65,6 +65,8 @@
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 #   puts $ToolNameVersion
 
+  SetVHDLVersion 2019
+
   if {[batch_mode]} {
     variable NoGui "true"
   } else {

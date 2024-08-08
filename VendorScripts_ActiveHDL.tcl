@@ -65,6 +65,8 @@
 #   puts $ToolNameVersion
   # Allow variable OSVVM library to be updated
   setlibrarymode -rw osvvm
+  
+  SetVHDLVersion 2019
 
   if {[batch_mode]} {
     variable NoGui "true"
