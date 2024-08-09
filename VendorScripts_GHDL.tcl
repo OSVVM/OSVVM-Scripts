@@ -115,7 +115,7 @@ proc IsVendorCommand {LineOfText} {
 # Library
 #
 proc GhdlLibraryPath {LibraryName PathToLib} {
-  set PathAndLib "${PathToLib}/[string tolower ${LibraryName}]/v08"
+  set PathAndLib "${PathToLib}/[string tolower ${LibraryName}]/v${::osvvm::VhdlShortVersion}"
   return $PathAndLib
 }
 
