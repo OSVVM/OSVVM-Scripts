@@ -56,8 +56,9 @@
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Siemens"
+  variable SiemensVsimError 0
+  onElabError {set ::osvvm::SiemensVsimError 1}
   
-
   if {![catch {vsimVersionString} msg]} {
     set VersionString [vsimVersionString]
   } else {
@@ -81,9 +82,12 @@
     variable SiemensSimulateOptions ""
     if {[batch_mode]} {
       variable ToolArgs $argv
+#      variable shell "exec"
+#      variable SiemensSimulateOptions $argv
       variable NoGui "true"
     } else {
       variable ToolArgs "-gui"
+      variable SiemensSimulateOptions ""
       variable NoGui "false"
     }
   } else {

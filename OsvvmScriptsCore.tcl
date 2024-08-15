@@ -994,8 +994,10 @@ proc analyze {FileName args} {
   variable ConsecutiveAnalyzeErrors 
    
   if {[catch {LocalAnalyze $FileName {*}$args} errmsg]} {
+    set ::osvvm::LastAnalyzeHasError TRUE
     CallbackOnError_Analyze $errmsg [concat $FileName $args]
   } else {
+    set ::osvvm::LastAnalyzeHasError FALSE
     set ConsecutiveAnalyzeErrors 0 
   }
 }
@@ -1129,6 +1131,8 @@ proc LocalSimulate {LibraryUnit args} {
     set SimArgs "$SimArgs [ToGenericCommand $::osvvm::GenericDict]"
   }
   puts "simulate $SimArgs"              ; # EchoOsvvmCmd
+  
+  
 
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     set RanSimulationWithCoverage "true"
@@ -1137,9 +1141,16 @@ proc LocalSimulate {LibraryUnit args} {
     set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions]
   }
 
-  CallbackBefore_Simulate $LibraryUnit $args
-  vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} {*}${SimulateOptions}
-  CallbackAfter_Simulate  $LibraryUnit $args
+# This will not try to start a sim if LastAnalyzeHasError
+# Removed as found better work around to issue
+#    if {$::osvvm::LastAnalyzeHasError} {
+#      puts "Last Analyze has an error. Skipping simulation"
+#      return 
+#    } else {
+#    }
+    CallbackBefore_Simulate $LibraryUnit $args
+    vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} {*}${SimulateOptions}
+    CallbackAfter_Simulate  $LibraryUnit $args
 }
 
 proc AfterSimulateReports {} {

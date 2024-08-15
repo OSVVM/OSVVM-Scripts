@@ -182,6 +182,7 @@ namespace eval ::osvvm {
 
     # Error handling
     variable AnalyzeErrorCount 0
+    variable LastAnalyzeHasError FALSE
     variable ConsecutiveAnalyzeErrors 0
     variable SimulateErrorCount 0
     variable ConsecutiveSimulateErrors 0
