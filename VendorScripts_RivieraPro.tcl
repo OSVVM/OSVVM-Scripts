@@ -65,7 +65,9 @@
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 #   puts $ToolNameVersion
 
-  SetVHDLVersion 2019
+  if {[expr [string compare $ToolVersion "2021.04"] >= 0]} {
+    SetVHDLVersion 2019
+  }
 
   if {[batch_mode]} {
     variable NoGui "true"
