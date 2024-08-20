@@ -69,8 +69,11 @@
   regexp {nvc\s+\d+\.\d+\S*} [exec $nvc --version] VersionString
   variable ToolVersion [regsub {nvc\s+} $VersionString ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
-#  variable ToolNameVersion [regsub {\s+} $VersionString -]
-#   puts $ToolNameVersion
+
+  if {[expr [string compare $ToolVersion "1.13.2"] >= 0]} {
+    SetVHDLVersion 2019
+  }
+
 
 # -------------------------------------------------
 # StartTranscript / StopTranscript
