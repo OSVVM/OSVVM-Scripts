@@ -2,6 +2,8 @@
 
 | **Revision**  |   **Release Summary**                                                                         | 
 |---------------|-----------------------------------------------------------------------------------------------| 
+| 2024.09       |  Turned VHDL-2019 on if version is ...                                                        |
+|               |  (NVC > 1.13.2), (RivieraPRO > 2021.04), (ActiveHDL > 12.0), (Questa > 2024.2)                |
 | 2024.07       |  Yaml output updates. Junit report affirm counts and generics as properties.                  |
 |               |  Handling Status NOCHECKS as FAIL (default) or pass) controlled by variagble FailOnNoChecks   |
 |               |  Updated handling for coverage models with weight 0                                           |
