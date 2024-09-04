@@ -994,8 +994,10 @@ proc analyze {FileName args} {
   variable ConsecutiveAnalyzeErrors 
    
   if {[catch {LocalAnalyze $FileName {*}$args} errmsg]} {
+    set ::osvvm::LastAnalyzeHasError TRUE
     CallbackOnError_Analyze $errmsg [concat $FileName $args]
   } else {
+    set ::osvvm::LastAnalyzeHasError FALSE
     set ConsecutiveAnalyzeErrors 0 
   }
 }
@@ -1129,6 +1131,8 @@ proc LocalSimulate {LibraryUnit args} {
     set SimArgs "$SimArgs [ToGenericCommand $::osvvm::GenericDict]"
   }
   puts "simulate $SimArgs"              ; # EchoOsvvmCmd
+  
+  
 
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     set RanSimulationWithCoverage "true"
@@ -1137,9 +1141,16 @@ proc LocalSimulate {LibraryUnit args} {
     set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions]
   }
 
-  CallbackBefore_Simulate $LibraryUnit $args
-  vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} {*}${SimulateOptions}
-  CallbackAfter_Simulate  $LibraryUnit $args
+# This will not try to start a sim if LastAnalyzeHasError
+# Removed as found better work around to issue
+#    if {$::osvvm::LastAnalyzeHasError} {
+#      puts "Last Analyze has an error. Skipping simulation"
+#      return 
+#    } else {
+#    }
+    CallbackBefore_Simulate $LibraryUnit $args
+    vendor_simulate ${VhdlWorkingLibrary} ${LibraryUnit} {*}${SimulateOptions}
+    CallbackAfter_Simulate  $LibraryUnit $args
 }
 
 proc AfterSimulateReports {} {
@@ -1984,19 +1995,20 @@ proc SimulateDoneMoveTestCaseFiles {} {
   if {[file exists ${::osvvm::TranscriptYamlFile}]} {
     set TranscriptFileArray [::yaml::yaml2dict -file ${::osvvm::TranscriptYamlFile}]
     foreach TranscriptFile $TranscriptFileArray {
-      set TranscriptBaseName  [file tail $TranscriptFile]
-      set TranscriptRootBaseName  [file rootname $TranscriptBaseName]
-      set TranscriptExtension     [file extension $TranscriptBaseName]
-      set TranscriptGenericName   ${TranscriptRootBaseName}${::osvvm::GenericNames}${TranscriptExtension}
-      set TranscriptDestFile [file join ${::osvvm::ResultsDirectory} ${TestSuiteName} ${TranscriptGenericName}]
-      if {[file normalize ${TranscriptFile}] ne [file normalize ${TranscriptDestFile}]} {
-        if {[file exists ${TranscriptFile}]} {
-          # Check required since if file is open, closed, then re-opened, 
-          # it will be in the file more than once
+      if {[file exists ${TranscriptFile}]} {
+        # If file is in list more than once (transcriptOpen ; transcriptClose ; TranscriptOpen)
+        # It will not exist as it has already been moved.
+        set TranscriptBaseName  [file tail $TranscriptFile]
+        set TranscriptRootBaseName  [file rootname $TranscriptBaseName]
+        set TranscriptExtension     [file extension $TranscriptBaseName]
+        set TranscriptGenericName   ${TranscriptRootBaseName}${::osvvm::GenericNames}${TranscriptExtension}
+        set TranscriptDestFile [file join ${::osvvm::ResultsDirectory} ${TestSuiteName} ${TranscriptGenericName}]
+        lappend TranscriptFiles [file join ${::osvvm::ResultsSubdirectory} ${TestSuiteName} ${TranscriptGenericName}]
+        if {[file normalize ${TranscriptFile}] ne [file normalize ${TranscriptDestFile}]} {
+          # Move transcript if it is not already in destination location
           CreateDirectory [file join ${::osvvm::ResultsDirectory} ${TestSuiteName}]
 #          file rename -force ${TranscriptFile}  ${TranscriptDestFile}
           file copy -force ${TranscriptFile}  ${TranscriptDestFile}
-          lappend TranscriptFiles ${TranscriptDestFile}
           if {[catch {file delete -force ${TranscriptFile}} err]} {
             puts "ScriptError: Cannot delete ${TranscriptFile}.  Simulation crashed and did not close it.   SimulationInteractive is $::osvvm::SimulateInteractive so cannot EndSimulation"
             # end simulation to try to free locks on the file, and try to delete again - in the event the test case forgot TranscriptClose

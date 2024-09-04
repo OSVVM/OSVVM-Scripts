@@ -56,7 +56,8 @@
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Siemens"
-  
+  variable SiemensVsimError 0
+  onElabError {set ::osvvm::SiemensVsimError 1}
   
   if {![catch {vsimVersionString} msg]} {
     set VersionString [vsimVersionString]
@@ -81,9 +82,12 @@
     variable SiemensSimulateOptions ""
     if {[batch_mode]} {
       variable ToolArgs $argv
+#      variable shell "exec"
+#      variable SiemensSimulateOptions $argv
       variable NoGui "true"
     } else {
       variable ToolArgs "-gui"
+      variable SiemensSimulateOptions ""
       variable NoGui "false"
     }
   } else {
@@ -94,21 +98,22 @@
     variable NoGui "true"
   }
   
-  if {![catch {vsimVersion} msg]} {
-    variable ToolVersion [vsimVersion]
+  if {![catch {vsimId} msg]} {
+    variable ToolVersion [vsimId]
   } else {
     set ToolVersion tbd
   }
-
-#  variable ToolVersion [vsimVersion]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
-#   puts $ToolNameVersion
   
-  if {$ToolVersion >= 2020.01} {
+  if {[expr [string compare $ToolVersion "2020.1"] >= 0]} {
 #    variable DebugOptions "-debug,cell"
     variable DebugOptions "+acc"
   } else {
     variable DebugOptions "+acc"
+  }
+  
+  if {[expr [string compare $ToolVersion "2024.2"] >= 0]} {
+    SetVHDLVersion 2019
   }
 
 # -------------------------------------------------
@@ -155,7 +160,7 @@ proc IsVendorCommand {LineOfText} {
 proc vendor_SetCoverageAnalyzeDefaults {} {
   variable CoverageAnalyzeOptions
 #  set CoverageAnalyzeOptions "+cover=bcesft"
-  set CoverageAnalyzeOptions "+cover=bsf"
+  set CoverageAnalyzeOptions "+cover=sbf"
 }
 
 proc vendor_SetCoverageSimulateDefaults {} {

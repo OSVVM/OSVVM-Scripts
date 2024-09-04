@@ -69,8 +69,11 @@
   regexp {nvc\s+\d+\.\d+\S*} [exec $nvc --version] VersionString
   variable ToolVersion [regsub {nvc\s+} $VersionString ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
-#  variable ToolNameVersion [regsub {\s+} $VersionString -]
-#   puts $ToolNameVersion
+
+  if {[expr [string compare $ToolVersion "1.13.2"] >= 0]} {
+    SetVHDLVersion 2019
+  }
+
 
 # -------------------------------------------------
 # StartTranscript / StopTranscript
@@ -175,7 +178,7 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlLibraryFullPath
   variable NVC_WORKING_LIBRARY_PATH
 
-  set  GlobalOptions [concat --std=${VhdlShortVersion} -H 128m --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
+  set  GlobalOptions [concat --std=${VhdlShortVersion} -H 128m --stderr=error --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
   set  AnalyzeOptions [concat {*}${args} ${FileName}]
   puts "nvc ${GlobalOptions} -a $AnalyzeOptions"
   if {[catch {exec $nvc {*}${GlobalOptions} -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
@@ -209,7 +212,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ExtendedElaborateOptions
   variable ExtendedRunOptions
 
-  set LocalGlobalOptions [concat --std=${VhdlShortVersion} -H 128m --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
+  set LocalGlobalOptions [concat --std=${VhdlShortVersion} -H 128m --stderr=error --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
   set LocalElaborateOptions [concat {*}${ExtendedElaborateOptions} {*}${args}  {*}${::osvvm::GenericOptions}]
 
   set LocalReportDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]

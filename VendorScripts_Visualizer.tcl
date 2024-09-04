@@ -45,7 +45,6 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Siemens"
   
-  
   if {![catch {vsimVersionString} msg]} {
     set VersionString [vsimVersionString]
   } else {
@@ -71,8 +70,8 @@
     } else {
       variable ToolArgs "-gui"
       variable NoGui "false"
-      variable SiemensSimulateOptions "-visualizer -qwavedb=+signal"
-      variable DebugOptions "-debug,livesim -designfile design.bin"
+      variable SiemensSimulateOptions "-visualizer"
+      variable DebugOptions "-debug,livesim"
     }
   } else {
     # Started from Shell
@@ -83,12 +82,14 @@
     variable DebugOptions "-debug"
   }
   
-  if {![catch {vsimVersion} msg]} {
-    variable ToolVersion [vsimVersion]
+  if {![catch {vsimId} msg]} {
+    variable ToolVersion [vsimId]
   } else {
     variable ToolVersion tbd
   }
   
+  SetVHDLVersion 2019
+
   # Set if not set
   if {![info exists ::VoptArgs]} {
     set ::VoptArgs " "
@@ -305,16 +306,20 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   }
 
   set OptimizeOptions [concat $::VoptArgs $OptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt ]
-  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions  -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
+  
+  set TestSuiteDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
+  if {$::osvvm::SaveWaves} {
+    set WaveOptions "-qwavedb=+signals+wavefile=[file join ${::osvvm::TestSuiteDirectory} ${TestCaseFileName}_qwave.db]"
+  } else {
+    set WaveOptions ""
+  }
+
+  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} {*}${WaveOptions} -suppress 8683 -suppress 8684]
 
 
   puts "vopt {*}${OptimizeOptions}"
-  eval $::osvvm::shell vopt {*}${OptimizeOptions}
+  eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${::osvvm::TestSuiteDirectory} ${TestCaseFileName}_design.bin] 
   
-  after 1000
-  puts "1 sec vopt"
-
-
   puts "vsim {*}${SimulateOptions}"
   eval $::osvvm::shell vsim {*}${SimulateOptions}
   
