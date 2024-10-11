@@ -65,6 +65,8 @@
 #   puts $ToolNameVersion
   # Allow variable OSVVM library to be updated
   setlibrarymode -rw osvvm
+  setlibrarymode -rw osvvm_common
+
   
   if {[expr [string compare $ToolVersion "12.0"] >= 0]} {
     SetVHDLVersion 2019
