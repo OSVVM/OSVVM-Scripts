@@ -1530,7 +1530,7 @@ proc GetExtendedRunOptions {} {
 # -------------------------------------------------
 # SetSaveWaves
 #    Important for simulators that do everything from the command line
-#    Currently only implemented for GHDL
+#    Currently only implemented for GHDL and NVC
 #
 proc SetSaveWaves {{Options "true"}} {
   variable SaveWaves
