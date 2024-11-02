@@ -39,6 +39,8 @@
 #  limitations under the License.
 #
 
+package require fileutil
+
 # -------------------------------------------------
 # Tool Settings
 #
@@ -159,7 +161,7 @@ proc vendor_SetCoverageSimulateDefaults {} {
 # Library
 #
 proc vendor_library {LibraryName PathToLib} {
-  set PathAndLib ${PathToLib}/${LibraryName}
+  set PathAndLib [::fileutil::relative [pwd] ${PathToLib}/${LibraryName}]
 
   if {![file exists ${PathAndLib}]} {
     puts "vlib   ${PathAndLib} "
@@ -170,7 +172,7 @@ proc vendor_library {LibraryName PathToLib} {
 }
 
 proc vendor_LinkLibrary {LibraryName PathToLib} {
-  set PathAndLib ${PathToLib}/${LibraryName}
+  set PathAndLib [::fileutil::relative [pwd] ${PathToLib}/${LibraryName}]
 
   if {[file exists ${PathAndLib}]} {
     set ResolvedLib ${PathAndLib}

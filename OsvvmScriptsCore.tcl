@@ -1018,8 +1018,11 @@ proc LocalAnalyze {FileName args} {
 
   puts "analyze $FileName"                        ; # EchoOsvvmCmd
 
-#  set NormFileName  [file normalize ${CurrentWorkingDirectory}/${FileName}]
-  set NormFileName  [ReducePath [file join ${CurrentWorkingDirectory} ${FileName}]]
+#  set NormFileName  [ReducePath [file join ${CurrentWorkingDirectory} ${FileName}]]  ;# 2024.09 implementation
+  set BaseNormFileName  [file normalize [file join ${CurrentWorkingDirectory} ${FileName}]]
+  # Questa requires paths without spaces.   Triming down to relative paths helps.
+  set NormFileName  [::fileutil::relative [pwd] $BaseNormFileName]
+
   set FileExtension [file extension $FileName]
 
   if {$FileExtension eq ".vhd" || $FileExtension eq ".vhdl"} {
@@ -2121,6 +2124,9 @@ proc FindOsvvmSettingsDirectory {} {
     set SettingsDirectory [file join ${::osvvm::OsvvmHomeDirectory} "osvvm" ${::osvvm::OsvvmSettingsSubDirectory}]
   }
   CreateDirectory $SettingsDirectory
+#  set RelativeSettingsDirectory [::fileutil::relative [pwd] $SettingsDirectory]
+#  return $RelativeSettingsDirectory
+  # Needs to be a normalized path
   return $SettingsDirectory
 }
 

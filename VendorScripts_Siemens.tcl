@@ -36,7 +36,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.    
+#  Copyright (c) 2018 - 2024 by SynthWorks Design Inc.    
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -50,6 +50,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+
+package require fileutil
 
 # -------------------------------------------------
 # Tool Settings
@@ -172,7 +174,7 @@ proc vendor_SetCoverageSimulateDefaults {} {
 # Library
 #
 proc vendor_library {LibraryName PathToLib} {
-  set PathAndLib ${PathToLib}/${LibraryName}
+  set PathAndLib [::fileutil::relative [pwd] ${PathToLib}/${LibraryName}]
 
   if {![file exists ${PathAndLib}]} {
     puts "vlib   ${PathAndLib} "
@@ -183,7 +185,7 @@ proc vendor_library {LibraryName PathToLib} {
 }
 
 proc vendor_LinkLibrary {LibraryName PathToLib} {
-  set PathAndLib ${PathToLib}/${LibraryName}
+  set PathAndLib [::fileutil::relative [pwd] ${PathToLib}/${LibraryName}]
 
   if {[file exists ${PathAndLib}]} {
     set ResolvedLib ${PathAndLib}
