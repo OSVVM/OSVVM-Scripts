@@ -67,6 +67,19 @@ namespace eval ::osvvm {
     if {$LocalLogType eq "html"} {
       set HtmlFile [file join ${LogDir} ${LogName}_log.html]
       set HtmlFileHandle [open $HtmlFile w]
+      puts $HtmlFileHandle "<html>"
+      puts $HtmlFileHandle "<style>"
+      puts $HtmlFileHandle "details > summary {"
+      puts $HtmlFileHandle "  position: sticky; "
+      puts $HtmlFileHandle "  top: 0; "
+      puts $HtmlFileHandle "}"
+      puts $HtmlFileHandle "details\[open\] > summary {"
+      puts $HtmlFileHandle "  color: white; "
+      puts $HtmlFileHandle "  background: black; "
+      puts $HtmlFileHandle "}"
+      puts $HtmlFileHandle "</style>"
+      puts $HtmlFileHandle "<body>"
+      puts $HtmlFileHandle "<pre>"
     }
     if {$LocalCreateSimScripts} {
       set SimFile [file join ${LogDir} ${LogName}_sim.tcl]
@@ -82,6 +95,7 @@ namespace eval ::osvvm {
     close $LogFileHandle 
     
     if {$LocalLogType eq "html"} {
+      puts $HtmlFileHandle "</body>"
       close $HtmlFileHandle 
     }
     if {$LocalCreateSimScripts} {
@@ -102,7 +116,7 @@ namespace eval ::osvvm {
     variable InRunTest 0
     variable LogTestSuiteName Default
     variable LogTestCaseName  Default
-    variable PrintPrefix "<pre>"
+    variable PrintPrefix ""
     variable FoundBuild "false" 
     variable FirstLine  "true"
 
