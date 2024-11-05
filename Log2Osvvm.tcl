@@ -77,10 +77,14 @@ namespace eval ::osvvm {
       puts $HtmlFileHandle "  color: white; "
       puts $HtmlFileHandle "  background: black; "
       puts $HtmlFileHandle "}"
+      puts $HtmlFileHandle ".SummaryEnd {"
+      puts $HtmlFileHandle "  color: white; "
+      puts $HtmlFileHandle "  background: gray; "
+      puts $HtmlFileHandle "}"
       puts $HtmlFileHandle "</style>"
       puts $HtmlFileHandle "<body>"
       puts $HtmlFileHandle "<pre>"
-    }
+    }   
     if {$LocalCreateSimScripts} {
       set SimFile [file join ${LogDir} ${LogName}_sim.tcl]
       set SimFileHandle [open $SimFile w]
@@ -175,7 +179,8 @@ namespace eval ::osvvm {
     variable PrintPrefix 
     
     if {[regexp {^Build Start} $LineOfLogFile] } {
-      if {$PrintPrefix eq "</details>"} {
+#      if {$PrintPrefix eq "</details>"} { }
+      if {[regexp {</details>} ${PrintPrefix}]}  {
         puts $HtmlFileHandle "${PrintPrefix}${LineOfLogFile}"
       } else {
         puts $HtmlFileHandle "${PrintPrefix}\n${LineOfLogFile}"
@@ -191,7 +196,7 @@ namespace eval ::osvvm {
     } elseif {[regexp {^RunTest} $LineOfLogFile] } {
       set InRunTest 1
       puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary>"
-      set PrintPrefix "</details>"
+      set PrintPrefix "<span class=\"SummaryEnd\">&#9650; ${LineOfLogFile}<\span></details>"
     } elseif {[regexp {^AnalyzeError:|^SimulateError:|^ScriptError:|^ReportError:|^LibraryError:|^BuildError:} $LineOfLogFile] } {
       puts $HtmlFileHandle "${PrintPrefix}<span style=color:#FF0000>$LineOfLogFile</span>"
       set PrintPrefix ""
@@ -215,7 +220,7 @@ namespace eval ::osvvm {
       }
       if {! $InRunTest} {
         puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary><span id=\"${LogTestSuiteName}_${LogTestCaseName}${GenericNames}\" />"
-        set PrintPrefix "</details>"
+        set PrintPrefix "<span class=\"SummaryEnd\">&#9650; ${LineOfLogFile}<\span></details>"
       } else {
         puts $HtmlFileHandle "$LineOfLogFile <span id=\"${LogTestSuiteName}_${LogTestCaseName}${GenericNames}\" />"
       }
