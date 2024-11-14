@@ -221,13 +221,8 @@ proc vendor_end_previous_simulation {} {
 #      }
 #    }
 #  }  
-  # wait 1 sec before and after quit to see if it impacts Visualizer issues.
-  puts "1 second before quit -sim"
-  after 2000
   puts "quit -sim"
   quit -sim
-  after 2000
-  puts "1 second after quit -sim"
 }
 
 # -------------------------------------------------
@@ -309,9 +304,9 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   set OptimizeOptions [concat $::VoptArgs $OptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt ]
   
-  set TestSuiteDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
+  set LocalTestSuiteDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
   if {$::osvvm::SaveWaves} {
-    set WaveOptions "-qwavedb=+signals+wavefile=[file join ${::osvvm::TestSuiteDirectory} ${TestCaseFileName}_qwave.db]"
+    set WaveOptions "-qwavedb=+signals+wavefile=[file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_qwave.db]"
   } else {
     set WaveOptions ""
   }
@@ -320,7 +315,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
 
   puts "vopt {*}${OptimizeOptions}"
-  eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${::osvvm::TestSuiteDirectory} ${TestCaseFileName}_design.bin] 
+  eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin] 
   
   puts "vsim {*}${SimulateOptions}"
   eval $::osvvm::shell vsim {*}${SimulateOptions}
