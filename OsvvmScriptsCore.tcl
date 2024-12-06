@@ -1108,8 +1108,6 @@ proc LocalSimulate {LibraryUnit args} {
   variable CoverageSimulateOptions
   variable ExtendedSimulateOptions
   variable RanSimulationWithCoverage
-  variable SimulateStartTime
-  variable SimulateStartTimeMs
   variable SimulateOptions
 
 
