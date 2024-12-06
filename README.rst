@@ -51,7 +51,7 @@ Start the Script environment in the Simulator
 
 Do the actions appropriate for your simulator.
 
-Aldec RivieraPRO, Siemens QuestaSim and ModelSim
+Aldec RivieraPRO, Siemens Visualizer, Questa, and ModelSim
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Initialize the OSVVM Script environment by doing:
@@ -61,10 +61,11 @@ Initialize the OSVVM Script environment by doing:
    source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
 
 Want to avoid doing this every time? In Aldec RivieraPro, set the
-environment variable, ALDEC_STARTUPTCL to StartUp.tcl (including the
-path information). Similarly in Mentor QuestaSim/ModelSim, set the
-environment variable, MODELSIM_TCL to StartUp.tcl (including the path
-information).
+environment variable ALDEC_STARTUPTCL to StartUp.tcl (including the
+path information). In Siemens Visualizer, set the environment variable 
+VISUALIZER_TCL to StartUp.tcl (including the path information).  
+In Siemens Questa/ModelSim, set the environment variable MODELSIM_TCL 
+to StartUp.tcl (including the path information).
 
 Aldec ActiveHDL
 ~~~~~~~~~~~~~~~
@@ -411,6 +412,9 @@ their corresponding directories exist.
 Note the paths specified to include are relative to OsvvmLibriaries 
 directory since that is where OsvvmLibraries.pro is located.
 
+Include sets the tcl variables $::ARGC and $::ARGV (an array).    
+Rather than using these it is recommended to use tcl procedures.   
+
 Building the OSVVM Libraries
 -------------------------------------------
 Build is a layer on top of include (it calls include) that creates a logging point.
@@ -425,6 +429,8 @@ To compile all of the OSVVM libraries, use build as shown below.
 .. code:: tcl
 
    build ../OsvvmLibraries/OsvvmLibraries.pro
+   
+ Build sets the tcl variables $::ARGC and $::ARGV (an array).    
 
 Running OSVVM Test Cases
 --------------------------------
@@ -1233,29 +1239,17 @@ Script File Summary
    - StartUp script for running ActiveHDL, GHDL, Mentor, RivieraPro, and VSimSA (ActiveHDL)   
    - Detects the simulator running and calls StartUpShared.tcl 
 
-- StartGHDL.tcl
-   - Version of StartUp.tcl that is specific to GHDL  
-      
-- StartNVC.tcl
-   - Version of StartUp.tcl that is specific to NVC  
-      
-- StartVCS.tcl
-   - Version of StartUp.tcl that is specific to VCS  
-      
-- StartXcelium.tcl  
-   - Version of StartUp.tcl that is specific to Xcelium
-      
-- StartXSIM.tcl  
-   - Version of StartUp.tcl that is specific to Xsim
-   - Note, XSIM is currently a alpha level, experimental release.
-      
+- StartTTT.tcl
+   - Version of StartUp.tcl that is specific to tool TTT
+   - "TTT" = one of (GHDL, NVC, Visualizer, Questa, VCS, Xcelium, XSIM)    
+
 - OsvvmProjectScripts.tcl  
    - TCL procedures that do common simulator and project build tasks.
    - Called by StartUpShared.tcl
 
-- VendorScript_tool-name.tcl  
+- VendorScript_TTT.tcl  
    - TCL procedures that do simulator specific actions.
-   - "tool-name" = one of (ActiveHDL, GHDL, NVC, Siemens, RivieraPro, VSimSA, VCS, Xcelium, Xsim)
+   - "TTT" = one of (ActiveHDL, GHDL, NVC, Visualizer, Siemens, RivieraPro, VSimSA, VCS, Xcelium, Xsim)
    - VSimSA is the one associated with ActiveHDL.
    - Called by StartUpShared.tcl 
 
@@ -1418,9 +1412,9 @@ here <https://github.com/OSVVM/Documentation>`__
 
 Copyright and License
 ==================================
-Copyright (C) 2006-2022 by `SynthWorks Design Inc. <http://www.synthworks.com/>`__ 
+Copyright (C) 2006-2024 by `SynthWorks Design Inc. <http://www.synthworks.com/>`__ 
 
-Copyright (C) 2022 by `OSVVM contributors <CONTRIBUTOR.md>`__
+Copyright (C) 2024 by `OSVVM contributors <CONTRIBUTOR.md>`__
 
 This file is part of OSVVM.
 
