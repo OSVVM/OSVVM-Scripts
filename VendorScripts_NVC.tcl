@@ -66,8 +66,6 @@
     set nvc [exec which nvc]
   }
   
-  puts $nvc
-  
   regexp {nvc\s+\d+\.\d+\S*} [exec $nvc --version] VersionString
   variable ToolVersion [regsub {nvc\s+} $VersionString ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
