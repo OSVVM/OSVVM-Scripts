@@ -1,19 +1,18 @@
 The OSVVM Simulator Script Library
 ##################################
 
-The OSVVM Simulator Script Library provides a simple way to create and
-activate libraries, compile designs, and run simulations.
+The OSVVM Simulator Script Library provides a provides a simple way to 
+compile designs, run simulations, and use libraries.
 
-The intent of this scripting approach is to:
+This scripting approach provides:
 
--  Run the same scripts on any simulator
--  Be as easy to read as a compile order list.
--  Know the directory the script is in, the script only manages relative 
-   paths to itself.  No Awkward path management in the scripts.
--  Simplify integration of other libraries
+-  Scripts as simple as a list of files
+-  Scripts that run on any simulator
+-  Simple path management – everything is relative to the script location
+-  Simple usage of libraries
 
-This is an evolving approach. So it may change in the future. Input is
-welcome.
+
+This is an evolving approach. Input is welcome.
 
 Start by Running the Demo
 ==================================
@@ -545,7 +544,8 @@ For each Test Suite and Test Case, there is additional information,
 such as Functional Coverage and Disabled Alert Count.
 
 In the sim directory, the Build Summary Report is 
-in the file OsvvmLibraries_RunDemoTests.html.
+in the file OsvvmLibraries_RunDemoTests.html.  
+It can be opened by typing OpenBuildHtml at the simulator command line.
 
 .. figure:: images/DemoBuildSummaryReport.png
   :name: BuildSummaryReportFig
@@ -921,6 +921,15 @@ the coverage for each test in the test suite is merged.
 When a build completes the coverage from each test suite 
 is merged and an html coverage report is produced.
 
+Tracking Requirements 
+==================================
+When requirements are tracked in a test case, a requirements 
+report is automatically created for that test case.  
+If any test case in a build generates a requirements report, 
+when the build completes the requirements for each text case 
+are merged and an html requirements report is produced.
+
+
 Command Summary 
 ==================================
 Commands are case sensitive.  Single word names are
@@ -991,6 +1000,8 @@ The following are general API commands.
 - build [<path>/]<name>
    - Start a script from the simulator.  It is include + start a new log file for this script.
    - Paths are relative to CurrentWorkingDirectory.
+- OpenBuildHtml
+   - Open the Build Summary Report for the current build.
 - SetTranscriptType [html|log]
    - Select the Transcript file to be either html or log.  The default is html.
 - GetTranscriptType
