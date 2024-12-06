@@ -212,15 +212,10 @@ proc vendor_end_previous_simulation {} {
   variable NoGui
 
   # close junk in source window
-#  if {! $NoGui} {
-#    catch {noview source}
-#    catch {noview source}
-#    if {![catch {noview} msg]} {
-#      foreach index [array names SourceMap] { 
-#        noview source [file tail $index] 
-#      }
-#    }
-#  }  
+  if {! $NoGui} {
+    catch {noview source}
+    catch {noview source}
+  }  
   puts "quit -sim"
   quit -sim
 }
@@ -305,20 +300,21 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set OptimizeOptions [concat $::VoptArgs $OptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt ]
   
   set LocalTestSuiteDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
+
+  puts "vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin]"
+  eval $::osvvm::shell vopt {*}${OptimizeOptions} -quiet -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin] 
+  
+
   if {$::osvvm::SaveWaves} {
     set WaveOptions "-qwavedb=+signals+wavefile=[file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_qwave.db]"
   } else {
     set WaveOptions ""
   }
 
-  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} {*}${WaveOptions} -suppress 8683 -suppress 8684]
+  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
 
-
-  puts "vopt {*}${OptimizeOptions}"
-  eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin] 
-  
-  puts "vsim {*}${SimulateOptions}"
-  eval $::osvvm::shell vsim {*}${SimulateOptions}
+  puts "vsim {*}${SimulateOptions} ${WaveOptions}"
+  eval $::osvvm::shell vsim {*}${SimulateOptions} ${WaveOptions}
   
   # Historical name.  Must be run with "do" for actions to work
   if {[file exists ${OsvvmScriptDirectory}/Siemens.do]} {
