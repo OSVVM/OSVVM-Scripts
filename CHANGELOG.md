@@ -2,6 +2,9 @@
 
 | **Revision**  |   **Release Summary**                                                                         | 
 |---------------|-----------------------------------------------------------------------------------------------| 
+| 2024.11       |  Log2Osvvm - Updated how details summary print                                                |
+|               |  OsvvmScriptsCore, VendorScripts_Visualizer, VS_Siemens - worked on Space in Path issue       |
+|               |  VendorScripts_VsimSA.tcl - turned on VHDL-2019 for appropriate versions                      |
 | 2024.09       |  Turned VHDL-2019 on if version is ...                                                        |
 |               |  (NVC > 1.13.2), (RivieraPRO > 2021.04), (ActiveHDL > 12.0), (Questa > 2024.2)                |
 | 2024.07       |  Yaml output updates. Junit report affirm counts and generics as properties.                  |
