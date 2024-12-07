@@ -90,6 +90,11 @@ namespace eval ::osvvm {
     
   } elseif {$ToolExecutableName eq "vish" || $ToolExecutableName eq "vsimk"} {
     variable ScriptBaseName "Siemens"
+    if {[info exists ::env(OSVVM_TOOL)]} {
+      if {$::env(OSVVM_TOOL) eq "Visualizer"} {
+        variable ScriptBaseName $::env(OSVVM_TOOL)
+      }
+    }
     
   } elseif {$ToolExecutableName eq "hdlclient"} {
     variable ScriptBaseName "Visualizer"
