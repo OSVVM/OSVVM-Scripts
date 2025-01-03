@@ -32,7 +32,7 @@
 #
 #  This file is part of OSVVM.
 #  
-#  Copyright (c) 2022 - 2024 by SynthWorks Design Inc.  
+#  Copyright (c) 2022 - 2025 by SynthWorks Design Inc.  
 #  
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -56,9 +56,9 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2024.11
-  variable OsvvmBuildYamlVersion      2024.11
-  variable OsvvmTestCaseYamlVersion   2024.11
+  variable OsvvmVersion 2025.01
+  variable OsvvmBuildYamlVersion      2025.01
+  variable OsvvmTestCaseYamlVersion   2025.01
  # The following are set in VHDL code.  Either need to pass these or have it directly in the VHDL Code.
   variable OsvvmAlertYamlVersion        InVhdlCodeVersionTbd
   variable OsvvmCoverageYamlVersion     InVhdlCodeVersionTbd

@@ -72,6 +72,7 @@ variable OsvvmLibraries $::osvvm::OsvvmHomeDirectory
 # Load Base OSVVM Project Scripts and Vendor Specific Scripts
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCreateYamlReports.tcl
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCore.tcl
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsFileCreate.tcl
 namespace eval ::osvvm {
   source ${::osvvm::OsvvmScriptDirectory}/VendorScripts_${::osvvm::ScriptBaseName}.tcl
 }
