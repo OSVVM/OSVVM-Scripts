@@ -226,6 +226,7 @@ proc MergeTestCaseResults { TestCases } {
     set ResultsDict             [dict get $TestCase  Results]
     set CurGoal                 [dict get $ResultsDict  Goal]
     set CurPassed               [dict get $ResultsDict  Passed]
+# CurPassedReq = Minimum of CurPassed and CurGoal
     set CurPassedReq        [expr {$CurPassed < $CurGoal ? $CurPassed : $CurGoal}]
     set CurErrors               [dict get $ResultsDict  Errors]
     set CurChecked              [dict get $ResultsDict  Checked]
@@ -241,6 +242,7 @@ proc MergeTestCaseResults { TestCases } {
     if {$CurStatus eq "FAILED"} {
       set Status "FAILED"
     }
+# Goal handling = Maximum vs Sum of goals
     set Goal                 [expr {$Goal > $CurGoal ? $Goal : $CurGoal}]
     set Passed               [expr {$Passed  + $CurPassed}]
     set PassedReq           [expr {$PassedReq  + $CurPassedReq}]
