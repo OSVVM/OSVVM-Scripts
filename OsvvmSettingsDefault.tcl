@@ -144,6 +144,15 @@ namespace eval ::osvvm {
     variable ScriptDebug         "false"
     variable OpenBuildHtmlFile   "false"
 
+  #
+  # Controls whether osvvm.pro allows functional coverage to be linked into simulator interface
+  #   Only has impact if set before "build $OsvvmLibraries"
+  #   Set to TRUE by simulators that support it in the VendorScripts_*.tcl
+  #
+    if {![info exists FunctionalCoverageIntegratedInSimulator]} {
+      variable FunctionalCoverageIntegratedInSimulator "default"
+    }
+
   # 
   # Extended Analyze and Simulate Options
   #

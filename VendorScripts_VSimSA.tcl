@@ -66,6 +66,8 @@
     SetVHDLVersion 2019
   }
 
+  variable FunctionalCoverageIntegratedInSimulator "Aldec"
+  
   if {[batch_mode]} {
     variable NoGui "true"
   } else {

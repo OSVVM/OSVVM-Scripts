@@ -73,6 +73,11 @@
   if {[expr [string compare $ToolVersion "1.13.2"] >= 0]} {
     SetVHDLVersion 2019
   }
+  
+  if {[expr [string compare $ToolVersion "1.15.2"] >= 0]} {
+    variable FunctionalCoverageIntegratedInSimulator "NVC"
+  }
+  
 
 
 # -------------------------------------------------
