@@ -145,9 +145,17 @@ namespace eval ::osvvm {
     variable OpenBuildHtmlFile   "false"
 
   #
-  # Controls whether osvvm.pro allows functional coverage to be linked into simulator interface
-  #   Only has impact if set before "build $OsvvmLibraries"
-  #   Set to TRUE by simulators that support it in the VendorScripts_*.tcl
+  # FunctionalCoverageIntegratedInSimulator controls whether osvvm.pro allows functional coverage to be linked into simulator interface
+  #   osvvm.pro does:  analyze CoverageVendorApiPkg_${::osvvm::FunctionalCoverageIntegratedInSimulator}.vhd
+  #   Currently valid values are:   
+  #       "default" - do not use any simulator functional coverage linking.
+  #       "Aldec"   - use the link for Aldec tools - works with RivieraPRO and ActiveHDL
+  #       "NVC"     - works with NVC 1.15.1 or newer.
+  #   Values other than "default" is set by VendorScripts_***.tcl for the respective simulator
+  #   Here, if a value was not previously set, the value "default" will be set.
+  #   To add capabilty to a simulator, 
+  #      add a file named CoverageVendorApiPkg_<simualtor_or_vendor>.vhd to directory osvvm and 
+  #      set this variable in the VendorScripts_***.tcl for the appropriate version of the simualtor (see VendorScripts_NVC.tcl)
   #
     if {![info exists FunctionalCoverageIntegratedInSimulator]} {
       variable FunctionalCoverageIntegratedInSimulator "default"
