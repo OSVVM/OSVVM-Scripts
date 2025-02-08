@@ -242,10 +242,9 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set GlobalOptions ${LocalGlobalOptions}
   set ElaborateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit}]
   set RunOptions [concat {*}${LocalRunOptions} ${LibraryUnit}]
-  
-# Running NVC with separate elaborate and simulate - Nick recommended switching to doing this in one step
+
   puts "nvc ${GlobalOptions} -e ${ElaborateOptions}" 
-  if { [catch {exec $nvc {*}${GlobalOptions} -e {*}${ElaborateOptions}} ElaborateMessage]} { 
+  if { [catch {exec $nvc {*}${GlobalOptions} -e --jit {*}${ElaborateOptions}} ElaborateMessage]} {
     PrintWithPrefix "Elaborate Error:"  $ElaborateMessage
     error "Failed: simulate $LibraryUnit"
   } else {
@@ -253,21 +252,11 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   }
   puts "nvc ${GlobalOptions} -r ${RunOptions}" 
   if { [catch {exec $nvc {*}${GlobalOptions} -r {*}${RunOptions} 2>@1} SimulateMessage]} {
-#    error "Failed: simulate $LibraryUnit"
     PrintWithPrefix "Error:" $SimulateMessage
     error "Failed: simulate $LibraryUnit"
   } else {
     puts $SimulateMessage
   }
-
-# #  puts "nvc ${GlobalOptions} -e ${ElaborateOptions} --jit --no-save -r ${RunOptions}"
-# ##  if { [catch {exec $nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} >@ stdout 2>@ stdout} SimulateMessage] } {  }
-# #  if { [catch {exec $nvc {*}${GlobalOptions} -e {*}${ElaborateOptions} --jit --no-save -r {*}${RunOptions} 2>@1} SimulateMessage] } {  
-# #    PrintWithPrefix "Error:" $SimulateMessage
-# #    error "Failed: simulate $LibraryUnit"
-# #  } else {
-# #    puts $SimulateMessage
-# #  }
 
   # Save Coverage Information
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
