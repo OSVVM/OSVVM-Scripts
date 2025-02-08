@@ -47,6 +47,7 @@
 #  limitations under the License.
 #
 
+package require fileutil
 
 # -------------------------------------------------
 # Tool Settings
@@ -115,7 +116,7 @@ proc IsVendorCommand {LineOfText} {
 # Library
 #
 proc GhdlLibraryPath {LibraryName PathToLib} {
-  set PathAndLib "${PathToLib}/[string tolower ${LibraryName}]/v${::osvvm::VhdlShortVersion}"
+  set PathAndLib "[::fileutil::relative [pwd] ${PathToLib}/[string tolower ${LibraryName}]/v${::osvvm::VhdlShortVersion}]"
   return $PathAndLib
 }
 
