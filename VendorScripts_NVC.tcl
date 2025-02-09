@@ -243,15 +243,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set ElaborateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit}]
   set RunOptions [concat {*}${LocalRunOptions} ${LibraryUnit}]
 
-  puts "nvc ${GlobalOptions} -e ${ElaborateOptions}" 
-  if { [catch {exec $nvc {*}${GlobalOptions} -e --jit {*}${ElaborateOptions}} ElaborateMessage]} {
-    PrintWithPrefix "Elaborate Error:"  $ElaborateMessage
-    error "Failed: simulate $LibraryUnit"
-  } else {
-    puts $ElaborateMessage
-  }
-  puts "nvc ${GlobalOptions} -r ${RunOptions}" 
-  if { [catch {exec $nvc {*}${GlobalOptions} -r {*}${RunOptions} 2>@1} SimulateMessage]} {
+  puts "nvc ${GlobalOptions} -e --jit --no-save ${ElaborateOptions} -r ${RunOptions}"
+  if { [catch {exec $nvc {*}${GlobalOptions} -e --jit --no-save {*}${ElaborateOptions} -r {*}${RunOptions} 2>@1} SimulateMessage]} {
     PrintWithPrefix "Error:" $SimulateMessage
     error "Failed: simulate $LibraryUnit"
   } else {
