@@ -80,6 +80,7 @@ proc LocalCov2Html {TestCaseName TestSuiteName CovYamlFile} {
     set ModelName [dict get $ModelDict Name]
     set CovModelSettings [dict get $ModelDict Settings] 
     set CovWeight        [dict get $CovModelSettings CovWeight] 
+    set IsRequirement    [dict get $CovModelSettings IsRequirement] 
     if {$CovWeight < 1} {
       if {!$FoundZeroWeight} {
         puts $ResultsFile "    <details><summary class=\"subtitle\">Coverage Models with CovWeight = 0.  Ignored in GetCov calculations.  Used for OSVVM DelayCoverage. </summary>"
@@ -88,7 +89,12 @@ proc LocalCov2Html {TestCaseName TestSuiteName CovYamlFile} {
     }
     puts $ResultsFile "    <details open><summary class=\"subtitle\">$ModelName Coverage Model &emsp; &emsp; Coverage: [format %.1f [dict get $ModelDict Coverage]]</summary>"
     OsvvmCovInfo2Html $ModelName $CovModelSettings
-    OsvvmCovBins2Html $ModelName $ModelDict $WritePassFail $CovWeight
+    if {$IsRequirement || $WritePassFail} {
+      set localWritePassFail 1
+    } else {
+      set localWritePassFail 0
+    }
+    OsvvmCovBins2Html $ModelName $ModelDict $localWritePassFail $CovWeight
     puts $ResultsFile "    </details>"
   }
   if {$FoundZeroWeight} {
