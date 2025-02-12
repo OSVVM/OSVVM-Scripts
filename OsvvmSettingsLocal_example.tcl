@@ -140,6 +140,16 @@ namespace eval ::osvvm {
     #  variable CreateOsvvmOutput        "true"    ;# Text file with just OSVVM output
 
   #
+  #  Requirements Tracking settings
+  #
+  #    USE_SUM_OF_GOALS
+  #      when false, uses maximum goal - good when merging in specification which provides the maximum goal which is divided across teests
+  #      when true,  uses sum of goals - good when not merging the specification and need to sum up goals to get the total
+    #  variable USE_SUM_OF_GOALS         "false"    ;# when false, uses maximum  
+    #  variable USE_SUM_OF_GOALS         "true"     ;# when true uses sum of goals 
+
+
+  #
   # VHDL Simulation Settings 
   #
     #  variable DefaultVHDLVersion     "2008"      ; # OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
@@ -172,7 +182,8 @@ namespace eval ::osvvm {
     #  variable VerilogAnalyzeOptions     ""
     #  variable ExtendedAnalyzeOptions    ""
     #  variable ExtendedSimulateOptions   ""
-    #  if {$ToolVendor eq "Siemens"} {
+    # Remove some of the chatter from Siemens and Aldec simulators
+    #  if {($ToolVendor eq "Siemens") || ($ToolVendor eq "Aldec")} {
     #    variable ExtendedAnalyzeOptions   "-quiet"
     #    variable ExtendedSimulateOptions  "-quiet"
     #  } 

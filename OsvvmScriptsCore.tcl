@@ -440,18 +440,12 @@ proc LocalBuild {BuildName Path_Or_File args} {
   CallbackAfter_Build ${Path_Or_File}
 
   if {[info exists TestSuiteName]} {
-    # Finalize Test Suite
-    set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
-    set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${BuildName} ${TestSuiteName}_req.yml]
-    MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
-    Requirements2Html $RequirementsResultsFile "../"
-    
     FinalizeTestSuite $TestSuiteName
     FinishTestSuiteBuildYaml
     unset TestSuiteName
   }
   
-  # Finalize Build
+  # Merge Requirements for Build
   set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${BuildName}]
   set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${BuildName}_req.yml]
   MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
@@ -1312,8 +1306,15 @@ proc MergeCoverage {SuiteName MergeName} {
   vendor_MergeCodeCoverage $SuiteName ${::osvvm::CoverageDirectory} ${MergeName}
 }
 
+
 # -------------------------------------------------
 proc FinalizeTestSuite {SuiteName} {
+
+  # Merge Requirements for each test case into TestSuite Requirements
+  set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${SuiteName}]
+  set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${::osvvm::BuildName} ${SuiteName}_req.yml]
+  MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
+  Requirements2Html $RequirementsResultsFile "../"
   
   # Merge Code Coverage for the Test Suite if it exists
   if {$::osvvm::RanSimulationWithCoverage eq "true"} {
@@ -1326,16 +1327,22 @@ proc FinalizeTestSuite {SuiteName} {
 # -------------------------------------------------
 proc TestSuite {SuiteName} {
   variable TestSuiteName
-
+  
   puts "TestSuite $SuiteName"                     ; # EchoOsvvmCmd
   
-
   set FirstRun [expr ![info exists TestSuiteName]]
+  
   if {! $FirstRun} {
-    set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
-    set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${::osvvm::BuildName} ${TestSuiteName}_req.yml]
-    MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
-    Requirements2Html $RequirementsResultsFile "../"
+    if {$SuiteName eq $TestSuiteName} {
+      # Do nothing if test suite already set
+      puts "Warning:  Redundant TestSuite $SuiteName - name already set to $TestSuiteName - Command Ignored"
+      return ""
+    }
+# #!!    # Finalize previous Test Suite
+# #!!    set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
+# #!!    set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${::osvvm::BuildName} ${TestSuiteName}_req.yml]
+# #!!    MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
+# #!!    Requirements2Html $RequirementsResultsFile "../"
     
     # Finish previous test suite before ending current one
     FinalizeTestSuite $TestSuiteName

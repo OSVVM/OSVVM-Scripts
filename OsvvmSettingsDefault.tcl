@@ -116,6 +116,15 @@ namespace eval ::osvvm {
     variable TranscriptExtension      "html"     ;# Generate log and html transcripts
     variable CreateSimScripts         "false"    ;# Create a script with every simulator command run during this session
     variable CreateOsvvmOutput        "false"    ;# Text file with just OSVVM output
+    
+  #
+  #  Requirements Tracking settings
+  #
+  #    USE_SUM_OF_GOALS
+  #      when false, uses maximum goal - good when merging in specification which provides the maximum goal which is divided across teests
+  #      when true,  uses sum of goals - good when not merging the specification and need to sum up goals to get the total
+    variable USE_SUM_OF_GOALS         "false"    ;# when false, uses maximum  
+    #  variable USE_SUM_OF_GOALS         "true"     ;# when true uses sum of goals 
 
   #
   # VHDL Simulation Settings 
@@ -125,7 +134,7 @@ namespace eval ::osvvm {
     variable DefaultLibraryName     "DefaultLib"
   
   # 
-  # Default Coverage Options
+  # Default Code Coverage Options
   #
     variable CoverageEnable           "true"
     variable CoverageAnalyzeEnable    "false"
