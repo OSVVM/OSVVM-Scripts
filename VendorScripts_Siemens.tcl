@@ -331,7 +331,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   SimulateRunScripts ${LibraryUnit}
   
   if {$::osvvm::LogSignals} {
-    add log -r [env]/*
+    catch {add log -r [env]/*}
   }
   run -all 
   
