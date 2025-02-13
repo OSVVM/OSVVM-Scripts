@@ -187,9 +187,10 @@ proc vendor_analyze_verilog {LibraryName FileName args} {
 # End Previous Simulation
 #
 proc vendor_end_previous_simulation {} {
-  quit -sim
+  catch {quit -sim}                    ;# catch suppresses the simulator messages
   framework.documents.closeall -vhdl
   ::osvvm::CloseAllFiles
+  puts ""
 }  
 
 # -------------------------------------------------
