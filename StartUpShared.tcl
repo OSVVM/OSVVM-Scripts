@@ -56,6 +56,10 @@
 #
 
 namespace eval ::osvvm {
+
+  # --------------------------------
+  # Set OsvvmScriptDirectory if it is not already set
+  # --------------------------------
   # Usage of SCRIPT_DIR is deprecated.
   if {![info exists OsvvmScriptDirectory]} {
     # if a calling script uses SCRIPT_DIR, this supports backward compatibility
@@ -69,24 +73,37 @@ namespace eval ::osvvm {
 
 variable OsvvmLibraries $::osvvm::OsvvmHomeDirectory
 
-# Load Base OSVVM Project Scripts and Vendor Specific Scripts
-source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCreateYamlReports.tcl
-source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCore.tcl
-source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsFileCreate.tcl
+# --------------------------------
+# Load OSVVM Core API
+# --------------------------------
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCreateYamlReports.tcl   ;#  Helpers for creating YAML files
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCore.tcl                ;#  OSVVM Core API
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsFileCreate.tcl          ;#  OSVVM API for file creation
+
+# --------------------------------
+# Vendor personalization of OSVVM API
+# --------------------------------
 namespace eval ::osvvm {
   source ${::osvvm::OsvvmScriptDirectory}/VendorScripts_${::osvvm::ScriptBaseName}.tcl
 }
 
-# Load OSVVM YAML support if yaml support available 
-# Could be made conditional for only simulators
+# --------------------------------
+# Scripts to convert OSVVM Yaml outputs to HTML and XML files
+# --------------------------------
 if {[catch {package require yaml}]} {
   source ${::osvvm::OsvvmScriptDirectory}/StartUpYamlMockReports.tcl
 } else {
   source ${::osvvm::OsvvmScriptDirectory}/StartUpYamlLoadReports.tcl
 }
 
+# --------------------------------
+# Convert tool generated log files to HTML, ...
+# --------------------------------
 source ${::osvvm::OsvvmScriptDirectory}/Log2Osvvm.tcl
 
+# --------------------------------
+# CoSim API additions
+# --------------------------------
 if {[file exists ${::osvvm::OsvvmScriptDirectory}/../CoSim]} { 
   source ${::osvvm::OsvvmScriptDirectory}/../CoSim/Scripts/MakeVproc.tcl
 }
@@ -95,49 +112,85 @@ if {[file exists ${::osvvm::OsvvmScriptDirectory}/../CoSim]} {
 # Import any procedure exported by previous OSVVM scripts
 namespace import ::osvvm::*
 
-# Load    OsvvmSettings*.tcl
 # --------------------------------
-# First   OsvvmSettingsDefault.tcl
-# Second  OsvvmSettingsLocal.tcl - for user/project to update - excluded from project
-# Third   OsvvmSettingsLocal_<vendor_or_tool>.tcl - Simulator specific defaults
-# Final   OsvvmSettingsRequired.tcl to Finalize Settings
-# 
-# First   OsvvmSettingsDefault.tcl
+#  Get Directory for User Settings 
+# --------------------------------
+if {[info exists ::env(OSVVM_SETTINGS_DIR)]} {
+  # file join supports either relative or absolute paths 
+  variable ::osvvm::OsvvmUserSettingsDirectory [file join $::osvvm::OsvvmScriptDirectory $::env(OSVVM_SETTINGS_DIR)]
+  if {![file isdirectory $::osvvm::OsvvmUserSettingsDirectory]} {
+    puts "ScriptError: OSVVM_SETTINGS_DIR not a directory:  $::env(OSVVM_SETTINGS_DIR)"
+    variable ::osvvm::OsvvmUserSettingsDirectory $::osvvm::OsvvmScriptDirectory
+  }
+} elseif {[file isdirectory $OsvvmLibraries/../OsvvmSettings] } {
+  variable ::osvvm::OsvvmUserSettingsDirectory [file $OsvvmLibraries/../OsvvmSettings]
+} else {
+  variable ::osvvm::OsvvmUserSettingsDirectory $::osvvm::OsvvmScriptDirectory
+}
+
+# --------------------------------
+# Settings:  OsvvmSettings*.tcl
+# --------------------------------
+# Settings First:  OSVVM Default Settings 
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsDefault.tcl
-# Second  OsvvmSettingsLocal.tcl - for user/project to update - excluded from project
-if {[file exists ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsLocal.tcl]} {
+
+# Settings Second:  OSVVM User/Project Customizations - not required 
+if {[file exists ${::osvvm::OsvvmUserSettingsDirectory}/OsvvmSettingsLocal.tcl]} {
+  # Found in OSVVM_SETTINGS_DIR
+  source ${::osvvm::OsvvmUserSettingsDirectory}/OsvvmSettingsLocal.tcl
+} elseif {[file exists ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsLocal.tcl]} {
+  # Deprecated.  Found in Scripts Directory - backward compatible
   source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsLocal.tcl
 } elseif {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults.tcl]} {
-  # Deprecated: only try to load if OsvvmSettingsLocal.tcl does not exist
+  # Deprecated:  Uses old name - backward compatible
   source ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults.tcl
 }
 
-# Third   OsvvmSettingsLocal_<vendor_or_tool>.tcl - Simulator specific defaults
-if {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults_${::osvvm::ScriptBaseName}.tcl]} {
+# Settings Third   OSVVM User Simulator specific defaults - not required
+if {[file exists ${::osvvm::OsvvmUserSettingsDirectory}/OsvvmSettingsLocal_${::osvvm::ScriptBaseName}.tcl]} {
+  # Found in OSVVM_SETTINGS_DIR
+  source ${::osvvm::OsvvmUserSettingsDirectory}/OsvvmSettingsLocal_${::osvvm::ScriptBaseName}.tcl
+} elseif {[file exists ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsLocal_${::osvvm::ScriptBaseName}.tcl]} {
+  # Deprecated.  Found in Scripts Directory - backward compatible
+  source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsLocal_${::osvvm::ScriptBaseName}.tcl
+} elseif {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults_${::osvvm::ScriptBaseName}.tcl]} {
+  # Deprecated:  Uses old name - backward compatible
   source ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults_${::osvvm::ScriptBaseName}.tcl
 }
-# Final   OsvvmSettingsRequired.tcl to Finalize Settings
+
+# Settings Final   OSVVM Finalize Settings - builds names that are dependent on other names
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsRequired.tcl
 
 
-# Set OSVVM Script Defaults - defaults may call scripts
+# --------------------------------
+# CallBacks & Error Handlers:  Callback*.tcl
+# --------------------------------
+# Callbacks First:  OSVVM Default CallBacks
 source ${::osvvm::OsvvmScriptDirectory}/CallbackDefaults.tcl
-# Override common actions here
-#   While intended for call back feature, can be used to replace any
-#   previously defined procedure
-if {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalCallbacks.tcl]} {
+
+# Callbacks Second:   OSVVM User/Project Customizations - not required
+if {[file exists ${::osvvm::OsvvmUserSettingsDirectory}/LocalCallbacks.tcl]} {
+  # Found in OSVVM_SETTINGS_DIR
+  source ${::osvvm::OsvvmUserSettingsDirectory}/LocalCallbacks.tcl
+} elseif {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalCallbacks.tcl]} {
+  # Deprecated.  Found in Scripts Directory - backward compatible
   source ${::osvvm::OsvvmScriptDirectory}/LocalCallbacks.tcl
 }
-# Override simulator specific actions here
-#   While intended for call back feature, can be used to replace any
-#   previously defined procedure - such as vendor_SetCoverageAnalyzeDefaults
-if {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalCallbacks_${::osvvm::ScriptBaseName}.tcl]} {
+
+
+# Callback Third:      OSVVM User Simulator specific defaults - not required
+if {[file exists ${::osvvm::OsvvmUserSettingsDirectory}/LocalCallbacks_${::osvvm::ScriptBaseName}.tcl]} {
+  # Found in OSVVM_SETTINGS_DIR
+  source ${::osvvm::OsvvmUserSettingsDirectory}/LocalCallbacks_${::osvvm::ScriptBaseName}.tcl
+} elseif {[file exists ${::osvvm::OsvvmScriptDirectory}/LocalCallbacks_${::osvvm::ScriptBaseName}.tcl]} {
+  # Deprecated.  Found in Scripts Directory - backward compatible
   source ${::osvvm::OsvvmScriptDirectory}/LocalCallbacks_${::osvvm::ScriptBaseName}.tcl
 }
 
-#
+
+# --------------------------------
 # If the tee scripts load, mark them as available
-#
+# --------------------------------
 if {[catch {source ${::osvvm::OsvvmScriptDirectory}/tee.tcl}]} {
    variable ::osvvm::GotTee false
 } else {
