@@ -67,6 +67,7 @@
 
   if {[expr [string compare $ToolVersion "2021.04"] >= 0]} {
     SetVHDLVersion 2019
+    variable Support2019FilePath "true"
   }
 
   variable FunctionalCoverageIntegratedInSimulator "Aldec"
@@ -172,6 +173,8 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
     set DebugOptions "-dbg"
   }
   
+# at least with RP 2024.10, relax mode is not needed, looks like it was there in the first version of this file
+#  set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -work ${LibraryName} {*}${args} ${FileName}]
   set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${args} ${FileName}]
   puts "vcom $AnalyzeOptions"
         vcom {*}$AnalyzeOptions
