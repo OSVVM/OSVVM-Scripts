@@ -157,11 +157,16 @@ namespace eval ::osvvm {
     variable BuildName             ""
     variable BuildStatus           "FAILED"
     variable LastBuildName         ""
+    variable LastAnalyzedFile      ""
     variable GenericDict           ""
     variable GenericNames          ""
     variable GenericOptions        ""
     variable RunningCoSim              "false"
     variable RanSimulationWithCoverage "false"
+    
+    if {![info exists Support2019FilePath]} {
+      variable Support2019FilePath       "false"
+    }
     
     if {[catch {set OperatingSystemName [string tolower [exec uname]]} err]} {
       set OperatingSystemName windows
