@@ -179,7 +179,7 @@ namespace eval ::osvvm {
     variable ExtendedSimulateOptions   ""
     
   #
-  #  GHDL Analyze and Simulate Options
+  #  For simulators that use two steps for Analyze and Simulate 
   #
     variable ExtendedElaborateOptions  ""
     variable ExtendedRunOptions        ""
