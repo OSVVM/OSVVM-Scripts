@@ -126,7 +126,7 @@ proc FinishBuildYaml {BuildName} {
 # -------------------------------------------------
 proc WriteDictOfDict2Yaml {YamlFile DictName {DictValues ""} {Prefix ""} } {
   if {$DictValues eq ""} {
-    puts $YamlFile "${Prefix}${DictName}:            {}"
+    puts $YamlFile "${Prefix}${DictName}:           null"
 #    puts $YamlFile "${Prefix}${DictName}:            \"\""
   } else {
     puts $YamlFile "${Prefix}${DictName}:"
@@ -198,10 +198,11 @@ proc WriteTestCaseSettingsYaml {FileName} {
   set  YamlFile [open ${FileName} w]
   WriteDictOfString2Yaml $YamlFile Version $::osvvm::OsvvmTestCaseYamlVersion
   WriteDictOfString2Yaml $YamlFile TestCaseName $::osvvm::TestCaseName
+  WriteDictOfString2Yaml $YamlFile TestCaseFile $::osvvm::LastAnalyzedFile
 	if {[info exists ::osvvm::TestSuiteName]} {
     WriteDictOfString2Yaml $YamlFile TestSuiteName  $::osvvm::TestSuiteName
   } else {
-    WriteDictOfString2Yaml $YamlFile TestSuiteName
+    WriteDictOfString2Yaml $YamlFile TestSuiteName "Default"
   }
   WriteDictOfString2Yaml $YamlFile BuildName $::osvvm::BuildName
   WriteDictOfDict2Yaml   $YamlFile Generics $::osvvm::GenericDict
