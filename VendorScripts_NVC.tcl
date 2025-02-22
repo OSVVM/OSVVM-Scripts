@@ -78,6 +78,9 @@
     variable FunctionalCoverageIntegratedInSimulator "NVC"
   }
   
+  if {[expr [string compare $ToolVersion "1.15.2"] >= 0]} {
+    variable Support2019FilePath "true"
+  }
 
 
 # -------------------------------------------------
