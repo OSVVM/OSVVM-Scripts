@@ -49,6 +49,7 @@
 #
 
 package require yaml
+package require fileutil
 
 
 #--------------------------------------------------------------
@@ -124,6 +125,8 @@ proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDic
 proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDict} {
   variable ResultsFile
 
+  set ReportDir $::osvvm::Report2ReportsDirectory
+  
   if {$::osvvm::Report2ReportsSubdirectory eq ""} {
     set ReportsPrefix ".."
   } else {
@@ -166,6 +169,14 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
     set TestCaseLink "#${TestSuiteName}_${TestCaseName}${::osvvm::Report2GenericNames}"
     puts $ResultsFile "          <tr><td><a href=\"${ReportsPrefix}/${::osvvm::Report2SimulationHtmlLogFile}${TestCaseLink}\">Link to Simulation Results</a></td></tr>"
   }
+  
+  # Add link to Test Case file
+  set TestCaseFile [::fileutil::relative $ReportDir $::osvvm::Report2TestCaseFile]
+  set TestCaseFileTail [file tail $TestCaseFile]
+  if {$::osvvm::Report2TestCaseFile ne ""} {
+    puts $ResultsFile "          <tr><td><a href=\"${TestCaseFile}\">$TestCaseFileTail</a></td></tr>"
+  }
+  
   # Add Transcript Filess to Table
   if {$::osvvm::Report2TranscriptFiles ne ""} {
     foreach TranscriptFile ${::osvvm::Report2TranscriptFiles} {
