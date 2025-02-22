@@ -20,11 +20,12 @@
 #
 #  Revision History:
 #    Date      Version    Description
-#     1/2025   2025.01    Added GetTimeString
+#     1/2025   2025.01    Added GetTimeString.  
+#                         Moved CreateOsvvmScriptSettingsPkg and FindOsvvmSettingsDirectory to OsvvmScriptsFileCreate.tcl
 #     7/2024   2024.07    Updated LocalInclude to better restore state if the include fails
 #                         Fixed settings in SetLogSignals.
 #     5/2024   2024.05    Updated for refactor of Simulate2Html.   Renamed in prep for breaking file into smaller chunks. 
-#     3/2024   2024.03    Updated CreateOsvvmScriptSettingsPkg and added FindOsvvmSettingsDirectory 
+#     3/2024   2024.03    Updated CreateOsvvmScriptSettingsPkg and added FindOsvvmSettingsDirectory
 #     9/2023   2023.09    Updated messaging for file not found by build/include 
 #                         Made UnsetLibraryVars visible
 #     7/2023   2023.07    Added calls to MergeRequirements and Requirements2Html 
@@ -1017,6 +1018,7 @@ proc LocalAnalyze {FileName args} {
   set BaseNormFileName  [file normalize [file join ${CurrentWorkingDirectory} ${FileName}]]
   # Questa requires paths without spaces.   Triming down to relative paths helps.
   set NormFileName  [::fileutil::relative [pwd] $BaseNormFileName]
+  set ::osvvm::LastAnalyzedFile $BaseNormFileName
 
   set FileExtension [file extension $FileName]
 
@@ -1409,7 +1411,7 @@ proc RunTest {FileName {SimName ""} args} {
 # -------------------------------------------------
 # SkipTest
 #
-proc SkipTest {FileName Reason} {
+proc SkipTest { {FileName "NotProvided.vhd"} {Reason "Not Provided"} } {
 
   set SimName [file rootname [file tail $FileName]]
 
