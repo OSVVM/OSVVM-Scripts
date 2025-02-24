@@ -65,19 +65,20 @@
 #
 
 # 
-#  Uses DefaultVendor_StartTranscript and DefaultVendor_StopTranscript
+#  If uncomment the following will DefaultVendor_StartTranscript and DefaultVendor_StopTranscript
 #
 
-# With this commented out, it will run the DefaultVendor_StartTranscript
-proc vendor_StartTranscript {FileName} {
-#  Do nothing - for now
-}
-# 
-proc vendor_StopTranscript {FileName} {
-  # This will have everything from a session rather than just the current build.
-  # OK for bring up
-  file copy   -force vivado.log ${FileName}
-}
+# XSIM 2024.2 uses tcl 8.6 so OSVVM's default logging should work
+#  # With this commented out, it will run the DefaultVendor_StartTranscript
+#  proc vendor_StartTranscript {FileName} {
+#  #  Do nothing - for now
+#  }
+#  # 
+#  proc vendor_StopTranscript {FileName} {
+#    # This will have everything from a session rather than just the current build.
+#    # OK for bring up
+#    file copy   -force vivado.log ${FileName}
+#  }
 
 # -------------------------------------------------
 # IsVendorCommand
