@@ -254,6 +254,12 @@ proc vendor_analyze_verilog {LibraryName File_Relative_Path args} {
 }
 
 # -------------------------------------------------
+proc NoNullRangeWarning  {} {
+  return "-nowarn COMP96_0119"
+}
+
+
+# -------------------------------------------------
 # End Previous Simulation
 #
 proc vendor_end_previous_simulation {} {
