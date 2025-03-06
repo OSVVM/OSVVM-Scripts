@@ -1050,6 +1050,13 @@ proc LocalAnalyze {FileName args} {
 }
 
 # -------------------------------------------------
+proc NoNullRangeWarning  {} {
+  return ""
+  -- -nowarn COMP96_0119
+}
+
+
+# -------------------------------------------------
 # Simulate
 #
 proc simulate {LibraryUnit args} {
@@ -1365,7 +1372,7 @@ proc TestName {Name} {
   variable TestSuiteName
 
   if {![info exists TestSuiteName]} {
-    if {[info exists VhdlWorkingLibrary]} {
+    if {[info exists ::osvvm::VhdlWorkingLibrary]} {
       TestSuite $::osvvm::VhdlWorkingLibrary
     } else {
       TestSuite $::osvvm::DefaultLibraryName
@@ -2136,7 +2143,7 @@ proc GetTimeString {} {
 # map
 
 namespace export analyze simulate build include library RunTest SkipTest TestSuite TestName TestCase
-namespace export generic DoWaves
+namespace export generic DoWaves NoNullRangeWarning
 namespace export IterateFile StartTranscript StopTranscript 
 namespace export RemoveLibrary RemoveLibraryDirectory RemoveAllLibraries RemoveLocalLibraries 
 namespace export CreateDirectory
