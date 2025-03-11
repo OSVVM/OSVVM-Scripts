@@ -490,8 +490,10 @@ proc OpenBuildHtml {{BuildName ""}} {
 }
 
 proc DefaultVendor_OpenBuildHtml {BuildHtmlFile} {
-  if {[regexp {[Ww]indows} $::env(OS)]} {
-    exec {*}[auto_execok start] "$BuildHtmlFile"
+  if {[info exists ::env(OS)]} {
+    if {[regexp {[Ww]indows} $::env(OS)]} {
+      exec {*}[auto_execok start] "$BuildHtmlFile"
+    }
   }
 }
 
