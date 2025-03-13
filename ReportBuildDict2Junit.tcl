@@ -188,14 +188,6 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
       puts $ResultsFile "   time=\"$ElapsedTime\""
       puts $ResultsFile ">"
       
-      if { $TestStatus eq "FAILED" } {
-        puts $ResultsFile "<failure message=\"$Reason\">$Reason</failure>"
-      
-      } elseif { $TestStatus eq "SKIPPED" } {
-        set Reason [dict get $TestResults Reason]
-        puts $ResultsFile "<skipped message=\"$Reason\">$Reason</skipped>"
-      }
-      
       if { [dict exists $TestCase Generics] } { 
         set TestCaseGenerics [dict get $TestCase Generics]
         if {${TestCaseGenerics} ne ""} {
@@ -205,6 +197,14 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
           }
           puts $ResultsFile "</properties> "
         }
+      }
+      
+      if { $TestStatus eq "FAILED" } {
+        puts $ResultsFile "<failure message=\"$Reason\">$Reason</failure>"
+      
+      } elseif { $TestStatus eq "SKIPPED" } {
+        set Reason [dict get $TestResults Reason]
+        puts $ResultsFile "<skipped message=\"$Reason\">$Reason</skipped>"
       }
       puts $ResultsFile "</testcase>"
     }
