@@ -46,28 +46,35 @@ namespace eval ::osvvm {
 # -------------------------------------------------
 # FindOsvvmSettingsDirectory
 #
-proc FindOsvvmSettingsDirectory {} {
-
-  if {[info exists ::env(OSVVM_SETTINGS_DIR)]} {
-    # if OSVVM_SETTINGS_DIR has an absolute path, CurrentSimulationDirectory/OsvvmHomeDirectory is ignored
-    if {$::osvvm::SettingsAreRelativeToSimulationDirectory} {
-      set SettingsDirectory [file join ${::osvvm::CurrentSimulationDirectory} $::env(OSVVM_SETTINGS_DIR) ${::osvvm::OsvvmSettingsSubDirectory}]
+proc FindOsvvmSettingsDirectory {{Subdirectory "osvvm"}} {
+  # note that OsvvmSettingsSubDirectory is "" for Scripts
+  if {! $::osvvm::SettingsAreRelativeToSimulationDirectory} {
+    if {[info exists ::env(OSVVM_SETTINGS_DIR)]} {
+      set SettingsDirectory [file normalize [file join ${::osvvm::OsvvmHomeDirectory} $::env(OSVVM_SETTINGS_DIR) ${::osvvm::OsvvmSettingsSubDirectory}]]
+    } elseif {[file isdirectory ${::osvvm::OsvvmHomeDirectory}/../OsvvmSettings]} {
+      set SettingsDirectory [file normalize [file join ${::osvvm::OsvvmHomeDirectory}/../OsvvmSettings ${::osvvm::OsvvmSettingsSubDirectory}]]
     } else {
-      set SettingsDirectory [file join ${::osvvm::OsvvmHomeDirectory} $::env(OSVVM_SETTINGS_DIR) ${::osvvm::OsvvmSettingsSubDirectory}]
+      puts "Caution: Putting setting in OsvvmLibraries directory structure"
+      set SettingsDirectory [file join ${::osvvm::OsvvmHomeDirectory} ${Subdirectory} ${::osvvm::OsvvmSettingsSubDirectory}]
     }
   } else {
-    if {$::osvvm::SettingsAreRelativeToSimulationDirectory} {
-      set SettingsDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmSettingsSubDirectory}]
+    puts "Warning: ::osvvm::SettingsAreRelativeToSimulationDirectory is false for Script settings and true for VHDL Settings"
+    if {[info exists ::env(OSVVM_SETTINGS_DIR)]} {
+      set SettingsDirectory [file normalize [file join ${::osvvm::CurrentSimulationDirectory} $::env(OSVVM_SETTINGS_DIR) ${::osvvm::OsvvmSettingsSubDirectory}]]
+    } elseif {[file isdirectory ${::osvvm::CurrentSimulationDirectory}/../OsvvmSettings]} {
+      set SettingsDirectory [file normalize [file join ${::osvvm::CurrentSimulationDirectory}/../OsvvmSettings ${::osvvm::OsvvmSettingsSubDirectory}]]
     } else {
-      set SettingsDirectory [file join ${::osvvm::OsvvmHomeDirectory} "osvvm" ${::osvvm::OsvvmSettingsSubDirectory}]
+      set SettingsDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${Subdirectory} ${::osvvm::OsvvmSettingsSubDirectory}]
     }
   }
+  
   CreateDirectory $SettingsDirectory
 #  set RelativeSettingsDirectory [::fileutil::relative [pwd] $SettingsDirectory]
 #  return $RelativeSettingsDirectory
   # Needs to be a normalized path
   return $SettingsDirectory
 }
+
 
 # -------------------------------------------------
 #  CreateOsvvmScriptSettingsPkg
