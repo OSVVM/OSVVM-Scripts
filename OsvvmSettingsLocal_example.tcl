@@ -154,7 +154,7 @@ namespace eval ::osvvm {
   #
   # VHDL Simulation Settings 
   #
-    #  variable DefaultVHDLVersion     "2008"      ; # OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
+    #  variable DefaultVHDLVersion     "2008"      ; # OSVVM requires >= 2008.  Valid values 1993, 2002, 2008, 2019
     #  variable SimulateTimeUnits      "ps"
     #  variable DefaultLibraryName     "DefaultLib"
 
