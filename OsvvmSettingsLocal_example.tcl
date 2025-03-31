@@ -111,9 +111,9 @@ namespace eval ::osvvm {
     # OsvvmSettingsSubDirectory 
     # Location for package bodies generated:  OsvvmScriptSettingsPkg_generated.vhd and OsvvmScriptSettingsPkg_generated.vhd
     # Project/User settings OsvvmSettingsPkg_local.vhd 
-    #    variable SettingsAreRelativeToSimulationDirectory "false"      ;# Setting deprecated.  Only use this value.
-    #    variable OsvvmSettingsSubDirectory      ""                     ;# default value
-    #    variable OsvvmSettingsSubDirectory      "${ToolName}"          ;# Recommended if running multiple simulators
+    #    Deprecated:  variable SettingsAreRelativeToSimulationDirectory "false"      ;# Setting deprecated.  false is the only legal value
+    #    variable OsvvmSettingsSubDirectory      ""                     ;# default value 
+    #    variable OsvvmSettingsSubDirectory      "${ToolName}"          ;# Recommended if running multiple simulators 
     #    variable OsvvmSettingsSubDirectory      "${ToolNameVersion}"   ;# Recommended if running multiple simulators
 
 

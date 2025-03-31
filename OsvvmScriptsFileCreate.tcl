@@ -46,33 +46,40 @@ namespace eval ::osvvm {
 # -------------------------------------------------
 # FindOsvvmSettingsDirectory
 #
-proc FindOsvvmSettingsDirectory {{Subdirectory "osvvm"}} {
-  # note that OsvvmSettingsSubDirectory is "" for Scripts
-  if {! $::osvvm::SettingsAreRelativeToSimulationDirectory} {
-    if {[info exists ::env(OSVVM_SETTINGS_DIR)]} {
-      set SettingsDirectory [file normalize [file join ${::osvvm::OsvvmHomeDirectory} $::env(OSVVM_SETTINGS_DIR) ${::osvvm::OsvvmSettingsSubDirectory}]]
-    } elseif {[file isdirectory ${::osvvm::OsvvmHomeDirectory}/../OsvvmSettings]} {
-      set SettingsDirectory [file normalize [file join ${::osvvm::OsvvmHomeDirectory}/../OsvvmSettings ${::osvvm::OsvvmSettingsSubDirectory}]]
-    } else {
-      puts "Caution: Putting setting in OsvvmLibraries directory structure"
-      set SettingsDirectory [file join ${::osvvm::OsvvmHomeDirectory} ${Subdirectory} ${::osvvm::OsvvmSettingsSubDirectory}]
-    }
+proc FindOsvvmSettingsDirectory {{OsvvmSubdirectory "osvvm"}} {
+  # When StartUpShared.tcl calls this to determine the value of ::osvvm::OsvvmUserSettingsDirectory, 
+  # OsvvmSettingsLocal.tcl has not been run yet, as a result,
+  #   * OsvvmSettingsSubDirectory will have its default value of "" and
+  #   * SettingsAreRelativeToSimulationDirectory will have its default value of false.
+  # For OsvvmSettingsSubDirectory, this is ok as it is only needed to differentiate the VHDL code and not the settings.
+  # SettingsAreRelativeToSimulationDirectory this is not ok and it usage has been deprecated. 
+  #    This was used to differentiate VHDL sources for different simulators - use OsvvmSettingsSubDirectory instead
+  #
+  
+  set SettingsRootDirectory ${::osvvm::OsvvmHomeDirectory}
+  if {$::osvvm::SettingsAreRelativeToSimulationDirectory} {
+    puts "WARNING:   SettingsAreRelativeToSimulationDirectory is deprecated.  Usage will generate an error in the future"
+    set SettingsRootDirectory [file normalize ${::osvvm::CurrentSimulationDirectory}]
+  }
+
+  if {[info exists ::env(OSVVM_SETTINGS_DIR)]} {
+    # Note that OSVVM_SETTINGS_DIR may be either a absolute or relative path
+    # For relative paths, use OsvvmHomeDirectory (location of OsvvmLibraries) as the base
+    set SettingsDirectory $::env(OSVVM_SETTINGS_DIR) 
+  } elseif {[file isdirectory ${SettingsRootDirectory}/../OsvvmSettings]} {
+    set SettingsDirectory ../OsvvmSettings 
   } else {
-    puts "Warning: ::osvvm::SettingsAreRelativeToSimulationDirectory is false for Script settings and true for VHDL Settings"
-    if {[info exists ::env(OSVVM_SETTINGS_DIR)]} {
-      set SettingsDirectory [file normalize [file join ${::osvvm::CurrentSimulationDirectory} $::env(OSVVM_SETTINGS_DIR) ${::osvvm::OsvvmSettingsSubDirectory}]]
-    } elseif {[file isdirectory ${::osvvm::CurrentSimulationDirectory}/../OsvvmSettings]} {
-      set SettingsDirectory [file normalize [file join ${::osvvm::CurrentSimulationDirectory}/../OsvvmSettings ${::osvvm::OsvvmSettingsSubDirectory}]]
-    } else {
-      set SettingsDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${Subdirectory} ${::osvvm::OsvvmSettingsSubDirectory}]
-    }
+    puts "Note: Putting setting in directory OsvvmLibraries/${OsvvmSubdirectory}"
+    set SettingsDirectory ${OsvvmSubdirectory} 
   }
   
-  CreateDirectory $SettingsDirectory
-#  set RelativeSettingsDirectory [::fileutil::relative [pwd] $SettingsDirectory]
+  set SettingsDirectoryFullPath [file normalize [file join ${SettingsRootDirectory} ${SettingsDirectory} ${::osvvm::OsvvmSettingsSubDirectory}]]
+    
+  CreateDirectory $SettingsDirectoryFullPath
+#  set RelativeSettingsDirectory [::fileutil::relative [pwd] $SettingsDirectoryFullPath]
 #  return $RelativeSettingsDirectory
   # Needs to be a normalized path
-  return $SettingsDirectory
+  return $SettingsDirectoryFullPath
 }
 
 
