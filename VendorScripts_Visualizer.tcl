@@ -90,7 +90,7 @@ package require fileutil
     variable ToolVersion tbd
   }
   
-  SetVHDLVersion 2019
+#  SetVHDLVersion 2019
 
   # Set if not set
   if {![info exists ::VoptArgs]} {

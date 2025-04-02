@@ -114,9 +114,9 @@ package require fileutil
     variable DebugOptions "+acc"
   }
   
-  if {[expr [string compare $ToolVersion "2024.2"] >= 0]} {
-    SetVHDLVersion 2019
-  }
+#  if {[expr [string compare $ToolVersion "2024.2"] >= 0]} {
+#    SetVHDLVersion 2019
+#  }
 
 # -------------------------------------------------
 # StartTranscript / StopTranscxript
