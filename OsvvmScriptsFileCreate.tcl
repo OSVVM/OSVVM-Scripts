@@ -63,7 +63,7 @@ proc FindOsvvmSettingsDirectory {{OsvvmSubdirectory "osvvm"}} {
   }
 
   if {[info exists ::env(OSVVM_SETTINGS_DIR)]} {
-    # Note that OSVVM_SETTINGS_DIR may be either a absolute or relative path
+    # Note that OSVVM_SETTINGS_DIR may be either an absolute or relative path
     # For relative paths, use OsvvmHomeDirectory (location of OsvvmLibraries) as the base
     set SettingsDirectory $::env(OSVVM_SETTINGS_DIR) 
   } elseif {[file isdirectory ${SettingsRootDirectory}/../OsvvmSettings]} {
