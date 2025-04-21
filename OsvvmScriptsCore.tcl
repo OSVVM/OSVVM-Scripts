@@ -1363,6 +1363,7 @@ proc TestSuite {SuiteName} {
   
   set   TestSuiteName $SuiteName
 
+  CheckWorkingDir
   CheckSimulationDirs
   CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${TestSuiteName}]
   CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ResultsDirectory} ${TestSuiteName}]
