@@ -1243,6 +1243,11 @@ proc CoSim {} {
   return ""
 }
 
+#--------------------------------------------------------------
+proc RemoveFilePathChars {PathString} {
+  return [regsub {:} [regsub -all {\/} ${PathString} "_"] ""]
+}
+
 # -------------------------------------------------
 proc generic {Name Value} {
   variable GenericDict
@@ -1250,7 +1255,7 @@ proc generic {Name Value} {
   variable GenericOptions
   
   dict append GenericDict $Name $Value
-  set GenericNames ${GenericNames}_${Name}_${Value}
+  set GenericNames ${GenericNames}_${Name}_[RemoveFilePathChars ${Value}]
 #x  lappend GenericOptions [vendor_generic ${Name} ${Value}] 
   append GenericOptions " " [vendor_generic ${Name} ${Value}]
   return ""
@@ -1279,7 +1284,7 @@ proc ToGenericNames {GenericDict} {
   set Names ""
   if {${GenericDict} ne ""} {
     foreach {GenericName GenericValue} $GenericDict {
-      set Names ${Names}_${GenericName}_${GenericValue}
+      set Names ${Names}_${GenericName}_[RemoveFilePathChars ${GenericValue}]
     }
   }
   return $Names
