@@ -214,9 +214,10 @@ namespace eval ::osvvm {
       set GenericNames ""
       if {[regexp {generic} $LineOfLogFile] } {
         set GenericDict [regsub {\].*} [regsub -all {[^\[]*\[generic ([^\]]*)} $LineOfLogFile {\1 }] ""]
-        foreach {name val} $GenericDict {
-          set GenericNames ${GenericNames}_${name}_${val}
-        }
+        set GenericNames [ToGenericNames $GenericDict]
+#        foreach {name val} $GenericDict {
+#          set GenericNames ${GenericNames}_${name}_${val}
+#        }
       }
       if {! $InRunTest} {
         puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary><span id=\"${LogTestSuiteName}_${LogTestCaseName}${GenericNames}\" />"

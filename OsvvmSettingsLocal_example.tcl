@@ -111,8 +111,10 @@ namespace eval ::osvvm {
     # OsvvmSettingsSubDirectory 
     # Location for package bodies generated:  OsvvmScriptSettingsPkg_generated.vhd and OsvvmScriptSettingsPkg_generated.vhd
     # Project/User settings OsvvmSettingsPkg_local.vhd 
-    #    variable SettingsAreRelativeToSimulationDirectory "false"
-    #    variable OsvvmSettingsSubDirectory      ""  
+    #    Deprecated:  variable SettingsAreRelativeToSimulationDirectory "false"      ;# Setting deprecated.  false is the only legal value
+    #    variable OsvvmSettingsSubDirectory      ""                     ;# default value 
+    #    variable OsvvmSettingsSubDirectory      "${ToolName}"          ;# Recommended if running multiple simulators 
+    #    variable OsvvmSettingsSubDirectory      "${ToolNameVersion}"   ;# Recommended if running multiple simulators
 
 
   #
@@ -152,7 +154,7 @@ namespace eval ::osvvm {
   #
   # VHDL Simulation Settings 
   #
-    #  variable DefaultVHDLVersion     "2008"      ; # OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
+    #  variable DefaultVHDLVersion     "2008"      ; # OSVVM requires >= 2008.  Valid values 1993, 2002, 2008, 2019
     #  variable SimulateTimeUnits      "ps"
     #  variable DefaultLibraryName     "DefaultLib"
 

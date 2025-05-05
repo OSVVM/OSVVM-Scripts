@@ -112,27 +112,15 @@ if {[file exists ${::osvvm::OsvvmScriptDirectory}/../CoSim]} {
 # Import any procedure exported by previous OSVVM scripts
 namespace import ::osvvm::*
 
-# --------------------------------
-#  Get Directory for User Settings 
-# --------------------------------
-if {[info exists ::env(OSVVM_SETTINGS_DIR)]} {
-  # file join supports either relative or absolute paths 
-  variable ::osvvm::OsvvmUserSettingsDirectory [file join $::osvvm::OsvvmScriptDirectory $::env(OSVVM_SETTINGS_DIR)]
-  if {![file isdirectory $::osvvm::OsvvmUserSettingsDirectory]} {
-    puts "ScriptError: OSVVM_SETTINGS_DIR not a directory:  $::env(OSVVM_SETTINGS_DIR)"
-    variable ::osvvm::OsvvmUserSettingsDirectory $::osvvm::OsvvmScriptDirectory
-  }
-} elseif {[file isdirectory $OsvvmLibraries/../OsvvmSettings] } {
-  variable ::osvvm::OsvvmUserSettingsDirectory [file $OsvvmLibraries/../OsvvmSettings]
-} else {
-  variable ::osvvm::OsvvmUserSettingsDirectory $::osvvm::OsvvmScriptDirectory
-}
 
 # --------------------------------
 # Settings:  OsvvmSettings*.tcl
 # --------------------------------
 # Settings First:  OSVVM Default Settings 
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsDefault.tcl
+
+# Get Directory for User settings
+variable ::osvvm::OsvvmUserSettingsDirectory [FindOsvvmSettingsDirectory "Scripts"]
 
 # Settings Second:  OSVVM User/Project Customizations - not required 
 if {[file exists ${::osvvm::OsvvmUserSettingsDirectory}/OsvvmSettingsLocal.tcl]} {
