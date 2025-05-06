@@ -2,6 +2,9 @@
 
 | **Revision**  |   **Release Summary**                                                                         | 
 |---------------|-----------------------------------------------------------------------------------------------| 
+| 2025.04       |  Updated handling of generic names to remove / and : from paths in file names                 |
+|               |  Updated OsvvmUserSettingsDirectory s.t. scripts and VHDL use same path                       |
+|               |  Turned off VHDL-2019 settings for Siemens as 2025.1 release claims they don't support it     |
 | 2025.02       |  Use $::env::(OSVVM_SETTINGS_DIR) to set the requirements directory.                          |
 |               |  USE_SUM_OF_GOALS requirements uses Sum of Goals (if true) vs Maximum (if false and past default)        |
 |               |  Updated requirements handling to handle Functional Coverage.                                 |
