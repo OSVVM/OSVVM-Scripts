@@ -233,7 +233,14 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
     set DebugOptions "-debug_access+all"
   }
 
-  set ElaborateOptions [concat -full64 -time $SimulateTimeUnits ${DebugOptions} {*}${ExtendedElaborateOptions} ${LibraryName}.${LibraryUnit}]
+  if {$::osvvm::GenericDict ne ""} {
+    set SynopsysGenericOptions "-lca -g synopsys_generics.txt"
+    CreateGenericFile ${::osvvm::GenericDict}
+  } else {
+    set SynopsysGenericOptions ""
+  }
+
+  set ElaborateOptions [concat -full64 -time $SimulateTimeUnits ${DebugOptions} {*}${ExtendedElaborateOptions} ${LibraryName}.${LibraryUnit} {*}${SynopsysGenericOptions}]
   puts "vcs ${ElaborateOptions}" 
   set VcsErrorCode [catch {exec vcs {*}${ElaborateOptions}} SimulateErrorMessage]
 #  puts "VcsErrorCode $VcsErrorCode" ;# returns 1 on success
@@ -245,13 +252,6 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 #  } else {
 #    puts $SimulateErrorMessage
 #  }
-
-  if {$::osvvm::GenericDict ne ""} {
-    set SynopsysGenericOptions "-lca -g synopsys_generics.txt"
-    CreateGenericFile ${::osvvm::GenericDict}
-  } else {
-    set SynopsysGenericOptions ""
-  }
   
   set SimulateOptions [concat {*}${ExtendedRunOptions} {*}${SynopsysGenericOptions} -ucli -do temp_Synopsys_run.tcl]
   puts "./simv ${SimulateOptions}" 
