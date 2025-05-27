@@ -64,6 +64,7 @@
 
   if {[expr [string compare $ToolVersion "12.0"] >= 0]} {
     SetVHDLVersion 2019
+    variable Support2019FilePath "true"
   }
 
   variable FunctionalCoverageIntegratedInSimulator "Aldec"
