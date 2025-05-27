@@ -253,7 +253,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 #    puts $SimulateErrorMessage
 #  }
   
-  set SimulateOptions [concat {*}${ExtendedRunOptions} {*}${SynopsysGenericOptions} -ucli -do temp_Synopsys_run.tcl]
+  set SimulateOptions [concat {*}${ExtendedRunOptions} -ucli -do temp_Synopsys_run.tcl]
   puts "./simv ${SimulateOptions}" 
   set SimVErrorCode [catch {exec ./simv {*}${SimulateOptions}} SimulateErrorMessage]
 #  puts "SimVErrorCode $SimVErrorCode" ; # returns 0 on success
