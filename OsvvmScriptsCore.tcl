@@ -1033,7 +1033,7 @@ proc LocalAnalyze {FileName args} {
     CallbackBefore_Analyze $FileName $args
     vendor_analyze_vhdl ${VhdlWorkingLibrary} ${NormFileName} ${AnalyzeOptions}
     CallbackAfter_Analyze $FileName $args
-  } elseif {$FileExtension eq ".v" || $FileExtension eq ".sv"} {
+  } elseif {$FileExtension eq ".v" || $FileExtension eq ".sv" || $FileExtension eq ".vh"} {
     if {$EffectiveCoverageAnalyzeEnable} {
       set AnalyzeOptions [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$args]
     } else {
