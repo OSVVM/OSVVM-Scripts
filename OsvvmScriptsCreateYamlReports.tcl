@@ -99,6 +99,7 @@ proc FinishBuildYaml {BuildName} {
 
   set   BuildFinishTime     [clock seconds]
   set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
+  puts  $RunFile "Name:     \"$BuildName\""
   puts  $RunFile "BuildInfo:"
   puts  $RunFile "  StartTime:            [GetIsoTime $BuildStartTime]"
   puts  $RunFile "  FinishTime:           [GetIsoTime $BuildFinishTime]"
