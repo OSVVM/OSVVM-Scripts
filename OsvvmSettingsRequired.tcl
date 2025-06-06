@@ -56,7 +56,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2025.04
+  variable OsvvmVersion 2025.06
   variable OsvvmBuildYamlVersion      2025.02
   variable OsvvmTestCaseYamlVersion   1.0
  # The following are set in VHDL code.  Either need to pass these or have it directly in the VHDL Code.
