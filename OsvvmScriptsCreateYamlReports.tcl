@@ -71,7 +71,7 @@ proc GetIsoTime {TimeSeconds} {
 }
 
 # -------------------------------------------------
-proc StartBuildYaml {BuildName} {
+proc StartBuildYaml {} {
   variable BuildStartTime
   variable BuildStartTimeMs
 

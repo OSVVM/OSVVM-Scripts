@@ -329,7 +329,13 @@ proc BeforeBuildCleanUp {} {
 }
 
 # -------------------------------------------------
-proc SetBuildName {Path_Or_File} {
+proc SetBuildName {ParamBuildName} {
+  set ::osvvm::BuildName      $ParamBuildName
+  set ::osvvm::LastBuildName  $ParamBuildName 
+}
+
+# -------------------------------------------------
+proc CreateDefaultBuildName {Path_Or_File} {
   # Create the Log File Name
   # Normalize to elaborate names, especially when Path_Or_File is "."
   set NormPathOrFile [file normalize ${Path_Or_File}]
@@ -340,14 +346,14 @@ proc SetBuildName {Path_Or_File} {
 
   if {$NormDirName eq $NormTailRoot} {
     # <Parent Dir>_<Script Name>.log
-#    set BuildName [file tail [file dirname $NormDir]]_${NormTailRoot}
+#    set LocalBuildName [file tail [file dirname $NormDir]]_${NormTailRoot}
     # <Script Name>.log
-    set BuildName ${NormTailRoot}
+    set LocalBuildName ${NormTailRoot}
   } else {
     # <Dir Name>_<Script Name>.log
-    set BuildName ${NormDirName}_${NormTailRoot}
+    set LocalBuildName ${NormDirName}_${NormTailRoot}
   }
-  return $BuildName
+  return $LocalBuildName
 }
 
 # -------------------------------------------------
@@ -375,16 +381,17 @@ proc build {{Path_Or_File "."} args} {
       BeforeBuildCleanUp   
       
       set BuildStarted "true"
-#      set BuildName [SetBuildName $Path_Or_File]
-      set BuildName [SetBuildName $IncludeFile]
-      set ::osvvm::LastBuildName $BuildName
+      if {$BuildName eq ""} {
+        SetBuildName [CreateDefaultBuildName $IncludeFile]
+      }
 
-      StartTranscript ${BuildName}
+      StartTranscript  ;# uses temporary name rather than BuildName - allows script to change BuildName
 
       #  Catch any errors from the build and handle them below
-      set BuildErrorCode [catch {LocalBuild $BuildName $IncludeFile {*}$args} BuildErrMsg]
+      set BuildErrorCode [catch {LocalBuild $IncludeFile {*}$args} BuildErrMsg]
       set LocalBuildErrorInfo $::errorInfo
       
+
       set ReportYamlErrorCode [catch {FinishBuildYaml $BuildName} BuildYamlErrMsg]
       set LocalBuildYamlErrorInfo $::errorInfo
 
@@ -396,12 +403,18 @@ proc build {{Path_Or_File "."} args} {
 
       StopTranscript ${BuildName}
       
-      set BuildName ""
-
       # Cannot generate html log files until transcript is closed - previous step
       set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
       set Log2ErrorInfo $::errorInfo
+      
+      # Move directory to BuildName
+      file rename -force ${::osvvm::OutputBaseDirectory} ${BuildName}
 
+      set BuildName ""
+
+      #
+      #  Wrap up with error handling via call backs
+      #
       # Run Callbacks on Error after trying to produce all reports
       if {$BuildErrorCode != 0 || $AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
         CallbackOnError_Build $Path_Or_File $BuildErrMsg $LocalBuildErrorInfo 
@@ -424,17 +437,18 @@ proc build {{Path_Or_File "."} args} {
   }
 }
 
-proc LocalBuild {BuildName Path_Or_File args} {
+proc LocalBuild {Path_Or_File args} {
   variable TestSuiteStartTimeMs
   variable RanSimulationWithCoverage 
   variable TestSuiteName
   variable OutputBaseDirectory
+  variable BuildName  ; # required to allow script to change BuildName
 
   puts "" ; # ensure that the next print is at the start of a line
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
   CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
-  StartBuildYaml $BuildName
+  StartBuildYaml  
   
   CallbackBefore_Build ${Path_Or_File}
   LocalInclude ${Path_Or_File} {*}$args
@@ -446,6 +460,7 @@ proc LocalBuild {BuildName Path_Or_File args} {
     unset TestSuiteName
   }
   
+  # Build is done  
   # Merge Requirements for Build
   set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${BuildName}]
   set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${BuildName}_req.yml]
@@ -460,30 +475,28 @@ proc LocalBuild {BuildName Path_Or_File args} {
 
 }
 
-proc AfterBuildReports {BuildName} {
+proc AfterBuildReports {ParamBuildName} {
 
   # short sleep to allow the file to close
   after 1000
-  set BuildYamlFile [file join ${::osvvm::OutputBaseDirectory} ${BuildName}.yml]
+  set BuildYamlFile [file join ${::osvvm::OutputBaseDirectory} ${ParamBuildName}.yml]
   file rename -force ${::osvvm::OsvvmBuildYamlFile} ${BuildYamlFile}
   CreateBuildReports ${BuildYamlFile}
-#  ReportBuildYaml2Dict ${BuildYamlFile}
-#  ReportBuildDict2Html
-#  ReportBuildDict2Junit
   if {($::osvvm::SimulateInteractive) && ($::osvvm::OpenBuildHtmlFile)} {
-    OpenBuildHtml ${BuildName}
+    OpenBuildHtml ${ParamBuildName}
   }
   
   ReportBuildStatus  
 }
 
-proc OpenBuildHtml {{BuildName ""}} {
-  if {$BuildName eq ""} {
-      set BuildName $::osvvm::LastBuildName
+proc OpenBuildHtml {{ParamBuildName ""}} {
+  if {$ParamBuildName eq ""} {
+      set ParamBuildName $::osvvm::LastBuildName
   }
-  set BuildHtmlFile [file join ${::osvvm::OutputBaseDirectory} ${BuildName}.html]
+#  set BuildHtmlFile [file join ${::osvvm::OutputBaseDirectory} ${ParamBuildName}.html]
+  set BuildHtmlFile [file join ${ParamBuildName} ${ParamBuildName}.html]
   if {![catch {info body vendor_OpenBuildHtml} err]} {
-    vendor_OpenBuildHtml $BuildHtmlFile $BuildName
+    vendor_OpenBuildHtml $BuildHtmlFile $ParamBuildName
   } else {
     DefaultVendor_OpenBuildHtml $BuildHtmlFile
   }
@@ -554,7 +567,8 @@ proc CheckLibraryInit {} {
   }
   if { ${VhdlLibraryParentDirectory} eq [pwd]} {
     # Local Library Directory - use OutputBaseDirectory
-    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
+#    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
+    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
   } else {
     # Global Library Directory - do not use OutputBaseDirectory
     set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
@@ -623,7 +637,7 @@ proc ReducePath {PathIn} {
 # StartTranscript
 #   Used by build
 #
-proc StartTranscript {FileBaseName} {
+proc StartTranscript {} {
 
   CheckWorkingDir
   

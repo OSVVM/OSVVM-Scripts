@@ -65,7 +65,7 @@ namespace eval ::osvvm {
   #
   # Directory structure and results file management
   #
-    variable OutputBaseDirectory        ""  
+    variable OutputBaseDirectory        "CurrentBuildDirectory"  
     variable LogSubdirectory            "logs/${ToolNameVersion}"
     variable ReportsSubdirectory        "reports"  ; # Directory scripts put reports into.
     variable ResultsSubdirectory        "results"  ; # Directory for files opened by TranscriptOpen
