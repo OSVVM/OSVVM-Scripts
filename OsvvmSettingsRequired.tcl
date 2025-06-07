@@ -174,6 +174,7 @@ namespace eval ::osvvm {
 
     # VhdlReportsDirectory:  OSVVM temporary location for yml.  Moved to ${ReportsDirectory}/${TestSuiteName}
 #    variable VhdlReportsDirectory     "" ;   # replaced by OsvvmTemporaryOutputDirectory
+    variable OsvvmIndexYamlFile  index.yml
 
     # OsvvmBuildYamlFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${BuildName}.yaml
     variable OsvvmBuildYamlFile     [file join ${OsvvmTemporaryOutputDirectory} "OsvvmRun.yml"] ;  

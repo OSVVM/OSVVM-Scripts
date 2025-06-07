@@ -330,14 +330,14 @@ proc BeforeBuildCleanUp {} {
 
 # -------------------------------------------------
 proc SetBuildName {ParamBuildName} {
-  set ::osvvm::BuildName      $ParamBuildName
-  set ::osvvm::LastBuildName  $ParamBuildName 
+  variable BuildName      $ParamBuildName
+  variable LastBuildName  $ParamBuildName 
 }
 
 # -------------------------------------------------
 proc CreateDefaultBuildName {Path_Or_File} {
   # Create the Log File Name
-  # Normalize to elaborate names, especially when Path_Or_File is "."
+  # Normalize to elaborate names, especiallyStartUp when Path_Or_File is "."
   set NormPathOrFile [file normalize ${Path_Or_File}]
   set NormDir        [file dirname $NormPathOrFile]
   set NormDirName    [file tail $NormDir]
@@ -409,6 +409,10 @@ proc build {{Path_Or_File "."} args} {
       
       # Move directory to BuildName
       file rename -force ${::osvvm::OutputBaseDirectory} ${BuildName}
+
+      WriteIndexYaml $BuildName
+      Index2Html
+      # IndexToHtml 
 
       set BuildName ""
 

@@ -85,43 +85,111 @@ proc StartBuildYaml {} {
   puts  $RunFile "Date: $StartTime"
   close $RunFile
 }
-
 # -------------------------------------------------
-proc FinishBuildYaml {BuildName} {
+proc WriteBuildInfoYaml {RunFile BuildName {NamePrefix ""} {InfoPrefix ""} } {
   variable BuildStartTime
   variable BuildStartTimeMs
   variable BuildErrorCode
   variable AnalyzeErrorCount
   variable SimulateErrorCount
+  variable BuildFinishTime
+  variable BuildElapsedTime
+  
+  puts  $RunFile "${NamePrefix}Name:     \"$BuildName\""
+  puts  $RunFile "${InfoPrefix}BuildInfo:"
+  puts  $RunFile "${InfoPrefix}  StartTime:            [GetIsoTime $BuildStartTime]"
+  puts  $RunFile "${InfoPrefix}  FinishTime:           [GetIsoTime $BuildFinishTime]"
+  puts  $RunFile "${InfoPrefix}  Elapsed:              [ElapsedTimeMs $BuildStartTimeMs]"
+  if {$::osvvm::ToolArgs eq ""} {
+    puts  $RunFile "${InfoPrefix}  Simulator:            \"${::osvvm::ToolName}\""
+  } else { 
+    puts  $RunFile "${InfoPrefix}  Simulator:            \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
+  }
+  puts  $RunFile "${InfoPrefix}  SimulatorVersion:     \"$::osvvm::ToolVersion\""
+  puts  $RunFile "${InfoPrefix}  OsvvmVersion:         \"$::osvvm::OsvvmVersion\""
+
+  puts  $RunFile "${InfoPrefix}  BuildErrorCode:       $BuildErrorCode"
+  puts  $RunFile "${InfoPrefix}  AnalyzeErrorCount:    $AnalyzeErrorCount"
+  puts  $RunFile "${InfoPrefix}  SimulateErrorCount:   $SimulateErrorCount"
+}
+
+# -------------------------------------------------
+proc FinishBuildYaml {BuildName} {
+  variable BuildStartTime
+  variable BuildFinishTime
+  variable BuildElapsedTime
 
   # Print Elapsed time for last TestSuite (if any ran) and the entire build
   set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} a]
 
   set   BuildFinishTime     [clock seconds]
   set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
-  puts  $RunFile "Name:     \"$BuildName\""
-  puts  $RunFile "BuildInfo:"
-  puts  $RunFile "  StartTime:            [GetIsoTime $BuildStartTime]"
-  puts  $RunFile "  FinishTime:           [GetIsoTime $BuildFinishTime]"
-  puts  $RunFile "  Elapsed:              [ElapsedTimeMs $BuildStartTimeMs]"
-  if {$::osvvm::ToolArgs eq ""} {
-    puts  $RunFile "  Simulator:            \"${::osvvm::ToolName}\""
-  } else { 
-    puts  $RunFile "  Simulator:            \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
-  }
-  puts  $RunFile "  SimulatorVersion:     \"$::osvvm::ToolVersion\""
-  puts  $RunFile "  OsvvmVersion:         \"$::osvvm::OsvvmVersion\""
-
-  puts  $RunFile "  BuildErrorCode:       $BuildErrorCode"
-  puts  $RunFile "  AnalyzeErrorCount:    $AnalyzeErrorCount"
-  puts  $RunFile "  SimulateErrorCount:   $BuildErrorCode"
   
+  WriteBuildInfoYaml $RunFile $BuildName 
+    
   WriteOsvvmSettingsYaml $RunFile
 
   close $RunFile
 
   puts "Build Start time  [clock format $BuildStartTime -format {%T %Z %a %b %d %Y }]"
   puts "Build Finish time [clock format $BuildFinishTime -format %T], Elapsed time: [format %d:%02d:%02d [expr ($BuildElapsedTime/(60*60))] [expr (($BuildElapsedTime/60)%60)] [expr (${BuildElapsedTime}%60)]] "
+}
+
+
+# -------------------------------------------------
+proc WriteIndexYaml {BuildName} {
+  variable BuildStartTime
+  variable BuildStartTimeMs
+  variable BuildElapsedTime
+  variable AnalyzeErrorCount
+  variable SimulateErrorCount
+  
+  variable BuildStatus 
+  variable TestCasesPassed 
+  variable TestCasesFailed 
+  variable TestCasesSkipped 
+  variable TestCasesRun 
+  variable ReportBuildErrorCode
+  variable ReportAnalyzeErrorCount
+  variable ReportSimulateErrorCount
+  variable ToolName
+  variable ToolArgs
+  variable ToolVersion
+  variable OsvvmVersion
+  variable BuildFinishTime
+
+
+
+  # Print Elapsed time for last TestSuite (if any ran) and the entire build
+  if {[file exists ${::osvvm::OsvvmIndexYamlFile}]} { 
+    set   RunFile  [open ${::osvvm::OsvvmIndexYamlFile} a]
+  } else {
+    set   RunFile  [open ${::osvvm::OsvvmIndexYamlFile} w]
+    puts $RunFile "Builds:"
+  }
+  
+  # WriteBuildInfoYaml $RunFile $BuildName "  - " "    "
+  puts  $RunFile "  - Name:     \"$BuildName\""
+  puts  $RunFile "    Status:              \"${BuildStatus}\""
+  puts  $RunFile "    Passed:              \"${TestCasesPassed}\""
+  puts  $RunFile "    Failed:              \"${TestCasesFailed}\""
+  puts  $RunFile "    Skipped:             \"${TestCasesSkipped}\""
+  puts  $RunFile "    Run:                 \"${TestCasesRun}\""
+  puts  $RunFile "    AnalyzeErrorCount:   \"$AnalyzeErrorCount\""
+  puts  $RunFile "    SimulateErrorCount:  \"$SimulateErrorCount\""
+  puts  $RunFile "    BuildErrorCode:      \"$ReportBuildErrorCode\""
+  puts  $RunFile "    StartTime:           \"[GetIsoTime $BuildStartTime]\""
+  puts  $RunFile "    FinishTime:          \"[GetIsoTime $BuildFinishTime]\""
+  puts  $RunFile "    Elapsed:             \"$BuildElapsedTime\""
+  if {$::osvvm::ToolArgs eq ""} {
+    puts  $RunFile "    ToolName:            \"${ToolName}\""
+  } else { 
+    puts  $RunFile "    ToolName:            \"${ToolName} ${ToolArgs}\""
+  }
+  puts  $RunFile "    ToolVersion:          \"$ToolVersion\""
+  puts  $RunFile "    OsvvmVersion:         \"$OsvvmVersion\""
+
+  close $RunFile
 }
 
 # -------------------------------------------------

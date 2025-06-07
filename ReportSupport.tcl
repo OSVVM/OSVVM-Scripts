@@ -44,7 +44,7 @@ package require yaml
 # -------------------------------------------------
 # CreateOsvvmReportHeader
 #
-proc CreateOsvvmReportHeader {ResultsFile ReportName {RelativePath ""}} {
+proc CreateOsvvmReportHeader {ResultsFile ReportName {RelativePath ""} {IncludeLogo 0} } {
   
   puts $ResultsFile "<!DOCTYPE html>"
   puts $ResultsFile "<html lang=\"en\">"
@@ -55,9 +55,22 @@ proc CreateOsvvmReportHeader {ResultsFile ReportName {RelativePath ""}} {
   puts $ResultsFile "  <title>$ReportName</title>"
   puts $ResultsFile "</head>"
   puts $ResultsFile "<body>"
-  puts $ResultsFile "<header>"
-  puts $ResultsFile "  <h1>$ReportName</h1>"
-  puts $ResultsFile "</header>"
+  if {$IncludeLogo} {
+    puts $ResultsFile "<header>"
+    puts $ResultsFile "  <div class=\"summary-parent\">"
+    puts $ResultsFile "    <div class=\"summary-table\">"
+    puts $ResultsFile "      <h1>$ReportName</h1>"
+    puts $ResultsFile "    </div>"
+    
+    LinkLogoFile $ResultsFile $RelativePath "requirements-logo"
+
+    puts $ResultsFile "  </div>"
+    puts $ResultsFile "</header>"
+  } else {
+    puts $ResultsFile "<header>"
+    puts $ResultsFile "  <h1>$ReportName</h1>"
+    puts $ResultsFile "</header>"
+  }
   puts $ResultsFile "<main>"
 }
 
@@ -122,10 +135,10 @@ proc LinkCssFiles {ResultsFile {RelativePath ""}} {
 # -------------------------------------------------
 # LinkLogoFile
 #
-proc LinkLogoFile {ResultsFile {RelativePath ""}} {
+proc LinkLogoFile {ResultsFile {RelativePath ""} {LogoClass "summary-logo"}} {
   variable Report2PngFile
   
-  puts $ResultsFile "    <div class=\"summary-logo\">"
+  puts $ResultsFile "    <div class=\"$LogoClass\">"
 	puts $ResultsFile "    	 <img id=\"logo\" src=\"[file join $RelativePath $Report2PngFile]\" alt=\"OSVVM logo\">"
   puts $ResultsFile "    </div>"
 }
