@@ -329,7 +329,7 @@ proc BeforeBuildCleanUp {} {
 }
 
 # -------------------------------------------------
-proc SetBuildName {ParamBuildName} {
+proc BuildName {ParamBuildName} {
   variable BuildName      $ParamBuildName
   variable LastBuildName  $ParamBuildName 
 }
@@ -382,7 +382,7 @@ proc build {{Path_Or_File "."} args} {
       
       set BuildStarted "true"
       if {$BuildName eq ""} {
-        SetBuildName [CreateDefaultBuildName $IncludeFile]
+        BuildName [CreateDefaultBuildName $IncludeFile]
       }
 
       StartTranscript  ;# uses temporary name rather than BuildName - allows script to change BuildName
@@ -493,16 +493,24 @@ proc AfterBuildReports {ParamBuildName} {
   ReportBuildStatus  
 }
 
+proc OpenIndex {} {
+  LocalOpenHtml index.html
+}
+
 proc OpenBuildHtml {{ParamBuildName ""}} {
   if {$ParamBuildName eq ""} {
       set ParamBuildName $::osvvm::LastBuildName
   }
 #  set BuildHtmlFile [file join ${::osvvm::OutputBaseDirectory} ${ParamBuildName}.html]
   set BuildHtmlFile [file join ${ParamBuildName} ${ParamBuildName}.html]
+  LocalOpenHtml $BuildHtmlFile $ParamBuildName
+}
+
+proc LocalOpenHtml {HtmlFile {ParamBuildName ""}} {
   if {![catch {info body vendor_OpenBuildHtml} err]} {
-    vendor_OpenBuildHtml $BuildHtmlFile $ParamBuildName
+    vendor_OpenBuildHtml $HtmlFile $ParamBuildName
   } else {
-    DefaultVendor_OpenBuildHtml $BuildHtmlFile
+    DefaultVendor_OpenBuildHtml $HtmlFile
   }
 }
 
@@ -513,7 +521,6 @@ proc DefaultVendor_OpenBuildHtml {BuildHtmlFile} {
     }
   }
 }
-
 
 # -------------------------------------------------
 # CreateDirectory - Create directory if does not exist
@@ -2168,7 +2175,7 @@ proc GetTimeString {} {
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
-namespace export analyze simulate build include library RunTest SkipTest TestSuite TestName TestCase
+namespace export analyze simulate build include library RunTest SkipTest TestSuite TestName TestCase BuildName
 namespace export generic DoWaves NoNullRangeWarning
 namespace export IterateFile StartTranscript StopTranscript 
 namespace export RemoveLibrary RemoveLibraryDirectory RemoveAllLibraries RemoveLocalLibraries 
@@ -2197,7 +2204,7 @@ namespace export OsvvmLibraryPath
 namespace export JoinWorkingDirectory ChangeWorkingDirectory
 namespace export EndSimulation 
 namespace export FindLibraryPathByName CoSim
-namespace export OpenBuildHtml
+namespace export OpenBuildHtml OpenIndex
 namespace export GetTimeString
 
 # Exported only for tesing purposes
