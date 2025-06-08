@@ -408,7 +408,12 @@ proc build {{Path_Or_File "."} args} {
       set Log2ErrorInfo $::errorInfo
       
       # Move directory to BuildName
-      file rename -force ${::osvvm::OutputHomeDirectory} [file join ${::osvvm::OutputBaseDirectory} ${BuildName}]
+      set TargetDirectory [file join ${::osvvm::OutputBaseDirectory} ${BuildName}]
+      if {[file exists $TargetDirectory]} {
+        puts "New TargetDirectory matches old one. Deleting old $TargetDirectory "
+        file delete -force $TargetDirectory
+      }
+      file rename -force ${::osvvm::OutputHomeDirectory} $TargetDirectory
 
       WriteIndexYaml $BuildName
       Index2Html
