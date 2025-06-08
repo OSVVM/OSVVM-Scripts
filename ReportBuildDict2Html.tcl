@@ -50,6 +50,7 @@
 #
 
 package require yaml
+package require fileutil
 
 #  Notes:  
 #  The following variables are set by GetPathSettings that read the YAML file
@@ -197,8 +198,10 @@ proc CreateHtmlSummary {TestDict} {
   if {$::osvvm::Report2CoverageSubdirectory ne ""} {
     puts $ResultsFile "          <tr><td>Code Coverage</td><td><a href=\"${::osvvm::Report2CoverageSubdirectory}\">Code Coverage Results</a></td></tr>"
   }
-
-  puts $ResultsFile "          <tr><td>Build Index</td><td><a href=\"../index.html\">../index.html</a></td></tr>"
+  
+  set IndexPath [file normalize [file join $::osvvm::CurrentSimulationDirectory index.html]]
+  set RelativeIndexPath  "[::fileutil::relative [file normalize [file join ${::osvvm::OutputBaseDirectory} $ReportBuildName]] $IndexPath]"
+  puts $ResultsFile "          <tr><td>Build Index</td><td><a href=\"$RelativeIndexPath\">index.html</a></td></tr>"
 
   puts $ResultsFile "        </tbody>"
   puts $ResultsFile "      </table>"

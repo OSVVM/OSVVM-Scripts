@@ -42,16 +42,6 @@
 
 package require yaml
 
-#  Notes:  
-#  The following variables are set by GetPathSettings that read the YAML file
-#      Report2HtmlThemeDirectory 
-#      Report2BaseDirectory
-#      Report2ReportsSubdirectory
-#      Report2LogSubdirectory
-#      Report2HtmlThemeSourceDirectory
-#      Report2RequirementsSubdirectory - value is "" if requirements not used
-#      Report2CoverageSubdirectory - value is "" if coverage not used
-#
 
 
 # -------------------------------------------------
@@ -74,7 +64,7 @@ proc Index2Html {} {
   close $ResultsFile
 
   if {$ErrorCode} {
-    CallbackOnError_ReportBuildDict2Html index.html $errmsg
+    CallbackOnError_Index2Html index.html $errmsg
   }
 }
 
@@ -87,7 +77,7 @@ proc LocalIndex2Html {} {
   variable FirstBuildName
   
   set FirstBuildName [dict get [lindex $IndexDict 0] Name]
-  CreateOsvvmReportHeader $ResultsFile "Index of Builds" $FirstBuildName 1
+  CreateOsvvmReportHeader $ResultsFile "Index of Builds" [file join $::osvvm::OutputBaseDirectory $FirstBuildName] 1
   
   CreateBuildIndexHeader 
   
@@ -153,7 +143,7 @@ proc CreateBuildIndexSummary  {} {
     }
 
     puts $ResultsFile "          <tr>"
-    puts $ResultsFile "            <td><a href=\"./${BuildItemName}/${BuildItemName}.html\">${BuildItemName}</a></td>"
+    puts $ResultsFile "            <td><a href=\"[file join $::osvvm::OutputBaseDirectory ${BuildItemName}/${BuildItemName}.html]\">${BuildItemName}</a></td>"
     puts $ResultsFile "            <td ${StatusClass}>$BuildStatus</td>"
     puts $ResultsFile "            <td ${PassedClass}>[dict get $BuildItem Passed] </td>"
     puts $ResultsFile "            <td ${FailedClass}>[dict get $BuildItem Failed] </td>"

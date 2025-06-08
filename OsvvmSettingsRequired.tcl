@@ -56,6 +56,8 @@
 
 namespace eval ::osvvm {
 
+  variable OutputHomeDirectory    [file join $OutputBaseDirectory  $OutputSubdirectory] 
+
   variable OsvvmVersion 2025.06
   variable OsvvmBuildYamlVersion      2025.02
   variable OsvvmTestCaseYamlVersion   1.0
@@ -122,12 +124,12 @@ namespace eval ::osvvm {
   # Create derived directory paths
   #
     variable OsvvmCoSimDirectory  ${OsvvmHomeDirectory}/CoSim
-    variable ReportsDirectory     [file join ${OutputBaseDirectory} ${ReportsSubdirectory}]
-    variable ResultsDirectory     [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
-    variable CoverageDirectory    [file join ${OutputBaseDirectory} ${CoverageSubdirectory}]
-    variable LogDirectory         [file join ${OutputBaseDirectory} ${LogSubdirectory}]
+    variable ReportsDirectory     [file join ${OutputHomeDirectory} ${ReportsSubdirectory}]
+    variable ResultsDirectory     [file join ${OutputHomeDirectory} ${ResultsSubdirectory}]
+    variable CoverageDirectory    [file join ${OutputHomeDirectory} ${CoverageSubdirectory}]
+    variable LogDirectory         [file join ${OutputHomeDirectory} ${LogSubdirectory}]
     variable HtmlThemeSubdirectory      [file join ${ReportsSubdirectory}]
-    variable HtmlThemeDirectory         [file join ${OutputBaseDirectory} ${HtmlThemeSubdirectory}]
+    variable HtmlThemeDirectory         [file join ${OutputHomeDirectory} ${HtmlThemeSubdirectory}]
 
   #
   #  Initialize OSVVM Internals
@@ -176,13 +178,13 @@ namespace eval ::osvvm {
 #    variable VhdlReportsDirectory     "" ;   # replaced by OsvvmTemporaryOutputDirectory
     variable OsvvmIndexYamlFile  index.yml
 
-    # OsvvmBuildYamlFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${BuildName}.yaml
+    # OsvvmBuildYamlFile: temporary OSVVM name moved to ${OutputHomeDirectory}/${BuildName}.yaml
     variable OsvvmBuildYamlFile     [file join ${OsvvmTemporaryOutputDirectory} "OsvvmRun.yml"] ;  
 
     #  TranscriptYamlFile: temporary file that contains set of files used in TranscriptOpen.  Deleted by scripts.
     variable TranscriptYamlFile     [file join ${OsvvmTemporaryOutputDirectory} "OSVVM_transcript.yml"] ;  
     
-    # OsvvmBuildLogFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${LogSubDirectory}/${BuildName}.log
+    # OsvvmBuildLogFile: temporary OSVVM name moved to ${OutputHomeDirectory}/${LogSubDirectory}/${BuildName}.log
     variable OsvvmBuildLogFile      [file join ${OsvvmTemporaryOutputDirectory} "OsvvmBuild.log"] ;  
     
 

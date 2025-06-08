@@ -408,7 +408,7 @@ proc build {{Path_Or_File "."} args} {
       set Log2ErrorInfo $::errorInfo
       
       # Move directory to BuildName
-      file rename -force ${::osvvm::OutputBaseDirectory} ${BuildName}
+      file rename -force ${::osvvm::OutputHomeDirectory} [file join ${::osvvm::OutputBaseDirectory} ${BuildName}]
 
       WriteIndexYaml $BuildName
       Index2Html
@@ -445,13 +445,13 @@ proc LocalBuild {Path_Or_File args} {
   variable TestSuiteStartTimeMs
   variable RanSimulationWithCoverage 
   variable TestSuiteName
-  variable OutputBaseDirectory
+  variable OutputHomeDirectory
   variable BuildName  ; # required to allow script to change BuildName
 
   puts "" ; # ensure that the next print is at the start of a line
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
-  CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
+  CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputHomeDirectory} $::osvvm::HtmlThemeSubdirectory
   StartBuildYaml  
   
   CallbackBefore_Build ${Path_Or_File}
@@ -483,7 +483,7 @@ proc AfterBuildReports {ParamBuildName} {
 
   # short sleep to allow the file to close
   after 1000
-  set BuildYamlFile [file join ${::osvvm::OutputBaseDirectory} ${ParamBuildName}.yml]
+  set BuildYamlFile [file join ${::osvvm::OutputHomeDirectory} ${ParamBuildName}.yml]
   file rename -force ${::osvvm::OsvvmBuildYamlFile} ${BuildYamlFile}
   CreateBuildReports ${BuildYamlFile}
   if {($::osvvm::SimulateInteractive) && ($::osvvm::OpenBuildHtmlFile)} {
@@ -501,8 +501,8 @@ proc OpenBuildHtml {{ParamBuildName ""}} {
   if {$ParamBuildName eq ""} {
       set ParamBuildName $::osvvm::LastBuildName
   }
-#  set BuildHtmlFile [file join ${::osvvm::OutputBaseDirectory} ${ParamBuildName}.html]
-  set BuildHtmlFile [file join ${ParamBuildName} ${ParamBuildName}.html]
+#  set BuildHtmlFile [file join ${::osvvm::OutputHomeDirectory} ${ParamBuildName}.html]
+  set BuildHtmlFile [file join ${::osvvm::OutputBaseDirectory} ${ParamBuildName} ${ParamBuildName}.html]
   LocalOpenHtml $BuildHtmlFile $ParamBuildName
 }
 
@@ -559,8 +559,8 @@ proc CheckWorkingDir {} {
     }
     puts "set CurrentSimulationDirectory $CurrentDir"
     set CurrentSimulationDirectory $CurrentDir
-    if {${::osvvm::OutputBaseDirectory} ne ""} {
-      CreateDirectory ${::osvvm::OutputBaseDirectory}
+    if {${::osvvm::OutputHomeDirectory} ne ""} {
+      CreateDirectory ${::osvvm::OutputHomeDirectory}
     }
   }
 }
@@ -577,11 +577,11 @@ proc CheckLibraryInit {} {
     set VhdlLibraryParentDirectory [pwd]
   }
   if { ${VhdlLibraryParentDirectory} eq [pwd]} {
-    # Local Library Directory - use OutputBaseDirectory
-#    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
-    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
+    # Local Library Directory - use OutputHomeDirectory
+    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
+#    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
   } else {
-    # Global Library Directory - do not use OutputBaseDirectory
+    # Global Library Directory - do not use OutputHomeDirectory
     set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
   }
 }
@@ -683,7 +683,7 @@ proc StopTranscript {{FileBaseName ""}} {
 
   flush stdout
   
-  set FullPathLogDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
+  set FullPathLogDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OutputHomeDirectory} ${::osvvm::LogSubdirectory}]
   CreateDirectory          $FullPathLogDirectory
 
   set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildLogFile}]
@@ -1092,7 +1092,7 @@ proc simulate {LibraryUnit args} {
   set SavedInteractive [GetInteractiveMode] 
   if {!($::osvvm::BuildStarted)} {
     SetInteractiveMode "true"
-    CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
+    CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputHomeDirectory} $::osvvm::HtmlThemeSubdirectory
   }
 
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
@@ -1968,7 +1968,7 @@ proc InstallProject { {ProjectDir $OsvvmLibraries} {ProjectBuildScript $ProjectD
   # Save current log file settings and temporarily override it
   set      CurLogSubDirectory           $::osvvm::LogSubdirectory
   variable ::osvvm::LogSubdirectory     "logs"                 ;# default value is "logs/${ToolNameVersion}"
-  variable ::osvvm::LogDirectory        [file join ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
+  variable ::osvvm::LogDirectory        [file join ${::osvvm::OutputHomeDirectory} ${::osvvm::LogSubdirectory}]
 #  variable ::osvvm::VhdlLibraryDirectory       "VHDL_LIBS"
 
 #  build ../../OsvvmLibraries.pro
@@ -1976,7 +1976,7 @@ proc InstallProject { {ProjectDir $OsvvmLibraries} {ProjectBuildScript $ProjectD
 
   # Restore log file settings 
   variable ::osvvm::LogSubdirectory     $CurLogSubDirectory
-  variable ::osvvm::LogDirectory        [file join ${::osvvm::OutputBaseDirectory} ${::osvvm::LogSubdirectory}]
+  variable ::osvvm::LogDirectory        [file join ${::osvvm::OutputHomeDirectory} ${::osvvm::LogSubdirectory}]
 
   # Restore SimulationDirectory and LibraryDirectory
   cd $StartingDirectory
@@ -2078,8 +2078,8 @@ proc SimulateDoneMoveTestCaseFiles {} {
     file delete -force -- ${::osvvm::TranscriptYamlFile}
   }
 
-##  CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
-#  FindHtmlThemeFiles ${::osvvm::OutputBaseDirectory} $::osvvm::HtmlThemeSubdirectory
+##  CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputHomeDirectory} $::osvvm::HtmlThemeSubdirectory
+#  FindHtmlThemeFiles ${::osvvm::OutputHomeDirectory} $::osvvm::HtmlThemeSubdirectory
 #  
 #  if {([GetTranscriptType] eq "html") && ($BuildName ne "")} {
 #    set SimulationHtmlLogFile [file join ${::osvvm::LogSubdirectory} ${BuildName}_log.html]

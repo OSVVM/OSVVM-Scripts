@@ -103,10 +103,10 @@ proc CreateOsvvmScriptSettingsPkg {SettingsDirectory} {
   } else {
     puts $FileHandle "  constant OSVVM_RAW_OUTPUT_DIRECTORY   : string := \"${::osvvm::OsvvmTemporaryOutputDirectory}/\" ;"
   }
-  if {${::osvvm::OutputBaseDirectory} eq ""} {
+  if {${::osvvm::OutputHomeDirectory} eq ""} {
     puts $FileHandle "  constant OSVVM_BASE_OUTPUT_DIRECTORY  : string := \"\" ;"
   } else {
-    puts $FileHandle "  constant OSVVM_BASE_OUTPUT_DIRECTORY  : string := \"${::osvvm::OutputBaseDirectory}/\" ;"
+    puts $FileHandle "  constant OSVVM_BASE_OUTPUT_DIRECTORY  : string := \"${::osvvm::OutputHomeDirectory}/\" ;"
   }
   puts $FileHandle "  constant OSVVM_BUILD_YAML_FILE        : string := \"${::osvvm::OsvvmBuildYamlFile}\" ;"
   puts $FileHandle "  constant OSVVM_TRANSCRIPT_YAML_FILE   : string := \"${::osvvm::TranscriptYamlFile}\" ;"

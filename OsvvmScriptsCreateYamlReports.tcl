@@ -226,7 +226,7 @@ proc WriteDictOfString2Yaml {YamlFile DictName {StringValue ""} {Prefix ""} } {
 proc WriteOsvvmSettingsYaml {ReportFile} {
   
   puts  $ReportFile "OsvvmSettingsInfo:"
-  puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OutputBaseDirectory\""
+  puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OutputHomeDirectory\""
   puts  $ReportFile "  ReportsSubdirectory:  \"$::osvvm::ReportsSubdirectory\""
 #  puts  $ReportFile "  HtmlThemeSubdirectory:      \"$::osvvm::HtmlThemeSubdirectory\""  
   if {$::osvvm::TranscriptExtension ne "none"} {

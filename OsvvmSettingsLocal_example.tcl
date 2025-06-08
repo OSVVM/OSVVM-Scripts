@@ -67,16 +67,16 @@ namespace eval ::osvvm {
     # variable ClockResetVersion 2024.05
 
     #  Base directory for other OSVVM created directories 
-    #  variable OutputBaseDirectory        ""                          ;# put output in $CurrentSimulationDirectory
-    #  variable OutputBaseDirectory        "osvvm"                     ;# put output in $CurrentSimulationDirectory/osvvm
+    #  variable OutputHomeDirectory        ""                          ;# put output in $CurrentSimulationDirectory
+    #  variable OutputHomeDirectory        "osvvm"                     ;# put output in $CurrentSimulationDirectory/osvvm
 
-    #  Directory for log files = $OutputBaseDirectory/$LogSubdirectory
+    #  Directory for log files = $OutputHomeDirectory/$LogSubdirectory
     #    Contains simulator transcript in text and optionally html
     #    ToolNameVersion = <ToolName>-<Version>
     #  variable LogSubdirectory            "logs/${ToolNameVersion}"   ;# default value
     #  variable LogSubdirectory            "logs"                      ;# log directory without tool information
 
-    #  Directory for OSVVM generated reports = $OutputBaseDirectory/$ReportsSubdirectory
+    #  Directory for OSVVM generated reports = $OutputHomeDirectory/$ReportsSubdirectory
     #    Contains Test Case Report with Alerts, Functional Coverage, and Scoreboards
     #  variable ReportsSubdirectory        "reports"                   ;# default value
 
@@ -84,15 +84,15 @@ namespace eval ::osvvm {
     #    Contains files created by AlertLogPkg.TranscriptOpen
     #  variable ResultsSubdirectory        "results"                   ;# default value
 
-    # Code Coverage Directory = $OutputBaseDirectory/$CoverageSubdirectory
+    # Code Coverage Directory = $OutputHomeDirectory/$CoverageSubdirectory
     #    Code coverage collected by the simulator
     #  variable CoverageSubdirectory       "CodeCoverage"              ;# default value
 
     #  Library Directory structure is defined by
-    #  [file join $VhdlLibraryParentDirectory $OutputBaseDirectory $VhdlLibraryDirectory $VhdlLibrarySubdirectory]
+    #  [file join $VhdlLibraryParentDirectory $OutputHomeDirectory $VhdlLibraryDirectory $VhdlLibrarySubdirectory]
     #
     #  Library Parent Directory
-    #    If "", use $OutputBaseDirectory as base
+    #    If "", use $OutputHomeDirectory as base
     #    If has an absolute path, use the absolute path as the library parent directory
     #  variable VhdlLibraryParentDirectory ""                          ;# default value
     #  variable VhdlLibraryParentDirectory  "C:/tools"                 ;# put libraries in temp space

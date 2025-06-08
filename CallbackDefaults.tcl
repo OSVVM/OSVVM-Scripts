@@ -218,6 +218,11 @@ namespace eval ::osvvm {
     LocalOnError_BuildReports ReportBuildYaml2Dict $FileName $errmsg
   }  
 
+  proc CallbackOnError_Index2Html {FileName errmsg} {
+    set ::osvvm::Report2HtmlErrorInfo $::errorInfo
+    LocalOnError_BuildReports Index2Html $FileName $errmsg
+  }  
+  
   proc CallbackOnError_ReportBuildDict2Html {FileName errmsg} {
     set ::osvvm::Report2HtmlErrorInfo $::errorInfo
     LocalOnError_BuildReports ReportBuildDict2Html $FileName $errmsg
