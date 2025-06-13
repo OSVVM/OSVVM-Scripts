@@ -425,8 +425,11 @@ proc build {{Path_Or_File "."} args} {
       #  Wrap up with error handling via call backs
       #
       # Run Callbacks on Error after trying to produce all reports
-      if {$BuildErrorCode != 0 || $AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
+      if {$BuildErrorCode != 0} {   
         CallbackOnError_Build $Path_Or_File $BuildErrMsg $LocalBuildErrorInfo 
+      } 
+      if {$AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {   
+        CallbackOnError_Build $Path_Or_File "Failed with Analyze Errors: $AnalyzeErrorCount and/or Simulate Errors: $SimulateErrorCount" $LocalBuildErrorInfo 
       } 
       if {($ReportErrorCode != 0) || ($ScriptErrorCount != 0)} {  
         CallbackOnError_AfterBuildReports $LocalReportErrorInfo
@@ -569,6 +572,8 @@ proc CheckWorkingDir {} {
     }
   }
 }
+
+
 
 # -------------------------------------------------
 # CheckLibraryInit
