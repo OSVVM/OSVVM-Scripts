@@ -155,7 +155,7 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
     set VHDL_RESOURCE_LIBRARY_PATHS ""
   }
   if {[lsearch $VHDL_RESOURCE_LIBRARY_PATHS "*${PathToLib}"] < 0} {
-    lappend VHDL_RESOURCE_LIBRARY_PATHS "-P$PathToLib"
+    lappend VHDL_RESOURCE_LIBRARY_PATHS "-L $PathToLib"
   }
 }
 
@@ -166,7 +166,7 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
   # Was last library in directory deleted?
   if {[lsearch $LibraryList "* ${PathToLib}"] < 0} {
     # Remove it from NVC Library Paths
-    set found [lsearch $VHDL_RESOURCE_LIBRARY_PATHS "-P$PathToLib"]
+    set found [lsearch $VHDL_RESOURCE_LIBRARY_PATHS "-L $PathToLib"]
     if {$found >= 0} {
       set VHDL_RESOURCE_LIBRARY_PATHS [lreplace $VHDL_RESOURCE_LIBRARY_PATHS $found $found]
     }
