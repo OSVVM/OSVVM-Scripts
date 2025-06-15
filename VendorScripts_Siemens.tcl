@@ -59,7 +59,7 @@ package require fileutil
   variable ToolType    "simulator"
   variable ToolVendor  "Siemens"
   variable SiemensVsimError 0
-  onElabError {set ::osvvm::SiemensVsimError 1}
+  catch {onElabError {set ::osvvm::SiemensVsimError 1}}
   
   if {![catch {vsimVersionString} msg]} {
     set VersionString [vsimVersionString]
@@ -83,7 +83,11 @@ package require fileutil
     variable shell ""
     variable SiemensSimulateOptions ""
     if {[batch_mode]} {
-      variable ToolArgs $argv
+      if {[regexp {\-batch} $argv]} {
+        variable ToolArgs "-batch"
+      } else {
+        variable ToolArgs "-c"
+      }
 #      variable shell "exec"
 #      variable SiemensSimulateOptions $argv
       variable NoGui "true"
@@ -127,7 +131,9 @@ proc vendor_StartTranscript {FileName} {
 #  puts "NoGui: $NoGui"
 
   if {$NoGui} {
-    DefaultVendor_StartTranscript $FileName
+    if {![regexp {\-batch} $::osvvm::ToolArgs]} {
+      DefaultVendor_StartTranscript $FileName
+    }
   } else {
     transcript file ""
     echo transcript file $FileName
@@ -141,7 +147,9 @@ proc vendor_StopTranscript {FileName} {
   # FileName not used here
 #  transcript file ""
   if {$NoGui} {
-    DefaultVendor_StopTranscript $FileName
+    if {![regexp {\-batch} $::osvvm::ToolArgs]} {
+      DefaultVendor_StopTranscript $FileName
+    }
   } else {
     transcript file ""
   }
