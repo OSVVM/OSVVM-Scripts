@@ -435,7 +435,7 @@ proc build {{Path_Or_File "."} args} {
         CallbackOnError_AfterBuildReports $LocalReportErrorInfo
       } 
       # Fail on Test Case Errors
-      if {($::osvvm::BuildStatus eq "FAILED") && ($::osvvm::FailOnTestCaseErrors)} {
+      if {($::osvvm::BuildStatus ne "PASSED") && ($::osvvm::FailOnTestCaseErrors)} {
           error "Test finished with Test Case Errors"
       }
       # Fail on Report / Script Errors?
@@ -700,12 +700,16 @@ proc StopTranscript {{FileBaseName ""}} {
   set TranscriptFileName [file join ${FullPathLogDirectory} ${FileBaseName}.log]
   if {![catch {info body vendor_StopTranscript} err]} {
     vendor_StopTranscript $TempTranscriptName
-    file rename -force ${TempTranscriptName} ${TranscriptFileName}
+#    file rename -force ${TempTranscriptName} ${TranscriptFileName}
+    file copy   -force ${TempTranscriptName} ${TranscriptFileName}
+    file delete -force ${TempTranscriptName} 
 
   } else {
     DefaultVendor_StopTranscript $TempTranscriptName
     if {$::osvvm::GotTee} {
-      file rename -force ${TempTranscriptName} ${TranscriptFileName}
+#       file rename -force ${TempTranscriptName} ${TranscriptFileName}
+      file copy   -force ${TempTranscriptName} ${TranscriptFileName}
+      file delete -force ${TempTranscriptName} 
     } else {
       file copy   -force ${TempTranscriptName} ${TranscriptFileName}
     }
