@@ -396,20 +396,23 @@ their corresponding directories exist.
 .. code:: tcl
 
    include ./osvvm/osvvm.pro
-   include ./Common/Common.pro
+   include ./Common
  
    if {[DirectoryExists UART]} { 
-     include ./UART/UART.pro
+     include ./UART
    }
    if {[DirectoryExists AXI4]} { 
-     include ./AXI4/AXI4.pro
+     include ./AXI4
    }
    if {[DirectoryExists DpRam]} { 
-     include ./DpRam/DpRam.pro
+     include ./DpRam
    }
 
 Note the paths specified to include are relative to OsvvmLibriaries 
-directory since that is where OsvvmLibraries.pro is located.
+directory since that is where OsvvmLibraries.pro is located.  Note
+that the includes above only specify directory names.   When this
+happens, include looks for a file of the name build.pro or naming
+pattern <DirectoryName>.pro.
 
 Include sets the tcl variables $::ARGC and $::ARGV (an array).    
 Rather than using these it is recommended to use tcl procedures.   
