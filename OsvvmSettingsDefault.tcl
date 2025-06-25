@@ -65,8 +65,14 @@ namespace eval ::osvvm {
   #
   # Directory structure and results file management
   #
-    variable OutputBaseDirectory        ""  
+    # OsvvmTemporaryOutputDirectory is where temporary OSVVM output goes.   
+    # Caution:  If you change the value of OsvvmTemporaryOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
+    # Files only remain in this directory when a tool does not complete correctly
+    variable OsvvmTemporaryOutputDirectory   "" ; # Temporary directory for OSVVM Ouput
+    variable OutputBaseDirectory        ""      ; # Container for all OSVVM ouput
     variable OutputSubdirectory         "CurrentBuildDirectory"  
+#    variable OutputSubdirectory         "CurrentBuildDirectory_${ToolNameVersion}"   ; # temporary directory name.  Replaced by BuildName
+#    variable OutputSubdirectory         "CurrentBuildDirectory_${ToolName}"  
     variable LogSubdirectory            "logs/${ToolNameVersion}"
     variable ReportsSubdirectory        "reports"  ; # Directory scripts put reports into.
     variable ResultsSubdirectory        "results"  ; # Directory for files opened by TranscriptOpen
@@ -77,10 +83,6 @@ namespace eval ::osvvm {
     variable VhdlLibraryDirectory       "VHDL_LIBS"
     variable VhdlLibrarySubdirectory    "${ToolNameVersion}"
     
-    # OsvvmTemporaryOutputDirectory is where temporary OSVVM output goes.   
-    # Caution:  If you change the value of OsvvmTemporaryOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
-    # Files only remain in this directory when a tool does not complete correctly
-    variable OsvvmTemporaryOutputDirectory   ""
     
     # OsvvmSettingsSubDirectory 
     # Location for package local and generated package bodies 

@@ -20,6 +20,7 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#     6/2025   2025.06    Moved SimulateRunScripts to OsvvmScriptsSimulateSupport.tcl.  
 #     1/2025   2025.01    Added GetTimeString.  
 #                         Moved CreateOsvvmScriptSettingsPkg and FindOsvvmSettingsDirectory to OsvvmScriptsFileCreate.tcl
 #     7/2024   2024.07    Updated LocalInclude to better restore state if the include fails
@@ -65,7 +66,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2018 - 2024 by SynthWorks Design Inc.
+#  Copyright (c) 2018 - 2025 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -1211,55 +1212,6 @@ proc AfterSimulateReports {} {
   FinishSimulateBuildYaml 
 }
 
-proc RunIfFileExists {ScriptToRun} {
-  if {[file exists $ScriptToRun]} {
-    source ${ScriptToRun}
-  }
-}
-
-proc SimulateRunDesignScripts {TestName Directory} {
-  variable ToolName
-  
-  RunIfFileExists [file join ${Directory} ${TestName}.tcl]
-  RunIfFileExists [file join ${Directory} ${TestName}_${ToolName}.tcl]
-}
-
-proc SimulateRunSubScripts {LibraryUnit Directory} {
-  variable TestCaseName 
-  variable ToolVendor 
-  variable ToolName 
-  variable NoGui 
-  
-  RunIfFileExists [file join ${Directory} ${ToolVendor}.tcl]
-  RunIfFileExists [file join ${Directory} ${ToolName}.tcl]
-  if {! $NoGui} {
-    if {[catch {RunIfFileExists [file join ${Directory} wave.do]} errorMsg]} {
-      CallbackOnError_WaveDo $errorMsg $::errorInfo $Directory $LibraryUnit  
-    }
-  }
-  SimulateRunDesignScripts ${LibraryUnit} ${Directory}
-  if {$TestCaseName ne $LibraryUnit} {
-    SimulateRunDesignScripts ${TestCaseName} ${Directory}
-  }
-}
-
-proc SimulateRunScripts {LibraryUnit} {
-  variable  OsvvmScriptDirectory
-  variable  CurrentSimulationDirectory
-  variable  CurrentWorkingDirectory
-  
-  set NormalizedSimulationDirectory [file normalize $CurrentSimulationDirectory]
-  set NormalizedWorkingDirectory    [file normalize $CurrentWorkingDirectory]
-  set NormalizedScriptDirectory     [file normalize $OsvvmScriptDirectory]
-  
-  SimulateRunSubScripts ${LibraryUnit} ${CurrentWorkingDirectory}
-  if {${NormalizedSimulationDirectory} ne ${NormalizedWorkingDirectory}} {
-    SimulateRunSubScripts ${LibraryUnit} ${CurrentSimulationDirectory}
-  }
-  if {(${NormalizedScriptDirectory} ne ${NormalizedWorkingDirectory}) && (${NormalizedScriptDirectory} ne ${NormalizedSimulationDirectory})} {
-    SimulateRunSubScripts ${LibraryUnit} ${OsvvmScriptDirectory}
-  }
-}
 
 proc FindProjectFile { ProjectFile } {
   variable  OsvvmScriptDirectory
