@@ -57,6 +57,7 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Aldec"
   variable ToolName    "VSimSA"
+#  variable ToolName    "ActiveHDL"
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   variable ToolVersion [lindex [split $version] [llength $version]-1]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
@@ -80,7 +81,7 @@
 #
 proc vendor_StartTranscript {FileName} {
   transcript off
-  echo transcript to $FileName
+  puts "transcript to $FileName"
   transcript to $FileName
 }
 
@@ -120,11 +121,11 @@ proc vendor_library {LibraryName PathToLib} {
   set PathAndLib ${PathToLib}/${LibraryName}
 
   if {![file exists ${PathAndLib}]} {
-    echo vlib    ${PathAndLib}
+    puts "vlib    ${PathAndLib}"
          vlib    ${PathAndLib}
-    after 1000
+    # after 1000
   }
-  echo vmap    $LibraryName  ${PathAndLib}
+  puts "vmap    $LibraryName  ${PathAndLib}"
        vmap    $LibraryName  ${PathAndLib}
 }
 
@@ -136,7 +137,7 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
   } else {
     set ResolvedLib ${PathToLib}
   }
-  echo vmap    $LibraryName  ${ResolvedLib}
+  puts "vmap    $LibraryName  ${ResolvedLib}"
        vmap    $LibraryName  ${ResolvedLib}
 }
 

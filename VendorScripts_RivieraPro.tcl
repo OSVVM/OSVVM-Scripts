@@ -83,7 +83,7 @@
 #
 proc vendor_StartTranscript {FileName} {
   transcript file ""
-  echo transcript file $FileName
+  puts "transcript file $FileName"
   transcript file $FileName
 }
 
@@ -120,7 +120,7 @@ proc vendor_SetCoverageSimulateDefaults {} {
 # Library
 #
 proc vendor_vlib {PathAndLib} {
-    after 1000
+    # after 1000
     puts "vlib    ${PathAndLib}"
           vlib    ${PathAndLib}
 }

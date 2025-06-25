@@ -294,7 +294,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   cd $MY_START_DIR
   
   SimulateRunScripts ${LibraryUnit}
-
+  cd $MY_START_DIR
 
   if {$::osvvm::LogSignals} {
     puts "log -rec [env]/*"
