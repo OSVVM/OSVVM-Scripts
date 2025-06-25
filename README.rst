@@ -277,9 +277,9 @@ the method required by each simulator.
 .. code:: tcl
 
    library  default
-   simulate Tb [generic WIDTH 8]
-   simulate Tb [generic G1 5] [generic G2 7]
-   
+    RunTest Tb_xMii1.vhd [generic MII_INTERFACE RGMII] [generic MII_BPS BPS_1G]
+    simulate Tb_xMii1 [generic MII_INTERFACE MII]  [generic MII_BPS BPS_10M]   
+
 Release 2022.09 removed the necessity to put quotes around the options specified with simulate.
 
 Debugging and Logging Signal Values (for later display)
