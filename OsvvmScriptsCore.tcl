@@ -1415,6 +1415,15 @@ proc RunTest {FileName {SimName ""} args} {
 }
 
 # -------------------------------------------------
+# RunAllTests
+#
+proc RunAllTests {{TestFilePrefix ""} args} {
+  foreach Test [glob [file join $::osvvm::CurrentWorkingDirectory ${TestFilePrefix}*.vhd]] {
+    RunTest $Test
+  }
+}
+
+# -------------------------------------------------
 # SkipTest
 #
 proc SkipTest { {FileName "NotProvided.vhd"} {Reason "Not Provided"} } {
