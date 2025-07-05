@@ -52,10 +52,10 @@ proc Index2Html {} {
   variable IndexDict
 
   # Read the YAML file into a dictionary
-  set IndexDict [dict get [::yaml::yaml2dict -file index.yml] Builds]
+  set IndexDict [dict get [::yaml::yaml2dict -file ${::osvvm::OsvvmIndexYamlFile}] Builds]
 
   # Open results file  
-  set ResultsFile [open index.html w]
+  set ResultsFile [open $::osvvm::OsvvmIndexHtmlFile w]
   
   # Convert YAML file to HTML & catch results
   set ErrorCode [catch {LocalIndex2Html} errmsg]
@@ -64,7 +64,7 @@ proc Index2Html {} {
   close $ResultsFile
 
   if {$ErrorCode} {
-    CallbackOnError_Index2Html index.html $errmsg
+    CallbackOnError_Index2Html $::osvvm::OsvvmIndexHtmlFile $errmsg
   }
 }
 
@@ -77,7 +77,8 @@ proc LocalIndex2Html {} {
   variable FirstBuildName
   
   set FirstBuildName [dict get [lindex $IndexDict 0] Name]
-  CreateOsvvmReportHeader $ResultsFile "Index of Builds" [file join $::osvvm::OutputBaseDirectory $FirstBuildName] 1
+#   CreateOsvvmReportHeader $ResultsFile "Index of Builds" [file join $::osvvm::OutputBaseDirectory $FirstBuildName] 1
+  CreateOsvvmReportHeader $ResultsFile "Index of Builds" $FirstBuildName 1
   
   CreateBuildIndexHeader 
   
@@ -143,7 +144,8 @@ proc CreateBuildIndexSummary  {} {
     }
 
     puts $ResultsFile "          <tr>"
-    puts $ResultsFile "            <td><a href=\"[file join $::osvvm::OutputBaseDirectory ${BuildItemName}/${BuildItemName}.html]\">${BuildItemName}</a></td>"
+#    puts $ResultsFile "            <td><a href=\"[file join $::osvvm::OutputBaseDirectory ${BuildItemName}/${BuildItemName}.html]\">${BuildItemName}</a></td>"
+    puts $ResultsFile "            <td><a href=\"${BuildItemName}/${BuildItemName}.html\">${BuildItemName}</a></td>"
     puts $ResultsFile "            <td ${StatusClass}>$BuildStatus</td>"
     puts $ResultsFile "            <td ${PassedClass}>[dict get $BuildItem Passed] </td>"
     puts $ResultsFile "            <td ${FailedClass}>[dict get $BuildItem Failed] </td>"

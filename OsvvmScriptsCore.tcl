@@ -503,7 +503,7 @@ proc AfterBuildReports {ParamBuildName} {
 }
 
 proc OpenIndex {} {
-  LocalOpenHtml index.html
+  LocalOpenHtml $::osvvm::OsvvmIndexHtmlFile
 }
 
 proc OpenBuildHtml {{ParamBuildName ""}} {
