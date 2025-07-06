@@ -158,8 +158,8 @@ proc CreatePathPkg {BaseName {SettingsDirectory ""}} {
 #  CreateTestCaseCommonPkg
 #
 proc CreateTestCaseCommonPkg { {PackageName "TestCaseCommonPkg"} {ValidatedResults "../ValidatedResults"} } {
-  set CurrentDir ""
-#  set CurrentDir ${::osvvm::CurrentWorkingDirectory}
+#  set CurrentDir ""
+  set CurrentDir [file normalize ${::osvvm::CurrentWorkingDirectory}]
   set NewFileName            [file join ${CurrentDir} "NewCreateTestCaseCommonPkg.vhd"] 
   if {${::osvvm::OutputBaseDirectory} eq ""} {
     set FileBaseName ""
