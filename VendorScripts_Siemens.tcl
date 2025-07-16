@@ -64,7 +64,15 @@ package require fileutil
   if {![catch {vsimVersionString} msg]} {
     set VersionString [vsimVersionString]
   } else {
-    set VersionString [exec vsim -version]
+    set VersionString [exec vsim -version &2>1]
+    puts $VersionString
+  }
+
+  if {![catch {vsimId} msg]} {
+    variable ToolVersion [vsimId]
+  } else {
+    regexp {(vsim\s+)(\d+\.\d+\S*)} $VersionString s1 s2 s3
+    variable ToolVersion $s3
   }
 
   if {[info exists ::ToolName]} {
@@ -79,6 +87,8 @@ package require fileutil
   }
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   
+  variable ToolNameVersion ${ToolName}-${ToolVersion}
+
   if {![catch {batch_mode} msg]} {
     variable shell ""
     variable SiemensSimulateOptions ""
@@ -104,12 +114,6 @@ package require fileutil
     variable NoGui "true"
   }
   
-  if {![catch {vsimId} msg]} {
-    variable ToolVersion [vsimId]
-  } else {
-    set ToolVersion tbd
-  }
-  variable ToolNameVersion ${ToolName}-${ToolVersion}
   
   if {[expr [string compare $ToolVersion "2020.1"] >= 0]} {
 #    variable DebugOptions "-debug,cell"
@@ -160,7 +164,7 @@ proc vendor_StopTranscript {FileName} {
 #
 proc IsVendorCommand {LineOfText} {
 
-  return [regexp {^vlib |^vmap |^vcom |^vlog |^vsim |^run |^coverage |^vcover } $LineOfText] 
+  return [regexp {^vlib |^vmap |^vcom |^vlog |^vopt |^vsim |^run |^coverage |^vcover } $LineOfText] 
 }
 
 # -------------------------------------------------
@@ -241,7 +245,10 @@ proc vendor_end_previous_simulation {} {
     }
   }  
   
-  quit -sim
+  if {$::osvvm::shell ne "exec"} {
+    puts "quit -sim"
+    quit -sim
+  }
 }
 
 # -------------------------------------------------
@@ -315,6 +322,14 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestSuiteName
   variable TestCaseFileName
   
+  # Create the script files
+  set ErrorCode [catch {vendor_CreateSimulateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
+  if {$ErrorCode != 0} {
+    PrintWithPrefix "Error:" $CatchMessage
+    puts $::errorInfo
+    error "Failed: vendor_CreateSimulateDoFile $LibraryUnit"
+  } 
+
   if {($::osvvm::NoGui) || !($::osvvm::Debug)} {
     set SimulateOptions $::osvvm::SiemensSimulateOptions
   } else {
@@ -326,26 +341,50 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   } else {
     set WaveOptions ""
   }
-  set SimulateOptions [concat $SimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} ${WaveOptions} -suppress 8683 -suppress 8684]
+  set SimulateOptions [concat $SimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
 
-#  puts "vsim {*}${SimulateOptions}"
-  eval $::osvvm::shell vsim {*}${SimulateOptions}
+  puts "vsim {*}${SimulateOptions} {*}${WaveOptions} -do \"exit -code \[catch {source OsvvmSimRun.tcl}\]\""
+  set ErrorCode [catch {$::osvvm::shell vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 
+  if {$ErrorCode != 0} {
+    PrintWithPrefix "Error:" $CatchMessage
+    puts $::errorInfo
+    error "Failed: simulate $LibraryUnit"
+  } else {
+    puts $CatchMessage
+  }
+}
+
+# -------------------------------------------------
+# vendor_CreateSimulateDoFile
+#
+proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
+  variable ScriptFile 
+  
+  # Open File
+  set ScriptFile [open $ScriptFileName w]
+  
+  # Do Vendor Simulate pre-run stuff here
   
   # Historical name.  Must be run with "do" for actions to work
-  if {[file exists ${OsvvmScriptDirectory}/Siemens.do]} {
-    do ${OsvvmScriptDirectory}/Siemens.do
+  if {[file exists ${::osvvm::OsvvmScriptDirectory}/Siemens.do]} {
+    puts  $ScriptFile  "do ${::osvvm::OsvvmScriptDirectory}/Siemens.do"
   }
-  
-  SimulateRunScripts ${LibraryUnit}
-  
+
+  SimulateCreateDoFile $LibraryUnit
+
   if {$::osvvm::LogSignals} {
-    catch {add log -r [env]/*}
+    puts $ScriptFile "catch {add log -r [env]/*}"
   }
-  run -all 
+
+  puts  $ScriptFile "run -all" 
   
+  # Save Coverage Information
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
-    coverage save ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.ucdb 
+    puts $ScriptFile "coverage save ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.ucdb"
   }
+  
+#  puts  $ScriptFile "quit" 
+  close $ScriptFile
 }
 
 # -------------------------------------------------

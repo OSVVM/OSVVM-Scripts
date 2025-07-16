@@ -149,7 +149,7 @@ proc vendor_StopTranscript {FileName} {
 #
 proc IsVendorCommand {LineOfText} {
 
-  return [regexp {^vlib |^vmap |^vcom |^vlog |^vsim |^run |^coverage |^vcover } $LineOfText] 
+  return [regexp {^vlib |^vmap |^vcom |^vlog |^vopt |^vsim |^run |^coverage |^vcover } $LineOfText] 
 }
 
 # -------------------------------------------------
@@ -334,7 +334,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
 #  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
 #  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions}]
-  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args}]
+#  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args}]
+  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} -suppress 8683 -suppress 8684]
 
   puts "vsim {*}${SimulateOptions} {*}${WaveOptions} -do \"exit -code \[catch {source OsvvmSimRun.tcl}\]\""
   set ErrorCode [catch {$::osvvm::shell vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 

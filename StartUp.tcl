@@ -73,7 +73,10 @@ namespace eval ::osvvm {
   variable ToolExecutable [info nameofexecutable]
   variable ToolExecutableName [file rootname [file tail $ToolExecutable]]
 
-  if {[info exists aldec]} {
+  if {[info exists ::env(OSVVM_TOOL)]} {
+    variable ScriptBaseName $::env(OSVVM_TOOL)
+    
+  } elseif {[info exists aldec]} {
     variable ToolFamily [lindex [split [vsim -version]] 2]
     if {$ToolFamily eq "Riviera-PRO"} { 
       variable ScriptBaseName   "RivieraPro"
@@ -116,9 +119,10 @@ namespace eval ::osvvm {
 
   } else {
     variable ScriptBaseName "GHDL"
-    if {[info exists ::env(OSVVM_TOOL)]} {
-      variable ScriptBaseName $::env(OSVVM_TOOL)
-    }
+    # now done at beginning
+    # if {[info exists ::env(OSVVM_TOOL)]} {
+    #   variable ScriptBaseName $::env(OSVVM_TOOL)
+    # }
   }
 }
 
