@@ -291,7 +291,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestSuiteName
   variable TestCaseFileName
   
-  if {($::osvvm::NoGui) || !($::osvvm::Debug)} {
+  if {($::osvvm::Debug)} {
 	  set OptimizeOptions $::osvvm::DebugOptions
   } else {
 	  set OptimizeOptions " "

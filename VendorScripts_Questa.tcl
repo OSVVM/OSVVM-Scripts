@@ -338,7 +338,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} -suppress 8683 -suppress 8684]
 
   puts "vsim {*}${SimulateOptions} {*}${WaveOptions} -do \"exit -code \[catch {source OsvvmSimRun.tcl}\]\""
-  set ErrorCode [catch {$::osvvm::shell vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 
+#  set ErrorCode [catch {$::osvvm::shell vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 
+  set ErrorCode [catch {exec vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 
   if {$ErrorCode != 0} {
     PrintWithPrefix "Error:" $CatchMessage
     puts $::errorInfo
