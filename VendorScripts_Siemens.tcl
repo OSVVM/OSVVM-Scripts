@@ -91,7 +91,6 @@ package require fileutil
 
   if {![catch {batch_mode} msg]} {
     variable shell ""
-    variable SiemensSimulateOptions ""
     if {[batch_mode]} {
       if {[regexp {\-batch} $argv]} {
         variable ToolArgs "-batch"
@@ -99,7 +98,7 @@ package require fileutil
         variable ToolArgs "-c"
       }
 #      variable shell "exec"
-#      variable SiemensSimulateOptions $argv
+      variable SiemensSimulateOptions $ToolArgs
       variable NoGui "true"
     } else {
       variable ToolArgs "-gui"
@@ -108,7 +107,7 @@ package require fileutil
     }
   } else {
     # Started from Shell
-    variable SiemensSimulateOptions "-batch"
+    variable SiemensSimulateOptions "-c"
     variable shell "exec"
     variable ToolArgs "none"
     variable NoGui "true"
@@ -374,7 +373,7 @@ proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
   SimulateCreateDoFile $LibraryUnit
 
   if {$::osvvm::LogSignals} {
-    puts $ScriptFile "catch {add log -r [env]/*}"
+    puts $ScriptFile "catch {add log -r \[env\]/*}"
   }
 
   puts  $ScriptFile "run -all" 

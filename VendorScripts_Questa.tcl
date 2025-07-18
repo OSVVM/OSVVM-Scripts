@@ -368,7 +368,7 @@ proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
   SimulateCreateDoFile $LibraryUnit
 
   if {$::osvvm::LogSignals} {
-    puts $ScriptFile "catch {add log -r [env]/*}"
+    puts $ScriptFile "catch {add log -r \[env\]/*}"
   }
 
   puts  $ScriptFile "run -all" 
