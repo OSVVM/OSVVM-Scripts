@@ -2,6 +2,11 @@
 
 | **Revision**  |   **Release Summary**                                                                         | 
 |---------------|-----------------------------------------------------------------------------------------------| 
+| 2025.06       |  Move build results to build directory.  BuildName introduced to name it.                     |
+|               |  Create Index.html in the sim directory                                                       |
+|               |  Updated Siemens (vsim flow) and Questa (vopt + vsim flow) scripts to run in tclsh better.    |
+|               |  Added CreateTestCaseCommonPkg.   Added RunAllTests.  Added .vh as a Verilog file.            |
+|               |  Support for Questa's vsim -batch                                                             |
 | 2025.02       |  Use $::env::(OSVVM_SETTINGS_DIR) to set the requirements directory.                          |
 |               |  USE_SUM_OF_GOALS requirements uses Sum of Goals (if true) vs Maximum (if false and past default)        |
 |               |  Updated requirements handling to handle Functional Coverage.                                 |
