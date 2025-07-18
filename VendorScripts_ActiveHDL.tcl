@@ -69,6 +69,7 @@
 
   if {[expr [string compare $ToolVersion "12.0"] >= 0]} {
     SetVHDLVersion 2019
+    variable Support2019FilePath "true"
   }
 
   variable FunctionalCoverageIntegratedInSimulator "Aldec"
@@ -293,7 +294,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   cd $MY_START_DIR
   
   SimulateRunScripts ${LibraryUnit}
-
+  cd $MY_START_DIR
 
   if {$::osvvm::LogSignals} {
     puts "log -rec [env]/*"

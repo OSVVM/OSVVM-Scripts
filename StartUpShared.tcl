@@ -78,6 +78,7 @@ variable OsvvmLibraries $::osvvm::OsvvmHomeDirectory
 # --------------------------------
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCreateYamlReports.tcl   ;#  Helpers for creating YAML files
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsCore.tcl                ;#  OSVVM Core API
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsSimulateSupport.tcl     ;#  OSVVM Simulate Support Scripts - should this be called by OsvvmScriptsCore after proc simulate?
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsFileCreate.tcl          ;#  OSVVM API for file creation
 
 # --------------------------------

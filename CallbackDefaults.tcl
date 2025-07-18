@@ -95,12 +95,20 @@ namespace eval ::osvvm {
 # CallbackOnError_Xxx
 #   Defines how all OSVVM functionality handles errors
 #
+#  proc PrintErrorInfo {MessagePtr} {
+#    if {$::osvvm::Debug} { 
+#      return [set $MessagePtr]
+#    } else {
+#      return "puts \${$MessagePtr}"
+#    }
+#  }
+
   proc CallbackOnError_Build {Path_Or_File BuildErrorMessage LocalBuildErrorInfo} {    
     set ::osvvm::BuildErrorInfo $LocalBuildErrorInfo
     if {$::osvvm::FailOnBuildErrors} {
 #      error "For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
-      puts "Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
-      error $BuildErrorMessage
+      puts "Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo.  Signaling TCL Error"
+      error "$BuildErrorMessage "
     } else {
       puts "Error:  For tcl errorInfo, puts \$::osvvm::BuildErrorInfo"
     }
@@ -218,6 +226,11 @@ namespace eval ::osvvm {
     LocalOnError_BuildReports ReportBuildYaml2Dict $FileName $errmsg
   }  
 
+  proc CallbackOnError_Index2Html {FileName errmsg} {
+    set ::osvvm::Report2HtmlErrorInfo $::errorInfo
+    LocalOnError_BuildReports Index2Html $FileName $errmsg
+  }  
+  
   proc CallbackOnError_ReportBuildDict2Html {FileName errmsg} {
     set ::osvvm::Report2HtmlErrorInfo $::errorInfo
     LocalOnError_BuildReports ReportBuildDict2Html $FileName $errmsg

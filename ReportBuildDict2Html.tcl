@@ -20,6 +20,8 @@
 #
 #  Revision History:
 #    Date      Version    Description
+#    06/2025   2025.06    Link to top level index
+#    04/2025   2025.04    Print VHDL Test Case
 #    07/2024   2024.07    Handling for GenericDict and naming updates.
 #    05/2024   2024.05    Refactored. Must call ReportBuildYaml2Dict first.
 #    04/2024   2024.04    Updated report formatting
@@ -32,7 +34,7 @@
 #
 #  This file is part of OSVVM.
 #
-#  Copyright (c) 2021 - 2024 by SynthWorks Design Inc.
+#  Copyright (c) 2021 - 2025 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -48,6 +50,7 @@
 #
 
 package require yaml
+package require fileutil
 
 #  Notes:  
 #  The following variables are set by GetPathSettings that read the YAML file
@@ -195,6 +198,10 @@ proc CreateHtmlSummary {TestDict} {
   if {$::osvvm::Report2CoverageSubdirectory ne ""} {
     puts $ResultsFile "          <tr><td>Code Coverage</td><td><a href=\"${::osvvm::Report2CoverageSubdirectory}\">Code Coverage Results</a></td></tr>"
   }
+  
+  set IndexPath [file normalize [file join $::osvvm::CurrentSimulationDirectory index.html]]
+  set RelativeIndexPath  "[::fileutil::relative [file normalize [file join ${::osvvm::OutputBaseDirectory} $ReportBuildName]] $IndexPath]"
+  puts $ResultsFile "          <tr><td>Build Index</td><td><a href=\"$RelativeIndexPath\">index.html</a></td></tr>"
 
   puts $ResultsFile "        </tbody>"
   puts $ResultsFile "      </table>"

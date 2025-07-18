@@ -54,7 +54,8 @@ package require yaml
   source ${::osvvm::OsvvmScriptDirectory}/ReportBuildYaml2Dict.tcl
   source ${::osvvm::OsvvmScriptDirectory}/ReportBuildDict2Html.tcl
   source ${::osvvm::OsvvmScriptDirectory}/ReportBuildDict2Junit.tcl
-  
+  source ${::osvvm::OsvvmScriptDirectory}/ReportIndex2Html.tcl
+
 #  source ${::osvvm::OsvvmScriptDirectory}/Report2Html.tcl
 #  source ${::osvvm::OsvvmScriptDirectory}/Report2Junit.tcl
   
@@ -63,6 +64,6 @@ package require yaml
   source ${::osvvm::OsvvmScriptDirectory}/Requirements2Csv.tcl
   
 namespace export Simulate2Html Cov2Html Alert2Html Scoreboard2Html MergeRequirements Requirements2Html Requirements2Csv
-namespace export CreateBuildReports ReportBuildYaml2Dict ReportBuildDict2Html ReportBuildDict2Junit Report2Html Report2Junit
+namespace export CreateBuildReports ReportBuildYaml2Dict ReportBuildDict2Html ReportBuildDict2Junit Report2Html Report2Junit Index2Html
 # end namespace ::osvvm
 }

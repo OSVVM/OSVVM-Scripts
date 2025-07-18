@@ -56,9 +56,11 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion 2025.04
+  variable OutputHomeDirectory    [file join $OutputBaseDirectory  $OutputSubdirectory] 
+
+  variable OsvvmVersion 2025.06
   variable OsvvmBuildYamlVersion      2025.02
-  variable OsvvmTestCaseYamlVersion   2025.02
+  variable OsvvmTestCaseYamlVersion   1.0
  # The following are set in VHDL code.  Either need to pass these or have it directly in the VHDL Code.
   variable OsvvmAlertYamlVersion        InVhdlCodeVersionTbd
   variable OsvvmCoverageYamlVersion     InVhdlCodeVersionTbd
@@ -122,12 +124,12 @@ namespace eval ::osvvm {
   # Create derived directory paths
   #
     variable OsvvmCoSimDirectory  ${OsvvmHomeDirectory}/CoSim
-    variable ReportsDirectory     [file join ${OutputBaseDirectory} ${ReportsSubdirectory}]
-    variable ResultsDirectory     [file join ${OutputBaseDirectory} ${ResultsSubdirectory}]
-    variable CoverageDirectory    [file join ${OutputBaseDirectory} ${CoverageSubdirectory}]
-    variable LogDirectory         [file join ${OutputBaseDirectory} ${LogSubdirectory}]
+    variable ReportsDirectory     [file join ${OutputHomeDirectory} ${ReportsSubdirectory}]
+    variable ResultsDirectory     [file join ${OutputHomeDirectory} ${ResultsSubdirectory}]
+    variable CoverageDirectory    [file join ${OutputHomeDirectory} ${CoverageSubdirectory}]
+    variable LogDirectory         [file join ${OutputHomeDirectory} ${LogSubdirectory}]
     variable HtmlThemeSubdirectory      [file join ${ReportsSubdirectory}]
-    variable HtmlThemeDirectory         [file join ${OutputBaseDirectory} ${HtmlThemeSubdirectory}]
+    variable HtmlThemeDirectory         [file join ${OutputHomeDirectory} ${HtmlThemeSubdirectory}]
 
   #
   #  Initialize OSVVM Internals
@@ -174,14 +176,16 @@ namespace eval ::osvvm {
 
     # VhdlReportsDirectory:  OSVVM temporary location for yml.  Moved to ${ReportsDirectory}/${TestSuiteName}
 #    variable VhdlReportsDirectory     "" ;   # replaced by OsvvmTemporaryOutputDirectory
+    variable OsvvmIndexYamlFile  [file join ${::osvvm::OutputBaseDirectory} index.yml]
+    variable OsvvmIndexHtmlFile  [file rootname ${::osvvm::OsvvmIndexYamlFile}].html
 
-    # OsvvmBuildYamlFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${BuildName}.yaml
+    # OsvvmBuildYamlFile: temporary OSVVM name moved to ${OutputHomeDirectory}/${BuildName}.yaml
     variable OsvvmBuildYamlFile     [file join ${OsvvmTemporaryOutputDirectory} "OsvvmRun.yml"] ;  
 
     #  TranscriptYamlFile: temporary file that contains set of files used in TranscriptOpen.  Deleted by scripts.
     variable TranscriptYamlFile     [file join ${OsvvmTemporaryOutputDirectory} "OSVVM_transcript.yml"] ;  
     
-    # OsvvmBuildLogFile: temporary OSVVM name moved to ${OutputBaseDirectory}/${LogSubDirectory}/${BuildName}.log
+    # OsvvmBuildLogFile: temporary OSVVM name moved to ${OutputHomeDirectory}/${LogSubDirectory}/${BuildName}.log
     variable OsvvmBuildLogFile      [file join ${OsvvmTemporaryOutputDirectory} "OsvvmBuild.log"] ;  
     
 

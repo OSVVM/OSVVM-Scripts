@@ -2,6 +2,11 @@
 
 | **Revision**  |   **Release Summary**                                                                         | 
 |---------------|-----------------------------------------------------------------------------------------------| 
+| 2025.06       |  Move build results to build directory.  BuildName introduced to name it.                     |
+|               |  Create Index.html in the sim directory                                                       |
+|               |  Updated Siemens (vsim flow) and Questa (vopt + vsim flow) scripts to run in tclsh better.    |
+|               |  Added CreateTestCaseCommonPkg.   Added RunAllTests.  Added .vh as a Verilog file.            |
+|               |  Support for Questa's vsim -batch                                                             |
 | 2025.04       |  Updated handling of generic names to remove / and : from paths in file names                 |
 |               |  Updated OsvvmUserSettingsDirectory s.t. scripts and VHDL use same path                       |
 |               |  Turned off VHDL-2019 settings for Siemens as 2025.1 release claims they don't support it     |

@@ -7,8 +7,8 @@
 #     Jim Lewis      email:  jim@synthworks.com   
 # 
 #  Description
-#    Tcl procedures with the intent of making running 
-#    compiling and simulations tool independent
+#      TCL abstraction layer to run OSVVM pro scripts with
+#      running ActiveHDL from a TCL shell. 
 #    
 #  Developed by: 
 #        SynthWorks Design Inc. 
@@ -56,10 +56,10 @@
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Aldec"
-  variable ToolName    "VSimSA"
-#  variable ToolName    "ActiveHDL"
+  variable ToolName    "ActiveASim"
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
-  variable ToolVersion [lindex [split $version] [llength $version]-1]
+  variable ToolVersion [lindex [split [exec vsim -version]] 4]
+#  variable ToolVersion [lindex [split $version] [llength $version]-1]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 #   puts $ToolNameVersion
 
@@ -70,24 +70,24 @@
 
   variable FunctionalCoverageIntegratedInSimulator "Aldec"
   
-  if {[batch_mode]} {
+#  if {[batch_mode]} {
     variable NoGui "true"
-  } else {
-    variable NoGui "false"
-  }
+#  } else {
+#    variable NoGui "false"
+#  }
 
 # -------------------------------------------------
 # StartTranscript / StopTranscxript
 #
-proc vendor_StartTranscript {FileName} {
-  transcript off
-  puts "transcript to $FileName"
-  transcript to $FileName
-}
-
-proc vendor_StopTranscript {FileName} {
-  transcript to -off
-}
+# proc vendor_StartTranscript {FileName} {
+#   transcript off
+#   puts "transcript to $FileName"
+#   transcript to $FileName
+# }
+# 
+# proc vendor_StopTranscript {FileName} {
+#   transcript to -off
+# }
 
 # -------------------------------------------------
 # IsVendorCommand
@@ -122,11 +122,11 @@ proc vendor_library {LibraryName PathToLib} {
 
   if {![file exists ${PathAndLib}]} {
     puts "vlib    ${PathAndLib}"
-         vlib    ${PathAndLib}
+    exec     vlib    ${PathAndLib}
     # after 1000
   }
   puts "vmap    $LibraryName  ${PathAndLib}"
-       vmap    $LibraryName  ${PathAndLib}
+  exec  vmap    $LibraryName  ${PathAndLib}
 }
 
 proc vendor_LinkLibrary {LibraryName PathToLib} {
@@ -138,11 +138,11 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
     set ResolvedLib ${PathToLib}
   }
   puts "vmap    $LibraryName  ${ResolvedLib}"
-       vmap    $LibraryName  ${ResolvedLib}
+  exec vmap    $LibraryName  ${ResolvedLib}
 }
 
 proc vendor_UnlinkLibrary {LibraryName PathToLib} {
-  vmap -del ${LibraryName}
+  exec vmap -del ${LibraryName}
 }
 
 # -------------------------------------------------
@@ -157,13 +157,31 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
   set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -relax -work ${LibraryName} {*}${args} ${FileName}]
   
   puts "vcom $AnalyzeOptions"
-        vcom {*}$AnalyzeOptions
+#  exec  vcom {*}$AnalyzeOptions
+  
+  set ErrorCode [catch {exec vcom {*}$AnalyzeOptions} CatchMessage] 
+  if {$ErrorCode != 0} {
+    PrintWithPrefix "Error:" $CatchMessage
+    puts $::errorInfo
+    error "Failed: analyze $FileName"
+  } else {
+    puts $CatchMessage
+  }
 }
 
 proc vendor_analyze_verilog {LibraryName FileName args} {
   set  AnalyzeOptions [concat [CreateVerilogLibraryParams "-l "] -work ${LibraryName} {*}${args} ${FileName}]
   puts "vlog $AnalyzeOptions"
-        vlog {*}$AnalyzeOptions
+#  exec  vlog {*}$AnalyzeOptions
+  
+  set ErrorCode [catch {exec vlog {*}$AnalyzeOptions} CatchMessage] 
+  if {$ErrorCode != 0} {
+    PrintWithPrefix "Error:" $CatchMessage
+    puts $::errorInfo
+    error "Failed: analyze $FileName"
+  } else {
+    puts $CatchMessage
+  }
 }
 
 # -------------------------------------------------
@@ -175,7 +193,7 @@ proc NoNullRangeWarning  {} {
 # End Previous Simulation
 #
 proc vendor_end_previous_simulation {} {
-  endsim
+  # endsim
 }  
 
 # -------------------------------------------------
@@ -189,23 +207,56 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestCaseFileName
   global aldec            ; #  required for matlab cosim
 
-  puts "vendor simulate LN=$LibraryName LU=$LibraryUnit A=$args"
-  set SimulateOptions [concat {*}${args} {*}${::osvvm::GenericOptions} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
+  # Create the script files
+  set ErrorCode [catch {vendor_CreateSimulateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
+  if {$ErrorCode != 0} {
+    PrintWithPrefix "Error:" $CatchMessage
+    puts $::errorInfo
+    error "Failed: vendor_CreateSimulateDoFile $LibraryUnit"
+  } 
+
+#  puts "vendor simulate LN=$LibraryName LU=$LibraryUnit A=$args"
+  set SimulateOptions [concat -c {*}${args} {*}${::osvvm::GenericOptions} -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel}]
 
   puts "vsim ${SimulateOptions}"
-  eval  vsim {*}${SimulateOptions}
-        
-  SimulateRunScripts ${LibraryUnit}
-
-#  VSimSA is a batch simulator
-#  add log -r /*
-  run -all 
+##  exec  vsim {*}${SimulateOptions} -tcl "OsvvmSimRun.tcl"
   
-  # Save Coverage Information 
-  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
-    acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.acdb -testname ${TestCaseFileName}
+  set ErrorCode [catch {exec  vsim {*}${SimulateOptions} -tcl "OsvvmSimRun.tcl"} CatchMessage] 
+  if {$ErrorCode != 0} {
+    PrintWithPrefix "Error:" $CatchMessage
+    puts $::errorInfo
+    error "Failed: simulate $LibraryUnit"
+  } else {
+    puts $CatchMessage
   }
 }
+
+# -------------------------------------------------
+# vendor_CreateSimulateDoFile
+#
+proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
+  variable ScriptFile 
+  
+  # Open File
+  set ScriptFile [open $ScriptFileName w]
+  
+  # Do Vendor Simulate pre-run stuff here
+  
+#?? is it possible that we want to save waves in a batch simulator
+
+  SimulateCreateDoFile $LibraryUnit
+
+  puts  $ScriptFile "run -all" 
+  
+  # Save Coverage Information
+  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
+    puts $ScriptFile "acdb save -o ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.acdb -testname ${TestCaseFileName}"
+  }
+  
+#  puts  $ScriptFile "quit" 
+  close $ScriptFile
+}
+
 
 # -------------------------------------------------
 proc vendor_generic {Name Value} {
@@ -220,7 +271,7 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
   set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
   set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
   if {$CovFiles ne ""} {
-    acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join $CovFiles " -i "]
+    exec vsim -c -tcl "acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join $CovFiles " -i "]"
   }
 }
 
@@ -232,7 +283,7 @@ proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
   if {[file exists ${CodeCovResultsDir}_files]} {
     file delete -force -- ${CodeCovResultsDir}_files
   }
-  acdb report -html -i ${CodeCoverageDirectory}/${TestSuiteName}.acdb -o ${CodeCovResultsDir}.html
+  exec vsim -c -tcl "acdb report -html -i ${CodeCoverageDirectory}/${TestSuiteName}.acdb -o ${CodeCovResultsDir}.html"
 }
 
 proc vendor_GetCoverageFileName {TestName} { 
