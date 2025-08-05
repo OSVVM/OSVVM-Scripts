@@ -67,8 +67,8 @@ namespace eval ::osvvm {
     # variable ClockResetVersion 2024.05
 
     #  Base directory for other OSVVM created directories 
-    #  variable OutputHomeDirectory        ""                          ;# put output in $CurrentSimulationDirectory
-    #  variable OutputHomeDirectory        "osvvm"                     ;# put output in $CurrentSimulationDirectory/osvvm
+    #  variable OutputBaseDirectory        ""                          ;# put output in $CurrentSimulationDirectory
+    #  variable OutputBaseDirectory        "osvvm"                     ;# put output in $CurrentSimulationDirectory/osvvm
 
     #  Directory for log files = $OutputHomeDirectory/$LogSubdirectory
     #    Contains simulator transcript in text and optionally html
@@ -104,9 +104,7 @@ namespace eval ::osvvm {
     #    variable VhdlLibrarySubdirectory    "${ToolNameVersion}"      ;# default value
 
     # OsvvmTemporaryOutputDirectory is where temporary OSVVM output goes.   
-    # Caution:  If you change the value of OsvvmTemporaryOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
-    # Files only remain in this directory when a tool does not complete correctly
-    #    variable OsvvmTemporaryOutputDirectory   ""
+    # !!! with 2025.08, it is recommended to set OsvvmTemporaryOutputDirectory to OsvvmHomeDirectory which is done in OsvvmSettingsRequired.tcl
     
     # OsvvmSettingsSubDirectory 
     # Location for package bodies generated:  OsvvmScriptSettingsPkg_generated.vhd and OsvvmScriptSettingsPkg_generated.vhd
@@ -115,6 +113,8 @@ namespace eval ::osvvm {
     #    variable OsvvmSettingsSubDirectory      ""                     ;# default value 
     #    variable OsvvmSettingsSubDirectory      "${ToolName}"          ;# Recommended if running multiple simulators 
     #    variable OsvvmSettingsSubDirectory      "${ToolNameVersion}"   ;# Recommended if running multiple simulators
+    # !!! with 2025.08, OsvvmSettingsSubDirectory is not needed.  A suffix was added to the package instead.  
+    # It is recommended to leave this as ""
 
 
   #

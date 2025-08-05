@@ -386,6 +386,7 @@ proc build {{Path_Or_File "."} args} {
         BuildName [CreateDefaultBuildName $IncludeFile]
       }
 
+      CreateDirectory $::osvvm::OsvvmTemporaryOutputDirectory  ;# Nominally the transcript goes there 
       StartTranscript  ;# uses temporary name rather than BuildName - allows script to change BuildName
 
       #  Catch any errors from the build and handle them below
@@ -414,7 +415,13 @@ proc build {{Path_Or_File "."} args} {
         puts "New TargetDirectory matches old one. Deleting old $TargetDirectory "
         file delete -force $TargetDirectory
       }
-      file rename -force ${::osvvm::OutputHomeDirectory} $TargetDirectory
+      # file rename -force ${::osvvm::OutputHomeDirectory} $TargetDirectory
+      if {[catch {file rename -force ${::osvvm::OutputHomeDirectory} $TargetDirectory} err]} {
+        puts "ScriptWarning: Renaming OutputHomeDirectory failed.  Closing simulation and trying again."
+        # end simulation to try to free locks on the file, and try to delete again - in the event the test case forgot TranscriptClose
+        EndSimulation  
+        file rename -force ${::osvvm::OutputHomeDirectory} $TargetDirectory
+      } 
 
       WriteIndexYaml $BuildName
       Index2Html

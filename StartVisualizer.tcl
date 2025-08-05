@@ -46,11 +46,13 @@ namespace eval ::osvvm {
   variable OsvvmScriptDirectory  [file dirname [file normalize [info script]]]
   
   variable OsvvmInitialized  "false"
-  variable ScriptBaseName    "Visualizer"
+#  variable ScriptBaseName    "Visualizer"
+  variable ScriptBaseName    "Questa"
 }
 
 # set this outside the OSVVM scope
-variable ToolName          "Visualizer"
+#variable ToolName          "Visualizer"
+variable ToolName          "Questa"
 
 
 source ${::osvvm::OsvvmScriptDirectory}/StartUpShared.tcl

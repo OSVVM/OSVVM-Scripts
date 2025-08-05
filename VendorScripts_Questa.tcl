@@ -90,7 +90,7 @@ package require fileutil
       variable DebugOptions "-debug"
     }
   } else {
-    # Started from Shell
+    # Star ted from Shell
     variable shell "exec"
     variable ToolArgs "none"
     variable NoGui "true"
@@ -324,6 +324,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   puts "vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin]"
   eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin] 
+#  puts "vopt {*}${OptimizeOptions}"
+#  eval $::osvvm::shell vopt {*}${OptimizeOptions}  
   
 
   if {$::osvvm::SaveWaves} {
@@ -332,21 +334,44 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
     set WaveOptions ""
   }
 
+  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} -suppress 8683 -suppress 8684]
 #  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
 #  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions}]
 #  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args}]
-  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} -suppress 8683 -suppress 8684]
 
-  puts "vsim {*}${SimulateOptions} {*}${WaveOptions} -do \"exit -code \[catch {source OsvvmSimRun.tcl}\]\""
-#  set ErrorCode [catch {$::osvvm::shell vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 
-  set ErrorCode [catch {exec vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 
-  if {$ErrorCode != 0} {
-    PrintWithPrefix "Error:" $CatchMessage
-    puts $::errorInfo
-    error "Failed: simulate $LibraryUnit"
+
+  if {$::osvvm::shell eq ""} {
+    puts "vsim ${SimulateOptions} ${WaveOptions}"
+    vsim {*}${SimulateOptions}  {*}${WaveOptions} 
+    source OsvvmSimRun.tcl
   } else {
-    puts $CatchMessage
+    puts "vsim {*}${SimulateOptions} {*}${WaveOptions} -do \"exit -code \[catch {source OsvvmSimRun.tcl}\]\""
+    set ErrorCode [catch {exec vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 
+    if {$ErrorCode != 0} {
+      PrintWithPrefix "Error:" $CatchMessage
+      puts $::errorInfo
+      error "Failed: simulate $LibraryUnit"
+    } else {
+      puts $CatchMessage
+    }
   }
+# Framework for running batch - from command line
+#  puts "vsim {*}${SimulateOptions} {*}${WaveOptions} -do \"exit -code \[catch {source OsvvmSimRun.tcl}\]\""
+# puts "vsim ${SimulateOptions} ${WaveOptions} -do \"source OsvvmSimRun.tcl\""
+#  set ErrorCode [catch {exec vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 
+#  set ErrorCode [catch {exec vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "source OsvvmSimRun.tcl ; quit"} CatchMessage] 
+#  set ErrorCode [catch {eval $::osvvm::shell vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "\"source OsvvmSimRun.tcl ; quit\""} CatchMessage] 
+
+#  if {$ErrorCode != 0} {
+#    PrintWithPrefix "Error:" $CatchMessage
+#    puts $::errorInfo
+#    error "Failed: simulate $LibraryUnit"
+#  } else {
+#    puts $CatchMessage
+#  }
+
+#  exec vsim {*}${SimulateOptions}  {*}${WaveOptions} < OsvvmSimRun.tcl
+
 }
 
 # -------------------------------------------------
@@ -363,6 +388,7 @@ proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
   # Historical name.  Must be run with "do" for actions to work
   if {[file exists ${::osvvm::OsvvmScriptDirectory}/Siemens.do]} {
     puts  $ScriptFile  "do ${::osvvm::OsvvmScriptDirectory}/Siemens.do"
+#    puts  $ScriptFile  "source ${::osvvm::OsvvmScriptDirectory}/Siemens.do"
   }
 
   SimulateCreateDoFile $LibraryUnit
@@ -375,7 +401,7 @@ proc vendor_CreateSimulateDoFile {LibraryUnit ScriptFileName} {
   
   # Save Coverage Information
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
-    puts $ScriptFile "coverage save ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.ucdb"
+    puts $ScriptFile "coverage save ${::osvvm::CoverageDirectory}/${::osvvm::TestSuiteName}/${::osvvm::TestCaseFileName}.ucdb"
   }
   
 #  puts  $ScriptFile "quit" 

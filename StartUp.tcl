@@ -105,14 +105,15 @@ namespace eval ::osvvm {
     if {[expr [string compare $ToolVersion "2025.2"] >= 0]} {
       variable ScriptBaseName "Questa"
     }
-    if {[info exists ::env(OSVVM_TOOL)]} {
-      if {$::env(OSVVM_TOOL) eq "Visualizer"} {
-        variable ScriptBaseName $::env(OSVVM_TOOL)
-      }
-    }
+#    if {[info exists ::env(OSVVM_TOOL)]} {
+#      if {$::env(OSVVM_TOOL) eq "Visualizer"} {
+#        variable ScriptBaseName $::env(OSVVM_TOOL)
+#      }
+#    }
     
   } elseif {$ToolExecutableName eq "hdlclient"} {
-    variable ScriptBaseName "Visualizer"
+#    variable ScriptBaseName "Visualizer"
+    variable ScriptBaseName "Questa"
     
   } elseif {[string match -nocase $ToolExecutableName "vivado"]} {
     variable ScriptBaseName "Vivado"

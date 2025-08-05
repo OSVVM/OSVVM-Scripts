@@ -122,6 +122,30 @@ proc CreateOsvvmScriptSettingsPkg {SettingsDirectory} {
   return $OsvvmScriptSettingsPkgFile
 }
 
+# -------------------------------------------------
+#  FindOsvvmScriptSettingsPkg
+#
+proc FindOsvvmScriptSettingsPkg { } {
+
+  set SettingsDirectory [FindOsvvmSettingsDirectory]
+
+  if {[FileExists $SettingsDirectory/OsvvmScriptSettingsPkg_local.vhd]} {
+    return $SettingsDirectory/OsvvmScriptSettingsPkg_local.vhd
+
+  # If SettingsDirectory is in a subdirectory for a tool and/or vendor it may be appropriate to look above to find a local "default one"
+  # elsif {[FileExists $SettingsDirectory/../OsvvmScriptSettingsPkg_local.vhd]} { analyze $SettingsDirectory/../OsvvmScriptSettingsPkg_local.vhd }  
+
+  } else {
+    # Generate the file if possible
+    set GeneratedPkg [CreateOsvvmScriptSettingsPkg $SettingsDirectory]
+    puts "GeneratedPkg = $GeneratedPkg"
+    if {[FileExists $GeneratedPkg]} {
+      return   $GeneratedPkg
+    } else {
+      return OsvvmScriptSettingsPkg_default.vhd
+    }
+  }
+}
 
 # -------------------------------------------------
 #  CreatePathPkg
@@ -253,6 +277,7 @@ proc CreateBuildSettingsPkg {BaseName {SettingsDirectory ""}} {
   return $TestSettingsPkgFile
 }
 
+# -------------------------------------------------
 # AutoGenerateFile 
 #    Extract from FileName everything up to and including the pattern in the string
 #    Write Extracted contents to NewFileName

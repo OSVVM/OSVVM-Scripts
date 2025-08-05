@@ -139,7 +139,7 @@ proc vendor_StopTranscript {FileName} {
 #
 proc IsVendorCommand {LineOfText} {
 
-  return [regexp {^vlib |^vmap |^vcom |^vlog |^vsim |^run |^coverage |^vcover } $LineOfText] 
+  return [regexp {^vlib |^vmap |^vcom |^vlog |^vopt |^vsim |^run |^coverage |^vcover } $LineOfText] 
 }
 
 # -------------------------------------------------
@@ -326,7 +326,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   run -all 
   
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
-    coverage save ${::osvvm::CoverageDirectory}/${TestSuiteName}/${TestCaseFileName}.ucdb 
+    coverage save ${::osvvm::CoverageDirectory}/${::osvvm::TestSuiteName}/${::osvvm::TestCaseFileName}.ucdb 
   }
 }
 
