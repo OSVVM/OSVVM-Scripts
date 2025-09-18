@@ -61,64 +61,60 @@ package require fileutil
   variable SiemensVsimError 0
   catch {onElabError {set ::osvvm::SiemensVsimError 1}}
   
-  if {![catch {vsimVersionString} msg]} {
-    set VersionString [vsimVersionString]
-  } else {
-    set VersionString [exec vsim -version &2>1]
-    puts $VersionString
-  }
+  set VersionString [exec vsim -version &2>1]
+  regexp {(\S+)\s+\S+\s+\S+\s+(\d+\.\d+\S*)} $VersionString FullMatch Name Version
 
   if {![catch {vsimId} msg]} {
     variable ToolVersion [vsimId]
   } else {
-    regexp {(vsim\s+)(\d+\.\d+\S*)} $VersionString s1 s2 s3
-    variable ToolVersion $s3
+    variable ToolVersion $Version
   }
-
+  
   if {[info exists ::ToolName]} {
     variable ToolName $::ToolName
   } else {
-#    if {[lindex [split [vsimVersionString]] 2] eq "ModelSim"} {}
-    if {[lindex [split $VersionString] 2] eq "ModelSim"} {
-      variable ToolName   "ModelSim"
-    } else {
-      variable ToolName   "QuestaSim"
-    }
+    variable ToolName $Name
   }
+
+  variable ToolNameVersion ${ToolName}-${ToolVersion}
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   
-  variable ToolNameVersion ${ToolName}-${ToolVersion}
-
+  # How was the simulator started?  
+  #     Tool interface vs. TCLSH shell   
+  #     Batch (-c -batch) vs. -gui
+  #     Assumption:  If batch or shell focus on running fast as it is a regression
+  variable shell ""
   if {![catch {batch_mode} msg]} {
-    variable shell ""
     if {[batch_mode]} {
-      if {[regexp {\-batch} $argv]} {
-        variable ToolArgs "-batch"
-      } else {
-        variable ToolArgs "-c"
-      }
-#      variable shell "exec"
-      variable SiemensSimulateOptions $ToolArgs
       variable NoGui "true"
+      if {[regexp {\-batch} $argv]} {
+        variable EnableTranscriptInBatchMode "false"
+#        variable SiemensSimulateOptions -batch  
+        variable SiemensSimulateOptions -c  
+      } else {
+        variable EnableTranscriptInBatchMode "true"
+        variable SiemensSimulateOptions -c  
+      }
     } else {
-      variable ToolArgs "-gui"
-      variable SiemensSimulateOptions ""
       variable NoGui "false"
+      variable EnableTranscriptInBatchMode "true"  ; # not relevant
+      variable SiemensSimulateOptions "-c"
     }
   } else {
     # Started from Shell
-    variable SiemensSimulateOptions "-c"
     variable shell "exec"
-    variable ToolArgs "none"
     variable NoGui "true"
+    variable EnableTranscriptInBatchMode "true"
+    variable SiemensSimulateOptions "-c"
+#    variable SiemensSimulateOptions "-batch"
   }
   
   
   if {[expr [string compare $ToolVersion "2020.1"] >= 0]} {
-#    variable DebugOptions "-debug,cell"
-    variable DebugOptions "+acc"
+#    variable SiemensDebugOptions "-debug,cell"
+    variable SiemensDebugOptions "+acc"
   } else {
-    variable DebugOptions "+acc"
+    variable SiemensDebugOptions "+acc"
   }
   
 #  if {[expr [string compare $ToolVersion "2024.2"] >= 0]} {
@@ -131,10 +127,10 @@ package require fileutil
 proc vendor_StartTranscript {FileName} {
   variable NoGui
   
-#  puts "NoGui: $NoGui"
-
   if {$NoGui} {
-    if {![regexp {\-batch} $::osvvm::ToolArgs]} {
+    # if started as -batch, do not do logging here
+    # instead use vsim -batch -do "..." | tee OsvvmBuild.log
+    if {$::osvvm::EnableTranscriptInBatchMode} {
       DefaultVendor_StartTranscript $FileName
     }
   } else {
@@ -147,10 +143,8 @@ proc vendor_StartTranscript {FileName} {
 proc vendor_StopTranscript {FileName} {
   variable NoGui
 
-  # FileName not used here
-#  transcript file ""
   if {$NoGui} {
-    if {![regexp {\-batch} $::osvvm::ToolArgs]} {
+    if {$::osvvm::EnableTranscriptInBatchMode} {
       DefaultVendor_StopTranscript $FileName
     }
   } else {
@@ -332,7 +326,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   if {($::osvvm::NoGui) || !($::osvvm::Debug)} {
     set SimulateOptions $::osvvm::SiemensSimulateOptions
   } else {
-    set SimulateOptions "-voptargs=$::osvvm::DebugOptions"
+    set SimulateOptions [concat $::osvvm::SiemensSimulateOptions -voptargs=$::osvvm::SiemensDebugOptions]
   }
  
   if {$::osvvm::SaveWaves} {
@@ -342,17 +336,22 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   }
   set SimulateOptions [concat $SimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
 
-#  puts "vsim {*}${SimulateOptions} {*}${WaveOptions} -do \"exit -code \[catch {source OsvvmSimRun.tcl}\]\""
-  puts "vsim {*}${SimulateOptions} {*}${WaveOptions} -do \"source OsvvmSimRun.tcl\""
-#  set ErrorCode [catch {$::osvvm::shell vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 
-#  set ErrorCode [catch {exec vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 
-  set ErrorCode [catch {exec vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "source OsvvmSimRun.tcl"} CatchMessage] 
-  if {$ErrorCode != 0} {
-    PrintWithPrefix "Error:" $CatchMessage
-    puts $::errorInfo
-    error "Failed: simulate $LibraryUnit"
+  if {$::osvvm::shell eq ""} {
+    puts "vsim ${SimulateOptions} ${WaveOptions}"
+    vsim {*}${SimulateOptions}  {*}${WaveOptions} 
+    source OsvvmSimRun.tcl
   } else {
-    puts $CatchMessage
+    puts "vsim {*}${SimulateOptions} {*}${WaveOptions} -do \"exit -code \[catch {source OsvvmSimRun.tcl}\]\""
+#    puts "vsim {*}${SimulateOptions} {*}${WaveOptions} -do \"exit -code \[source OsvvmSimRun.tcl\] \""
+    set ErrorCode [catch {exec vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 
+#    set ErrorCode [catch {exec vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[source OsvvmSimRun.tcl\]"} CatchMessage] 
+    if {$ErrorCode != 0} {
+      PrintWithPrefix "Error:" $CatchMessage
+      puts $::errorInfo
+      error "Failed: simulate $LibraryUnit"
+    } else {
+      puts $CatchMessage
+    }
   }
 }
 

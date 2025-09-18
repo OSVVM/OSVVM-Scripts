@@ -125,7 +125,6 @@ proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDic
 proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDict} {
   variable ResultsFile
 
-  set ReportDir $::osvvm::Report2ReportsDirectory
   
   if {$::osvvm::Report2ReportsSubdirectory eq ""} {
     set ReportsPrefix ".."
@@ -171,7 +170,7 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   }
   
   # Add link to Test Case file
-  set TestCaseFile [::fileutil::relative $ReportDir $::osvvm::Report2TestCaseFile]
+  set TestCaseFile [::fileutil::relative $::osvvm::Report2ReportsDirectory $::osvvm::Report2TestCaseFile]
   set TestCaseFileTail [file tail $TestCaseFile]
   if {$::osvvm::Report2TestCaseFile ne ""} {
     puts $ResultsFile "          <tr><td><a href=\"${TestCaseFile}\">$TestCaseFileTail</a></td></tr>"

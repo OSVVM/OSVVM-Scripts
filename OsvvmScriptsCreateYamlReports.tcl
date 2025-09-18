@@ -50,7 +50,7 @@ package require fileutil
 
   variable  TclZone      [clock format [clock seconds] -format %z]
   variable  IsoZone      [format "%s:%s" [string range $TclZone 0 2] [string range $TclZone 3 4]] 
-  variable  TimeZoneName [clock format [clock seconds] -format %Z]
+#  variable  TimeZoneName [clock format [clock seconds] -format %Z]
 
 # -------------------------------------------------
 proc  ElapsedTimeMs {StartTimeMs} {
@@ -80,7 +80,7 @@ proc StartBuildYaml {} {
   set  StartTime [GetIsoTime $BuildStartTime]
   puts "Starting Build at time [clock format $BuildStartTime -format %T]"
 
-  set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} w]
+  set   RunFile  [open ${::osvvm::OsvvmTempYamlFile} w]
   puts  $RunFile "Version: \"$::osvvm::OsvvmBuildYamlVersion\""
   puts  $RunFile "Date: $StartTime"
   close $RunFile
@@ -120,7 +120,7 @@ proc FinishBuildYaml {BuildName} {
   variable BuildElapsedTime
 
   # Print Elapsed time for last TestSuite (if any ran) and the entire build
-  set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} a]
+  set   RunFile  [open ${::osvvm::OsvvmTempYamlFile} a]
 
   set   BuildFinishTime     [clock seconds]
   set   BuildElapsedTime    [expr ($BuildFinishTime - $BuildStartTime)]
@@ -226,7 +226,7 @@ proc WriteDictOfString2Yaml {YamlFile DictName {StringValue ""} {Prefix ""} } {
 proc WriteOsvvmSettingsYaml {ReportFile} {
   
   puts  $ReportFile "OsvvmSettingsInfo:"
-  puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OutputHomeDirectory\""
+  puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OsvvmBuildOutputDirectory\""
   puts  $ReportFile "  ReportsSubdirectory:  \"$::osvvm::ReportsSubdirectory\""
 #  puts  $ReportFile "  HtmlThemeSubdirectory:      \"$::osvvm::HtmlThemeSubdirectory\""  
   if {$::osvvm::TranscriptExtension ne "none"} {
@@ -295,7 +295,7 @@ proc WriteTestCaseSettingsYaml {FileName} {
 proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
   variable TestSuiteStartTimeMs
   
-  set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
+  set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
 
   if {$FirstRun} {
     puts  $RunFile "TestSuites: "
@@ -314,7 +314,7 @@ proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
 proc FinishTestSuiteBuildYaml {} {
   variable TestSuiteStartTimeMs
 
-  set   RunFile  [open ${::osvvm::OsvvmBuildYamlFile} a]
+  set   RunFile  [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "    ElapsedTime: [ElapsedTimeMs $TestSuiteStartTimeMs]"
   close $RunFile
 }
@@ -329,7 +329,7 @@ proc StartSimulateBuildYaml {TestName} {
   set SimulateStartTimeMs [clock milliseconds]
   puts "Simulation Start time [clock format $SimulateStartTime -format %T]"
 
-  set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
+  set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "      - TestCaseName: \"$TestName\""
   close $RunFile
 }
@@ -350,7 +350,7 @@ proc FinishSimulateBuildYaml {} {
   set  SimulateFinishTimeMs  [clock milliseconds]
   set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
   
-  set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
+  set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "        TestCaseFileName: \"$TestCaseFileName\""
   WriteDictOfDict2Yaml $RunFile Generics $::osvvm::GenericDict  "        "
 #  puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericDict\""
@@ -363,7 +363,7 @@ proc FinishSimulateBuildYaml {} {
 #
 proc SkipTestBuildYaml {SimName Reason} {
 
-  set RunFile [open ${::osvvm::OsvvmBuildYamlFile} a]
+  set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "      - TestCaseName: $SimName"
   puts  $RunFile "        Name: $SimName"
   puts  $RunFile "        Status: SKIPPED"

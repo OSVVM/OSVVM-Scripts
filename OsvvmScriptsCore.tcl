@@ -297,7 +297,7 @@ proc BeforeBuildCleanUp {} {
   variable vendor_simulate_started
   variable TestCaseName
   variable TestSuiteName
-  variable TranscriptYamlFile 
+  variable TempTranscriptYamlFile 
   variable AnalyzeErrorCount  0
   variable ConsecutiveAnalyzeErrors  0
   variable SimulateErrorCount 0
@@ -322,8 +322,8 @@ proc BeforeBuildCleanUp {} {
   }
   
   # Remove old files if they were left lying around
-  if {[file exists ${TranscriptYamlFile}]} {
-    file delete -force -- ${TranscriptYamlFile}
+  if {[file exists ${TempTranscriptYamlFile}]} {
+    file delete -force -- ${TempTranscriptYamlFile}
   }
   
   set ::osvvm::CurrentWorkingDirectory ""
@@ -331,8 +331,13 @@ proc BeforeBuildCleanUp {} {
 
 # -------------------------------------------------
 proc BuildName {ParamBuildName} {
-  variable BuildName      $ParamBuildName
-  variable LastBuildName  $ParamBuildName 
+  if {$::osvvm::HaveNotCreatedBuildOutputDirectory} {
+    variable BuildName      $ParamBuildName
+    variable LastBuildName  $ParamBuildName 
+    variable OsvvmBuildOutputDirectory [file join $::osvvm::CurrentSimulationDirectory $::osvvm::OutputBaseDirectory $ParamBuildName]
+  } else {
+    puts "BuildName $ParamBuildName Ignored.  Called after starting simulate."
+  }
 }
 
 # -------------------------------------------------
@@ -378,56 +383,42 @@ proc build {{Path_Or_File "."} args} {
       # With error handling here, directories do not get created if cannot find Path_Or_File
       CallbackOnError_FindIncludeFile $Path_Or_File Build
     } else {
-  
       BeforeBuildCleanUp   
       
       set BuildStarted "true"
+      CheckWorkingDir
+  
       if {$BuildName eq ""} {
         BuildName [CreateDefaultBuildName $IncludeFile]
       }
 
-      CreateDirectory $::osvvm::OsvvmTemporaryOutputDirectory  ;# Nominally the transcript goes there 
       StartTranscript  ;# uses temporary name rather than BuildName - allows script to change BuildName
 
       #  Catch any errors from the build and handle them below
       set BuildErrorCode [catch {LocalBuild $IncludeFile {*}$args} BuildErrMsg]
       set LocalBuildErrorInfo $::errorInfo
       
-
       set ReportYamlErrorCode [catch {FinishBuildYaml $BuildName} BuildYamlErrMsg]
       set LocalBuildYamlErrorInfo $::errorInfo
 
-      set BuildStarted "false"
-      
       # Try to create reports, even if the build failed
       set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
       set LocalReportErrorInfo $::errorInfo
 
       StopTranscript ${BuildName}
       
+      set BuildStarted "false"
+      
       # Cannot generate html log files until transcript is closed - previous step
       set Log2ErrorCode [catch {Log2Osvvm $::osvvm::TranscriptFileName} ReportsErrMsg]
       set Log2ErrorInfo $::errorInfo
       
-      # Move directory to BuildName
-      set TargetDirectory [file join ${::osvvm::OutputBaseDirectory} ${BuildName}]
-      if {[file exists $TargetDirectory]} {
-        puts "New TargetDirectory matches old one. Deleting old $TargetDirectory "
-        file delete -force $TargetDirectory
-      }
-      # file rename -force ${::osvvm::OutputHomeDirectory} $TargetDirectory
-      if {[catch {file rename -force ${::osvvm::OutputHomeDirectory} $TargetDirectory} err]} {
-        puts "ScriptWarning: Renaming OutputHomeDirectory failed.  Closing simulation and trying again."
-        # end simulation to try to free locks on the file, and try to delete again - in the event the test case forgot TranscriptClose
-        EndSimulation  
-        file rename -force ${::osvvm::OutputHomeDirectory} $TargetDirectory
-      } 
-
       WriteIndexYaml $BuildName
       Index2Html
       # IndexToHtml 
 
       set BuildName ""
+      set ::osvvm::HaveNotCreatedBuildOutputDirectory "true"
 
       #
       #  Wrap up with error handling via call backs
@@ -461,18 +452,20 @@ proc LocalBuild {Path_Or_File args} {
   variable TestSuiteStartTimeMs
   variable RanSimulationWithCoverage 
   variable TestSuiteName
-  variable OutputHomeDirectory
   variable BuildName  ; # required to allow script to change BuildName
 
   puts "" ; # ensure that the next print is at the start of a line
   puts "build $Path_Or_File"                      ; # EchoOsvvmCmd
 
-  CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputHomeDirectory} $::osvvm::HtmlThemeSubdirectory
   StartBuildYaml  
   
   CallbackBefore_Build ${Path_Or_File}
   LocalInclude ${Path_Or_File} {*}$args
   CallbackAfter_Build ${Path_Or_File}
+
+##?? Needed to create ReportsDirectory since it is created dynamically
+##?? Test and then refactor so it only creates ReportsDirectory
+  CheckSimulationDirs
 
   if {[info exists TestSuiteName]} {
     FinalizeTestSuite $TestSuiteName
@@ -499,8 +492,10 @@ proc AfterBuildReports {ParamBuildName} {
 
   # short sleep to allow the file to close
   after 1000
-  set BuildYamlFile [file join ${::osvvm::OutputHomeDirectory} ${ParamBuildName}.yml]
-  file rename -force ${::osvvm::OsvvmBuildYamlFile} ${BuildYamlFile}
+  set BuildYamlFile [file join ${::osvvm::OsvvmBuildOutputDirectory} ${ParamBuildName}.yml]
+#  file rename -force ${::osvvm::OsvvmTempYamlFile} ${BuildYamlFile}
+  file copy -force ${::osvvm::OsvvmTempYamlFile} ${BuildYamlFile}
+  catch [file delete -force ${::osvvm::OsvvmTempYamlFile}]
   CreateBuildReports ${BuildYamlFile}
   if {($::osvvm::SimulateInteractive) && ($::osvvm::OpenBuildHtmlFile)} {
     OpenBuildHtml ${ParamBuildName}
@@ -517,13 +512,13 @@ proc OpenBuildHtml {{ParamBuildName ""}} {
   if {$ParamBuildName eq ""} {
       set ParamBuildName $::osvvm::LastBuildName
   }
-#  set BuildHtmlFile [file join ${::osvvm::OutputHomeDirectory} ${ParamBuildName}.html]
+#  set BuildHtmlFile [file join ${::osvvm::OsvvmBuildOutputDirectory} ${ParamBuildName}.html]
   set BuildHtmlFile [file join ${::osvvm::OutputBaseDirectory} ${ParamBuildName} ${ParamBuildName}.html]
   LocalOpenHtml $BuildHtmlFile $ParamBuildName
 }
 
 proc LocalOpenHtml {HtmlFile {ParamBuildName ""}} {
-  if {![catch {info body vendor_OpenBuildHtml} err]} {
+  if {[llength [info procs vendor_OpenBuildHtml]] > 0} {
     vendor_OpenBuildHtml $HtmlFile $ParamBuildName
   } else {
     DefaultVendor_OpenBuildHtml $HtmlFile
@@ -575,13 +570,9 @@ proc CheckWorkingDir {} {
     }
     puts "set CurrentSimulationDirectory $CurrentDir"
     set CurrentSimulationDirectory $CurrentDir
-    if {${::osvvm::OutputHomeDirectory} ne ""} {
-      CreateDirectory ${::osvvm::OutputHomeDirectory}
-    }
   }
+  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::OsvvmTempOutputDirectory}]
 }
-
-
 
 # -------------------------------------------------
 # CheckLibraryInit
@@ -595,11 +586,10 @@ proc CheckLibraryInit {} {
     set VhdlLibraryParentDirectory [pwd]
   }
   if { ${VhdlLibraryParentDirectory} eq [pwd]} {
-    # Local Library Directory - use OutputHomeDirectory
+    # Local Library Directory - use OutputBaseDirectory
     set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
-#    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
   } else {
-    # Global Library Directory - do not use OutputHomeDirectory
+    # Global Library Directory - do not use OutputBaseDirectory
     set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
   }
 }
@@ -617,18 +607,66 @@ proc CheckLibraryExists {} {
 }
 
 # -------------------------------------------------
+# SetAndCreateBuildOutputDirectory
+#
+proc SetAndCreateBuildOutputDirectory {} {
+variable HaveNotCreatedBuildOutputDirectory 
+variable OsvvmBuildOutputDirectory
+
+  if {$::osvvm::BuildStarted} {
+    if {$HaveNotCreatedBuildOutputDirectory} {
+      # When run as part of a build, use the BuildName
+      set OsvvmBuildOutputDirectory [file join $::osvvm::CurrentSimulationDirectory $::osvvm::OutputBaseDirectory $::osvvm::BuildName]
+      if {[file exists $OsvvmBuildOutputDirectory]} {
+        puts "New OsvvmBuildOutputDirectory matches old one. Deleting old $OsvvmBuildOutputDirectory "
+        file delete -force $OsvvmBuildOutputDirectory
+      }
+      CreateDirectory $OsvvmBuildOutputDirectory
+      CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${OsvvmBuildOutputDirectory} $::osvvm::HtmlThemeSubdirectory
+      set HaveNotCreatedBuildOutputDirectory "false"
+    }
+  } else {
+    # When run simulate runs stand-alone, put output in temporary directory
+    set OsvvmBuildOutputDirectory [file join $::osvvm::CurrentSimulationDirectory $::osvvm::OsvvmTempOutputDirectory]
+    CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OsvvmBuildOutputDirectory} $::osvvm::HtmlThemeSubdirectory
+  }
+}
+
+
+# -------------------------------------------------
 # CheckSimulationDirs
 #   Used by simulate
 #
 proc CheckSimulationDirs {} {
+  variable OsvvmBuildOutputDirectory
   variable CurrentSimulationDirectory
+  variable BuildName
+  variable TestSuiteName
+  variable ReportsDirectory
+  variable ResultsDirectory
+  variable CoverageDirectory
 
-  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ResultsDirectory}]
-  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ReportsDirectory}]
-  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::BuildName}]
-  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::OsvvmTemporaryOutputDirectory}]
+  # Temporary directory used by VHDL simulations and scripts in collaboration with VHDL simulations
+  # Also must be created before ?StartTranscript?
+  CreateDirectory [file join ${CurrentSimulationDirectory} ${::osvvm::OsvvmTempOutputDirectory}]
+  
+  SetAndCreateBuildOutputDirectory
+  
+  set ReportsDirectory     [file join ${OsvvmBuildOutputDirectory} ${::osvvm::ReportsSubdirectory}]
+  if {[info exists TestSuiteName]} {
+    CreateDirectory [file join $ReportsDirectory $TestSuiteName]
+  }
+  CreateDirectory [file join $ReportsDirectory $BuildName]
+
+  set ResultsDirectory     [file join ${OsvvmBuildOutputDirectory} ${::osvvm::ResultsSubdirectory}]
+  CreateDirectory [file join $ResultsDirectory]
+  if {[info exists TestSuiteName]} {
+    CreateDirectory [file join $ResultsDirectory $TestSuiteName]
+  }
+
+  set CoverageDirectory    [file join ${OsvvmBuildOutputDirectory} ${::osvvm::CoverageSubdirectory}]
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
-    CreateDirectory [file join $CurrentSimulationDirectory $::osvvm::CoverageDirectory $::osvvm::TestSuiteName]
+    CreateDirectory [file join $CoverageDirectory $::osvvm::TestSuiteName]
   }
 }
 
@@ -668,11 +706,9 @@ proc ReducePath {PathIn} {
 #
 proc StartTranscript {} {
 
-  CheckWorkingDir
+  set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmTempLogFile}]
   
-  set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildLogFile}]
-  
-  if {![catch {info body vendor_StartTranscript} err]} {
+  if {[llength [info procs vendor_StartTranscript]] > 0} {
     vendor_StartTranscript $TempTranscriptName
   } else {
     DefaultVendor_StartTranscript $TempTranscriptName
@@ -698,15 +734,17 @@ proc DefaultVendor_StartTranscript {FileName} {
 #
 proc StopTranscript {{FileBaseName ""}} {
   variable TranscriptFileName
+  variable OsvvmBuildOutputDirectory
+  variable LogDirectory
 
   flush stdout
-  
-  set FullPathLogDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OutputHomeDirectory} ${::osvvm::LogSubdirectory}]
-  CreateDirectory          $FullPathLogDirectory
+  SetAndCreateBuildOutputDirectory     ; # and delete old one if it exists
+  set LogDirectory         [file join ${::osvvm::OsvvmBuildOutputDirectory} ${::osvvm::LogSubdirectory}]
+  CreateDirectory          $LogDirectory
 
-  set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmBuildLogFile}]
-  set TranscriptFileName [file join ${FullPathLogDirectory} ${FileBaseName}.log]
-  if {![catch {info body vendor_StopTranscript} err]} {
+  set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmTempLogFile}]
+  set TranscriptFileName [file join ${LogDirectory} ${FileBaseName}.log]
+  if {[llength [info procs vendor_StopTranscript]] > 0} {
     vendor_StopTranscript $TempTranscriptName
 #    file rename -force ${TempTranscriptName} ${TranscriptFileName}
     file copy   -force ${TempTranscriptName} ${TranscriptFileName}
@@ -909,11 +947,9 @@ proc library {LibraryName {PathToLib ""}} {
 
   CheckWorkingDir
   CheckLibraryInit
-# Now created after ResolvedPathToLib is set
-#  CreateDirectory $VhdlLibraryFullPath    ; # Create library directory if it does not exist
 
   set ResolvedPathToLib [CreateLibraryPath $PathToLib]
-  set LowerLibraryName [string tolower $LibraryName]
+  set LowerLibraryName  [string tolower $LibraryName]
 
   # Create library directory if it does not exist
   CreateDirectory $ResolvedPathToLib 
@@ -1101,7 +1137,7 @@ proc LocalAnalyze {FileName args} {
 # -------------------------------------------------
 proc NoNullRangeWarning  {} {
   return ""
-  -- -nowarn COMP96_0119
+  # -- -nowarn COMP96_0119
 }
 
 
@@ -1114,7 +1150,6 @@ proc simulate {LibraryUnit args} {
   set SavedInteractive [GetInteractiveMode] 
   if {!($::osvvm::BuildStarted)} {
     SetInteractiveMode "true"
-    CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputHomeDirectory} $::osvvm::HtmlThemeSubdirectory
   }
 
   set SimulateErrorCode [catch {LocalSimulate $LibraryUnit {*}$args} SimErrMsg]
@@ -1186,8 +1221,6 @@ proc LocalSimulate {LibraryUnit args} {
   }
   puts "simulate $SimArgs"              ; # EchoOsvvmCmd
   
-  
-
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     set RanSimulationWithCoverage "true"
     set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
@@ -1290,7 +1323,7 @@ proc ToGenericNames {GenericDict} {
 
 # -------------------------------------------------
 proc DoWaves {args} {
-  if {![catch {info body vendor_DoWaves} err]} {
+  if {[llength [info procs vendor_DoWaves]] > 0} {
     return [vendor_DoWaves {*}$args]
   } else {
     set WaveOptions ""
@@ -1352,12 +1385,6 @@ proc TestSuite {SuiteName} {
       puts "Warning:  Redundant TestSuite $SuiteName - name already set to $TestSuiteName - Command Ignored"
       return ""
     }
-# #!!    # Finalize previous Test Suite
-# #!!    set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
-# #!!    set RequirementsResultsFile [file join ${::osvvm::ReportsDirectory} ${::osvvm::BuildName} ${TestSuiteName}_req.yml]
-# #!!    MergeRequirements $RequirementsSourceDir $RequirementsResultsFile
-# #!!    Requirements2Html $RequirementsResultsFile "../"
-    
     # Finish previous test suite before ending current one
     FinalizeTestSuite $TestSuiteName
     FinishTestSuiteBuildYaml
@@ -1366,10 +1393,10 @@ proc TestSuite {SuiteName} {
   
   set   TestSuiteName $SuiteName
 
-  CheckWorkingDir
-  CheckSimulationDirs
-  CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${TestSuiteName}]
-  CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ResultsDirectory} ${TestSuiteName}]
+#  CheckWorkingDir
+#  CheckSimulationDirs
+#  CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${TestSuiteName}]
+#  CreateDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ResultsDirectory} ${TestSuiteName}]
 }
 
 # -------------------------------------------------
@@ -1526,6 +1553,15 @@ proc SetExtendedAnalyzeOptions {{Options ""}} {
 proc GetExtendedAnalyzeOptions {} {
   variable ExtendedAnalyzeOptions
   return $ExtendedAnalyzeOptions
+}
+
+proc SetExtendedOptimizeOptions {{Options ""}} {
+  variable ExtendedOptimizeOptions
+  set ExtendedOptimizeOptions $Options
+}
+proc GetExtendedOptimizeOptions {} {
+  variable ExtendedOptimizeOptions
+  return $ExtendedOptimizeOptions
 }
 
 proc SetExtendedSimulateOptions {{Options ""}} {
@@ -1950,7 +1986,7 @@ proc InstallProject { {ProjectDir $OsvvmLibraries} {ProjectBuildScript $ProjectD
   # Save current log file settings and temporarily override it
   set      CurLogSubDirectory           $::osvvm::LogSubdirectory
   variable ::osvvm::LogSubdirectory     "logs"                 ;# default value is "logs/${ToolNameVersion}"
-  variable ::osvvm::LogDirectory        [file join ${::osvvm::OutputHomeDirectory} ${::osvvm::LogSubdirectory}]
+  variable ::osvvm::LogDirectory        [file join ${::osvvm::OsvvmBuildOutputDirectory} ${::osvvm::LogSubdirectory}]
 #  variable ::osvvm::VhdlLibraryDirectory       "VHDL_LIBS"
 
 #  build ../../OsvvmLibraries.pro
@@ -1958,7 +1994,7 @@ proc InstallProject { {ProjectDir $OsvvmLibraries} {ProjectBuildScript $ProjectD
 
   # Restore log file settings 
   variable ::osvvm::LogSubdirectory     $CurLogSubDirectory
-  variable ::osvvm::LogDirectory        [file join ${::osvvm::OutputHomeDirectory} ${::osvvm::LogSubdirectory}]
+  variable ::osvvm::LogDirectory        [file join ${::osvvm::OsvvmBuildOutputDirectory} ${::osvvm::LogSubdirectory}]
 
   # Restore SimulationDirectory and LibraryDirectory
   cd $StartingDirectory
@@ -1970,7 +2006,7 @@ proc InstallProject { {ProjectDir $OsvvmLibraries} {ProjectBuildScript $ProjectD
 # SimulateDoneMoveTestCaseFiles
 #
 proc SimulateDoneMoveTestCaseFiles {} {
-  variable OsvvmTemporaryOutputDirectory
+  variable OsvvmTempOutputDirectory
   variable TestCaseName
   variable TestCaseFileName
   variable GenericDict
@@ -1992,28 +2028,28 @@ proc SimulateDoneMoveTestCaseFiles {} {
 # TODO!! check and see when these directories need creating.  If not until here, then 
 # Create them here? - or in TestSuite as then it is done once per TestSuite?
 # Creating This directory and results/TestSuiteName are done by testsuite, but maybe should be done here
-  CreateDirectory $TestSuiteDirectory   ;  
+#  CreateDirectory $TestSuiteDirectory   ; # Created by CheckSimulationDirs 
   
-  set RequirementsYamlSourceFile [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_req.yml]
+  set RequirementsYamlSourceFile [file join $OsvvmTempOutputDirectory ${TestCaseName}_req.yml]
   if {[file exists ${RequirementsYamlSourceFile}]} {
     set RequirementsYamlFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_req.yml]
     file rename -force $RequirementsYamlSourceFile  $RequirementsYamlFile
   } else { set RequirementsYamlFile "" }
 
-  set AlertYamlSourceFile        [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_alerts.yml]
+  set AlertYamlSourceFile        [file join $OsvvmTempOutputDirectory ${TestCaseName}_alerts.yml]
   if {[file exists ${AlertYamlSourceFile}]} {
     set AlertYamlFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_alerts.yml]
     file rename -force $AlertYamlSourceFile $AlertYamlFile
   } else { set AlertYamlFile "" }
 
-  set CovYamlSourceFile          [file join $OsvvmTemporaryOutputDirectory ${TestCaseName}_cov.yml]
+  set CovYamlSourceFile          [file join $OsvvmTempOutputDirectory ${TestCaseName}_cov.yml]
   if {[file exists ${CovYamlSourceFile}]} {
     set CovYamlFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_cov.yml]
     file rename -force $CovYamlSourceFile  $CovYamlFile
   } else { set CovYamlFile "" }
   
   set SbBaseYamlFile            ${TestCaseName}_sb_
-  set SbSourceFiles [glob -nocomplain [file join $OsvvmTemporaryOutputDirectory ${SbBaseYamlFile}*.yml] ]
+  set SbSourceFiles [glob -nocomplain [file join $OsvvmTempOutputDirectory ${SbBaseYamlFile}*.yml] ]
   set ScoreboardDict ""
   if {$SbSourceFiles ne ""} {
     foreach SbSourceFile ${SbSourceFiles} {
@@ -2025,8 +2061,8 @@ proc SimulateDoneMoveTestCaseFiles {} {
   }
   
   set TranscriptFiles ""
-  if {[file exists ${::osvvm::TranscriptYamlFile}]} {
-    set TranscriptFileArray [::yaml::yaml2dict -file ${::osvvm::TranscriptYamlFile}]
+  if {[file exists ${::osvvm::TempTranscriptYamlFile}]} {
+    set TranscriptFileArray [::yaml::yaml2dict -file ${::osvvm::TempTranscriptYamlFile}]
     foreach TranscriptFile $TranscriptFileArray {
       if {[file exists ${TranscriptFile}]} {
         # If file is in list more than once (transcriptOpen ; transcriptClose ; TranscriptOpen)
@@ -2039,7 +2075,7 @@ proc SimulateDoneMoveTestCaseFiles {} {
         lappend TranscriptFiles [file join ${::osvvm::ResultsSubdirectory} ${TestSuiteName} ${TranscriptGenericName}]
         if {[file normalize ${TranscriptFile}] ne [file normalize ${TranscriptDestFile}]} {
           # Move transcript if it is not already in destination location
-          CreateDirectory [file join ${::osvvm::ResultsDirectory} ${TestSuiteName}]
+# Done by CheckSimulationDirs          CreateDirectory [file join ${::osvvm::ResultsDirectory} ${TestSuiteName}]
 #          file rename -force ${TranscriptFile}  ${TranscriptDestFile}
           file copy -force ${TranscriptFile}  ${TranscriptDestFile}
           if {[catch {file delete -force ${TranscriptFile}} err]} {
@@ -2057,11 +2093,11 @@ proc SimulateDoneMoveTestCaseFiles {} {
       }
     }
     # Remove file so it does not impact any following simulation
-    file delete -force -- ${::osvvm::TranscriptYamlFile}
+    file delete -force -- ${::osvvm::TempTranscriptYamlFile}
   }
 
-##  CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OutputHomeDirectory} $::osvvm::HtmlThemeSubdirectory
-#  FindHtmlThemeFiles ${::osvvm::OutputHomeDirectory} $::osvvm::HtmlThemeSubdirectory
+##  CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OsvvmBuildOutputDirectory} $::osvvm::HtmlThemeSubdirectory
+#  FindHtmlThemeFiles ${::osvvm::OsvvmBuildOutputDirectory} $::osvvm::HtmlThemeSubdirectory
 #  
 #  if {([GetTranscriptType] eq "html") && ($BuildName ne "")} {
 #    set SimulationHtmlLogFile [file join ${::osvvm::LogSubdirectory} ${BuildName}_log.html]
@@ -2167,6 +2203,7 @@ namespace export SetLibraryDirectory GetLibraryDirectory SetTranscriptType GetTr
 namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries
 namespace export FileExists DirectoryExists
 namespace export SetExtendedAnalyzeOptions GetExtendedAnalyzeOptions
+namespace export SetExtendedOptimizeOptions GetExtendedOptimizeOptions
 namespace export SetExtendedSimulateOptions GetExtendedSimulateOptions
 namespace export SetVhdlAnalyzeOptions GetVhdlAnalyzeOptions SetVerilogAnalyzeOptions GetVerilogAnalyzeOptions 
 namespace export SetCoverageEnable GetCoverageEnable

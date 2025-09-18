@@ -94,15 +94,16 @@ namespace eval ::osvvm {
   } elseif {$ToolExecutableName eq "vish" || $ToolExecutableName eq "vsimk"} {
     variable ScriptBaseName "Siemens"
 
-    if {![catch {vsimId} msg]} {
-      variable ToolVersion [vsimId]
-    } else {
-      set VersionString [exec vsim -version &2>1]
-      regexp {(vsim\s+)(\d+\.\d+\S*)} $VersionString s1 s2 s3
-      variable ToolVersion $s3
-    }
+#    if {![catch {vsimId} msg]} {
+#      variable ToolVersion [vsimId]
+#    } else {
+#      set VersionString [exec vsim -version &2>1]
+#      regexp {(vsim\s+)(\d+\.\d+\S*)} $VersionString s1 s2 s3
+#      variable ToolVersion $s3
+#    }
 
-    if {[expr [string compare $ToolVersion "2025.2"] >= 0]} {
+    # if {[expr [string compare $ToolVersion "2025.2"] >= 0]} { }  ;# if next code is universally supported keep it.
+    if {![catch {qsim -version} msg]} {
       variable ScriptBaseName "Questa"
     }
 #    if {[info exists ::env(OSVVM_TOOL)]} {

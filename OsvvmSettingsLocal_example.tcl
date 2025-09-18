@@ -70,13 +70,13 @@ namespace eval ::osvvm {
     #  variable OutputBaseDirectory        ""                          ;# put output in $CurrentSimulationDirectory
     #  variable OutputBaseDirectory        "osvvm"                     ;# put output in $CurrentSimulationDirectory/osvvm
 
-    #  Directory for log files = $OutputHomeDirectory/$LogSubdirectory
+    #  Directory for log files = $OsvvmBuildOutputDirectory/$LogSubdirectory
     #    Contains simulator transcript in text and optionally html
     #    ToolNameVersion = <ToolName>-<Version>
     #  variable LogSubdirectory            "logs/${ToolNameVersion}"   ;# default value
     #  variable LogSubdirectory            "logs"                      ;# log directory without tool information
 
-    #  Directory for OSVVM generated reports = $OutputHomeDirectory/$ReportsSubdirectory
+    #  Directory for OSVVM generated reports = $OsvvmBuildOutputDirectory/$ReportsSubdirectory
     #    Contains Test Case Report with Alerts, Functional Coverage, and Scoreboards
     #  variable ReportsSubdirectory        "reports"                   ;# default value
 
@@ -84,15 +84,15 @@ namespace eval ::osvvm {
     #    Contains files created by AlertLogPkg.TranscriptOpen
     #  variable ResultsSubdirectory        "results"                   ;# default value
 
-    # Code Coverage Directory = $OutputHomeDirectory/$CoverageSubdirectory
+    # Code Coverage Directory = $OsvvmBuildOutputDirectory/$CoverageSubdirectory
     #    Code coverage collected by the simulator
     #  variable CoverageSubdirectory       "CodeCoverage"              ;# default value
 
     #  Library Directory structure is defined by
-    #  [file join $VhdlLibraryParentDirectory $OutputHomeDirectory $VhdlLibraryDirectory $VhdlLibrarySubdirectory]
+    #  [file join $VhdlLibraryParentDirectory $OutputBaseDirectory $VhdlLibraryDirectory $VhdlLibrarySubdirectory]
     #
     #  Library Parent Directory
-    #    If "", use $OutputHomeDirectory as base
+    #    If "", use $OsvvmBuildOutputDirectory as base
     #    If has an absolute path, use the absolute path as the library parent directory
     #  variable VhdlLibraryParentDirectory ""                          ;# default value
     #  variable VhdlLibraryParentDirectory  "C:/tools"                 ;# put libraries in temp space
@@ -103,17 +103,17 @@ namespace eval ::osvvm {
     #  Library Subdirectory
     #    variable VhdlLibrarySubdirectory    "${ToolNameVersion}"      ;# default value
 
-    # OsvvmTemporaryOutputDirectory is where temporary OSVVM output goes.   
-    # !!! with 2025.08, it is recommended to set OsvvmTemporaryOutputDirectory to OsvvmHomeDirectory which is done in OsvvmSettingsRequired.tcl
+    # OsvvmTempOutputDirectory is where temporary OSVVM output goes.   
+    # !!! with 2025.08, it is recommended to set OsvvmTempOutputDirectory to OsvvmHomeDirectory which is done in OsvvmSettingsRequired.tcl
     
-    # OsvvmSettingsSubDirectory 
+    # OsvvmSettingsSubdirectory 
     # Location for package bodies generated:  OsvvmScriptSettingsPkg_generated.vhd and OsvvmScriptSettingsPkg_generated.vhd
     # Project/User settings OsvvmSettingsPkg_local.vhd 
     #    Deprecated:  variable SettingsAreRelativeToSimulationDirectory "false"      ;# Setting deprecated.  false is the only legal value
-    #    variable OsvvmSettingsSubDirectory      ""                     ;# default value 
-    #    variable OsvvmSettingsSubDirectory      "${ToolName}"          ;# Recommended if running multiple simulators 
-    #    variable OsvvmSettingsSubDirectory      "${ToolNameVersion}"   ;# Recommended if running multiple simulators
-    # !!! with 2025.08, OsvvmSettingsSubDirectory is not needed.  A suffix was added to the package instead.  
+    #    variable OsvvmSettingsSubdirectory      ""                     ;# default value 
+    #    variable OsvvmSettingsSubdirectory      "${ToolName}"          ;# Recommended if running multiple simulators 
+    #    variable OsvvmSettingsSubdirectory      "${ToolNameVersion}"   ;# Recommended if running multiple simulators
+    # !!! with 2025.08, OsvvmSettingsSubdirectory is not needed.  A suffix was added to the package instead.  
     # It is recommended to leave this as ""
 
 

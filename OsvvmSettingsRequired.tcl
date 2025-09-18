@@ -75,12 +75,10 @@ namespace eval ::osvvm {
     variable ClockResetVersion $OsvvmVersionCompatibility
   }
 
-  variable OutputHomeDirectory    [file join $OutputBaseDirectory  $OutputSubdirectory] 
-  # set OsvvmTemporaryOutputDirectory to match OutputHomeDirectory
-  if {![info exists OsvvmTemporaryOutputDirectory] || $OsvvmTemporaryOutputDirectory eq ""}  {
-    variable OsvvmTemporaryOutputDirectory $OutputHomeDirectory
-  }
-
+  variable OsvvmTempOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory] 
+  # Default OsvvmBuildOutputDirectory - otherwise it is [file join $OutputBaseDirectory $BuildName]
+  variable DefaultBuildOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory] 
+  variable OsvvmBuildOutputDirectory    $DefaultBuildOutputDirectory 
 
   # 
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
@@ -126,14 +124,15 @@ namespace eval ::osvvm {
     
   #
   # Create derived directory paths
-  #
-    variable OsvvmCoSimDirectory  ${OsvvmHomeDirectory}/CoSim
-    variable ReportsDirectory     [file join ${OutputHomeDirectory} ${ReportsSubdirectory}]
-    variable ResultsDirectory     [file join ${OutputHomeDirectory} ${ResultsSubdirectory}]
-    variable CoverageDirectory    [file join ${OutputHomeDirectory} ${CoverageSubdirectory}]
-    variable LogDirectory         [file join ${OutputHomeDirectory} ${LogSubdirectory}]
-    variable HtmlThemeSubdirectory      [file join ${ReportsSubdirectory}]
-    variable HtmlThemeDirectory         [file join ${OutputHomeDirectory} ${HtmlThemeSubdirectory}]
+  variable OsvvmCoSimDirectory  ${OsvvmHomeDirectory}/CoSim
+
+  #  The following directories are now dynamically created by CheckSimulationDirs - locate these in the build directory
+  variable ReportsDirectory       $InvalidDirectory
+  variable ResultsDirectory       $InvalidDirectory
+  variable CoverageDirectory      $InvalidDirectory
+
+  # Dynamically created by StartTranscript
+  variable LogDirectory           $InvalidDirectory
 
   #
   #  Initialize OSVVM Internals
@@ -160,6 +159,7 @@ namespace eval ::osvvm {
 
 
     variable BuildStarted          "false"   ; # Detects if build is running and if build is called, call include instead
+    variable HaveNotCreatedBuildOutputDirectory "true"
     variable BuildName             ""
     variable BuildStatus           "FAILED"
     variable LastBuildName         ""
@@ -178,19 +178,20 @@ namespace eval ::osvvm {
       set OperatingSystemName windows
     }
 
-    # VhdlReportsDirectory:  OSVVM temporary location for yml.  Moved to ${ReportsDirectory}/${TestSuiteName}
-#    variable VhdlReportsDirectory     "" ;   # replaced by OsvvmTemporaryOutputDirectory
+    # OsvvmIndex...File - locates index.html for summarizing different builds
     variable OsvvmIndexYamlFile  [file join ${::osvvm::OutputBaseDirectory} index.yml]
     variable OsvvmIndexHtmlFile  [file rootname ${::osvvm::OsvvmIndexYamlFile}].html
 
-    # OsvvmBuildYamlFile: temporary OSVVM name moved to ${OutputHomeDirectory}/${BuildName}.yaml
-    variable OsvvmBuildYamlFile     [file join ${OsvvmTemporaryOutputDirectory} "OsvvmRun.yml"] ;  
+    # OsvvmTempYamlFile: temporary OSVVM name.  Moved to ${OutputBaseDirectory}/${BuildName}/${BuildName}.yaml when build finishes
+    # Both VHDL and Scripts add to this file
+    variable OsvvmTempYamlFile     [file join ${OsvvmTempOutputDirectory} "OsvvmRun.yml"] ;  
 
-    #  TranscriptYamlFile: temporary file that contains set of files used in TranscriptOpen.  Deleted by scripts.
-    variable TranscriptYamlFile     [file join ${OsvvmTemporaryOutputDirectory} "OSVVM_transcript.yml"] ;  
+    #  TempTranscriptYamlFile: temporary file that contains set of files used in TranscriptOpen.  Deleted by scripts.
+    variable TempTranscriptYamlFile     [file join ${OsvvmTempOutputDirectory} "OSVVM_transcript.yml"] ;  
     
-    # OsvvmBuildLogFile: temporary OSVVM name moved to ${OutputHomeDirectory}/${LogSubDirectory}/${BuildName}.log
-    variable OsvvmBuildLogFile      [file join ${OsvvmTemporaryOutputDirectory} "OsvvmBuild.log"] ;  
+    # OsvvmTempLogFile: temporary OSVVM name. Moved to ${OutputBaseDirectory}/${BuildName}/${LogSubDirectory}/${BuildName}.log when scripts complete
+    # Created in temporary space since BuildName may not have been established yet.   
+    variable OsvvmTempLogFile      [file join ${OsvvmTempOutputDirectory} "OsvvmBuild.log"] ;  
     
 
     # Error handling

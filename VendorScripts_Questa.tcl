@@ -46,61 +46,58 @@ package require fileutil
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Siemens"
-  
-  if {![catch {vsimVersionString} msg]} {
-    set VersionString [vsimVersionString]
-  } else {
-    set VersionString [exec vsim -version &2>1]
-    puts $VersionString
-  }
+
+  set VersionString [exec vsim -version &2>1]
+  regexp {(\S+)\s+\S+\s+\S+\s+(\d+\.\d+\S*)} $VersionString FullMatch Name Version
 
   if {![catch {vsimId} msg]} {
     variable ToolVersion [vsimId]
   } else {
-    regexp {(vsim\s+)(\d+\.\d+\S*)} $VersionString s1 s2 s3
-    variable ToolVersion $s3
+    variable ToolVersion $Version
   }
-
+  
   if {[info exists ::ToolName]} {
     variable ToolName $::ToolName
   } else {
-    variable ToolName "Questa"
+    variable ToolName $Name
   }
 
   variable ToolNameVersion ${ToolName}-${ToolVersion}
-#   puts $ToolNameVersion
- 
   variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
   
+  # How was the simulator started?  
+  #     Tool interface vs. TCLSH shell   
+  #     Batch (-c -batch) vs. -gui
+  #     Assumption:  If batch or shell focus on running fast as it is a regression
+  variable shell ""
   if {![catch {batch_mode} msg]} {
-    variable shell ""
-    variable SiemensSimulateOptions ""
     if {[batch_mode]} {
-      variable ToolArgs $argv
       variable NoGui "true"
-#      variable SiemensSimulateOptions "-batch"
-      variable SiemensSimulateOptions "-c"
-      variable DebugOptions "-debug"
+      if {[regexp {\-batch} $argv]} {
+        variable EnableTranscriptInBatchMode "false"
+#        variable SiemensSimulateOptions -batch  
+        variable SiemensSimulateOptions -c  
+      } else {
+        variable EnableTranscriptInBatchMode "true"
+        variable SiemensSimulateOptions -c  
+      }
     } else {
-      variable ToolArgs "-gui"
       variable NoGui "false"
-#      variable SiemensSimulateOptions "-visualizer"
-#      variable DebugOptions "-debug,livesim"
+      variable EnableTranscriptInBatchMode "true"  ; # not relevant
       variable SiemensSimulateOptions "-c"
-      variable DebugOptions "-debug"
     }
   } else {
-    # Star ted from Shell
+    # Started from Shell
     variable shell "exec"
-    variable ToolArgs "none"
     variable NoGui "true"
-#    variable SiemensSimulateOptions "-batch"
-    variable SiemensSimulateOptions "-c"
-    variable DebugOptions "-debug"
+    variable EnableTranscriptInBatchMode "true"
+#    variable SiemensSimulateOptions "-c"
+    variable SiemensSimulateOptions "-batch"
   }
-  
 
-  # SetVHDLVersion 2019
+#  if {[expr [string compare $ToolVersion "2025.3"] >= 0]} {
+#    SetVHDLVersion 2019
+#  }
 
   # Set if not set
   if {![info exists ::VoptArgs]} {
@@ -124,7 +121,11 @@ proc vendor_StartTranscript {FileName} {
 #  puts "NoGui: $NoGui"
 
   if {$NoGui} {
-    DefaultVendor_StartTranscript $FileName
+    # if started as vsim -batch, do not do logging here
+    # instead use vsim -batch -do "..." | tee OsvvmBuild.log
+    if {$::osvvm::EnableTranscriptInBatchMode} {
+      DefaultVendor_StartTranscript $FileName
+    }
   } else {
     transcript file ""
     echo transcript file $FileName
@@ -135,10 +136,10 @@ proc vendor_StartTranscript {FileName} {
 proc vendor_StopTranscript {FileName} {
   variable NoGui
 
-  # FileName not used here
-#  transcript file ""
   if {$NoGui} {
-    DefaultVendor_StopTranscript $FileName
+    if {$::osvvm::EnableTranscriptInBatchMode} {
+      DefaultVendor_StopTranscript $FileName
+    }
   } else {
     transcript file ""
   }
@@ -302,6 +303,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SimulateTimeUnits
   variable TestSuiteName
   variable TestCaseFileName
+  variable ExtendedOptimizeOptions
+  variable ExtendedSimulateOptions
   
   # Create the script files
   set ErrorCode [catch {vendor_CreateSimulateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
@@ -311,34 +314,38 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
     error "Failed: vendor_CreateSimulateDoFile $LibraryUnit"
   } 
 
-  if {($::osvvm::Debug)} {
-	  set OptimizeOptions $::osvvm::DebugOptions
-  } else {
-	  set OptimizeOptions " "
-  }
-
-#  set OptimizeOptions [concat $::VoptArgs $OptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt]
-  set OptimizeOptions [concat $::VoptArgs $OptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt {*}${::osvvm::GenericOptions}]
-  
   set LocalTestSuiteDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
 
-  puts "vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin]"
-  eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin] 
-#  puts "vopt {*}${OptimizeOptions}"
-#  eval $::osvvm::shell vopt {*}${OptimizeOptions}  
-  
+  set OptimizeOptions ""
+  set WaveOptions   ""
 
   if {$::osvvm::SaveWaves} {
+	  set OptimizeOptions "-debug"
     set WaveOptions "-qwavedb=+signals+wavefile=[file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_qwave.db]"
-  } else {
-    set WaveOptions ""
   }
 
-  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} -suppress 8683 -suppress 8684]
-#  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
-#  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions}]
-#  set SimulateOptions [concat $::VsimArgs $::osvvm::SiemensSimulateOptions -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args}]
+  if {$::osvvm::SimulateInteractive} {
+	  set OptimizeOptions "-debug"
+  }
 
+  if {$::osvvm::Debug} {
+	  set OptimizeOptions "-debug,livesim"
+  }
+
+  set OptimizeOptions [concat $::VoptArgs $OptimizeOptions {*}$ExtendedOptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt {*}${::osvvm::GenericOptions}]
+  
+  puts "vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin]"
+  eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin] 
+  
+  # Set generics during opt rather than sim
+  set SimulateOptions [concat $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} -suppress 8683 -suppress 8684]
+#  set SimulateOptions [concat $::osvvm::SiemensSimulateOptions $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}${::osvvm::GenericOptions} -suppress 8683 -suppress 8684]
+  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
+    set RanSimulationWithCoverage "true"
+    set SimulateOptions [concat $::osvvm::SiemensSimulateOptions {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions {*}$SimulateOptions]
+  } else {
+    set SimulateOptions [concat $::osvvm::SiemensSimulateOptions {*}$ExtendedSimulateOptions {*}$SimulateOptions]
+  }
 
   if {$::osvvm::shell eq ""} {
     puts "vsim ${SimulateOptions} ${WaveOptions}"
@@ -355,23 +362,6 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
       puts $CatchMessage
     }
   }
-# Framework for running batch - from command line
-#  puts "vsim {*}${SimulateOptions} {*}${WaveOptions} -do \"exit -code \[catch {source OsvvmSimRun.tcl}\]\""
-# puts "vsim ${SimulateOptions} ${WaveOptions} -do \"source OsvvmSimRun.tcl\""
-#  set ErrorCode [catch {exec vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "exit -code \[catch {source OsvvmSimRun.tcl}\]"} CatchMessage] 
-#  set ErrorCode [catch {exec vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "source OsvvmSimRun.tcl ; quit"} CatchMessage] 
-#  set ErrorCode [catch {eval $::osvvm::shell vsim {*}${SimulateOptions}  {*}${WaveOptions} -do "\"source OsvvmSimRun.tcl ; quit\""} CatchMessage] 
-
-#  if {$ErrorCode != 0} {
-#    PrintWithPrefix "Error:" $CatchMessage
-#    puts $::errorInfo
-#    error "Failed: simulate $LibraryUnit"
-#  } else {
-#    puts $CatchMessage
-#  }
-
-#  exec vsim {*}${SimulateOptions}  {*}${WaveOptions} < OsvvmSimRun.tcl
-
 }
 
 # -------------------------------------------------

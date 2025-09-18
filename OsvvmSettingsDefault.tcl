@@ -59,36 +59,37 @@ namespace eval ::osvvm {
     # CurrentWorkingDirectory is a relative path to the scripts currently running 
     variable CurrentWorkingDirectory ""
     # CurrentSimulationDirectory is an absolute path to the simulation directory (for reports and such)
-#    variable CurrentSimulationDirectory [pwd]
     variable CurrentSimulationDirectory "Invalid Initial Path !@#$%^&*()+=|><| Should be replaced By CheckWorkingDir"
   
   #
   # Directory structure and results file management
   #
-    # OsvvmTemporaryOutputDirectory is where temporary OSVVM output goes.   
-    # Caution:  If you change the value of OsvvmTemporaryOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
+    # OsvvmTempOutputDirectory is where temporary OSVVM output goes.   
+    # Caution:  If you change the value of OsvvmTempOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
     # Files only remain in this directory when a tool does not complete correctly
-    #  variable OsvvmTemporaryOutputDirectory   "" ; # Temporary directory for OSVVM Ouput - by default set to OutputHomeDirectory
-    variable OutputBaseDirectory        ""      ; # Container for all OSVVM ouput
-#    variable OutputSubdirectory         "CurrentBuildDirectory"  
-#    variable OutputSubdirectory         "CurrentBuildDirectory_${ToolNameVersion}"   ; # Temporary directory name.  Renamed by BuildName
-    variable OutputSubdirectory         "CurrentBuildDirectory_${ToolName}"  
-    variable LogSubdirectory            "logs/${ToolNameVersion}"
-    variable ReportsSubdirectory        "reports"  ; # Directory scripts put reports into.
-    variable ResultsSubdirectory        "results"  ; # Directory for files opened by TranscriptOpen
-    variable CoverageSubdirectory       "CodeCoverage"
-    variable InvalidLibraryDirectory    "Invalid Library Directory !@#$%^&*()+=|><|"
-    variable VhdlLibraryParentDirectory $InvalidLibraryDirectory
-#    variable VhdlLibraryParentDirectory [pwd]      ; # use local directory
-    variable VhdlLibraryDirectory       "VHDL_LIBS"
-    variable VhdlLibrarySubdirectory    "${ToolNameVersion}"
+    variable OutputBaseDirectory                  ""      ; # Container for all OSVVM ouput
+#    variable OsvvmTempOutputSubdirectory         "OsvvmTemp"  
+#    variable OsvvmTempOutputSubdirectory         "OsvvmTemp_${ToolNameVersion}"   ; # Temporary directory name.  Renamed by BuildName
+    variable OsvvmTempOutputSubdirectory          "OsvvmTemp_${ToolName}"  
+#    variable LogSubdirectory                      "logs/${ToolNameVersion}"
+    variable LogSubdirectory                      "logs"  ; #  With build directories does not need $ToolNameVersion.  Was "logs/${ToolNameVersion}" 
+    variable ReportsSubdirectory                  "reports"  ; # Directory scripts put reports into.
+    variable ResultsSubdirectory                  "results"  ; # Directory for files opened by TranscriptOpen
+    variable CoverageSubdirectory                 "CodeCoverage"
+    variable InvalidDirectory                     "Invalid Directory !@#$%^&*()+=|><|"
+    variable InvalidLibraryDirectory              $InvalidDirectory
+    variable VhdlLibraryParentDirectory           $InvalidDirectory
+#    variable VhdlLibraryParentDirectory          [pwd]      ; # use local directory
+    variable VhdlLibraryDirectory                 "VHDL_LIBS"
+    variable VhdlLibrarySubdirectory              "${ToolNameVersion}"
+
+    variable HtmlThemeSubdirectory                ${ReportsSubdirectory}
     
-    
-    # OsvvmSettingsSubDirectory 
+    # OsvvmSettingsSubdirectory 
     # Location for package local and generated package bodies 
     # Settings are relative to $OsvvmLibraries/osvvm if SettingsAreRelativeToSimulationDirectory is false
     variable SettingsAreRelativeToSimulationDirectory "false"
-    variable OsvvmSettingsSubDirectory      "" 
+    variable OsvvmSettingsSubdirectory      "" 
 
 
   # 
@@ -182,9 +183,10 @@ namespace eval ::osvvm {
     variable ExtendedSimulateOptions   ""
     
   #
-  #  For simulators that use two steps for Analyze and Simulate 
+  #  For simulators that use two steps for Elaborate/Optimize and Run/Simulate 
   #
     variable ExtendedElaborateOptions  ""
+    variable ExtendedOptimizeOptions   ""
     variable ExtendedRunOptions        ""
     variable SaveWaves                 "false"
     variable SimulateInteractive       "false"

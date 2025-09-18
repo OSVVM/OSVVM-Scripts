@@ -199,7 +199,7 @@ proc CreateHtmlSummary {TestDict} {
     puts $ResultsFile "          <tr><td>Code Coverage</td><td><a href=\"${::osvvm::Report2CoverageSubdirectory}\">Code Coverage Results</a></td></tr>"
   }
   
-  set IndexPath [file normalize [file join $::osvvm::CurrentSimulationDirectory index.html]]
+  set IndexPath [file normalize [file join $::osvvm::CurrentSimulationDirectory $::osvvm::OutputBaseDirectory index.html]]
   set RelativeIndexPath  "[::fileutil::relative [file normalize [file join ${::osvvm::OutputBaseDirectory} $ReportBuildName]] $IndexPath]"
   puts $ResultsFile "          <tr><td>Build Index</td><td><a href=\"$RelativeIndexPath\">index.html</a></td></tr>"
 
@@ -319,7 +319,7 @@ proc CreateTestCaseSummaries {TestDict} {
       puts $ResultsFile "        </thead>"
       puts $ResultsFile "        <tbody>"
 
-      set ReportsDirectory [file join $::osvvm::Report2ReportsSubdirectory $SuiteName]
+      set TestSuiteReportsDirectory [file join $::osvvm::Report2ReportsSubdirectory $SuiteName]
 
       foreach TestCase [dict get $TestSuite TestCases] {
         set TestName     [dict get $TestCase TestCaseName]
@@ -373,7 +373,7 @@ proc CreateTestCaseSummaries {TestDict} {
         } else {
           set TestFileName $TestName
         }
-        set TestCaseHtmlFile [file join ${ReportsDirectory} ${TestFileName}.html]
+        set TestCaseHtmlFile [file join ${TestSuiteReportsDirectory} ${TestFileName}.html]
         set TestCaseName $TestName
         if { [dict exists $TestCase Generics] } { 
           set TestCaseGenerics [dict get $TestCase Generics]
