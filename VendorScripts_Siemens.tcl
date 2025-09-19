@@ -314,6 +314,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SimulateTimeUnits
   variable TestSuiteName
   variable TestCaseFileName
+  variable ReportsTestSuiteDirectory
   
   # Create the script files
   set ErrorCode [catch {vendor_CreateSimulateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
@@ -330,7 +331,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   }
  
   if {$::osvvm::SaveWaves} {
-    set WaveOptions "-wlf [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName} ${LibraryUnit}.wlf]"
+    set WaveOptions "-wlf [file join ${ReportsTestSuiteDirectory} ${LibraryUnit}.wlf]"
   } else {
     set WaveOptions ""
   }

@@ -223,9 +223,6 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set LocalGlobalOptions [concat --std=${VhdlShortVersion} -H 128m --stderr=error --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
   set LocalElaborateOptions [concat {*}${ExtendedElaborateOptions} {*}${args}  {*}${::osvvm::GenericOptions}]
 
-  set LocalReportDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
-
-
   set CoSimRunOptions ""
   if {$::osvvm::RunningCoSim} {
     set CoSimRunOptions "--load=./VProc.so"
@@ -238,7 +235,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   set LocalRunOptions [concat "--ieee-warnings=off" {*}${ExtendedRunOptions} {*}${CoSimRunOptions}]
   if {$::osvvm::SaveWaves} {
-    set LocalRunOptions [concat {*}${LocalRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.fst ]
+    set LocalRunOptions [concat {*}${LocalRunOptions} --wave=${::osvvm::ReportsTestSuiteDirectory}/${LibraryUnit}.fst ]
   }
   
 # format for select file  

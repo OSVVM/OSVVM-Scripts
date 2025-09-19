@@ -191,6 +191,12 @@ namespace eval ::osvvm {
     variable SaveWaves                 "false"
     variable SimulateInteractive       "false"
   
+
+  #
+  #  Debug Controls
+  #
+  variable TclDebug                    "false"
+
   #
   # Second Top
   #

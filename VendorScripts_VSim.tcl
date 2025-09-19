@@ -322,6 +322,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SimulateTimeUnits
   variable TestSuiteName
   variable TestCaseFileName
+  variable ReportsTestSuiteDirectory
   
   puts "vendor_simulate $LibraryName $LibraryUnit $args" 
   
@@ -334,12 +335,9 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set OptimizeOptions [concat $::VoptArgs $OptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt ]
   puts "OptimizeOptions: $OptimizeOptions"
   
-  set LocalTestSuiteDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
-  puts "LocalTestSuiteDirectory: $LocalTestSuiteDirectory"
-
 # This probably belongs in the library directory 
-  puts "vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin]"
-  set ErrorCode [catch {eval $::osvvm::shell vopt {*}${OptimizeOptions} -quiet -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin]} CatchMessage] 
+  puts "vopt {*}${OptimizeOptions} -designfile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_design.bin]"
+  set ErrorCode [catch {eval $::osvvm::shell vopt {*}${OptimizeOptions} -quiet -designfile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_design.bin]} CatchMessage] 
   if {$ErrorCode != 0} {
     PrintWithPrefix "Error:" $CatchMessage
     puts $::errorInfo
@@ -358,7 +356,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   } 
 
   if {$::osvvm::SaveWaves} {
-    set WaveOptions "-qwavedb=+signals+wavefile=[file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_qwave.db]"
+    set WaveOptions "-qwavedb=+signals+wavefile=[file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_qwave.db]"
   } else {
     set WaveOptions ""
   }

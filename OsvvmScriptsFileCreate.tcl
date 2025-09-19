@@ -103,7 +103,7 @@ proc CreateOsvvmScriptSettingsPkg {SettingsDirectory} {
   } else {
     puts $FileHandle "  constant OSVVM_TEMP_OUTPUT_DIRECTORY   : string := \"${::osvvm::OsvvmTempOutputDirectory}/\" ;"
   }
-  if {${::osvvm::OsvvmBuildOutputDirectory} eq ""} {
+  if {${::osvvm::OutputBaseDirectory} eq ""} {
     puts $FileHandle "  constant OSVVM_BASE_DIRECTORY  : string := \"\" ;"
   } else {
     puts $FileHandle "  constant OSVVM_BASE_DIRECTORY  : string := \"${::osvvm::OutputBaseDirectory}/\" ;"
@@ -221,7 +221,7 @@ proc CreateTestCaseCommonPkg { {PackageName "TestCaseCommonPkg"} {ValidatedResul
     puts $FileHandle "  -- PATH_TO_RESULTS is for test case generated output other than TranscriptOpen.  If used you must create it"
     puts $FileHandle "  constant BUILD_NAME                  : string  := \"${::osvvm::BuildName}\" ;"
     puts $FileHandle "  constant TEST_SUITE_NAME             : string  := \"${::osvvm::TestSuiteName}\" ;"
-    puts $FileHandle "  constant PATH_TO_RESULTS             : string := OSVVM_BASE_DIRECTORY & \"/\" & BUILD_NAME & \"results/\" & TEST_SUITE_NAME & \"/\" ;"
+    puts $FileHandle "  constant PATH_TO_RESULTS             : string := OSVVM_BASE_DIRECTORY & BUILD_NAME & \"/results/\" & TEST_SUITE_NAME & \"/\" ;"
     puts $FileHandle ""
     puts $FileHandle "  -- Deprecated.  Provided for backward compatibility"
     puts $FileHandle "  constant RESULTS_DIR             : string := PATH_TO_RESULTS ;"

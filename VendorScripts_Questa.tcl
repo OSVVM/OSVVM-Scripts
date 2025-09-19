@@ -305,6 +305,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestCaseFileName
   variable ExtendedOptimizeOptions
   variable ExtendedSimulateOptions
+  variable ReportsTestSuiteDirectory
   
   # Create the script files
   set ErrorCode [catch {vendor_CreateSimulateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
@@ -314,14 +315,12 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
     error "Failed: vendor_CreateSimulateDoFile $LibraryUnit"
   } 
 
-  set LocalTestSuiteDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
-
   set OptimizeOptions ""
   set WaveOptions   ""
 
   if {$::osvvm::SaveWaves} {
 	  set OptimizeOptions "-debug"
-    set WaveOptions "-qwavedb=+signals+wavefile=[file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_qwave.db]"
+    set WaveOptions "-qwavedb=+signals+wavefile=[file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_qwave.db]"
   }
 
   if {$::osvvm::SimulateInteractive} {
@@ -334,8 +333,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   set OptimizeOptions [concat $::VoptArgs $OptimizeOptions {*}$ExtendedOptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt {*}${::osvvm::GenericOptions}]
   
-  puts "vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin]"
-  eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin] 
+  puts "vopt {*}${OptimizeOptions} -designfile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_design.bin]"
+  eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_design.bin] 
   
   # Set generics during opt rather than sim
   set SimulateOptions [concat $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} -suppress 8683 -suppress 8684]

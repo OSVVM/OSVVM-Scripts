@@ -290,6 +290,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable SimulateTimeUnits
   variable TestSuiteName
   variable TestCaseFileName
+  variable ReportsTestSuiteDirectory
   
   if {($::osvvm::Debug)} {
 	  set OptimizeOptions $::osvvm::DebugOptions
@@ -299,14 +300,12 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   set OptimizeOptions [concat $::VoptArgs $OptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt ]
   
-  set LocalTestSuiteDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
-
-  puts "vopt {*}${OptimizeOptions} -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin]"
-  eval $::osvvm::shell vopt {*}${OptimizeOptions} -quiet -designfile [file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_design.bin] 
+  puts "vopt {*}${OptimizeOptions} -designfile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_design.bin]"
+  eval $::osvvm::shell vopt {*}${OptimizeOptions} -quiet -designfile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_design.bin] 
   
 
   if {$::osvvm::SaveWaves} {
-    set WaveOptions "-qwavedb=+signals+wavefile=[file join ${LocalTestSuiteDirectory} ${TestCaseFileName}_qwave.db]"
+    set WaveOptions "-qwavedb=+signals+wavefile=[file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_qwave.db]"
   } else {
     set WaveOptions ""
   }

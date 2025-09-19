@@ -397,13 +397,23 @@ proc build {{Path_Or_File "."} args} {
       #  Catch any errors from the build and handle them below
       set BuildErrorCode [catch {LocalBuild $IncludeFile {*}$args} BuildErrMsg]
       set LocalBuildErrorInfo $::errorInfo
+      if {$::osvvm::TclDebug} {
+        puts "LocalBuild errorInfo: $::errorInfo"
+      }
+
       
       set ReportYamlErrorCode [catch {FinishBuildYaml $BuildName} BuildYamlErrMsg]
       set LocalBuildYamlErrorInfo $::errorInfo
+      if {$::osvvm::TclDebug} {
+        puts "FinishBuildYaml errorInfo: $::errorInfo"
+      }
 
       # Try to create reports, even if the build failed
       set ReportErrorCode [catch {AfterBuildReports $BuildName} ReportsErrMsg]
       set LocalReportErrorInfo $::errorInfo
+      if {$::osvvm::TclDebug} {
+        puts "AfterBuildReports errorInfo: $::errorInfo"
+      }
 
       StopTranscript ${BuildName}
       
@@ -643,6 +653,7 @@ proc CheckSimulationDirs {} {
   variable BuildName
   variable TestSuiteName
   variable ReportsDirectory
+  variable ReportsTestSuiteDirectory
   variable ResultsDirectory
   variable CoverageDirectory
 
@@ -654,14 +665,16 @@ proc CheckSimulationDirs {} {
   
   set ReportsDirectory     [file join ${OsvvmBuildOutputDirectory} ${::osvvm::ReportsSubdirectory}]
   if {[info exists TestSuiteName]} {
-    CreateDirectory [file join $ReportsDirectory $TestSuiteName]
+    set ReportsTestSuiteDirectory [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
+    CreateDirectory $ReportsTestSuiteDirectory
   }
   CreateDirectory [file join $ReportsDirectory $BuildName]
 
   set ResultsDirectory     [file join ${OsvvmBuildOutputDirectory} ${::osvvm::ResultsSubdirectory}]
-  CreateDirectory [file join $ResultsDirectory]
   if {[info exists TestSuiteName]} {
     CreateDirectory [file join $ResultsDirectory $TestSuiteName]
+  } else {
+    CreateDirectory [file join $ResultsDirectory]
   }
 
   set CoverageDirectory    [file join ${OsvvmBuildOutputDirectory} ${::osvvm::CoverageSubdirectory}]
@@ -708,7 +721,8 @@ proc StartTranscript {} {
 
   set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmTempLogFile}]
   
-  if {[llength [info procs vendor_StartTranscript]] > 0} {
+#  if {[llength [info procs vendor_StartTranscript]] > 0} {}
+  if {![catch {info body vendor_StartTranscript} err]} {
     vendor_StartTranscript $TempTranscriptName
   } else {
     DefaultVendor_StartTranscript $TempTranscriptName
@@ -744,7 +758,8 @@ proc StopTranscript {{FileBaseName ""}} {
 
   set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmTempLogFile}]
   set TranscriptFileName [file join ${LogDirectory} ${FileBaseName}.log]
-  if {[llength [info procs vendor_StopTranscript]] > 0} {
+  # if {[llength [info procs vendor_StopTranscript]] > 0} {}
+  if {![catch {info body vendor_StopTranscript} err]} {
     vendor_StopTranscript $TempTranscriptName
 #    file rename -force ${TempTranscriptName} ${TranscriptFileName}
     file copy   -force ${TempTranscriptName} ${TranscriptFileName}
@@ -1243,7 +1258,7 @@ proc LocalSimulate {LibraryUnit args} {
 proc AfterSimulateReports {} {
 
   SimulateDoneMoveTestCaseFiles 
-  set TestCaseSettingsFile [file join ${::osvvm::TestSuiteDirectory} ${::osvvm::TestCaseFileName}_run.yml]
+  set TestCaseSettingsFile [file join ${::osvvm::ReportsTestSuiteDirectory} ${::osvvm::TestCaseFileName}_run.yml]
   
   WriteTestCaseSettingsYaml $TestCaseSettingsFile
 
@@ -2019,32 +2034,25 @@ proc SimulateDoneMoveTestCaseFiles {} {
   variable CovYamlFile  
   variable ScoreboardDict  
   variable SimGenericNames
-  variable TestSuiteDirectory
+  variable ReportsTestSuiteDirectory
 #  variable SimulationHtmlLogFile
   variable TranscriptFiles
-
-
-  set TestSuiteDirectory [file join ${::osvvm::ReportsDirectory} ${TestSuiteName}]
-# TODO!! check and see when these directories need creating.  If not until here, then 
-# Create them here? - or in TestSuite as then it is done once per TestSuite?
-# Creating This directory and results/TestSuiteName are done by testsuite, but maybe should be done here
-#  CreateDirectory $TestSuiteDirectory   ; # Created by CheckSimulationDirs 
   
   set RequirementsYamlSourceFile [file join $OsvvmTempOutputDirectory ${TestCaseName}_req.yml]
   if {[file exists ${RequirementsYamlSourceFile}]} {
-    set RequirementsYamlFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_req.yml]
+    set RequirementsYamlFile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_req.yml]
     file rename -force $RequirementsYamlSourceFile  $RequirementsYamlFile
   } else { set RequirementsYamlFile "" }
 
   set AlertYamlSourceFile        [file join $OsvvmTempOutputDirectory ${TestCaseName}_alerts.yml]
   if {[file exists ${AlertYamlSourceFile}]} {
-    set AlertYamlFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_alerts.yml]
+    set AlertYamlFile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_alerts.yml]
     file rename -force $AlertYamlSourceFile $AlertYamlFile
   } else { set AlertYamlFile "" }
 
   set CovYamlSourceFile          [file join $OsvvmTempOutputDirectory ${TestCaseName}_cov.yml]
   if {[file exists ${CovYamlSourceFile}]} {
-    set CovYamlFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_cov.yml]
+    set CovYamlFile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_cov.yml]
     file rename -force $CovYamlSourceFile  $CovYamlFile
   } else { set CovYamlFile "" }
   
@@ -2054,7 +2062,7 @@ proc SimulateDoneMoveTestCaseFiles {} {
   if {$SbSourceFiles ne ""} {
     foreach SbSourceFile ${SbSourceFiles} {
       set SbName [regsub ${SbBaseYamlFile} [file rootname [file tail $SbSourceFile]] ""]
-      set SbDestFile [file join ${TestSuiteDirectory} ${TestCaseFileName}_sb_${SbName}.yml]
+      set SbDestFile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_sb_${SbName}.yml]
       file rename -force $SbSourceFile  $SbDestFile
       dict append ScoreboardDict $SbName $SbDestFile
     }

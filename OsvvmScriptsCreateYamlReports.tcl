@@ -158,8 +158,6 @@ proc WriteIndexYaml {BuildName} {
   variable OsvvmVersion
   variable BuildFinishTime
 
-
-
   # Print Elapsed time for last TestSuite (if any ran) and the entire build
   if {[file exists ${::osvvm::OsvvmIndexYamlFile}]} { 
     set   RunFile  [open ${::osvvm::OsvvmIndexYamlFile} a]
@@ -276,7 +274,7 @@ proc WriteTestCaseSettingsYaml {FileName} {
   WriteDictOfString2Yaml $YamlFile BuildName $::osvvm::BuildName
   WriteDictOfDict2Yaml   $YamlFile Generics $::osvvm::GenericDict
 
-  WriteDictOfString2Yaml $YamlFile TestSuiteDirectory    $::osvvm::TestSuiteDirectory
+  WriteDictOfString2Yaml $YamlFile ReportsTestSuiteDirectory    $::osvvm::ReportsTestSuiteDirectory
   WriteDictOfString2Yaml $YamlFile RequirementsYamlFile  $::osvvm::RequirementsYamlFile
   WriteDictOfString2Yaml $YamlFile AlertYamlFile         $::osvvm::AlertYamlFile
   WriteDictOfString2Yaml $YamlFile CovYamlFile           $::osvvm::CovYamlFile

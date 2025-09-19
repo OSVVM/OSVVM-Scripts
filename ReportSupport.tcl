@@ -173,7 +173,7 @@ proc GetTestCaseSettings {SettingsFileName} {
   variable ::osvvm::Report2TestCaseFileName             [dict get $TestDict TestCaseFileName    ]
   variable ::osvvm::Report2GenericNames                 [dict get $TestDict GenericNames        ]
   
-  variable ::osvvm::Report2TestSuiteDirectory           [dict get $TestDict TestSuiteDirectory  ]
+  variable ::osvvm::Report2TestSuiteDirectory           [dict get $TestDict ReportsTestSuiteDirectory  ]
   variable ::osvvm::Report2RequirementsYamlFile         [dict get $TestDict RequirementsYamlFile]
   variable ::osvvm::Report2AlertYamlFile                [dict get $TestDict AlertYamlFile       ]
   variable ::osvvm::Report2CovYamlFile                  [dict get $TestDict CovYamlFile         ]

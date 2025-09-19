@@ -229,8 +229,6 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   set LocalElaborateOptions [concat --std=${VhdlShortVersion} --syn-binding {*}${ExtendedElaborateOptions} {*}${CoSimElaborateOptions} --work=${LibraryName} --workdir=${GHDL_WORKING_LIBRARY_PATH} ${VHDL_RESOURCE_LIBRARY_PATHS} {*}${args}]
 
-  set LocalReportDirectory [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::ReportsDirectory} ${::osvvm::TestSuiteName}]
-
   set SignalSelectionFile [FindFirstFile ${LibraryUnit}.ghdl]
   if {${SignalSelectionFile} ne ""} {
     set SignalSelectionOptions "--read-wave-opt=${SignalSelectionFile}"
@@ -239,9 +237,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   }
   
   if {$::osvvm::SaveWaves} {
-#    set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.ghw ${SignalSelectionOptions} ${GhdlRunOptions} ]
-    set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${LocalReportDirectory}/${LibraryUnit}.ghw ${SignalSelectionOptions} {*}${::osvvm::GenericOptions} ]
-    CreateDirectory ${LocalReportDirectory}
+#    set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${::osvvm::ReportsTestSuiteDirectory}/${LibraryUnit}.ghw ${SignalSelectionOptions} ${GhdlRunOptions} ]
+    set LocalRunOptions [concat {*}${ExtendedRunOptions} --wave=${::osvvm::ReportsTestSuiteDirectory}/${LibraryUnit}.ghw ${SignalSelectionOptions} {*}${::osvvm::GenericOptions} ]
   } else {
 #    set LocalRunOptions [concat {*}${ExtendedRunOptions} ${GhdlRunOptions}]
     set LocalRunOptions [concat {*}${ExtendedRunOptions} {*}${::osvvm::GenericOptions}]
@@ -254,7 +251,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   
   set SimulateErrorCode [catch {exec $ghdl $runcmd {*}${SimulateOptions}} SimulateErrorMessage] 
 #  if {[file exists ${LibraryUnit}.ghw]} {
-#    file rename -force ${LibraryUnit}.ghw ${LocalReportDirectory}/${LibraryUnit}.ghw
+#    file rename -force ${LibraryUnit}.ghw ${::osvvm::ReportsTestSuiteDirectory}/${LibraryUnit}.ghw
 #  }
   if {$SimulateErrorCode != 0} {
     PrintWithPrefix "Error:" $SimulateErrorMessage
