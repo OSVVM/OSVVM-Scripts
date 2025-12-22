@@ -302,6 +302,7 @@ proc CreateTestCaseSummaries {TestDict} {
       puts $ResultsFile "      <table class=\"testcase-summary-table\">"
       puts $ResultsFile "        <thead>"
       puts $ResultsFile "          <tr><th rowspan=\"2\">Test Case</th>"
+      puts $ResultsFile "              <th rowspan=\"2\">Description</th>"
       puts $ResultsFile "              <th rowspan=\"2\">Status</th>"
       puts $ResultsFile "              <th colspan=\"3\">Checks</th>"
       puts $ResultsFile "              <th colspan=\"2\">Requirements</th>"
@@ -323,6 +324,12 @@ proc CreateTestCaseSummaries {TestDict} {
 
       foreach TestCase [dict get $TestSuite TestCases] {
         set TestName     [dict get $TestCase TestCaseName]
+        # Get test description if available
+        if { [dict exists $TestCase Description] } {
+          set TestDescription [dict get $TestCase Description]
+        } else {
+          set TestDescription ""
+        }
         if { [dict exists $TestCase Status] } { 
           set TestStatus    [dict get $TestCase Status]
           set TestResults [dict get $TestCase Results]
@@ -394,6 +401,7 @@ proc CreateTestCaseSummaries {TestDict} {
         }
         puts $ResultsFile "          <tr>"
         puts $ResultsFile "            <td><a href=\"${TestCaseHtmlFile}\">${TestCaseName}</a></td>"
+        puts $ResultsFile "            <td>${TestDescription}</td>"
         puts $ResultsFile "            <td ${StatusClass}>$TestStatus</td>"
         if { $TestReport eq "REPORT" } {
           puts $ResultsFile "            <td ${PassedClass}>[dict get $TestResults AffirmCount]</td>"
@@ -426,7 +434,7 @@ proc CreateTestCaseSummaries {TestDict} {
           }
           puts $ResultsFile "            <td>$TestCaseElapsedTime</td>"
         } else {
-          puts $ResultsFile "            <td style=\"text-align: left\" colspan=\"8\"> &emsp; $Reason</td>"
+          puts $ResultsFile "            <td style=\"text-align: left\" colspan=\"9\"> &emsp; $Reason</td>"
         }
         puts $ResultsFile "          </tr>"
       }

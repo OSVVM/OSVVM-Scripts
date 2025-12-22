@@ -66,6 +66,18 @@ proc LocalAlert2Html {TestCaseName TestSuiteName AlertYamlFile} {
   
   AlertSettings $Alert2HtmlDict
   
+  # Extract and store Description and Tags for use in other reports
+  if {[dict exists $Alert2HtmlDict Description]} {
+    set ::osvvm::Report2TestDescription [dict get $Alert2HtmlDict Description]
+  } else {
+    set ::osvvm::Report2TestDescription ""
+  }
+  if {[dict exists $Alert2HtmlDict Tags]} {
+    set ::osvvm::Report2TestTags [dict get $Alert2HtmlDict Tags]
+  } else {
+    set ::osvvm::Report2TestTags ""
+  }
+  
   CreateAlertResultsHeader $TestCaseName
   
   AlertWrite $Alert2HtmlDict

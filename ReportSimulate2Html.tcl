@@ -69,7 +69,20 @@ proc Simulate2Html {SettingsFileWithPath} {
   set BuildName        $::osvvm::Report2BuildName     
   set GenericDict      $::osvvm::Report2GenericDict   
 
-  
+  # Initialize description and tags to empty
+  set ::osvvm::Report2TestDescription ""
+  set ::osvvm::Report2TestTags ""
+
+  # Read Description and Tags from Alert YAML file before creating summary table
+  if {[file exists ${Report2AlertYamlFile}]} {
+    set AlertDict [::yaml::yaml2dict -file ${Report2AlertYamlFile}]
+    if {[dict exists $AlertDict Description]} {
+      set ::osvvm::Report2TestDescription [dict get $AlertDict Description]
+    }
+    if {[dict exists $AlertDict Tags]} {
+      set ::osvvm::Report2TestTags [dict get $AlertDict Tags]
+    }
+  }
 
   CreateTestCaseSummaryTable ${TestCaseName} ${TestSuiteName} ${BuildName} ${GenericDict}
   
@@ -142,6 +155,19 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   puts $ResultsFile "          <tr class=\"column-header\"><th>Available Reports</th></tr>"
   puts $ResultsFile "        </thead>"
   puts $ResultsFile "        <tbody>"
+
+  # Print test description if available
+  if {[info exists ::osvvm::Report2TestDescription] && $::osvvm::Report2TestDescription ne ""} {
+    puts $ResultsFile "          <tr><td><strong>Description:</strong> $::osvvm::Report2TestDescription</td></tr>"
+  }
+
+  # Print test tags if available
+  if {[info exists ::osvvm::Report2TestTags] && $::osvvm::Report2TestTags ne ""} {
+    puts $ResultsFile "          <tr><td><strong>Test Configuration:</strong></td></tr>"
+    foreach {TagName TagValue} $::osvvm::Report2TestTags {
+      puts $ResultsFile "          <tr><td>&emsp;$TagName: $TagValue</td></tr>"
+    }
+  }
 
   # Print the Generics
   if {${GenericDict} ne ""} {
