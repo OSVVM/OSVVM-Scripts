@@ -42,6 +42,156 @@
 package require yaml
 
 # -------------------------------------------------
+# FormatGenericValueForHtml
+#
+# YAML boolean scalars may load into Tcl as 0/1. For generics, prefer showing
+# True/False in HTML (matching VHDL/OSVVM conventions) when we can infer the
+# original boolean value from the encoded GenericNames/TestCaseFileName string.
+#
+proc FormatGenericValueForHtml {GenericName GenericValue {GenericNames ""}} {
+  set EncodedGenericName $GenericName
+  if {[string match "G_*" $EncodedGenericName]} {
+    set EncodedGenericName [string range $EncodedGenericName 2 end]
+  }
+
+  if {$GenericNames ne ""} {
+    if {[string first "_G_${EncodedGenericName}_TRUE"  $GenericNames] >= 0} { return "True" }
+    if {[string first "_G_${EncodedGenericName}_FALSE" $GenericNames] >= 0} { return "False" }
+  }
+
+  if {[string equal -nocase $GenericValue "true"]}  { return "True" }
+  if {[string equal -nocase $GenericValue "false"]} { return "False" }
+
+  return $GenericValue
+}
+
+# -------------------------------------------------
+# FormatScalarForHtml
+#
+# YAML booleans commonly load into Tcl as 0/1. For HTML reports, render
+# booleans as True/False.
+#
+proc FormatScalarForHtml {Value} {
+  if {[string equal -nocase $Value "true"]}  { return "True" }
+  if {[string equal -nocase $Value "false"]} { return "False" }
+
+  # Heuristic: yaml::yaml2dict represents YAML booleans as Tcl 0/1
+  if {$Value eq 1 || $Value eq "1"} { return "True" }
+  if {$Value eq 0 || $Value eq "0"} { return "False" }
+
+  return $Value
+}
+
+# -------------------------------------------------
+# EscapeHtml
+#
+proc EscapeHtml {Text} {
+  set Escaped $Text
+  set Escaped [string map [list "&" "&amp;" "<" "&lt;" ">" "&gt;" "\"" "&quot;" "'" "&#39;"] $Escaped]
+  return $Escaped
+}
+
+# -------------------------------------------------
+# FormatInlineMarkdownSubset
+#
+# Supports **bold** and *italic*.
+# Input must already be HTML-escaped.
+
+proc FormatInlineMarkdownSubset {EscapedText} {
+  set S $EscapedText
+  regsub -all {\*\*([^*]+)\*\*} $S {<strong>\1</strong>} S
+  regsub -all {\*([^*]+)\*} $S {<em>\1</em>} S
+  return $S
+}
+
+# -------------------------------------------------
+# WriteMarkdownSubsetAsHtml
+#
+# Minimal Markdown subset:
+#   - Paragraphs separated by blank lines
+#   - Headings: ## and ###
+#   - Bullet list items: - 
+#   - Inline: **bold**, *italic*
+#
+proc WriteMarkdownSubsetAsHtml {ResultsFile Text {Indent ""}} {
+  # Normalize newlines
+  set Normalized [string map {"\r\n" "\n" "\r" "\n"} $Text]
+  set Lines [split $Normalized "\n"]
+
+  set InList 0
+  set ParaLines {}
+
+  proc _FlushParagraph {ResultsFile Indent ParaLinesVar} {
+    upvar 1 $ParaLinesVar ParaLines
+    if {[llength $ParaLines] == 0} {
+      return
+    }
+    set Raw [join $ParaLines " "]
+    set Escaped [EscapeHtml $Raw]
+    set Html [FormatInlineMarkdownSubset $Escaped]
+    puts $ResultsFile "${Indent}<p>${Html}</p>"
+    set ParaLines {}
+  }
+
+  proc _CloseListIfOpen {ResultsFile Indent InListVar} {
+    upvar 1 $InListVar InList
+    if {$InList} {
+      puts $ResultsFile "${Indent}</ul>"
+      set InList 0
+    }
+  }
+
+  foreach Line $Lines {
+    set Line [string trimright $Line]
+    set Trimmed [string trim $Line]
+
+    if {$Trimmed eq ""} {
+      _FlushParagraph $ResultsFile $Indent ParaLines
+      _CloseListIfOpen $ResultsFile $Indent InList
+      continue
+    }
+
+    if {[string match "## *" $Trimmed] || [string match "### *" $Trimmed]} {
+      _FlushParagraph $ResultsFile $Indent ParaLines
+      _CloseListIfOpen $ResultsFile $Indent InList
+
+      if {[string match "### *" $Trimmed]} {
+        set Title [string range $Trimmed 4 end]
+        set Tag "h4"
+      } else {
+        set Title [string range $Trimmed 3 end]
+        set Tag "h3"
+      }
+      set Escaped [EscapeHtml $Title]
+      set Html [FormatInlineMarkdownSubset $Escaped]
+      puts $ResultsFile "${Indent}<${Tag} class=\"subtitle\">${Html}</${Tag}>"
+      continue
+    }
+
+    if {[string match "- *" $Trimmed]} {
+      _FlushParagraph $ResultsFile $Indent ParaLines
+      if {!$InList} {
+        puts $ResultsFile "${Indent}<ul>"
+        set InList 1
+      }
+      set Item [string range $Trimmed 2 end]
+      set Escaped [EscapeHtml $Item]
+      set Html [FormatInlineMarkdownSubset $Escaped]
+      puts $ResultsFile "${Indent}  <li>${Html}</li>"
+      continue
+    }
+
+    if {$InList} {
+      _CloseListIfOpen $ResultsFile $Indent InList
+    }
+    lappend ParaLines $Line
+  }
+
+  _FlushParagraph $ResultsFile $Indent ParaLines
+  _CloseListIfOpen $ResultsFile $Indent InList
+}
+
+# -------------------------------------------------
 # CreateOsvvmReportHeader
 #
 proc CreateOsvvmReportHeader {ResultsFile ReportName {RelativePath ""} {IncludeLogo 0} } {

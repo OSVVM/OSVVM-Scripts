@@ -62,6 +62,11 @@ proc Simulate2Html {SettingsFileWithPath} {
   
     
   GetTestCaseSettings $SettingsFileWithPath 
+
+  # Align local script variables with ::osvvm settings parsed from YAML
+  # (avoids stale values between testcases)
+  set Report2AlertYamlFile $::osvvm::Report2AlertYamlFile
+  set Report2CovYamlFile   $::osvvm::Report2CovYamlFile
   
   set TestCaseFileName $::osvvm::Report2TestCaseFileName
   set TestCaseName     $::osvvm::Report2TestCaseName  
@@ -156,26 +161,6 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   puts $ResultsFile "        </thead>"
   puts $ResultsFile "        <tbody>"
 
-  # Print test description if available
-  if {[info exists ::osvvm::Report2TestDescription] && $::osvvm::Report2TestDescription ne ""} {
-    puts $ResultsFile "          <tr><td><strong>Description:</strong> $::osvvm::Report2TestDescription</td></tr>"
-  }
-
-  # Print test tags if available
-  if {[info exists ::osvvm::Report2TestTags] && $::osvvm::Report2TestTags ne ""} {
-    puts $ResultsFile "          <tr><td><strong>Test Configuration:</strong></td></tr>"
-    foreach {TagName TagValue} $::osvvm::Report2TestTags {
-      puts $ResultsFile "          <tr><td>&emsp;$TagName: $TagValue</td></tr>"
-    }
-  }
-
-  # Print the Generics
-  if {${GenericDict} ne ""} {
-    foreach {GenericName GenericValue} $GenericDict {
-      puts $ResultsFile "          <tr><td>Generic: $GenericName = $GenericValue</td></tr>"
-    }
-  }
-
   if {[file exists ${::osvvm::Report2AlertYamlFile}]} {
     puts $ResultsFile "          <tr><td><a href=\"#AlertSummary\">Alert Report</a></td></tr>"
   }
@@ -223,6 +208,48 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   LinkLogoFile $ResultsFile $ReportsPrefix
 
   puts $ResultsFile "  </div>"
+
+  # Render Description / Tags / Generics as independent sections
+  # (user-requested: Description not in a table; Tags + Generics in tables)
+  if {[info exists ::osvvm::Report2TestDescription] && $::osvvm::Report2TestDescription ne ""} {
+    puts $ResultsFile "  <div class=\"TestDescription\">"
+    puts $ResultsFile "    <details open><summary class=\"subtitle\">$TestCaseName Description</summary>"
+    WriteMarkdownSubsetAsHtml $ResultsFile $::osvvm::Report2TestDescription "      "
+    puts $ResultsFile "    </details>"
+    puts $ResultsFile "  </div>"
+  }
+
+  if {[info exists ::osvvm::Report2TestTags] && $::osvvm::Report2TestTags ne ""} {
+    puts $ResultsFile "  <div class=\"TestTags\">"
+    puts $ResultsFile "    <details open><summary class=\"subtitle\">$TestCaseName Tags</summary>"
+    puts $ResultsFile "      <table class=\"AlertSettings\">"
+    puts $ResultsFile "        <thead><tr><th>Name</th><th>Value</th></tr></thead>"
+    puts $ResultsFile "        <tbody>"
+    foreach {TagName TagValue} $::osvvm::Report2TestTags {
+      set TagDisplayValue [FormatScalarForHtml $TagValue]
+      puts $ResultsFile "          <tr><td>$TagName</td><td>$TagDisplayValue</td></tr>"
+    }
+    puts $ResultsFile "        </tbody>"
+    puts $ResultsFile "      </table>"
+    puts $ResultsFile "    </details>"
+    puts $ResultsFile "  </div>"
+  }
+
+  if {${GenericDict} ne ""} {
+    puts $ResultsFile "  <div class=\"TestGenerics\">"
+    puts $ResultsFile "    <details open><summary class=\"subtitle\">$TestCaseName Generics</summary>"
+    puts $ResultsFile "      <table class=\"AlertSettings\">"
+    puts $ResultsFile "        <thead><tr><th>Name</th><th>Value</th></tr></thead>"
+    puts $ResultsFile "        <tbody>"
+    foreach {GenericName GenericValue} $GenericDict {
+      set GenericDisplayValue [FormatGenericValueForHtml $GenericName $GenericValue $::osvvm::Report2GenericNames]
+      puts $ResultsFile "          <tr><td>$GenericName</td><td>$GenericDisplayValue</td></tr>"
+    }
+    puts $ResultsFile "        </tbody>"
+    puts $ResultsFile "      </table>"
+    puts $ResultsFile "    </details>"
+    puts $ResultsFile "  </div>"
+  }
 }
 
 proc FinalizeSimulationReportFile {} {

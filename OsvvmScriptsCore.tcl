@@ -1415,6 +1415,25 @@ proc TestSuite {SuiteName} {
 }
 
 # -------------------------------------------------
+# SetTestSuiteDescription
+#   Sets a suite-level description which is written into the build YAML
+#   and displayed in the HTML "Test Suite Summary" Description column.
+#
+#   Call this after TestSuite <name> and before the suite finishes.
+proc SetTestSuiteDescription {Description} {
+  set ::osvvm::TestSuiteDescription $Description
+}
+
+# -------------------------------------------------
+# SetTestSuiteBrief
+#   Sets a suite-level brief (plain text) for summary tables.
+#
+#   Call this after TestSuite <name> and before the suite finishes.
+proc SetTestSuiteBrief {Brief} {
+  set ::osvvm::TestSuiteBrief $Brief
+}
+
+# -------------------------------------------------
 proc TestName {Name} {
   variable TestCaseName
   variable TestSuiteName

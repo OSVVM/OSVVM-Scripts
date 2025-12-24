@@ -48,6 +48,52 @@ namespace eval ::osvvm {
 package require fileutil
 
 
+# -------------------------------------------------
+# FormatYamlScalar
+#   Return a YAML scalar string that uses native types when safe:
+#     - empty -> null (empty scalar)
+#     - true/false (case-insensitive, also accepts TRUE/FALSE)
+#     - integer / float
+#   Otherwise returns a double-quoted string with minimal escaping.
+#
+proc FormatYamlScalar {Value} {
+  # Treat unset/missing as empty
+  if {$Value eq ""} {
+    return "null"
+  }
+
+  set Trimmed [string trim $Value]
+  if {$Trimmed eq ""} {
+    return "\"$Value\""
+  }
+
+  # null
+  if {[string equal -nocase $Trimmed "null"]} {
+    return "null"
+  }
+
+  # boolean
+  if {[string equal -nocase $Trimmed "true"] || [string equal -nocase $Trimmed "false"]} {
+    return [string tolower $Trimmed]
+  }
+
+  # integer
+  if {[regexp {^[-+]?\d+$} $Trimmed]} {
+    return $Trimmed
+  }
+
+  # float (simple forms, incl exponent)
+  if {[regexp {^[-+]?(?:\d+\.\d*|\d*\.\d+)(?:[eE][-+]?\d+)?$} $Trimmed] || [regexp {^[-+]?\d+(?:[eE][-+]?\d+)$} $Trimmed]} {
+    return $Trimmed
+  }
+
+  # default: quoted string
+  # Use [list] to avoid Tcl list parsing edge cases
+  set Escaped [string map [list "\\" "\\\\" "\"" "\\\""] $Value]
+  return "\"$Escaped\""
+}
+
+
   variable  TclZone      [clock format [clock seconds] -format %z]
   variable  IsoZone      [format "%s:%s" [string range $TclZone 0 2] [string range $TclZone 3 4]] 
 #  variable  TimeZoneName [clock format [clock seconds] -format %Z]
@@ -198,7 +244,7 @@ proc WriteDictOfDict2Yaml {YamlFile DictName {DictValues ""} {Prefix ""} } {
   } else {
     puts $YamlFile "${Prefix}${DictName}:"
     foreach {Name Value} $DictValues {
-      puts $YamlFile "${Prefix}  ${Name}: \"$Value\""
+      puts $YamlFile "${Prefix}  ${Name}: [FormatYamlScalar $Value]"
     }
   }
 }
@@ -292,6 +338,10 @@ proc WriteTestCaseSettingsYaml {FileName} {
 # -------------------------------------------------
 proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
   variable TestSuiteStartTimeMs
+  # Suite-level description is set by user scripts (ex: .pro files)
+  # using ::osvvm::TestSuiteDescription.
+  set ::osvvm::TestSuiteDescription ""
+  set ::osvvm::TestSuiteBrief ""
   
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
 
@@ -313,6 +363,12 @@ proc FinishTestSuiteBuildYaml {} {
   variable TestSuiteStartTimeMs
 
   set   RunFile  [open ${::osvvm::OsvvmTempYamlFile} a]
+  if {[info exists ::osvvm::TestSuiteBrief] && $::osvvm::TestSuiteBrief ne ""} {
+    WriteDictOfString2Yaml $RunFile Brief $::osvvm::TestSuiteBrief "    "
+  }
+  if {[info exists ::osvvm::TestSuiteDescription] && $::osvvm::TestSuiteDescription ne ""} {
+    WriteDictOfString2Yaml $RunFile Description $::osvvm::TestSuiteDescription "    "
+  }
   puts  $RunFile "    ElapsedTime: [ElapsedTimeMs $TestSuiteStartTimeMs]"
   close $RunFile
 }
