@@ -312,22 +312,123 @@ proc CreateTestCaseSummaries {TestDict} {
     foreach TestSuite [dict get $TestDict TestSuites] {
       set SuiteName [dict get $TestSuite Name]
 
+      # Configuration hooks (set via OSVVM-Scripts/OsvvmScriptsCore.tcl APIs)
+      set ConfigShowGenerics 1
+      if {[info exists ::osvvm::TestCaseSummaryShowGenerics]} {
+        set ConfigShowGenerics $::osvvm::TestCaseSummaryShowGenerics
+      }
+      set ConfigGenericWhitelist {}
+      if {[info exists ::osvvm::TestCaseSummaryGenericNames]} {
+        set ConfigGenericWhitelist $::osvvm::TestCaseSummaryGenericNames
+      }
+
+      # Default: show tags in the Test Case Summary table
+      set ConfigShowTags 1
+      if {[info exists ::osvvm::TestCaseSummaryShowTags]} {
+        set ConfigShowTags $::osvvm::TestCaseSummaryShowTags
+      }
+      set ConfigTagWhitelist {}
+      if {[info exists ::osvvm::TestCaseSummaryTagNames]} {
+        set ConfigTagWhitelist $::osvvm::TestCaseSummaryTagNames
+      }
+
       # Collect a stable list of generic names used by any test case in this suite.
       # These become the subcolumns under the "Generics" column group.
-      set SuiteGenericNames {}
+      set SuiteGenericNamesAll {}
       foreach TcForGenerics [dict get $TestSuite TestCases] {
         if { [dict exists $TcForGenerics Generics] } {
           set GenDict [dict get $TcForGenerics Generics]
           if {![catch {dict size $GenDict}]} {
             foreach GenName [dict keys $GenDict] {
-              if {[lsearch -exact $SuiteGenericNames $GenName] < 0} {
-                lappend SuiteGenericNames $GenName
+              if {[lsearch -exact $SuiteGenericNamesAll $GenName] < 0} {
+                lappend SuiteGenericNamesAll $GenName
               }
             }
           }
         }
       }
+
+      # Apply generics configuration
+      if {!$ConfigShowGenerics} {
+        set SuiteGenericNames {}
+      } elseif {[llength $ConfigGenericWhitelist] == 0} {
+        set SuiteGenericNames $SuiteGenericNamesAll
+      } else {
+        set SuiteGenericNames {}
+        foreach GenName $ConfigGenericWhitelist {
+          if {[lsearch -exact $SuiteGenericNamesAll $GenName] >= 0} {
+            lappend SuiteGenericNames $GenName
+          }
+        }
+      }
       set SuiteGenericCount [llength $SuiteGenericNames]
+      set SuiteGenericCountAll [llength $SuiteGenericNamesAll]
+
+      # Collect tag names (stable order) and determine visibility across all testcases.
+      # A tag column is included if the tag is visible in ANY testcase.
+      set SuiteTagNamesAll {}
+      set SuiteTagVisibleAny [dict create]
+      if {$ConfigShowTags} {
+        foreach TcForTags [dict get $TestSuite TestCases] {
+          if { [dict exists $TcForTags Tags] } {
+            set TagsDict [dict get $TcForTags Tags]
+            if {![catch {dict size $TagsDict}]} {
+              foreach TagName [dict keys $TagsDict] {
+                # Maintain stable ordering based on first occurrence in the suite.
+                if {[lsearch -exact $SuiteTagNamesAll $TagName] < 0} {
+                  lappend SuiteTagNamesAll $TagName
+                }
+
+                # Per-tag visibility for this testcase (default visible).
+                set IsVisible 1
+                if {[dict exists $TcForTags TagVisibility]} {
+                  set VisDict [dict get $TcForTags TagVisibility]
+                  if {![catch {dict size $VisDict}]} {
+                    if {[dict exists $VisDict $TagName]} {
+                      set VisVal [dict get $VisDict $TagName]
+                      if {$VisVal eq 0 || $VisVal eq "0" || [string equal -nocase $VisVal "false"]} {
+                        set IsVisible 0
+                      }
+                    }
+                  }
+                }
+
+                # Track if visible in any testcase.
+                if {$IsVisible} {
+                  dict set SuiteTagVisibleAny $TagName 1
+                } elseif {![dict exists $SuiteTagVisibleAny $TagName]} {
+                  dict set SuiteTagVisibleAny $TagName 0
+                }
+              }
+            }
+          }
+        }
+      }
+
+      # Filter final set of tag columns: include only tags visible in ANY testcase.
+      if {!$ConfigShowTags} {
+        set SuiteTagNames {}
+      } else {
+        # Candidate tags by order (either auto-discovered or whitelist)
+        if {[llength $ConfigTagWhitelist] == 0} {
+          set CandidateTagNames $SuiteTagNamesAll
+        } else {
+          set CandidateTagNames $ConfigTagWhitelist
+        }
+
+        set SuiteTagNames {}
+        foreach TagName $CandidateTagNames {
+          # If a whitelist asks for a tag not present in the suite, skip it.
+          if {[lsearch -exact $SuiteTagNamesAll $TagName] < 0} {
+            continue
+          }
+          # Only include if visible in any testcase.
+          if {[dict exists $SuiteTagVisibleAny $TagName] && [dict get $SuiteTagVisibleAny $TagName]} {
+            lappend SuiteTagNames $TagName
+          }
+        }
+      }
+      set SuiteTagCount [llength $SuiteTagNames]
 
       puts $ResultsFile "  <div class=\"testcase\">"
       puts $ResultsFile "    <details open><summary id=\"$SuiteName\">$SuiteName Test Case Summary</summary>"
@@ -336,6 +437,9 @@ proc CreateTestCaseSummaries {TestDict} {
       puts $ResultsFile "          <tr><th rowspan=\"2\">Test Case</th>"
       if { $SuiteGenericCount > 0 } {
         puts $ResultsFile "              <th colspan=\"$SuiteGenericCount\">Generics</th>"
+      }
+      if { $SuiteTagCount > 0 } {
+        puts $ResultsFile "              <th colspan=\"$SuiteTagCount\">Tags</th>"
       }
       puts $ResultsFile "              <th rowspan=\"2\">Status</th>"
       puts $ResultsFile "              <th colspan=\"3\">Checks</th>"
@@ -348,7 +452,12 @@ proc CreateTestCaseSummaries {TestDict} {
       puts $ResultsFile "          <tr>"
       if { $SuiteGenericCount > 0 } {
         foreach GenName $SuiteGenericNames {
-          puts $ResultsFile "              <th>$GenName</th>"
+          puts $ResultsFile "              <th style=\"text-align: center;\">$GenName</th>"
+        }
+      }
+      if { $SuiteTagCount > 0 } {
+        foreach TagName $SuiteTagNames {
+          puts $ResultsFile "              <th style=\"text-align: center;\">$TagName</th>"
         }
       }
       puts $ResultsFile "              <th>Total</th>"
@@ -426,7 +535,8 @@ proc CreateTestCaseSummaries {TestDict} {
         set TestCaseHtmlFile [file join ${TestSuiteReportsDirectory} ${TestFileName}.html]
         set TestCaseName $TestName
         # Backward compatibility: if there are no generic columns, append generic values to the Test Case name.
-        if { ($SuiteGenericCount == 0) && [dict exists $TestCase Generics] } {
+        # Do this only when the suite truly has no generics (not when generics are hidden via config).
+        if { ($SuiteGenericCountAll == 0) && [dict exists $TestCase Generics] } {
           set TestCaseGenerics [dict get $TestCase Generics]
           if {![catch {dict size $TestCaseGenerics}] && ([dict size $TestCaseGenerics] > 0)} {
             set GenericValueList [dict values $TestCaseGenerics]
@@ -464,7 +574,32 @@ proc CreateTestCaseSummaries {TestDict} {
               set GenValue "⸻"
             }
             set GenDisplayValue [FormatGenericValueForHtml $GenName $GenValue $TestFileName]
-            puts $ResultsFile "            <td>$GenDisplayValue</td>"
+            puts $ResultsFile "            <td style=\"text-align: center;\">$GenDisplayValue</td>"
+          }
+        }
+
+        # Optional Tags column group (after Generics, before Status).
+        if { $SuiteTagCount > 0 } {
+          if { [dict exists $TestCase Tags] } {
+            set TestCaseTags [dict get $TestCase Tags]
+          } else {
+            set TestCaseTags ""
+          }
+          set HasTags 0
+          if {![catch {dict size $TestCaseTags}] && ([dict size $TestCaseTags] > 0)} {
+            set HasTags 1
+          }
+          foreach TagName $SuiteTagNames {
+            # TagVisibility is used only to decide whether a tag column exists.
+            # If the column exists (visible in any testcase), then show the tag
+            # value for every testcase that has it.
+            if { $HasTags && [dict exists $TestCaseTags $TagName] } {
+              set TagValue [dict get $TestCaseTags $TagName]
+              set TagDisplay [EscapeHtml [FormatScalarForHtml $TagValue]]
+            } else {
+              set TagDisplay "⸻"
+            }
+            puts $ResultsFile "            <td style=\"text-align: left;\">$TagDisplay</td>"
           }
         }
 

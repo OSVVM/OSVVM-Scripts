@@ -111,6 +111,7 @@ proc FormatInlineMarkdownSubset {EscapedText} {
 #   - Paragraphs separated by blank lines
 #   - Headings: ## and ###
 #   - Bullet list items: - 
+#   - Enumerated list items: 1. 
 #   - Inline: **bold**, *italic*
 #
 proc WriteMarkdownSubsetAsHtml {ResultsFile Text {Indent ""}} {
@@ -118,7 +119,8 @@ proc WriteMarkdownSubsetAsHtml {ResultsFile Text {Indent ""}} {
   set Normalized [string map {"\r\n" "\n" "\r" "\n"} $Text]
   set Lines [split $Normalized "\n"]
 
-  set InList 0
+  # "" | "ul" | "ol"
+  set ListKind ""
   set ParaLines {}
 
   proc _FlushParagraph {ResultsFile Indent ParaLinesVar} {
@@ -133,11 +135,11 @@ proc WriteMarkdownSubsetAsHtml {ResultsFile Text {Indent ""}} {
     set ParaLines {}
   }
 
-  proc _CloseListIfOpen {ResultsFile Indent InListVar} {
-    upvar 1 $InListVar InList
-    if {$InList} {
-      puts $ResultsFile "${Indent}</ul>"
-      set InList 0
+  proc _CloseListIfOpen {ResultsFile Indent ListKindVar} {
+    upvar 1 $ListKindVar ListKind
+    if {$ListKind ne ""} {
+      puts $ResultsFile "${Indent}</${ListKind}>"
+      set ListKind ""
     }
   }
 
@@ -147,13 +149,13 @@ proc WriteMarkdownSubsetAsHtml {ResultsFile Text {Indent ""}} {
 
     if {$Trimmed eq ""} {
       _FlushParagraph $ResultsFile $Indent ParaLines
-      _CloseListIfOpen $ResultsFile $Indent InList
+      _CloseListIfOpen $ResultsFile $Indent ListKind
       continue
     }
 
     if {[string match "## *" $Trimmed] || [string match "### *" $Trimmed]} {
       _FlushParagraph $ResultsFile $Indent ParaLines
-      _CloseListIfOpen $ResultsFile $Indent InList
+      _CloseListIfOpen $ResultsFile $Indent ListKind
 
       if {[string match "### *" $Trimmed]} {
         set Title [string range $Trimmed 4 end]
@@ -170,9 +172,10 @@ proc WriteMarkdownSubsetAsHtml {ResultsFile Text {Indent ""}} {
 
     if {[string match "- *" $Trimmed]} {
       _FlushParagraph $ResultsFile $Indent ParaLines
-      if {!$InList} {
+      if {$ListKind ne "ul"} {
+        _CloseListIfOpen $ResultsFile $Indent ListKind
         puts $ResultsFile "${Indent}<ul>"
-        set InList 1
+        set ListKind "ul"
       }
       set Item [string range $Trimmed 2 end]
       set Escaped [EscapeHtml $Item]
@@ -181,14 +184,27 @@ proc WriteMarkdownSubsetAsHtml {ResultsFile Text {Indent ""}} {
       continue
     }
 
-    if {$InList} {
-      _CloseListIfOpen $ResultsFile $Indent InList
+    if {[regexp {^\d+\.\s+(.+)$} $Trimmed -> Item]} {
+      _FlushParagraph $ResultsFile $Indent ParaLines
+      if {$ListKind ne "ol"} {
+        _CloseListIfOpen $ResultsFile $Indent ListKind
+        puts $ResultsFile "${Indent}<ol>"
+        set ListKind "ol"
+      }
+      set Escaped [EscapeHtml $Item]
+      set Html [FormatInlineMarkdownSubset $Escaped]
+      puts $ResultsFile "${Indent}  <li>${Html}</li>"
+      continue
+    }
+
+    if {$ListKind ne ""} {
+      _CloseListIfOpen $ResultsFile $Indent ListKind
     }
     lappend ParaLines $Line
   }
 
   _FlushParagraph $ResultsFile $Indent ParaLines
-  _CloseListIfOpen $ResultsFile $Indent InList
+  _CloseListIfOpen $ResultsFile $Indent ListKind
 }
 
 # -------------------------------------------------
@@ -307,6 +323,16 @@ proc GetOsvvmPathSettings {TestDict} {
   variable ::osvvm::Report2CoverageSubdirectory         [dict get $SettingsInfoDict CoverageSubdirectory]
   variable ::osvvm::Report2CssFiles                     [dict get $SettingsInfoDict Report2CssFiles]
   variable ::osvvm::Report2PngFile                      [dict get $SettingsInfoDict Report2PngFile]
+}
+
+# -------------------------------------------------
+# SumAlertCount
+#
+# Used by multiple report generators.
+if {![llength [info commands SumAlertCount]]} {
+  proc SumAlertCount {AlertCountDict} {
+    return [expr [dict get $AlertCountDict Failure] + [dict get $AlertCountDict Error] + [dict get $AlertCountDict Warning]]
+  }
 }
 
 # -------------------------------------------------

@@ -1434,6 +1434,36 @@ proc SetTestSuiteBrief {Brief} {
 }
 
 # -------------------------------------------------
+# Test Case Summary (HTML) Column Control
+#
+# These APIs control which columns are shown in the build HTML "<Suite> Test Case Summary" table.
+# Defaults:
+#   - Generics: visible (all generics found in the suite)
+#   - Tags: visible (all visible tags found in the suite)
+#
+# Notes:
+#   - Calling SetTestCaseSummaryGenerics with no args clears the whitelist (show all).
+#   - Calling SetTestCaseSummaryTags with no args clears the whitelist (show all tags found).
+
+proc SetTestCaseSummaryGenerics {args} {
+  set ::osvvm::TestCaseSummaryShowGenerics 1
+  set ::osvvm::TestCaseSummaryGenericNames $args
+}
+
+proc HideTestCaseSummaryGenerics {} {
+  set ::osvvm::TestCaseSummaryShowGenerics 0
+}
+
+proc SetTestCaseSummaryTags {args} {
+  set ::osvvm::TestCaseSummaryShowTags 1
+  set ::osvvm::TestCaseSummaryTagNames $args
+}
+
+proc HideTestCaseSummaryTags {} {
+  set ::osvvm::TestCaseSummaryShowTags 0
+}
+
+# -------------------------------------------------
 proc TestName {Name} {
   variable TestCaseName
   variable TestSuiteName
