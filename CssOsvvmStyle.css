@@ -203,6 +203,18 @@ tfoot {
   text-align: right;
 }
 
+/* Datatype badges (used for Type columns: string/integer/boolean) */
+.datatype {
+    display: inline-block;
+    white-space: nowrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.95em;
+    padding: 0px 0.35em;
+    border: 1px solid #CCCCCC;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+}
+
 summary > b {
     font-weight: bold;
 }

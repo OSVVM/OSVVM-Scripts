@@ -83,6 +83,45 @@ proc FormatScalarForHtml {Value} {
 }
 
 # -------------------------------------------------
+# InferScalarTypeForHtml
+#
+# Best-effort type inference for scalar values loaded from YAML.
+# Used by the per-test HTML page to display a "Type" column for tags.
+#
+proc InferScalarTypeForHtml {Value} {
+  # Normalize to string for regex checks.
+  set S "${Value}"
+
+  # Boolean
+  if {[string equal -nocase $S "true"] || [string equal -nocase $S "false"]} {
+    return "boolean"
+  }
+
+  # Heuristic: yaml::yaml2dict commonly maps YAML booleans to Tcl 0/1
+  if {$S eq "0" || $S eq "1"} {
+    return "boolean"
+  }
+
+  # Time: number + unit (common VHDL time units)
+  # Examples: 100 ns, 5ps, 1.25 us
+  if {[regexp -nocase {^\s*[-+]?\d+(?:\.\d+)?\s*(fs|ps|ns|us|ms|s|sec|secs|second|seconds|min|mins|minute|minutes|hr|hrs|hour|hours)\s*$} $S]} {
+    return "time"
+  }
+
+  # Integer
+  if {[string is integer -strict $S]} {
+    return "integer"
+  }
+
+  # Real
+  if {[string is double -strict $S]} {
+    return "real"
+  }
+
+  return "string"
+}
+
+# -------------------------------------------------
 # EscapeHtml
 #
 proc EscapeHtml {Text} {
@@ -95,13 +134,138 @@ proc EscapeHtml {Text} {
 # -------------------------------------------------
 # FormatInlineMarkdownSubset
 #
-# Supports **bold** and *italic*.
+# Minimal inline Markdown subset:
+#   - Escapes for literals using backslash: \*, \#, \[, \], \(, \), \`, \-, \\
+#   - Inline code using backticks: `code`
+#   - Links: [text](url)
+#       - Allowed URL schemes/targets: https://, http://, #anchors, /absolute, ./relative, ../relative
+#       - Other URLs are rendered as plain text (not a link)
+#   - Emphasis: **bold** and *italic*
+#
 # Input must already be HTML-escaped.
+
+proc _IsSafeMarkdownUrl {Url} {
+  set U [string trim $Url]
+  if {$U eq ""} {
+    return 0
+  }
+  if {[regexp {\s} $U]} {
+    return 0
+  }
+  if {[regexp -nocase {^https?://} $U]} {
+    return 1
+  }
+  if {[string match "#*" $U]} {
+    return 1
+  }
+  if {[string match "/*" $U]} {
+    return 1
+  }
+  if {[string match "./*" $U] || [string match "../*" $U]} {
+    return 1
+  }
+  return 0
+}
+
+proc _ProtectInlineCodeSpans {S CodeMapVar} {
+  upvar 1 $CodeMapVar CodeMap
+  set Out ""
+  set Remainder $S
+  set I 0
+  while {[regexp -indices {`([^`]+)`} $Remainder MatchIdx CodeIdx]} {
+    lassign $MatchIdx M0 M1
+    lassign $CodeIdx C0 C1
+
+    if {$M0 > 0} {
+      append Out [string range $Remainder 0 [expr {$M0 - 1}]]
+    }
+
+    set CodeText [string range $Remainder $C0 $C1]
+    set Token "\uE000${I}\uE001"
+    set CodeMap($Token) $CodeText
+    append Out $Token
+    incr I
+
+    set Remainder [string range $Remainder [expr {$M1 + 1}] end]
+  }
+  append Out $Remainder
+  return $Out
+}
+
+proc _RestoreInlineCodeSpans {S CodeMapVar} {
+  upvar 1 $CodeMapVar CodeMap
+  set Out $S
+  foreach Token [lsort -dictionary [array names CodeMap]] {
+    set Out [string map [list $Token "<code>$CodeMap($Token)</code>"] $Out]
+  }
+  return $Out
+}
 
 proc FormatInlineMarkdownSubset {EscapedText} {
   set S $EscapedText
+
+  # Handle backslash escapes first so escaped markup is treated as literal.
+  # Use control characters as placeholders to avoid interacting with later regex.
+  set TOK_BSLASH "\u0001"
+  set TOK_STAR   "\u0002"
+  set TOK_HASH   "\u0003"
+  set TOK_LB     "\u0004"
+  set TOK_RB     "\u0005"
+  set TOK_LP     "\u0006"
+  set TOK_RP     "\u0007"
+  set TOK_BT     "\u0008"
+  set TOK_DASH   "\u0009"
+  set S [string map [list {\\} $TOK_BSLASH {\*} $TOK_STAR {\#} $TOK_HASH {\[} $TOK_LB {\]} $TOK_RB {\(} $TOK_LP {\)} $TOK_RP {\`} $TOK_BT {\-} $TOK_DASH] $S]
+
+  # Protect inline code spans so other formatting does not apply inside them.
+  array set CodeMap {}
+  set S [_ProtectInlineCodeSpans $S CodeMap]
+
+  # Links: [text](url)
+  # Note: Both text and url are already HTML-escaped here.
+  set Out ""
+  set Remainder $S
+  while {[regexp -indices {\[([^\]]+)\]\(([^\)]+)\)} $Remainder MatchIdx TextIdx UrlIdx]} {
+    lassign $MatchIdx M0 M1
+    lassign $TextIdx T0 T1
+    lassign $UrlIdx U0 U1
+
+    if {$M0 > 0} {
+      append Out [string range $Remainder 0 [expr {$M0 - 1}]]
+    }
+
+    set LinkText [string range $Remainder $T0 $T1]
+    set LinkUrl  [string range $Remainder $U0 $U1]
+    if {[_IsSafeMarkdownUrl $LinkUrl]} {
+      append Out "<a href=\"$LinkUrl\">$LinkText</a>"
+    } else {
+      append Out "$LinkText ($LinkUrl)"
+    }
+
+    set Remainder [string range $Remainder [expr {$M1 + 1}] end]
+  }
+  append Out $Remainder
+  set S $Out
+
+  # Emphasis
   regsub -all {\*\*([^*]+)\*\*} $S {<strong>\1</strong>} S
   regsub -all {\*([^*]+)\*} $S {<em>\1</em>} S
+
+  # Restore inline code spans
+  set S [_RestoreInlineCodeSpans $S CodeMap]
+
+  # Restore escaped literals
+  set S [string map [list \
+    $TOK_BSLASH "\\" \
+    $TOK_STAR {*} \
+    $TOK_HASH {#} \
+    $TOK_LB {[} \
+    $TOK_RB {]} \
+    $TOK_LP {(} \
+    $TOK_RP {)} \
+    $TOK_BT {`} \
+    $TOK_DASH {-} \
+  ] $S]
   return $S
 }
 
@@ -110,10 +274,10 @@ proc FormatInlineMarkdownSubset {EscapedText} {
 #
 # Minimal Markdown subset:
 #   - Paragraphs separated by blank lines
-#   - Headings: ## and ###
+#   - Headings: ##, ###, ####, #####
 #   - Bullet list items: - 
 #   - Enumerated list items: 1. 
-#   - Inline: **bold**, *italic*
+#   - Inline: **bold**, *italic*, `code`, [text](url), and backslash escapes
 #
 proc WriteMarkdownSubsetAsHtml {ResultsFile Text {Indent ""}} {
   # Normalize newlines
@@ -154,16 +318,19 @@ proc WriteMarkdownSubsetAsHtml {ResultsFile Text {Indent ""}} {
       continue
     }
 
-    if {[string match "## *" $Trimmed] || [string match "### *" $Trimmed]} {
+    if {[regexp {^(#{2,5})\s+(.+)$} $Trimmed -> Hashes Title]} {
       _FlushParagraph $ResultsFile $Indent ParaLines
       _CloseListIfOpen $ResultsFile $Indent ListKind
 
-      if {[string match "### *" $Trimmed]} {
-        set Title [string range $Trimmed 4 end]
-        set Tag "h4"
-      } else {
-        set Title [string range $Trimmed 3 end]
+      set Level [string length $Hashes]
+      if {$Level == 2} {
         set Tag "h3"
+      } elseif {$Level == 3} {
+        set Tag "h4"
+      } elseif {$Level == 4} {
+        set Tag "h5"
+      } else {
+        set Tag "h6"
       }
       set Escaped [EscapeHtml $Title]
       set Html [FormatInlineMarkdownSubset $Escaped]
@@ -358,6 +525,11 @@ proc GetTestCaseSettings {SettingsFileName} {
   variable ::osvvm::Report2TranscriptFiles              [dict get $TestDict TranscriptFiles     ]
 
   variable ::osvvm::Report2TestCaseHtml [file join $Report2TestSuiteDirectory ${Report2TestCaseFileName}.html]
+
+  # Optional fields (older run.yml files may not have these)
+  if {[dict exists $TestDict ElapsedTime]} {
+    variable ::osvvm::Report2TestCaseElapsedTime [dict get $TestDict ElapsedTime]
+  }
   
   GetOsvvmPathSettings $TestDict
   

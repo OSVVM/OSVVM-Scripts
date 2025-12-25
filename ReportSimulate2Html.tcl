@@ -74,18 +74,107 @@ proc Simulate2Html {SettingsFileWithPath} {
   set BuildName        $::osvvm::Report2BuildName     
   set GenericDict      $::osvvm::Report2GenericDict   
 
-  # Initialize description and tags to empty
+  # Some older/alternate run.yml formats may not include TestCaseFileName.
+  # When possible, derive it from TestCaseName + GenericNames (the file naming convention).
+  if {$TestCaseFileName eq "" && [info exists ::osvvm::Report2GenericNames] && $::osvvm::Report2GenericNames ne ""} {
+    set TestCaseFileName "${TestCaseName}${::osvvm::Report2GenericNames}"
+  }
+
+  # Initialize fields sourced from alerts/build YAML to empty
   set ::osvvm::Report2TestDescription ""
   set ::osvvm::Report2TestTags ""
+  set ::osvvm::Report2TestTagSummaryVisibility ""
+  set ::osvvm::Report2TestStatus ""
+  if {![info exists ::osvvm::Report2TestCaseSimulationTime]} {
+    set ::osvvm::Report2TestCaseSimulationTime ""
+  }
+  if {![info exists ::osvvm::Report2TestCaseElapsedTime]} {
+    set ::osvvm::Report2TestCaseElapsedTime ""
+  }
+
+  # Try to get SimulationTime/ElapsedTime from the build YAML.
+  # Different flows place this file in slightly different locations, so search a few common candidates.
+  set BuildYamlCandidates {}
+  lappend BuildYamlCandidates [file join $::osvvm::Report2BaseDirectory ${BuildName}.yml]
+  lappend BuildYamlCandidates [file join $::osvvm::Report2BaseDirectory ${BuildName}.yaml]
+  if {[info exists ::osvvm::Report2ReportsSubdirectory] && $::osvvm::Report2ReportsSubdirectory ne ""} {
+    lappend BuildYamlCandidates [file join $::osvvm::Report2BaseDirectory $::osvvm::Report2ReportsSubdirectory ${BuildName}.yml]
+    lappend BuildYamlCandidates [file join $::osvvm::Report2BaseDirectory $::osvvm::Report2ReportsSubdirectory ${BuildName}.yaml]
+  }
+  if {[info exists ::osvvm::Report2ReportsDirectory] && $::osvvm::Report2ReportsDirectory ne ""} {
+    lappend BuildYamlCandidates [file join $::osvvm::Report2ReportsDirectory ${BuildName}.yml]
+    lappend BuildYamlCandidates [file join $::osvvm::Report2ReportsDirectory ${BuildName}.yaml]
+  }
+  if {[info exists ::osvvm::Report2ReportsTestSuiteDirectory] && $::osvvm::Report2ReportsTestSuiteDirectory ne ""} {
+    set SuiteReportsBase [file dirname $::osvvm::Report2ReportsTestSuiteDirectory]
+    lappend BuildYamlCandidates [file join $SuiteReportsBase ${BuildName}.yml]
+    lappend BuildYamlCandidates [file join $SuiteReportsBase ${BuildName}.yaml]
+  }
+
+  set BuildYamlFile ""
+  foreach Candidate $BuildYamlCandidates {
+    if {[file exists $Candidate]} {
+      set BuildYamlFile $Candidate
+      break
+    }
+  }
+
+  if {$BuildYamlFile ne ""} {
+    set BuildDict [::yaml::yaml2dict -file $BuildYamlFile]
+    if {[dict exists $BuildDict TestSuites]} {
+      foreach Suite [dict get $BuildDict TestSuites] {
+        if {![dict exists $Suite Name] || ![dict exists $Suite TestCases]} {
+          continue
+        }
+        if {[dict get $Suite Name] ne $TestSuiteName} {
+          continue
+        }
+        set FoundTc 0
+        foreach Tc [dict get $Suite TestCases] {
+          if {[dict exists $Tc TestCaseFileName] && [dict get $Tc TestCaseFileName] eq $TestCaseFileName} {
+            if {[dict exists $Tc SimulationTime] && $::osvvm::Report2TestCaseSimulationTime eq ""} {
+              set ::osvvm::Report2TestCaseSimulationTime [dict get $Tc SimulationTime]
+            }
+            if {[dict exists $Tc ElapsedTime] && $::osvvm::Report2TestCaseElapsedTime eq ""} {
+              set ::osvvm::Report2TestCaseElapsedTime [dict get $Tc ElapsedTime]
+            }
+            set FoundTc 1
+            break
+          }
+        }
+        # Fallback: if no exact file-name match, match by TestCaseName (useful when TestCaseFileName is absent).
+        if {!$FoundTc} {
+          foreach Tc [dict get $Suite TestCases] {
+            if {[dict exists $Tc TestCaseName] && [dict get $Tc TestCaseName] eq $TestCaseName} {
+              if {[dict exists $Tc SimulationTime] && $::osvvm::Report2TestCaseSimulationTime eq ""} {
+                set ::osvvm::Report2TestCaseSimulationTime [dict get $Tc SimulationTime]
+              }
+              if {[dict exists $Tc ElapsedTime] && $::osvvm::Report2TestCaseElapsedTime eq ""} {
+                set ::osvvm::Report2TestCaseElapsedTime [dict get $Tc ElapsedTime]
+              }
+              break
+            }
+          }
+        }
+        break
+      }
+    }
+  }
 
   # Read Description and Tags from Alert YAML file before creating summary table
   if {[file exists ${Report2AlertYamlFile}]} {
     set AlertDict [::yaml::yaml2dict -file ${Report2AlertYamlFile}]
+    if {[dict exists $AlertDict Status]} {
+      set ::osvvm::Report2TestStatus [dict get $AlertDict Status]
+    }
     if {[dict exists $AlertDict Description]} {
       set ::osvvm::Report2TestDescription [dict get $AlertDict Description]
     }
     if {[dict exists $AlertDict Tags]} {
       set ::osvvm::Report2TestTags [dict get $AlertDict Tags]
+    }
+    if {[dict exists $AlertDict TagSummaryVisibility]} {
+      set ::osvvm::Report2TestTagSummaryVisibility [dict get $AlertDict TagSummaryVisibility]
     }
   }
 
@@ -209,6 +298,45 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
 
   puts $ResultsFile "  </div>"
 
+  # Test Result near top (quick essentials)
+  puts $ResultsFile "  <div class=\"TestFacts\">"
+  puts $ResultsFile "    <details open><summary class=\"subtitle\">$TestCaseName Result</summary>"
+  puts $ResultsFile "      <table class=\"AlertSettings\">"
+  puts $ResultsFile "        <thead><tr><th>Field</th><th>Value</th></tr></thead>"
+  puts $ResultsFile "        <tbody>"
+  set StatusValue "⸻"
+  if {[info exists ::osvvm::Report2TestStatus] && $::osvvm::Report2TestStatus ne ""} {
+    set StatusValue $::osvvm::Report2TestStatus
+  }
+  set SimTimeValue "⸻"
+  if {[info exists ::osvvm::Report2TestCaseSimulationTime] && $::osvvm::Report2TestCaseSimulationTime ne ""} {
+    set SimTimeValue $::osvvm::Report2TestCaseSimulationTime
+  }
+  set ElapsedValue "⸻"
+  if {[info exists ::osvvm::Report2TestCaseElapsedTime] && $::osvvm::Report2TestCaseElapsedTime ne ""} {
+    set ElapsedValue $::osvvm::Report2TestCaseElapsedTime
+  }
+  set StatusClass ""
+  set StatusUpper [string toupper $StatusValue]
+  if {[string first "PASS" $StatusUpper] >= 0} {
+    set StatusClass "passed"
+  } elseif {[string first "FAIL" $StatusUpper] >= 0 || [string first "ERROR" $StatusUpper] >= 0} {
+    set StatusClass "failed"
+  } elseif {[string first "SKIP" $StatusUpper] >= 0} {
+    set StatusClass "skipped"
+  }
+  if {$StatusClass ne ""} {
+    puts $ResultsFile "          <tr><td>Status</td><td><span class=\"$StatusClass\">$StatusValue</span></td></tr>"
+  } else {
+    puts $ResultsFile "          <tr><td>Status</td><td>$StatusValue</td></tr>"
+  }
+  puts $ResultsFile "          <tr><td>ElapsedTime</td><td>$ElapsedValue</td></tr>"
+  puts $ResultsFile "          <tr><td>SuiteName</td><td>$TestSuiteName</td></tr>"
+  puts $ResultsFile "        </tbody>"
+  puts $ResultsFile "      </table>"
+  puts $ResultsFile "    </details>"
+  puts $ResultsFile "  </div>"
+
   # Render Description / Tags / Generics as independent sections
   # (user-requested: Description not in a table; Tags + Generics in tables)
   if {[info exists ::osvvm::Report2TestDescription] && $::osvvm::Report2TestDescription ne ""} {
@@ -223,11 +351,38 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
     puts $ResultsFile "  <div class=\"TestTags\">"
     puts $ResultsFile "    <details open><summary class=\"subtitle\">$TestCaseName Tags</summary>"
     puts $ResultsFile "      <table class=\"AlertSettings\">"
-    puts $ResultsFile "        <thead><tr><th>Name</th><th>Value</th></tr></thead>"
+    set HasTagSummaryVisibility 0
+    if {[info exists ::osvvm::Report2TestTagSummaryVisibility] && $::osvvm::Report2TestTagSummaryVisibility ne ""} {
+      if {![catch {dict size $::osvvm::Report2TestTagSummaryVisibility}] && ([dict size $::osvvm::Report2TestTagSummaryVisibility] > 0)} {
+        set HasTagSummaryVisibility 1
+      }
+    }
+    if {$HasTagSummaryVisibility} {
+      puts $ResultsFile "        <thead><tr><th>Name</th><th>Value</th><th>Type</th><th>ShowInSummary</th></tr></thead>"
+    } else {
+      puts $ResultsFile "        <thead><tr><th>Name</th><th>Value</th><th>Type</th></tr></thead>"
+    }
     puts $ResultsFile "        <tbody>"
     foreach {TagName TagValue} $::osvvm::Report2TestTags {
       set TagDisplayValue [FormatScalarForHtml $TagValue]
-      puts $ResultsFile "          <tr><td>$TagName</td><td>$TagDisplayValue</td></tr>"
+      if {$TagDisplayValue eq "True" || $TagDisplayValue eq "False"} {
+        set TagType "boolean"
+      } else {
+        set TagType [InferScalarTypeForHtml $TagValue]
+      }
+
+      set TagTypeClass [string tolower $TagType]
+      regsub -all {[^a-z0-9_-]} $TagTypeClass "_" TagTypeClass
+      set TagTypeHtml "<span class=\"datatype datatype-$TagTypeClass\">$TagType</span>"
+      if {$HasTagSummaryVisibility && [dict exists $::osvvm::Report2TestTagSummaryVisibility $TagName]} {
+        set ShowValue [dict get $::osvvm::Report2TestTagSummaryVisibility $TagName]
+        if {[catch {set ShowText [expr {$ShowValue ? "true" : "false"}]}]} {
+          set ShowText "⸻"
+        }
+        puts $ResultsFile "          <tr><td>$TagName</td><td>$TagDisplayValue</td><td>$TagTypeHtml</td><td>$ShowText</td></tr>"
+      } else {
+        puts $ResultsFile "          <tr><td>$TagName</td><td>$TagDisplayValue</td><td>$TagTypeHtml</td></tr>"
+      }
     }
     puts $ResultsFile "        </tbody>"
     puts $ResultsFile "      </table>"
@@ -239,11 +394,49 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
     puts $ResultsFile "  <div class=\"TestGenerics\">"
     puts $ResultsFile "    <details open><summary class=\"subtitle\">$TestCaseName Generics</summary>"
     puts $ResultsFile "      <table class=\"AlertSettings\">"
-    puts $ResultsFile "        <thead><tr><th>Name</th><th>Value</th></tr></thead>"
+    puts $ResultsFile "        <thead><tr><th>Name</th><th>Value</th><th>Type</th><th>ShowInSummary</th></tr></thead>"
     puts $ResultsFile "        <tbody>"
+
+    # Determine whether generics are configured to show in the suite summary.
+    # Note: These controls are not stored in YAML today; they reflect the current
+    # script settings (set by SetTestCaseSummaryGenerics/HideTestCaseSummaryGenerics).
+    set ShowGenericsInSummary 1
+    if {[info exists ::osvvm::TestCaseSummaryShowGenerics]} {
+      set ShowGenericsInSummary $::osvvm::TestCaseSummaryShowGenerics
+    }
+    set GenericWhitelist {}
+    if {[info exists ::osvvm::TestCaseSummaryGenericNames]} {
+      set GenericWhitelist $::osvvm::TestCaseSummaryGenericNames
+    }
+
     foreach {GenericName GenericValue} $GenericDict {
       set GenericDisplayValue [FormatGenericValueForHtml $GenericName $GenericValue $::osvvm::Report2GenericNames]
-      puts $ResultsFile "          <tr><td>$GenericName</td><td>$GenericDisplayValue</td></tr>"
+
+      # Infer scalar type (consistent with tag typing).
+      if {$GenericDisplayValue eq "True" || $GenericDisplayValue eq "False"} {
+        set GenericType "boolean"
+      } else {
+        set GenericType [InferScalarTypeForHtml $GenericValue]
+      }
+
+      set GenericTypeClass [string tolower $GenericType]
+      regsub -all {[^a-z0-9_-]} $GenericTypeClass "_" GenericTypeClass
+      set GenericTypeHtml "<span class=\"datatype datatype-$GenericTypeClass\">$GenericType</span>"
+
+      # Compute whether this generic would be shown in the Test Case Summary.
+      if {!$ShowGenericsInSummary} {
+        set GenericShowText "false"
+      } elseif {[llength $GenericWhitelist] == 0} {
+        set GenericShowText "true"
+      } else {
+        if {[lsearch -exact $GenericWhitelist $GenericName] >= 0} {
+          set GenericShowText "true"
+        } else {
+          set GenericShowText "false"
+        }
+      }
+
+      puts $ResultsFile "          <tr><td>$GenericName</td><td>$GenericDisplayValue</td><td>$GenericTypeHtml</td><td>$GenericShowText</td></tr>"
     }
     puts $ResultsFile "        </tbody>"
     puts $ResultsFile "      </table>"

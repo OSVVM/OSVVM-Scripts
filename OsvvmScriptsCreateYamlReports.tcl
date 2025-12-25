@@ -432,13 +432,53 @@ proc FinishSimulateBuildYaml {} {
 
   set  SimulateFinishTimeMs  [clock milliseconds]
   set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
+
+  set TestCaseElapsedTimeSeconds [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]
   
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "        TestCaseFileName: \"$TestCaseFileName\""
   WriteDictOfDict2Yaml $RunFile Generics $::osvvm::GenericDict  "        "
 #  puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericDict\""
-  puts  $RunFile "        ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
+  puts  $RunFile "        ElapsedTime: $TestCaseElapsedTimeSeconds"
   close $RunFile
+
+  # Make per-test reports self-contained: add ElapsedTime to the per-test *_run.yml
+  # so per-test HTML does not require joining the suite/build YAML.
+  AppendElapsedTimeToTestCaseSettingsYaml $TestCaseElapsedTimeSeconds
+}
+
+# -------------------------------------------------
+# AppendElapsedTimeToTestCaseSettingsYaml
+#
+# Adds a top-level ElapsedTime key to the per-test *_run.yml (if not already present).
+# This is safe to call after WriteTestCaseSettingsYaml has created the file.
+proc AppendElapsedTimeToTestCaseSettingsYaml {ElapsedTimeSeconds} {
+  variable TestCaseFileName
+
+  if {![info exists ::osvvm::ReportsTestSuiteDirectory] || $::osvvm::ReportsTestSuiteDirectory eq ""} {
+    return
+  }
+  if {![info exists TestCaseFileName] || $TestCaseFileName eq ""} {
+    return
+  }
+
+  set SettingsFileName [file join $::osvvm::ReportsTestSuiteDirectory ${TestCaseFileName}_run.yml]
+  if {![file exists $SettingsFileName]} {
+    return
+  }
+
+  # Avoid duplicate keys if rerun.
+  set InFile [open $SettingsFileName r]
+  set Contents [read $InFile]
+  close $InFile
+  if {[regexp {(?m)^ElapsedTime\s*:} $Contents]} {
+    return
+  }
+
+  set OutFile [open $SettingsFileName a]
+  puts $OutFile ""
+  puts $OutFile "ElapsedTime: $ElapsedTimeSeconds"
+  close $OutFile
 }
 
 # -------------------------------------------------

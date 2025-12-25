@@ -1262,9 +1262,11 @@ proc AfterSimulateReports {} {
   
   WriteTestCaseSettingsYaml $TestCaseSettingsFile
 
+  # FinishSimulateBuildYaml computes ElapsedTime and writes it to build YAML.
+  # It also appends ElapsedTime into the per-test *_run.yml so per-test HTML can display it.
+  FinishSimulateBuildYaml
+
   Simulate2Html $TestCaseSettingsFile
-  
-  FinishSimulateBuildYaml 
 }
 
 
