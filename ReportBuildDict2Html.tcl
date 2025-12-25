@@ -322,6 +322,12 @@ proc CreateTestCaseSummaries {TestDict} {
         set ConfigGenericWhitelist $::osvvm::TestCaseSummaryGenericNames
       }
 
+      # Default: cap the number of generic columns to keep tables readable.
+      set ConfigMaxGenericsColumns 0
+      if {[info exists ::osvvm::TestCaseSummaryMaxGenericsColumns]} {
+        set ConfigMaxGenericsColumns $::osvvm::TestCaseSummaryMaxGenericsColumns
+      }
+
       # Default: show tags in the Test Case Summary table
       set ConfigShowTags 1
       if {[info exists ::osvvm::TestCaseSummaryShowTags]} {
@@ -330,6 +336,12 @@ proc CreateTestCaseSummaries {TestDict} {
       set ConfigTagWhitelist {}
       if {[info exists ::osvvm::TestCaseSummaryTagNames]} {
         set ConfigTagWhitelist $::osvvm::TestCaseSummaryTagNames
+      }
+
+      # Default: cap the number of tag columns to keep tables readable.
+      set ConfigMaxTagsColumns 0
+      if {[info exists ::osvvm::TestCaseSummaryMaxTagsColumns]} {
+        set ConfigMaxTagsColumns $::osvvm::TestCaseSummaryMaxTagsColumns
       }
 
       # Collect a stable list of generic names used by any test case in this suite.
@@ -364,6 +376,13 @@ proc CreateTestCaseSummaries {TestDict} {
       set SuiteGenericCount [llength $SuiteGenericNames]
       set SuiteGenericCountAll [llength $SuiteGenericNamesAll]
 
+      # Enforce max generics columns (0/negative => unlimited)
+      if {$SuiteGenericCount > 0 && $ConfigMaxGenericsColumns > 0 && $SuiteGenericCount > $ConfigMaxGenericsColumns} {
+        puts "Warning: Test Case Summary generics columns truncated from $SuiteGenericCount to $ConfigMaxGenericsColumns for suite $SuiteName"
+        set SuiteGenericNames [lrange $SuiteGenericNames 0 [expr {$ConfigMaxGenericsColumns - 1}]]
+        set SuiteGenericCount [llength $SuiteGenericNames]
+      }
+
       # Collect tag names (stable order) and determine visibility across all testcases.
       # A tag column is included if the tag is visible in ANY testcase.
       set SuiteTagNamesAll {}
@@ -381,8 +400,8 @@ proc CreateTestCaseSummaries {TestDict} {
 
                 # Per-tag visibility for this testcase (default visible).
                 set IsVisible 1
-                if {[dict exists $TcForTags TagVisibility]} {
-                  set VisDict [dict get $TcForTags TagVisibility]
+                if {[dict exists $TcForTags TagSummaryVisibility]} {
+                  set VisDict [dict get $TcForTags TagSummaryVisibility]
                   if {![catch {dict size $VisDict}]} {
                     if {[dict exists $VisDict $TagName]} {
                       set VisVal [dict get $VisDict $TagName]
@@ -429,6 +448,13 @@ proc CreateTestCaseSummaries {TestDict} {
         }
       }
       set SuiteTagCount [llength $SuiteTagNames]
+
+      # Enforce max tags columns (0/negative => unlimited)
+      if {$SuiteTagCount > 0 && $ConfigMaxTagsColumns > 0 && $SuiteTagCount > $ConfigMaxTagsColumns} {
+        puts "Warning: Test Case Summary tag columns truncated from $SuiteTagCount to $ConfigMaxTagsColumns for suite $SuiteName"
+        set SuiteTagNames [lrange $SuiteTagNames 0 [expr {$ConfigMaxTagsColumns - 1}]]
+        set SuiteTagCount [llength $SuiteTagNames]
+      }
 
       puts $ResultsFile "  <div class=\"testcase\">"
       puts $ResultsFile "    <details open><summary id=\"$SuiteName\">$SuiteName Test Case Summary</summary>"
@@ -574,7 +600,7 @@ proc CreateTestCaseSummaries {TestDict} {
               set GenValue "⸻"
             }
             set GenDisplayValue [FormatGenericValueForHtml $GenName $GenValue $TestFileName]
-            puts $ResultsFile "            <td style=\"text-align: center;\">$GenDisplayValue</td>"
+            puts $ResultsFile "            <td style=\"text-align: right;\">$GenDisplayValue</td>"
           }
         }
 
@@ -590,7 +616,7 @@ proc CreateTestCaseSummaries {TestDict} {
             set HasTags 1
           }
           foreach TagName $SuiteTagNames {
-            # TagVisibility is used only to decide whether a tag column exists.
+            # TagSummaryVisibility is used only to decide whether a tag column exists.
             # If the column exists (visible in any testcase), then show the tag
             # value for every testcase that has it.
             if { $HasTags && [dict exists $TestCaseTags $TagName] } {
@@ -599,7 +625,7 @@ proc CreateTestCaseSummaries {TestDict} {
             } else {
               set TagDisplay "⸻"
             }
-            puts $ResultsFile "            <td style=\"text-align: left;\">$TagDisplay</td>"
+            puts $ResultsFile "            <td style=\"text-align: right;\">$TagDisplay</td>"
           }
         }
 

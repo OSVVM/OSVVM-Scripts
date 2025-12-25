@@ -1425,12 +1425,52 @@ proc SetTestSuiteDescription {Description} {
 }
 
 # -------------------------------------------------
+# ClearTestSuiteDescription
+#   Clears any previously set suite-level description.
+proc ClearTestSuiteDescription {} {
+  set ::osvvm::TestSuiteDescription ""
+}
+
+# -------------------------------------------------
+# GetTestSuiteDescription
+#   Returns the currently configured suite-level description.
+proc GetTestSuiteDescription {} {
+  if {[info exists ::osvvm::TestSuiteDescription]} {
+    return $::osvvm::TestSuiteDescription
+  }
+  return ""
+}
+
+# -------------------------------------------------
 # SetTestSuiteBrief
 #   Sets a suite-level brief (plain text) for summary tables.
 #
 #   Call this after TestSuite <name> and before the suite finishes.
 proc SetTestSuiteBrief {Brief} {
+  if {![info exists ::osvvm::TestSuiteBriefMaxLength]} {
+    set ::osvvm::TestSuiteBriefMaxLength 120
+  }
+  if {$::osvvm::TestSuiteBriefMaxLength > 0 && [string length $Brief] > $::osvvm::TestSuiteBriefMaxLength} {
+    puts "Warning: SetTestSuiteBrief length ([string length $Brief]) exceeds TestSuiteBriefMaxLength ($::osvvm::TestSuiteBriefMaxLength)"
+  }
   set ::osvvm::TestSuiteBrief $Brief
+}
+
+# -------------------------------------------------
+# ClearTestSuiteBrief
+#   Clears any previously set suite-level brief.
+proc ClearTestSuiteBrief {} {
+  set ::osvvm::TestSuiteBrief ""
+}
+
+# -------------------------------------------------
+# GetTestSuiteBrief
+#   Returns the currently configured suite-level brief.
+proc GetTestSuiteBrief {} {
+  if {[info exists ::osvvm::TestSuiteBrief]} {
+    return $::osvvm::TestSuiteBrief
+  }
+  return ""
 }
 
 # -------------------------------------------------

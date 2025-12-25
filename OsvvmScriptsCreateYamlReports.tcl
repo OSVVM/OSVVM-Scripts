@@ -49,6 +49,21 @@ package require fileutil
 
 
 # -------------------------------------------------
+# SanitizeTextForReport
+#   Removes ASCII control characters (except \t, \n, \r) that can break YAML/HTML.
+#   This does not attempt full UTF-8 validation; Tcl strings are Unicode.
+proc SanitizeTextForReport {Text} {
+  if {$Text eq ""} {
+    return ""
+  }
+  # Strip C0 controls excluding tab/newline/carriage return, plus DEL.
+  #   - \x00-\x08, \x0B-\x0C, \x0E-\x1F, \x7F
+  regsub -all {[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]} $Text { } Clean
+  return $Clean
+}
+
+
+# -------------------------------------------------
 # FormatYamlScalar
 #   Return a YAML scalar string that uses native types when safe:
 #     - empty -> null (empty scalar)
@@ -62,9 +77,12 @@ proc FormatYamlScalar {Value} {
     return "null"
   }
 
+  set Value [SanitizeTextForReport $Value]
   set Trimmed [string trim $Value]
   if {$Trimmed eq ""} {
-    return "\"$Value\""
+    # Keep whitespace-only values as strings
+    set Escaped [string map [list "\\" "\\\\" "\"" "\\\"" "\n" "\\n" "\r" "\\r" "\t" "\\t"] $Value]
+    return "\"$Escaped\""
   }
 
   # null
@@ -89,7 +107,17 @@ proc FormatYamlScalar {Value} {
 
   # default: quoted string
   # Use [list] to avoid Tcl list parsing edge cases
-  set Escaped [string map [list "\\" "\\\\" "\"" "\\\""] $Value]
+  set Escaped [string map [list "\\" "\\\\" "\"" "\\\"" "\n" "\\n" "\r" "\\r" "\t" "\\t"] $Value]
+  return "\"$Escaped\""
+}
+
+
+# -------------------------------------------------
+# FormatYamlDoubleQuotedScalar
+#   Always returns a double-quoted YAML string (never native/null).
+proc FormatYamlDoubleQuotedScalar {Value} {
+  set Value [SanitizeTextForReport $Value]
+  set Escaped [string map [list "\\" "\\\\" "\"" "\\\"" "\n" "\\n" "\r" "\\r" "\t" "\\t"] $Value]
   return "\"$Escaped\""
 }
 
@@ -243,7 +271,8 @@ proc WriteDictOfDict2Yaml {YamlFile DictName {DictValues ""} {Prefix ""} } {
 #    puts $YamlFile "${Prefix}${DictName}:            \"\""
   } else {
     puts $YamlFile "${Prefix}${DictName}:"
-    foreach {Name Value} $DictValues {
+    foreach Name [lsort -dictionary [dict keys $DictValues]] {
+      set Value [dict get $DictValues $Name]
       puts $YamlFile "${Prefix}  ${Name}: [FormatYamlScalar $Value]"
     }
   }
@@ -263,7 +292,7 @@ proc WriteDictOfList2Yaml {YamlFile DictName {ListValues ""} {Prefix ""} } {
 
 # -------------------------------------------------
 proc WriteDictOfString2Yaml {YamlFile DictName {StringValue ""} {Prefix ""} } {
-  puts $YamlFile "${Prefix}${DictName}: \"$StringValue\""
+  puts $YamlFile "${Prefix}${DictName}: [FormatYamlDoubleQuotedScalar $StringValue]"
 }
 
 # -------------------------------------------------

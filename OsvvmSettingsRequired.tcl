@@ -65,6 +65,18 @@ namespace eval ::osvvm {
   variable OsvvmScoreboardYamlVersion   InVhdlCodeVersionTbd
   variable OsvvmRequirementsYamlVersion InVhdlCodeVersionTbd   ;# file is an array of requirements - version not possible w/o file change
 
+  # -------------------------------------------------
+  # Brief length guard (soft warning)
+  # 0 disables warning.
+  variable TestSuiteBriefMaxLength 120
+
+  # -------------------------------------------------
+  # Test Case Summary (HTML) column limits
+  # These caps prevent the summary table from becoming too wide when many generics/tags exist.
+  # 0 (or negative) disables the cap.
+  variable TestCaseSummaryMaxGenericsColumns 12
+  variable TestCaseSummaryMaxTagsColumns     12
+
   if {![info exists OsvvmVersionCompatibility]} {
     variable OsvvmVersionCompatibility $OsvvmVersion
   }

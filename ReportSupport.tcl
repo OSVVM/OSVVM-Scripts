@@ -86,7 +86,8 @@ proc FormatScalarForHtml {Value} {
 # EscapeHtml
 #
 proc EscapeHtml {Text} {
-  set Escaped $Text
+  # Strip ASCII control chars that can break HTML rendering.
+  regsub -all {[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]} $Text { } Escaped
   set Escaped [string map [list "&" "&amp;" "<" "&lt;" ">" "&gt;" "\"" "&quot;" "'" "&#39;"] $Escaped]
   return $Escaped
 }
