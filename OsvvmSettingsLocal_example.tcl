@@ -49,12 +49,22 @@
 #   Uncomment and customize the below settings
 #
 
+#
+## Define variables here to locate your projects and simplify builds
+##    build $Project1
+##    build $Project1/Testbench
+##
+# variable Project1 C:/Projects/Project1
+# variable Project2 C:/Projects/Project2
+#
+
 
 namespace eval ::osvvm {
 
   #
   # Directory structure and results file management
   #
+
     # OsvvmVersionCompatibility:  value does not have to match an exact revision tag. 
     #   The intent is to rarely change the settings. 
     # variable OsvvmVersionCompatibility $OsvvmVersion                 ;# default - format is:  YYYY.MMr.  YYYY= year.  MM= Month number.  r is a,b,c as minor revision tag 
@@ -66,9 +76,13 @@ namespace eval ::osvvm {
     # for 2024.07, ClockResetVersion setting of less that 2024.07 selects version that was used prior to 2024.07
     # variable ClockResetVersion 2024.05
 
+    #  variable VhdlFileViewerPrefix      ""                 ; # Default
+    #  variable VhdlFileViewerPrefix      "vscode://file/"   ; # to view with vscode
+
     #  Base directory for other OSVVM created directories 
     #  variable OutputBaseDirectory        ""                          ;# put output in $CurrentSimulationDirectory
     #  variable OutputBaseDirectory        "osvvm"                     ;# put output in $CurrentSimulationDirectory/osvvm
+    #  variable OutputBaseDirectory        "C:/OsvvmResults/${::osvvm::ToolVendor}"   ;# absolute path to Output directory
 
     #  Directory for log files = $OsvvmBuildOutputDirectory/$LogSubdirectory
     #    Contains simulator transcript in text and optionally html

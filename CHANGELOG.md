@@ -13,7 +13,7 @@
 | 2025.02       |  Use $::env::(OSVVM_SETTINGS_DIR) to set the requirements directory.                          |
 |               |  USE_SUM_OF_GOALS requirements uses Sum of Goals (if true) vs Maximum (if false and past default)        |
 |               |  Updated requirements handling to handle Functional Coverage.                                 |
-|               |  Added variable Support2019FilePath (based on tool support).                                  |
+|               |  Added variable Supports2019FilePath (based on tool support).                                  |
 |               |  Added GetTimeString                                                                          |
 | 2024.11       |  Log2Osvvm - Updated how details summary print                                                |
 |               |  OsvvmScriptsCore, VendorScripts_Visualizer, VS_Siemens - worked on Space in Path issue       |

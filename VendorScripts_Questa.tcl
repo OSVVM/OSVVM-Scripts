@@ -95,9 +95,13 @@ package require fileutil
     variable SiemensSimulateOptions "-batch"
   }
 
-#  if {[expr [string compare $ToolVersion "2025.3"] >= 0]} {
-#    SetVHDLVersion 2019
-#  }
+  if {[expr [string compare $ToolVersion "2026.1"] >= 0]} {
+    SetVHDLVersion 2019
+    variable Supports2019Interface             "true"
+    # variable Supports2019ImpureFunctions     "true"
+    # variable Supports2019FilePath            "true"
+    # variable Supports2019AssertApi           "true"
+  }
 
   # Set if not set
   if {![info exists ::VoptArgs]} {
@@ -305,7 +309,10 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable TestCaseFileName
   variable ExtendedOptimizeOptions
   variable ExtendedSimulateOptions
-  variable ReportsTestSuiteDirectory
+
+#  set SimTempDirectory $::osvvm::ReportsTestSuiteDirectory 
+  set SimTempDirectory [file join $::osvvm::VhdlLibraryFullPath SimTemp $::osvvm::TestSuiteName] 
+  CreateDirectory $SimTempDirectory
   
   # Create the script files
   set ErrorCode [catch {vendor_CreateSimulateDoFile $LibraryUnit OsvvmSimRun.tcl} CatchMessage]
@@ -320,7 +327,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   if {$::osvvm::SaveWaves} {
 	  set OptimizeOptions "-debug"
-    set WaveOptions "-qwavedb=+signals+wavefile=[file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_qwave.db]"
+    set WaveOptions "-qwavedb=+signals+wavefile=[file join ${SimTempDirectory} ${TestCaseFileName}_qwave.db]"
   }
 
   if {$::osvvm::SimulateInteractive} {
@@ -333,8 +340,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   set OptimizeOptions [concat $::VoptArgs $OptimizeOptions {*}$ExtendedOptimizeOptions  -work ${LibraryName} -L ${LibraryName} ${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} -o ${LibraryUnit}_opt {*}${::osvvm::GenericOptions}]
   
-  puts "vopt {*}${OptimizeOptions} -designfile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_design.bin]"
-  eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${ReportsTestSuiteDirectory} ${TestCaseFileName}_design.bin] 
+  puts "vopt {*}${OptimizeOptions} -designfile [file join ${SimTempDirectory} ${TestCaseFileName}_design.bin]"
+  eval $::osvvm::shell vopt {*}${OptimizeOptions} -designfile [file join ${SimTempDirectory} ${TestCaseFileName}_design.bin] 
   
   # Set generics during opt rather than sim
   set SimulateOptions [concat $::VsimArgs -t $SimulateTimeUnits -lib ${LibraryName} ${LibraryUnit}_opt ${::osvvm::SecondSimulationTopLevel} {*}${args} -suppress 8683 -suppress 8684]

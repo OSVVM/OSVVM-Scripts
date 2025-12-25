@@ -397,10 +397,12 @@ proc build {{Path_Or_File "."} args} {
       #  Catch any errors from the build and handle them below
       set BuildErrorCode [catch {LocalBuild $IncludeFile {*}$args} BuildErrMsg]
       set LocalBuildErrorInfo $::errorInfo
-      if {$::osvvm::TclDebug} {
-        puts "LocalBuild errorInfo: $::errorInfo"
+      if {$BuildErrorCode != 0} {   
+        CheckSimulationDirs  ; ##?? Creates ReportsDirectory for builds that fail.  Refactor later.
+        if {$::osvvm::TclDebug} {
+          puts "LocalBuild errorInfo: $::errorInfo"
+        }
       }
-
       
       set ReportYamlErrorCode [catch {FinishBuildYaml $BuildName} BuildYamlErrMsg]
       set LocalBuildYamlErrorInfo $::errorInfo
@@ -596,8 +598,10 @@ proc CheckLibraryInit {} {
     set VhdlLibraryParentDirectory [pwd]
   }
   if { ${VhdlLibraryParentDirectory} eq [pwd]} {
-    # Local Library Directory - use OutputBaseDirectory
-    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
+#    # Local Library Directory - use OutputBaseDirectory
+#    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::OutputBaseDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
+    # Local Library Directory - use CurrentSimulationDirectory
+    set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
   } else {
     # Global Library Directory - do not use OutputBaseDirectory
     set VhdlLibraryFullPath [file join ${VhdlLibraryParentDirectory} ${::osvvm::VhdlLibraryDirectory} ${::osvvm::VhdlLibrarySubdirectory}]
@@ -1519,6 +1523,9 @@ proc RunAllTests {{TestFilePrefix ""} args} {
   foreach Test [glob [file join $::osvvm::CurrentWorkingDirectory ${TestFilePrefix}*.vhd]] {
     RunTest $Test
   }
+  foreach Test [glob [file join $::osvvm::CurrentWorkingDirectory ${TestFilePrefix}*.vhdl]] {
+    RunTest $Test
+  }
 }
 
 # -------------------------------------------------
@@ -2197,6 +2204,7 @@ proc CopyHtmlThemeFiles {HtmlThemeSourceDirectory BaseDirectory HtmlThemeTargetS
 }
 
 # -------------------------------------------------
+# DirectoryExists - use OSVVM 
 proc DirectoryExists {DirInQuestion} {
   variable CurrentWorkingDirectory
 
@@ -2208,6 +2216,7 @@ proc DirectoryExists {DirInQuestion} {
   return [file exists [file join ${LocalWorkingDirectory} ${DirInQuestion}]]
 }
 
+# -------------------------------------------------
 proc FileExists {FileName} {
   variable CurrentWorkingDirectory
 
@@ -2219,29 +2228,46 @@ proc FileExists {FileName} {
   return [file exists [file join ${LocalWorkingDirectory} ${FileName}]]
 }
 
+# -------------------------------------------------
+proc FileModified {FileName} {
+  variable CurrentWorkingDirectory
+
+  if {[info exists CurrentWorkingDirectory]} {
+    set LocalWorkingDirectory $CurrentWorkingDirectory
+  } else {
+    set LocalWorkingDirectory "."
+  }
+  return [file mtime [file join ${LocalWorkingDirectory} ${FileName}]]
+}
+
+
+# -------------------------------------------------
 proc JoinWorkingDirectory {RelativePath} {
   variable CurrentWorkingDirectory
   return [file join $CurrentWorkingDirectory $RelativePath]
 }
 
+# -------------------------------------------------
 proc ChangeWorkingDirectory {RelativePath} {
   variable CurrentWorkingDirectory
   set CurrentWorkingDirectory [file join $CurrentWorkingDirectory $RelativePath]
 }
 
+# -------------------------------------------------
 proc TimeIt {args} {
-
   set StartTimeMs [clock milliseconds]
   eval $args
   puts  "Time:  [ElapsedTimeMs $StartTimeMs]"
 }
 
+# -------------------------------------------------
 proc SetArgv {} {
   set ::argv0   0
   set ::argv    0
   set ::argc    0
 }
 
+# -------------------------------------------------
 proc GetTimeString {} {
   return [GetIsoTime [clock seconds]]
 }
@@ -2258,7 +2284,6 @@ namespace export CreateDirectory
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
 namespace export SetLibraryDirectory GetLibraryDirectory SetTranscriptType GetTranscriptType
 namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries
-namespace export FileExists DirectoryExists
 namespace export SetExtendedAnalyzeOptions GetExtendedAnalyzeOptions
 namespace export SetExtendedOptimizeOptions GetExtendedOptimizeOptions
 namespace export SetExtendedSimulateOptions GetExtendedSimulateOptions
@@ -2277,11 +2302,15 @@ namespace export SetLogSignals GetLogSignals
 namespace export SetSecondSimulationTopLevel GetSecondSimulationTopLevel
 namespace export MergeCoverage
 namespace export OsvvmLibraryPath
-namespace export JoinWorkingDirectory ChangeWorkingDirectory
 namespace export EndSimulation 
 namespace export FindLibraryPathByName CoSim
 namespace export OpenBuildHtml OpenIndex
+namespace export DirectoryExists FileExists FileModified
+namespace export JoinWorkingDirectory ChangeWorkingDirectory
 namespace export GetTimeString
+
+# Experimental
+namespace export RunAllTests
 
 # Exported only for tesing purposes
 namespace export FindLibraryPath CreateLibraryPath FindExistingLibraryPath TimeIt FindIncludeFile UnsetLibraryVars

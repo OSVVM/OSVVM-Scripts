@@ -56,7 +56,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion                 2025.06a
+  variable OsvvmVersion                 2026.01
   variable OsvvmBuildYamlVersion        2025.02
   variable OsvvmTestCaseYamlVersion     1.0
  # The following are set in VHDL code.  Either need to pass these or have it directly in the VHDL Code.
@@ -65,6 +65,7 @@ namespace eval ::osvvm {
   variable OsvvmScoreboardYamlVersion   InVhdlCodeVersionTbd
   variable OsvvmRequirementsYamlVersion InVhdlCodeVersionTbd   ;# file is an array of requirements - version not possible w/o file change
 
+  # Do not update if user set these already
   if {![info exists OsvvmVersionCompatibility]} {
     variable OsvvmVersionCompatibility $OsvvmVersion
   }
@@ -75,9 +76,17 @@ namespace eval ::osvvm {
     variable ClockResetVersion $OsvvmVersionCompatibility
   }
 
-  variable OsvvmTempOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory] 
+  # 
+  # OsvvmTempOutputDirectory - Used as temp directory for output
+  # DefaultBuildOutputDirectory - Default value if a build is not active
+  # OsvvmBuildOutputDirectory   - Apply default to Build Output Directory 
+  #
+  # ToolName not set when OsvvmSettingsDefault called
+  variable OsvvmTempOutputDirectory    $OsvvmTempOutputSubdirectory
+#    variable OsvvmTempOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory] 
   # Default OsvvmBuildOutputDirectory - otherwise it is [file join $OutputBaseDirectory $BuildName]
-  variable DefaultBuildOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory] 
+#  variable DefaultBuildOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory] 
+  variable DefaultBuildOutputDirectory    $OsvvmTempOutputSubdirectory
   variable OsvvmBuildOutputDirectory    $DefaultBuildOutputDirectory 
 
   # 
@@ -91,37 +100,7 @@ namespace eval ::osvvm {
   SetTranscriptType      $TranscriptExtension
   SetLibraryDirectory    $VhdlLibraryParentDirectory 
     
-  #
-  # Set argv0, argv, and argc in the event the tool forgets to.
-  #
-  if {![info exists ::argv0]} {
-  variable ::argv0  ""
-  }
-  if {![info exists ::argv]} {
-  variable ::argv  ""
-  }
-  if {![info exists ::argc]} {
-  variable ::argc  ""
-  }
 
-  
-  #
-  # Variables set by VendorScripts_***.tcl
-  #    Initialize values that were conditionally initialized
-  #
-    if {![info exists ToolArgs]} {
-      variable ToolArgs ""
-    }
-    if {![info exists NoGui]} {
-      variable NoGui "true"
-    }
-    if {![info exists ToolSupportsGenericPackages]} {
-      variable ToolSupportsGenericPackages "true"
-    }
-    if {![info exists ToolSupportsDeferredConstants]} {
-      variable ToolSupportsDeferredConstants "true"
-    }
-    
   #
   # Create derived directory paths
   variable OsvvmCoSimDirectory  ${OsvvmHomeDirectory}/CoSim
@@ -169,10 +148,6 @@ namespace eval ::osvvm {
     variable GenericOptions        ""
     variable RunningCoSim              "false"
     variable RanSimulationWithCoverage "false"
-    
-    if {![info exists Support2019FilePath]} {
-      variable Support2019FilePath       "false"
-    }
     
     if {[catch {set OperatingSystemName [string tolower [exec uname]]} err]} {
       set OperatingSystemName windows

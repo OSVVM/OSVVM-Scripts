@@ -249,7 +249,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set SimulateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit} {*}${LocalRunOptions}]
   puts "ghdl $runcmd ${SimulateOptions}" 
   
-  set SimulateErrorCode [catch {exec $ghdl $runcmd {*}${SimulateOptions}} SimulateErrorMessage] 
+  set SimulateErrorCode [catch {exec $ghdl $runcmd {*}${SimulateOptions} 2>@1} SimulateErrorMessage] 
 #  if {[file exists ${LibraryUnit}.ghw]} {
 #    file rename -force ${LibraryUnit}.ghw ${::osvvm::ReportsTestSuiteDirectory}/${LibraryUnit}.ghw
 #  }

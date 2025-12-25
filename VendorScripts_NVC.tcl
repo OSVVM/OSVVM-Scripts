@@ -19,6 +19,7 @@
 # 
 #  Revision History:
 #    Date      Version    Description
+#     1/2026   2026.01    Added Supports2019fff to identify 2019 features supported
 #     7/2024   2024.07    Added ability to find nvc on the search path
 #     5/2024   2024.05    Added ToolVersion variable 
 #     1/2023   2023.01    Added options for CoSim 
@@ -70,18 +71,28 @@
   variable ToolVersion [regsub {nvc\s+} $VersionString ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
 
-  if {[expr [string compare $ToolVersion "1.13.2"] >= 0]} {
-    SetVHDLVersion 2019
-  }
-  
   if {[expr [string compare $ToolVersion "1.15.2"] >= 0]} {
     variable FunctionalCoverageIntegratedInSimulator "NVC"
   }
   
+  if {[expr [string compare $ToolVersion "1.13.2"] >= 0]} {
+    SetVHDLVersion 2019
+    variable Supports2019ImpureFunctions     "true"
+  }
+  
   if {[expr [string compare $ToolVersion "1.15.2"] >= 0]} {
-    variable Support2019FilePath "true"
+    SetVHDLVersion 2019
+    variable Supports2019Interface           "true"
+    variable Supports2019ImpureFunctions     "true"
+    variable Supports2019FilePath            "true"
+    variable Supports2019AssertApi           "true"
+    variable Supports2019Integer64Bits       "true"
   }
 
+  # Default memory to use for NVC
+  variable SimulatorMemory         "-H 128m"  
+  variable ExtendedGlobalOptions   "--stderr=failure --ieee-warnings=off"
+  variable ExtendedRunOptions      "--exit-severity=failure"
 
 # -------------------------------------------------
 # StartTranscript / StopTranscript
@@ -186,7 +197,7 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlLibraryFullPath
   variable NVC_WORKING_LIBRARY_PATH
 
-  set  GlobalOptions [concat --std=${VhdlShortVersion} -H 128m --stderr=error --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
+  set  GlobalOptions [concat --std=${VhdlShortVersion} $::osvvm::SimulatorMemory $::osvvm::ExtendedGlobalOptions --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
   set  AnalyzeOptions [concat {*}${args} ${FileName}]
   puts "nvc ${GlobalOptions} -a $AnalyzeOptions"
   if {[catch {exec $nvc {*}${GlobalOptions} -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
@@ -220,7 +231,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ExtendedElaborateOptions
   variable ExtendedRunOptions
 
-  set LocalGlobalOptions [concat --std=${VhdlShortVersion} -H 128m --stderr=error --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
+  set LocalGlobalOptions    [concat --std=${VhdlShortVersion} $::osvvm::SimulatorMemory $::osvvm::ExtendedGlobalOptions --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
   set LocalElaborateOptions [concat {*}${ExtendedElaborateOptions} {*}${args}  {*}${::osvvm::GenericOptions}]
 
   set CoSimRunOptions ""
@@ -233,7 +244,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 #    }
   }
 
-  set LocalRunOptions [concat "--ieee-warnings=off" {*}${ExtendedRunOptions} {*}${CoSimRunOptions}]
+  set LocalRunOptions [concat {*}${ExtendedRunOptions} {*}${CoSimRunOptions}]
   if {$::osvvm::SaveWaves} {
     set LocalRunOptions [concat {*}${LocalRunOptions} --wave=${::osvvm::ReportsTestSuiteDirectory}/${LibraryUnit}.fst ]
   }

@@ -188,9 +188,9 @@ proc CreateTestCaseCommonPkg { {PackageName "TestCaseCommonPkg"} {ValidatedResul
   if {${::osvvm::OutputBaseDirectory} eq ""} {
     set FileBaseName ""
   } else {
-    set FileBaseName  "_${::osvvm::OutputBaseDirectory}" 
+    set FileBaseName  "_[RemoveFilePathChars ${::osvvm::OutputBaseDirectory}]" 
   }
-  if {$::osvvm::Support2019FilePath && $::osvvm::VhdlVersion >= 2019} {
+  if {$::osvvm::Supports2019FilePath && $::osvvm::VhdlVersion >= 2019} {
     set TestCaseCommonPkgFile  [file join ${CurrentDir} "${PackageName}${FileBaseName}.vhd"] 
   } else {
     CreateDirectory [file join ${CurrentDir} deprecated]
@@ -210,7 +210,7 @@ proc CreateTestCaseCommonPkg { {PackageName "TestCaseCommonPkg"} {ValidatedResul
     puts $FileHandle "library osvvm ;" 
     puts $FileHandle "context osvvm.OsvvmContext ;" 
     puts $FileHandle "package ${PackageName} is" 
-    if {$::osvvm::Support2019FilePath && $::osvvm::VhdlVersion >= 2019} {
+    if {$::osvvm::Supports2019FilePath && $::osvvm::VhdlVersion >= 2019} {
       puts $FileHandle "  constant PATH_TO_TEST_SRC            : string  := RemoveEndingSeparator(ChangeSeparator(FILE_PATH))  & \"/\";  -- only valid with VHDL-2019"
     } else {
       puts $FileHandle "  constant PATH_TO_TEST_SRC            : string := \"[file normalize [file join $::osvvm::CurrentWorkingDirectory]]/\" ;"
@@ -325,7 +325,39 @@ proc FileDiff {File1 File2} {
   return "false"
 }
 
+# -------------------------------------------------
+#  ReadFrom - Open File and read it into the stream
+#
+proc ReadFrom {filename} {set f [open $filename]; return [read $f][close $f]}
 
+# -------------------------------------------------
+#  PrintTo - Direct a stream of information into a file
+#
+proc PrintTo {filename str} {set f [open $filename w]; puts $f $str; close $f}
+
+# -------------------------------------------------
+#  MakeVti - Replace FileName with FileNameVti
+#
+proc MakeVti {FileName FilePrefix} {
+	PrintTo [file join $FilePrefix Vti ${FileName}Vti_a.vhd] [regsub -all ${FileName} [ReadFrom [file join $FilePrefix ${FileName}_a.vhd]] ${FileName}Vti]
+}
+
+# -------------------------------------------------
+#  Make2008 - For VHDL-2008 version remove the comment "--%%UncommentFor2008 " from the file
+#
+proc Make2008 {FileName FilePrefix} {
+	PrintTo [file join $FilePrefix deprecated ${FileName}_a.vhd] [regsub -all -- "--%%UncommentFor2008 " [ReadFrom [file join $FilePrefix ${FileName}_a.vhd]] ""]
+}
+
+# -------------------------------------------------
+#  MakeArch - Create Vti, 2008 and Vti/2008 architectures
+#
+proc MakeArch {FileName} {
+  variable CurrentWorkingDirectory
+  MakeVti  $FileName $CurrentWorkingDirectory
+  Make2008 $FileName $CurrentWorkingDirectory
+  Make2008 ${FileName}Vti [file join $CurrentWorkingDirectory Vti]
+}
 
 # Don't export the following due to conflicts with Tcl built-ins
 # map

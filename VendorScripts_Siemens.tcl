@@ -73,7 +73,15 @@ package require fileutil
   if {[info exists ::ToolName]} {
     variable ToolName $::ToolName
   } else {
-    variable ToolName $Name
+    if {[regexp {ModelSim} $VersionString] } {
+      variable ToolName "ModelSim"
+    } elseif {[regexp {QuestaSim} $VersionString] } {
+      variable ToolName "QuestaSim"
+    } elseif {[regexp {Questa} $VersionString] } {
+      variable ToolName "Questa"
+    } else {
+      variable ToolName $Name
+    }
   }
 
   variable ToolNameVersion ${ToolName}-${ToolVersion}

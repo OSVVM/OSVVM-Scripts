@@ -82,6 +82,12 @@ source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsSimulateSupport.tcl     ;#  
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsFileCreate.tcl          ;#  OSVVM API for file creation
 
 # --------------------------------
+# Load Vendor Script Default settings
+#   These are updated by VendorScripts_vvv.tcl
+# --------------------------------
+source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsVendorScriptsDefault.tcl
+
+# --------------------------------
 # Vendor personalization of OSVVM API
 # --------------------------------
 namespace eval ::osvvm {
@@ -113,13 +119,15 @@ if {[file exists ${::osvvm::OsvvmScriptDirectory}/../CoSim]} {
 # Import any procedure exported by previous OSVVM scripts
 namespace import ::osvvm::*
 
-
 # --------------------------------
-# Settings:  OsvvmSettings*.tcl
+# Load OSVVM Default settings
 # --------------------------------
-# Settings First:  OSVVM Default Settings 
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsDefault.tcl
 
+
+# --------------------------------
+# Load User settings
+# --------------------------------
 # Get Directory for User settings
 variable ::osvvm::OsvvmUserSettingsDirectory [FindOsvvmSettingsDirectory "Scripts"]
 
@@ -135,6 +143,8 @@ if {[file exists ${::osvvm::OsvvmUserSettingsDirectory}/OsvvmSettingsLocal.tcl]}
   source ${::osvvm::OsvvmScriptDirectory}/LocalScriptDefaults.tcl
 }
 
+# --------------------------------
+# Load User Tool specific settings
 # Settings Third   OSVVM User Simulator specific defaults - not required
 if {[file exists ${::osvvm::OsvvmUserSettingsDirectory}/OsvvmSettingsLocal_${::osvvm::ScriptBaseName}.tcl]} {
   # Found in OSVVM_SETTINGS_DIR

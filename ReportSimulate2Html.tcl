@@ -184,7 +184,7 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   set TestCaseFile [::fileutil::relative $::osvvm::Report2ReportsDirectory $::osvvm::Report2TestCaseFile]
   set TestCaseFileTail [file tail $TestCaseFile]
   if {$::osvvm::Report2TestCaseFile ne ""} {
-    puts $ResultsFile "          <tr><td><a href=\"${TestCaseFile}\">$TestCaseFileTail</a></td></tr>"
+    puts $ResultsFile "          <tr><td><a href=\"${::osvvm::VhdlFileViewerPrefix}${TestCaseFile}\">$TestCaseFileTail</a></td></tr>"
   }
   
   # Add Transcript Filess to Table
