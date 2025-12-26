@@ -138,6 +138,18 @@ table, th, td {
 }
 
 table.testsuite-summary-table {
+    table-layout: auto;
+}
+
+/* Keep displayed suite title/name on one line in the Test Suite Summary table */
+table.testsuite-summary-table th:first-child,
+table.testsuite-summary-table td:first-child {
+    width: 1%;
+    white-space: nowrap;
+}
+
+table.testsuite-summary-table td:first-child a {
+    white-space: nowrap;
 }
 
 table.testsuite-details-table {
@@ -203,8 +215,92 @@ tfoot {
   text-align: right;
 }
 
+/* Datatype badges (used for Type columns: string/integer/boolean) */
+.datatype {
+    display: inline-block;
+    white-space: nowrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 0.95em;
+    padding: 0px 0.35em;
+    border: 1px solid #CCCCCC;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+}
+
 summary > b {
     font-weight: bold;
+}
+
+/* Per-suite Test Case Summary heading: emphasize suite name, de-emphasize suffix */
+summary.suite-testcase-summary-heading {
+    font-weight: bold;
+}
+
+summary.suite-testcase-summary-heading .suite-name {
+    font-weight: bold;
+}
+
+summary.suite-testcase-summary-heading .suite-sep {
+    font-weight: bold;
+}
+
+summary.suite-testcase-summary-heading .suite-suffix {
+    font-weight: bold;
+    font-style: italic;
+    font-size: 0.95em;
+}
+
+/* Per-testcase report sections: "<test title> — Summary/Description/Tags/Generics" */
+summary.testcase-section-heading {
+    font-weight: bold;
+}
+
+summary.testcase-section-heading .tc-name {
+    font-weight: bold;
+}
+
+summary.testcase-section-heading .tc-sep {
+    font-weight: bold;
+}
+
+summary.testcase-section-heading .tc-suffix {
+    font-weight: bold;
+    font-style: italic;
+    font-size: 0.95em;
+}
+
+/* Section titles that are not <summary> (e.g. h2 Alert Report) */
+h2.testcase-section-title {
+    font-weight: bold;
+}
+
+h2.testcase-section-title .tc-name {
+    font-weight: bold;
+}
+
+h2.testcase-section-title .tc-sep {
+    font-weight: bold;
+}
+
+h2.testcase-section-title .tc-suffix {
+    font-weight: bold;
+    font-style: italic;
+    font-size: 0.95em;
+}
+
+/* Keep displayed test title/name on one line in the Test Case Summary table */
+table.testcase-summary-table {
+    table-layout: auto;
+}
+
+table.testcase-summary-table th:first-child,
+table.testcase-summary-table td:first-child {
+    width: 1%;
+    white-space: nowrap;
+}
+
+table.testcase-summary-table td:first-child a {
+    white-space: nowrap;
 }
 
 /* #logo {

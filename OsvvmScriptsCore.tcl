@@ -1266,9 +1266,11 @@ proc AfterSimulateReports {} {
   
   WriteTestCaseSettingsYaml $TestCaseSettingsFile
 
+  # FinishSimulateBuildYaml computes ElapsedTime and writes it to build YAML.
+  # It also appends ElapsedTime into the per-test *_run.yml so per-test HTML can display it.
+  FinishSimulateBuildYaml
+
   Simulate2Html $TestCaseSettingsFile
-  
-  FinishSimulateBuildYaml 
 }
 
 
@@ -1429,12 +1431,85 @@ proc SetTestSuiteDescription {Description} {
 }
 
 # -------------------------------------------------
+# ClearTestSuiteDescription
+#   Clears any previously set suite-level description.
+proc ClearTestSuiteDescription {} {
+  set ::osvvm::TestSuiteDescription ""
+}
+
+# -------------------------------------------------
+# GetTestSuiteDescription
+#   Returns the currently configured suite-level description.
+proc GetTestSuiteDescription {} {
+  if {[info exists ::osvvm::TestSuiteDescription]} {
+    return $::osvvm::TestSuiteDescription
+  }
+  return ""
+}
+
+# -------------------------------------------------
 # SetTestSuiteBrief
 #   Sets a suite-level brief (plain text) for summary tables.
 #
 #   Call this after TestSuite <name> and before the suite finishes.
 proc SetTestSuiteBrief {Brief} {
+  if {![info exists ::osvvm::TestSuiteBriefMaxLength]} {
+    set ::osvvm::TestSuiteBriefMaxLength 120
+  }
+  if {$::osvvm::TestSuiteBriefMaxLength > 0 && [string length $Brief] > $::osvvm::TestSuiteBriefMaxLength} {
+    puts "Warning: SetTestSuiteBrief length ([string length $Brief]) exceeds TestSuiteBriefMaxLength ($::osvvm::TestSuiteBriefMaxLength)"
+  }
   set ::osvvm::TestSuiteBrief $Brief
+}
+
+# -------------------------------------------------
+# SetTestSuiteTitle
+#   Sets a suite-level title (human-friendly) for reports.
+#   The suite name remains the identifier.
+#
+#   Call this after TestSuite <name> and before the suite finishes.
+proc SetTestSuiteTitle {Title} {
+  if {![info exists ::osvvm::TestSuiteTitleMaxLength]} {
+    set ::osvvm::TestSuiteTitleMaxLength 80
+  }
+  if {$::osvvm::TestSuiteTitleMaxLength > 0 && [string length $Title] > $::osvvm::TestSuiteTitleMaxLength} {
+    puts "Warning: SetTestSuiteTitle length ([string length $Title]) exceeds TestSuiteTitleMaxLength ($::osvvm::TestSuiteTitleMaxLength)"
+  }
+  set ::osvvm::TestSuiteTitle $Title
+}
+
+# -------------------------------------------------
+# ClearTestSuiteTitle
+#   Clears any previously set suite-level title.
+proc ClearTestSuiteTitle {} {
+  set ::osvvm::TestSuiteTitle ""
+}
+
+# -------------------------------------------------
+# GetTestSuiteTitle
+#   Returns the currently configured suite-level title.
+proc GetTestSuiteTitle {} {
+  if {[info exists ::osvvm::TestSuiteTitle]} {
+    return $::osvvm::TestSuiteTitle
+  }
+  return ""
+}
+
+# -------------------------------------------------
+# ClearTestSuiteBrief
+#   Clears any previously set suite-level brief.
+proc ClearTestSuiteBrief {} {
+  set ::osvvm::TestSuiteBrief ""
+}
+
+# -------------------------------------------------
+# GetTestSuiteBrief
+#   Returns the currently configured suite-level brief.
+proc GetTestSuiteBrief {} {
+  if {[info exists ::osvvm::TestSuiteBrief]} {
+    return $::osvvm::TestSuiteBrief
+  }
+  return ""
 }
 
 # -------------------------------------------------

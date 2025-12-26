@@ -49,6 +49,21 @@ package require fileutil
 
 
 # -------------------------------------------------
+# SanitizeTextForReport
+#   Removes ASCII control characters (except \t, \n, \r) that can break YAML/HTML.
+#   This does not attempt full UTF-8 validation; Tcl strings are Unicode.
+proc SanitizeTextForReport {Text} {
+  if {$Text eq ""} {
+    return ""
+  }
+  # Strip C0 controls excluding tab/newline/carriage return, plus DEL.
+  #   - \x00-\x08, \x0B-\x0C, \x0E-\x1F, \x7F
+  regsub -all {[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]} $Text { } Clean
+  return $Clean
+}
+
+
+# -------------------------------------------------
 # FormatYamlScalar
 #   Return a YAML scalar string that uses native types when safe:
 #     - empty -> null (empty scalar)
@@ -62,9 +77,12 @@ proc FormatYamlScalar {Value} {
     return "null"
   }
 
+  set Value [SanitizeTextForReport $Value]
   set Trimmed [string trim $Value]
   if {$Trimmed eq ""} {
-    return "\"$Value\""
+    # Keep whitespace-only values as strings
+    set Escaped [string map [list "\\" "\\\\" "\"" "\\\"" "\n" "\\n" "\r" "\\r" "\t" "\\t"] $Value]
+    return "\"$Escaped\""
   }
 
   # null
@@ -89,7 +107,17 @@ proc FormatYamlScalar {Value} {
 
   # default: quoted string
   # Use [list] to avoid Tcl list parsing edge cases
-  set Escaped [string map [list "\\" "\\\\" "\"" "\\\""] $Value]
+  set Escaped [string map [list "\\" "\\\\" "\"" "\\\"" "\n" "\\n" "\r" "\\r" "\t" "\\t"] $Value]
+  return "\"$Escaped\""
+}
+
+
+# -------------------------------------------------
+# FormatYamlDoubleQuotedScalar
+#   Always returns a double-quoted YAML string (never native/null).
+proc FormatYamlDoubleQuotedScalar {Value} {
+  set Value [SanitizeTextForReport $Value]
+  set Escaped [string map [list "\\" "\\\\" "\"" "\\\"" "\n" "\\n" "\r" "\\r" "\t" "\\t"] $Value]
   return "\"$Escaped\""
 }
 
@@ -243,7 +271,8 @@ proc WriteDictOfDict2Yaml {YamlFile DictName {DictValues ""} {Prefix ""} } {
 #    puts $YamlFile "${Prefix}${DictName}:            \"\""
   } else {
     puts $YamlFile "${Prefix}${DictName}:"
-    foreach {Name Value} $DictValues {
+    foreach Name [lsort -dictionary [dict keys $DictValues]] {
+      set Value [dict get $DictValues $Name]
       puts $YamlFile "${Prefix}  ${Name}: [FormatYamlScalar $Value]"
     }
   }
@@ -263,7 +292,7 @@ proc WriteDictOfList2Yaml {YamlFile DictName {ListValues ""} {Prefix ""} } {
 
 # -------------------------------------------------
 proc WriteDictOfString2Yaml {YamlFile DictName {StringValue ""} {Prefix ""} } {
-  puts $YamlFile "${Prefix}${DictName}: \"$StringValue\""
+  puts $YamlFile "${Prefix}${DictName}: [FormatYamlDoubleQuotedScalar $StringValue]"
 }
 
 # -------------------------------------------------
@@ -341,6 +370,7 @@ proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
   # Suite-level description is set by user scripts (ex: .pro files)
   # using ::osvvm::TestSuiteDescription.
   set ::osvvm::TestSuiteDescription ""
+  set ::osvvm::TestSuiteTitle ""
   set ::osvvm::TestSuiteBrief ""
   
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
@@ -363,6 +393,9 @@ proc FinishTestSuiteBuildYaml {} {
   variable TestSuiteStartTimeMs
 
   set   RunFile  [open ${::osvvm::OsvvmTempYamlFile} a]
+  if {[info exists ::osvvm::TestSuiteTitle] && $::osvvm::TestSuiteTitle ne ""} {
+    WriteDictOfString2Yaml $RunFile Title $::osvvm::TestSuiteTitle "    "
+  }
   if {[info exists ::osvvm::TestSuiteBrief] && $::osvvm::TestSuiteBrief ne ""} {
     WriteDictOfString2Yaml $RunFile Brief $::osvvm::TestSuiteBrief "    "
   }
@@ -403,13 +436,53 @@ proc FinishSimulateBuildYaml {} {
 
   set  SimulateFinishTimeMs  [clock milliseconds]
   set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
+
+  set TestCaseElapsedTimeSeconds [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]
   
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "        TestCaseFileName: \"$TestCaseFileName\""
   WriteDictOfDict2Yaml $RunFile Generics $::osvvm::GenericDict  "        "
 #  puts  $RunFile "        TestCaseGenerics: \"$::osvvm::GenericDict\""
-  puts  $RunFile "        ElapsedTime: [format %.3f [expr ${SimulateElapsedTimeMs}/1000.0]]"
+  puts  $RunFile "        ElapsedTime: $TestCaseElapsedTimeSeconds"
   close $RunFile
+
+  # Make per-test reports self-contained: add ElapsedTime to the per-test *_run.yml
+  # so per-test HTML does not require joining the suite/build YAML.
+  AppendElapsedTimeToTestCaseSettingsYaml $TestCaseElapsedTimeSeconds
+}
+
+# -------------------------------------------------
+# AppendElapsedTimeToTestCaseSettingsYaml
+#
+# Adds a top-level ElapsedTime key to the per-test *_run.yml (if not already present).
+# This is safe to call after WriteTestCaseSettingsYaml has created the file.
+proc AppendElapsedTimeToTestCaseSettingsYaml {ElapsedTimeSeconds} {
+  variable TestCaseFileName
+
+  if {![info exists ::osvvm::ReportsTestSuiteDirectory] || $::osvvm::ReportsTestSuiteDirectory eq ""} {
+    return
+  }
+  if {![info exists TestCaseFileName] || $TestCaseFileName eq ""} {
+    return
+  }
+
+  set SettingsFileName [file join $::osvvm::ReportsTestSuiteDirectory ${TestCaseFileName}_run.yml]
+  if {![file exists $SettingsFileName]} {
+    return
+  }
+
+  # Avoid duplicate keys if rerun.
+  set InFile [open $SettingsFileName r]
+  set Contents [read $InFile]
+  close $InFile
+  if {[regexp {(?m)^ElapsedTime\s*:} $Contents]} {
+    return
+  }
+
+  set OutFile [open $SettingsFileName a]
+  puts $OutFile ""
+  puts $OutFile "ElapsedTime: $ElapsedTimeSeconds"
+  close $OutFile
 }
 
 # -------------------------------------------------

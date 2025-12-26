@@ -59,10 +59,19 @@ proc Scoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
 
 proc LocalScoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
   variable ResultsFile
+
+  # Prefer Title (if set) for visible headings; fall back to testcase name.
+  set DisplayName $TestCaseName
+  if {[info exists ::osvvm::Report2TestTitle]} {
+    set CandidateTitle [string trim $::osvvm::Report2TestTitle]
+    if {$CandidateTitle ne ""} {
+      set DisplayName $CandidateTitle
+    }
+  }
   
   puts $ResultsFile "  <hr />"
   puts $ResultsFile "  <div class=\"ScoreboardSummary\">"
-  puts $ResultsFile "    <h2 id=\"${SbName}\">$TestCaseName Scoreboard Report for ${SbName}</h2>"
+  puts $ResultsFile "    <h2 id=\"${SbName}\">$DisplayName Scoreboard Report for ${SbName}</h2>"
   puts $ResultsFile "    <div class=\"${SbName}\">"
   puts $ResultsFile "      <table class=\"ScoreboardSummary\">"
 
