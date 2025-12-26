@@ -81,7 +81,9 @@ proc Simulate2Html {SettingsFileWithPath} {
   }
 
   # Initialize fields sourced from alerts/build YAML to empty
+  set ::osvvm::Report2TestTitle ""
   set ::osvvm::Report2TestDescription ""
+  set ::osvvm::Report2TestBrief ""
   set ::osvvm::Report2TestTags ""
   set ::osvvm::Report2TestTagSummaryVisibility ""
   set ::osvvm::Report2TestStatus ""
@@ -167,6 +169,12 @@ proc Simulate2Html {SettingsFileWithPath} {
     if {[dict exists $AlertDict Status]} {
       set ::osvvm::Report2TestStatus [dict get $AlertDict Status]
     }
+    if {[dict exists $AlertDict Title]} {
+      set ::osvvm::Report2TestTitle [dict get $AlertDict Title]
+    }
+    if {[dict exists $AlertDict Brief]} {
+      set ::osvvm::Report2TestBrief [dict get $AlertDict Brief]
+    }
     if {[dict exists $AlertDict Description]} {
       set ::osvvm::Report2TestDescription [dict get $AlertDict Description]
     }
@@ -178,7 +186,16 @@ proc Simulate2Html {SettingsFileWithPath} {
     }
   }
 
-  CreateTestCaseSummaryTable ${TestCaseName} ${TestSuiteName} ${BuildName} ${GenericDict}
+  # Compute display name for the HTML page: prefer Title when set.
+  set TestDisplayName $TestCaseName
+  if {[info exists ::osvvm::Report2TestTitle]} {
+    set CandidateTitle [string trim $::osvvm::Report2TestTitle]
+    if {$CandidateTitle ne ""} {
+      set TestDisplayName $CandidateTitle
+    }
+  }
+
+  CreateTestCaseSummaryTable ${TestCaseName} ${TestDisplayName} ${TestSuiteName} ${BuildName} ${GenericDict}
   
   if {[file exists ${Report2AlertYamlFile}]} {
     Alert2Html ${TestCaseName} ${TestSuiteName} ${Report2AlertYamlFile}
@@ -214,12 +231,12 @@ proc OpenSimulationReportFile {FileName {initialize 0}} {
 }
 
 #--------------------------------------------------------------
-proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDict} {
+proc CreateTestCaseSummaryTable {TestCaseName TestDisplayName TestSuiteName BuildName GenericDict} {
   variable ResultsFile
 
   OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml] 1
 
-  set ErrorCode [catch {LocalCreateTestCaseSummaryTable $TestCaseName $TestSuiteName $BuildName $GenericDict} errmsg]
+  set ErrorCode [catch {LocalCreateTestCaseSummaryTable $TestCaseName $TestDisplayName $TestSuiteName $BuildName $GenericDict} errmsg]
   
   close $ResultsFile
 
@@ -229,7 +246,7 @@ proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDic
 }
 
 #--------------------------------------------------------------
-proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDict} {
+proc LocalCreateTestCaseSummaryTable {TestCaseName TestDisplayName TestSuiteName BuildName GenericDict} {
   variable ResultsFile
 
   
@@ -239,7 +256,7 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
     set ReportsPrefix "../.."
   }
 
-  CreateOsvvmReportHeader $ResultsFile "$TestCaseName Test Case Report" $ReportsPrefix
+  CreateOsvvmReportHeader $ResultsFile "$TestDisplayName Test Case Report" $ReportsPrefix
 
 
   puts $ResultsFile "  <div class=\"summary-parent\">"
@@ -300,7 +317,7 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
 
   # Test Result near top (quick essentials)
   puts $ResultsFile "  <div class=\"TestFacts\">"
-  puts $ResultsFile "    <details open><summary class=\"subtitle\">$TestCaseName Result</summary>"
+  puts $ResultsFile "    <details open><summary class=\"subtitle testcase-section-heading\"><span class=\"tc-name\">[EscapeHtml $TestDisplayName]</span><span class=\"tc-sep\"> — </span><span class=\"tc-suffix\">Summary</span></summary>"
   puts $ResultsFile "      <table class=\"AlertSettings\">"
   puts $ResultsFile "        <thead><tr><th>Field</th><th>Value</th></tr></thead>"
   puts $ResultsFile "        <tbody>"
@@ -330,8 +347,30 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   } else {
     puts $ResultsFile "          <tr><td>Status</td><td>$StatusValue</td></tr>"
   }
-  puts $ResultsFile "          <tr><td>ElapsedTime</td><td>$ElapsedValue</td></tr>"
-  puts $ResultsFile "          <tr><td>SuiteName</td><td>$TestSuiteName</td></tr>"
+  puts $ResultsFile "          <tr><td>Elapsed Time</td><td>$ElapsedValue</td></tr>"
+  puts $ResultsFile "          <tr><td>Suite Name</td><td>$TestSuiteName</td></tr>"
+
+  # Include the VHDL test case source file name when available
+  set TestCaseSourceFileName "⸻"
+  if {[info exists ::osvvm::Report2TestCaseFile] && $::osvvm::Report2TestCaseFile ne ""} {
+    set TestCaseSourceFileName [file tail $::osvvm::Report2TestCaseFile]
+  }
+  puts $ResultsFile "          <tr><td>File</td><td>[EscapeHtml $TestCaseSourceFileName]</td></tr>"
+
+  # Include Title (only when explicitly set; no fallback)
+  set TitleValue "⸻"
+  if {[info exists ::osvvm::Report2TestTitle] && [string trim $::osvvm::Report2TestTitle] ne ""} {
+    set TitleValue $::osvvm::Report2TestTitle
+  }
+  puts $ResultsFile "          <tr><td>Title</td><td>[EscapeHtml $TitleValue]</td></tr>"
+
+  # Include Brief (only when explicitly set; no fallback)
+  set BriefValue "⸻"
+  if {[info exists ::osvvm::Report2TestBrief] && [string trim $::osvvm::Report2TestBrief] ne ""} {
+    set BriefValue $::osvvm::Report2TestBrief
+  }
+  puts $ResultsFile "          <tr><td>Brief</td><td>[EscapeHtml $BriefValue]</td></tr>"
+
   puts $ResultsFile "        </tbody>"
   puts $ResultsFile "      </table>"
   puts $ResultsFile "    </details>"
@@ -341,7 +380,7 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   # (user-requested: Description not in a table; Tags + Generics in tables)
   if {[info exists ::osvvm::Report2TestDescription] && $::osvvm::Report2TestDescription ne ""} {
     puts $ResultsFile "  <div class=\"TestDescription\">"
-    puts $ResultsFile "    <details open><summary class=\"subtitle\">$TestCaseName Description</summary>"
+    puts $ResultsFile "    <details open><summary class=\"subtitle testcase-section-heading\"><span class=\"tc-name\">[EscapeHtml $TestDisplayName]</span><span class=\"tc-sep\"> — </span><span class=\"tc-suffix\">Description</span></summary>"
     WriteMarkdownSubsetAsHtml $ResultsFile $::osvvm::Report2TestDescription "      "
     puts $ResultsFile "    </details>"
     puts $ResultsFile "  </div>"
@@ -349,7 +388,7 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
 
   if {[info exists ::osvvm::Report2TestTags] && $::osvvm::Report2TestTags ne ""} {
     puts $ResultsFile "  <div class=\"TestTags\">"
-    puts $ResultsFile "    <details open><summary class=\"subtitle\">$TestCaseName Tags</summary>"
+    puts $ResultsFile "    <details open><summary class=\"subtitle testcase-section-heading\"><span class=\"tc-name\">[EscapeHtml $TestDisplayName]</span><span class=\"tc-sep\"> — </span><span class=\"tc-suffix\">Tags</span></summary>"
     puts $ResultsFile "      <table class=\"AlertSettings\">"
     set HasTagSummaryVisibility 0
     if {[info exists ::osvvm::Report2TestTagSummaryVisibility] && $::osvvm::Report2TestTagSummaryVisibility ne ""} {
@@ -392,7 +431,7 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
 
   if {${GenericDict} ne ""} {
     puts $ResultsFile "  <div class=\"TestGenerics\">"
-    puts $ResultsFile "    <details open><summary class=\"subtitle\">$TestCaseName Generics</summary>"
+    puts $ResultsFile "    <details open><summary class=\"subtitle testcase-section-heading\"><span class=\"tc-name\">[EscapeHtml $TestDisplayName]</span><span class=\"tc-sep\"> — </span><span class=\"tc-suffix\">Generics</span></summary>"
     puts $ResultsFile "      <table class=\"AlertSettings\">"
     puts $ResultsFile "        <thead><tr><th>Name</th><th>Value</th><th>Type</th><th>ShowInSummary</th></tr></thead>"
     puts $ResultsFile "        <tbody>"

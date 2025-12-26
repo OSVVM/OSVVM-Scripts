@@ -64,9 +64,18 @@ proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
 proc LocalCov2Html {TestCaseName TestSuiteName CovYamlFile} {
   variable ResultsFile
 
+  # Prefer Title (if set) for visible headings; fall back to testcase name.
+  set DisplayName $TestCaseName
+  if {[info exists ::osvvm::Report2TestTitle]} {
+    set CandidateTitle [string trim $::osvvm::Report2TestTitle]
+    if {$CandidateTitle ne ""} {
+      set DisplayName $CandidateTitle
+    }
+  }
+
   puts $ResultsFile "  <hr />"
   puts $ResultsFile "  <div class=\"FunctionalCoverage\">"
-  puts $ResultsFile "    <h2 id=\"FunctionalCoverage\">$TestCaseName Coverage Report</h2>"
+  puts $ResultsFile "    <h2 id=\"FunctionalCoverage\">$DisplayName Coverage Report</h2>"
 
   set TestDict [::yaml::yaml2dict -file ${CovYamlFile}]
   set VersionNum    [dict get $TestDict Version]

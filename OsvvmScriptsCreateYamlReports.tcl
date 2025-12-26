@@ -370,6 +370,7 @@ proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
   # Suite-level description is set by user scripts (ex: .pro files)
   # using ::osvvm::TestSuiteDescription.
   set ::osvvm::TestSuiteDescription ""
+  set ::osvvm::TestSuiteTitle ""
   set ::osvvm::TestSuiteBrief ""
   
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
@@ -392,6 +393,9 @@ proc FinishTestSuiteBuildYaml {} {
   variable TestSuiteStartTimeMs
 
   set   RunFile  [open ${::osvvm::OsvvmTempYamlFile} a]
+  if {[info exists ::osvvm::TestSuiteTitle] && $::osvvm::TestSuiteTitle ne ""} {
+    WriteDictOfString2Yaml $RunFile Title $::osvvm::TestSuiteTitle "    "
+  }
   if {[info exists ::osvvm::TestSuiteBrief] && $::osvvm::TestSuiteBrief ne ""} {
     WriteDictOfString2Yaml $RunFile Brief $::osvvm::TestSuiteBrief "    "
   }

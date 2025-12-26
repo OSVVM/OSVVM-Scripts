@@ -211,6 +211,14 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
         }
       }
 
+      if { [dict exists $TestCase Title] } {
+        set TitleValue [dict get $TestCase Title]
+        if {$TitleValue ne ""} {
+          set TitleEsc [EscapeXmlAttr $TitleValue]
+          lappend PropertyLines "  <property name=\"title\" value=\"${TitleEsc}\" /> "
+        }
+      }
+
       if { [dict exists $TestCase Tags] } {
         set TagsDict [dict get $TestCase Tags]
         if {![catch {dict size $TagsDict}] && ([dict size $TagsDict] > 0)} {

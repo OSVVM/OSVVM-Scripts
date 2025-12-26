@@ -216,11 +216,13 @@ proc ElaborateTestSuites {TestDict} {
       } else {
         set SuiteDescription ""
       }
+      if {[dict exists $TestSuite Title]} {
+        set SuiteTitle [dict get $TestSuite Title]
+      } else {
+        set SuiteTitle ""
+      }
       if {[dict exists $TestSuite Brief]} {
         set SuiteBrief [dict get $TestSuite Brief]
-      } elseif {$SuiteDescription ne ""} {
-        # Backward compatibility: use first line of Description
-        set SuiteBrief [lindex [split $SuiteDescription "\n"] 0]
       } else {
         set SuiteBrief ""
       }
@@ -233,6 +235,7 @@ proc ElaborateTestSuites {TestDict} {
       dict append SuiteDict ReqGoal         $SuiteReqGoal
       dict append SuiteDict DisabledAlerts  $SuiteDisabledAlerts
       dict append SuiteDict ElapsedTime     $SuiteElapsedTime
+      dict set    SuiteDict Title           $SuiteTitle
       dict set    SuiteDict Brief           $SuiteBrief
       dict set    SuiteDict Description     $SuiteDescription
       lappend TestSuiteSummaryArrayOfDictionaries $SuiteDict

@@ -1459,6 +1459,39 @@ proc SetTestSuiteBrief {Brief} {
 }
 
 # -------------------------------------------------
+# SetTestSuiteTitle
+#   Sets a suite-level title (human-friendly) for reports.
+#   The suite name remains the identifier.
+#
+#   Call this after TestSuite <name> and before the suite finishes.
+proc SetTestSuiteTitle {Title} {
+  if {![info exists ::osvvm::TestSuiteTitleMaxLength]} {
+    set ::osvvm::TestSuiteTitleMaxLength 80
+  }
+  if {$::osvvm::TestSuiteTitleMaxLength > 0 && [string length $Title] > $::osvvm::TestSuiteTitleMaxLength} {
+    puts "Warning: SetTestSuiteTitle length ([string length $Title]) exceeds TestSuiteTitleMaxLength ($::osvvm::TestSuiteTitleMaxLength)"
+  }
+  set ::osvvm::TestSuiteTitle $Title
+}
+
+# -------------------------------------------------
+# ClearTestSuiteTitle
+#   Clears any previously set suite-level title.
+proc ClearTestSuiteTitle {} {
+  set ::osvvm::TestSuiteTitle ""
+}
+
+# -------------------------------------------------
+# GetTestSuiteTitle
+#   Returns the currently configured suite-level title.
+proc GetTestSuiteTitle {} {
+  if {[info exists ::osvvm::TestSuiteTitle]} {
+    return $::osvvm::TestSuiteTitle
+  }
+  return ""
+}
+
+# -------------------------------------------------
 # ClearTestSuiteBrief
 #   Clears any previously set suite-level brief.
 proc ClearTestSuiteBrief {} {
