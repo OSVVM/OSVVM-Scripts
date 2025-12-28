@@ -318,7 +318,9 @@ proc WriteMarkdownSubsetAsHtml {ResultsFile Text {Indent ""}} {
       continue
     }
 
-    if {[regexp {^(#{2,5})\s+(.+)$} $Trimmed -> Hashes Title]} {
+    # Support headings written as \##, \###, ... (workaround for YAML parsers
+    # that incorrectly treat lines starting with '#' as comments inside | blocks).
+    if {[regexp {^\\?(#{2,5})\s+(.+)$} $Trimmed -> Hashes Title]} {
       _FlushParagraph $ResultsFile $Indent ParaLines
       _CloseListIfOpen $ResultsFile $Indent ListKind
 
