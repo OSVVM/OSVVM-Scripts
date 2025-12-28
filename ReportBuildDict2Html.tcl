@@ -432,15 +432,15 @@ proc CreateTestCaseSummaries {TestDict} {
                 }
 
                 # Per-tag visibility for this testcase (default visible).
+                # New schema: Tags(tag).Visibility.Summary
                 set IsVisible 1
-                if {[dict exists $TcForTags TagSummaryVisibility]} {
-                  set VisDict [dict get $TcForTags TagSummaryVisibility]
-                  if {![catch {dict size $VisDict}]} {
-                    if {[dict exists $VisDict $TagName]} {
-                      set VisVal [dict get $VisDict $TagName]
-                      if {$VisVal eq 0 || $VisVal eq "0" || [string equal -nocase $VisVal "false"]} {
-                        set IsVisible 0
-                      }
+                set TagRec [dict get $TagsDict $TagName]
+                if {![catch {dict size $TagRec}] && [dict exists $TagRec Visibility]} {
+                  set VisRec [dict get $TagRec Visibility]
+                  if {![catch {dict size $VisRec}] && [dict exists $VisRec Summary]} {
+                    set VisVal [dict get $VisRec Summary]
+                    if {$VisVal eq 0 || $VisVal eq "0" || [string equal -nocase $VisVal "false"]} {
+                      set IsVisible 0
                     }
                   }
                 }
@@ -662,11 +662,14 @@ proc CreateTestCaseSummaries {TestDict} {
             set HasTags 1
           }
           foreach TagName $SuiteTagNames {
-            # TagSummaryVisibility is used only to decide whether a tag column exists.
-            # If the column exists (visible in any testcase), then show the tag
-            # value for every testcase that has it.
+            # Column exists only for tags visible in any testcase.
+            # For each testcase that has the tag, display Tags(tag).Value.
             if { $HasTags && [dict exists $TestCaseTags $TagName] } {
-              set TagValue [dict get $TestCaseTags $TagName]
+              set TagRec [dict get $TestCaseTags $TagName]
+              set TagValue ""
+              if {![catch {dict size $TagRec}] && [dict exists $TagRec Value]} {
+                set TagValue [dict get $TagRec Value]
+              }
               set TagDisplay [EscapeHtml [FormatScalarForHtml $TagValue]]
             } else {
               set TagDisplay "⸻"

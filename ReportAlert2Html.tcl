@@ -89,16 +89,6 @@ proc LocalAlert2Html {TestCaseName TestSuiteName AlertYamlFile} {
   } else {
     set ::osvvm::Report2TestTags ""
   }
-  if {[dict exists $Alert2HtmlDict TagSummaryVisibility]} {
-    set ::osvvm::Report2TestTagSummaryVisibility [dict get $Alert2HtmlDict TagSummaryVisibility]
-  } else {
-    set ::osvvm::Report2TestTagSummaryVisibility ""
-  }
-  if {[dict exists $Alert2HtmlDict TagTypes]} {
-    set ::osvvm::Report2TestTagTypes [dict get $Alert2HtmlDict TagTypes]
-  } else {
-    set ::osvvm::Report2TestTagTypes ""
-  }
   
   CreateAlertResultsHeader $DisplayName
   

@@ -85,8 +85,6 @@ proc Simulate2Html {SettingsFileWithPath} {
   set ::osvvm::Report2TestDescription ""
   set ::osvvm::Report2TestBrief ""
   set ::osvvm::Report2TestTags ""
-  set ::osvvm::Report2TestTagSummaryVisibility ""
-  set ::osvvm::Report2TestTagTypes ""
   set ::osvvm::Report2TestStatus ""
   if {![info exists ::osvvm::Report2TestCaseSimulationTime]} {
     set ::osvvm::Report2TestCaseSimulationTime ""
@@ -181,12 +179,6 @@ proc Simulate2Html {SettingsFileWithPath} {
     }
     if {[dict exists $AlertDict Tags]} {
       set ::osvvm::Report2TestTags [dict get $AlertDict Tags]
-    }
-    if {[dict exists $AlertDict TagSummaryVisibility]} {
-      set ::osvvm::Report2TestTagSummaryVisibility [dict get $AlertDict TagSummaryVisibility]
-    }
-    if {[dict exists $AlertDict TagTypes]} {
-      set ::osvvm::Report2TestTagTypes [dict get $AlertDict TagTypes]
     }
   }
 
@@ -394,59 +386,52 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestDisplayName TestSuiteName
     puts $ResultsFile "  <div class=\"TestTags\">"
     puts $ResultsFile "    <details open><summary class=\"subtitle testcase-section-heading\"><span class=\"tc-name\">[EscapeHtml $TestDisplayName]</span><span class=\"tc-sep\"> — </span><span class=\"tc-suffix\">Tags</span></summary>"
     puts $ResultsFile "      <table class=\"AlertSettings\">"
-    set HasTagSummaryVisibility 0
-    if {[info exists ::osvvm::Report2TestTagSummaryVisibility] && $::osvvm::Report2TestTagSummaryVisibility ne ""} {
-      if {![catch {dict size $::osvvm::Report2TestTagSummaryVisibility}] && ([dict size $::osvvm::Report2TestTagSummaryVisibility] > 0)} {
-        set HasTagSummaryVisibility 1
-      }
-    }
-    if {$HasTagSummaryVisibility} {
-      puts $ResultsFile "        <thead><tr><th>Name</th><th>Value</th><th>Type</th><th>ShowInSummary</th></tr></thead>"
-    } else {
-      puts $ResultsFile "        <thead><tr><th>Name</th><th>Value</th><th>Type</th></tr></thead>"
-    }
+    puts $ResultsFile "        <thead><tr><th>Name</th><th>Value</th><th>Type</th><th>ShowInSummary</th></tr></thead>"
     puts $ResultsFile "        <tbody>"
-    foreach {TagName TagValue} $::osvvm::Report2TestTags {
+    foreach TagName [dict keys $::osvvm::Report2TestTags] {
+      set TagRec [dict get $::osvvm::Report2TestTags $TagName]
+
+      set TagValue ""
+      if {[dict exists $TagRec Value]} {
+        set TagValue [dict get $TagRec Value]
+      }
       set TagDisplayValue [FormatScalarForHtml $TagValue]
 
-      # Prefer explicit tag types from YAML when available.
+      # Explicit tag type from YAML (no inference/fallback)
       set TagType ""
-      if {[info exists ::osvvm::Report2TestTagTypes] && $::osvvm::Report2TestTagTypes ne ""} {
-        if {![catch {dict size $::osvvm::Report2TestTagTypes}] && [dict exists $::osvvm::Report2TestTagTypes $TagName]} {
-          set TagTypeToken [dict get $::osvvm::Report2TestTagTypes $TagName]
-          switch -nocase -- $TagTypeToken {
-            TAG_STRING    { set TagType "string" }
-            TAG_BOOL      { set TagType "boolean" }
-            TAG_INT       { set TagType "integer" }
-            TAG_REAL      { set TagType "real" }
-            TAG_TIME      { set TagType "time" }
-            TAG_STD_LOGIC { set TagType "std_logic" }
-            default       { set TagType "" }
-          }
+      if {[dict exists $TagRec Type]} {
+        set TagTypeToken [dict get $TagRec Type]
+        switch -nocase -- $TagTypeToken {
+          TAG_STRING    { set TagType "string" }
+          TAG_BOOL      { set TagType "boolean" }
+          TAG_INT       { set TagType "integer" }
+          TAG_REAL      { set TagType "real" }
+          TAG_TIME      { set TagType "time" }
+          TAG_STD_LOGIC { set TagType "std_logic" }
+          default       { set TagType "" }
         }
       }
 
-      # Backward compatible fallback for older YAML (no TagTypes)
       if {$TagType eq ""} {
-        if {$TagDisplayValue eq "True" || $TagDisplayValue eq "False"} {
-          set TagType "boolean"
-        } else {
-          set TagType [InferScalarTypeForHtml $TagValue]
-        }
+        set TagType "⸻"
       }
 
       set TagTypeClass [string tolower $TagType]
       regsub -all {[^a-z0-9_-]} $TagTypeClass "_" TagTypeClass
       set TagTypeHtml "<span class=\"datatype datatype-$TagTypeClass\">$TagType</span>"
-      if {$HasTagSummaryVisibility && [dict exists $::osvvm::Report2TestTagSummaryVisibility $TagName]} {
-        set ShowValue [dict get $::osvvm::Report2TestTagSummaryVisibility $TagName]
-        if {[catch {set ShowText [expr {$ShowValue ? "true" : "false"}]}]} {
-          set ShowText "⸻"
+      set ShowText "⸻"
+      if {[dict exists $TagRec Visibility]} {
+        set VisRec [dict get $TagRec Visibility]
+        if {![catch {dict size $VisRec}] && [dict exists $VisRec Summary]} {
+          set ShowValue [dict get $VisRec Summary]
+          if {$ShowValue eq 1 || $ShowValue eq "1" || [string equal -nocase $ShowValue "true"]} {
+            set ShowText "true"
+          } elseif {$ShowValue eq 0 || $ShowValue eq "0" || [string equal -nocase $ShowValue "false"]} {
+            set ShowText "false"
+          }
         }
-        puts $ResultsFile "          <tr><td>$TagName</td><td>$TagDisplayValue</td><td>$TagTypeHtml</td><td>$ShowText</td></tr>"
-      } else {
-        puts $ResultsFile "          <tr><td>$TagName</td><td>$TagDisplayValue</td><td>$TagTypeHtml</td></tr>"
       }
+      puts $ResultsFile "          <tr><td>[EscapeHtml $TagName]</td><td>$TagDisplayValue</td><td>$TagTypeHtml</td><td>$ShowText</td></tr>"
     }
     puts $ResultsFile "        </tbody>"
     puts $ResultsFile "      </table>"
