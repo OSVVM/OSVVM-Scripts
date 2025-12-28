@@ -86,6 +86,7 @@ proc Simulate2Html {SettingsFileWithPath} {
   set ::osvvm::Report2TestBrief ""
   set ::osvvm::Report2TestTags ""
   set ::osvvm::Report2TestTagSummaryVisibility ""
+  set ::osvvm::Report2TestTagTypes ""
   set ::osvvm::Report2TestStatus ""
   if {![info exists ::osvvm::Report2TestCaseSimulationTime]} {
     set ::osvvm::Report2TestCaseSimulationTime ""
@@ -183,6 +184,9 @@ proc Simulate2Html {SettingsFileWithPath} {
     }
     if {[dict exists $AlertDict TagSummaryVisibility]} {
       set ::osvvm::Report2TestTagSummaryVisibility [dict get $AlertDict TagSummaryVisibility]
+    }
+    if {[dict exists $AlertDict TagTypes]} {
+      set ::osvvm::Report2TestTagTypes [dict get $AlertDict TagTypes]
     }
   }
 
@@ -404,10 +408,31 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestDisplayName TestSuiteName
     puts $ResultsFile "        <tbody>"
     foreach {TagName TagValue} $::osvvm::Report2TestTags {
       set TagDisplayValue [FormatScalarForHtml $TagValue]
-      if {$TagDisplayValue eq "True" || $TagDisplayValue eq "False"} {
-        set TagType "boolean"
-      } else {
-        set TagType [InferScalarTypeForHtml $TagValue]
+
+      # Prefer explicit tag types from YAML when available.
+      set TagType ""
+      if {[info exists ::osvvm::Report2TestTagTypes] && $::osvvm::Report2TestTagTypes ne ""} {
+        if {![catch {dict size $::osvvm::Report2TestTagTypes}] && [dict exists $::osvvm::Report2TestTagTypes $TagName]} {
+          set TagTypeToken [dict get $::osvvm::Report2TestTagTypes $TagName]
+          switch -nocase -- $TagTypeToken {
+            TAG_STRING    { set TagType "string" }
+            TAG_BOOL      { set TagType "boolean" }
+            TAG_INT       { set TagType "integer" }
+            TAG_REAL      { set TagType "real" }
+            TAG_TIME      { set TagType "time" }
+            TAG_STD_LOGIC { set TagType "std_logic" }
+            default       { set TagType "" }
+          }
+        }
+      }
+
+      # Backward compatible fallback for older YAML (no TagTypes)
+      if {$TagType eq ""} {
+        if {$TagDisplayValue eq "True" || $TagDisplayValue eq "False"} {
+          set TagType "boolean"
+        } else {
+          set TagType [InferScalarTypeForHtml $TagValue]
+        }
       }
 
       set TagTypeClass [string tolower $TagType]

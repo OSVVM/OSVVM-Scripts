@@ -222,10 +222,23 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
       if { [dict exists $TestCase Tags] } {
         set TagsDict [dict get $TestCase Tags]
         if {![catch {dict size $TagsDict}] && ([dict size $TagsDict] > 0)} {
+          # TagTypes is required when Tags are present.
+          if {![dict exists $TestCase TagTypes]} {
+            error "JUnit: TestCase has Tags but no TagTypes. Regenerate YAML with TagTypes enabled." 
+          }
+          set TagTypesDict [dict get $TestCase TagTypes]
           foreach {TagName TagValue} $TagsDict {
             set TagNameEsc [EscapeXmlAttr $TagName]
             set TagValueEsc [EscapeXmlAttr $TagValue]
             lappend PropertyLines "  <property name=\"${TagNameEsc}\" value=\"${TagValueEsc}\" /> "
+
+            if {![dict exists $TagTypesDict $TagName]} {
+              error "JUnit: Missing TagTypes entry for tag '$TagName'." 
+            }
+            set TagTypeToken [dict get $TagTypesDict $TagName]
+            set TagTypeNameEsc [EscapeXmlAttr "tagtype:${TagName}"]
+            set TagTypeValueEsc [EscapeXmlAttr $TagTypeToken]
+            lappend PropertyLines "  <property name=\"${TagTypeNameEsc}\" value=\"${TagTypeValueEsc}\" /> "
           }
         }
       }

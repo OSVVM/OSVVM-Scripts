@@ -144,7 +144,7 @@ table.testsuite-summary-table {
 /* Keep displayed suite title/name on one line in the Test Suite Summary table */
 table.testsuite-summary-table th:first-child,
 table.testsuite-summary-table td:first-child {
-    width: 1%;
+    /* width: 1%; */
     white-space: nowrap;
 }
 
@@ -291,11 +291,14 @@ h2.testcase-section-title .tc-suffix {
 /* Keep displayed test title/name on one line in the Test Case Summary table */
 table.testcase-summary-table {
     table-layout: auto;
+    display: inline-table;
+    width: auto;
+    max-width: 100%;
 }
 
 table.testcase-summary-table th:first-child,
 table.testcase-summary-table td:first-child {
-    width: 1%;
+    /* width: 1%; */
     white-space: nowrap;
 }
 
