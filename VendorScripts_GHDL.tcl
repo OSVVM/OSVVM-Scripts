@@ -70,7 +70,14 @@ package require fileutil
     # running on MSYS2 - convert which with cygpath
     set ghdl [exec cygpath -m [exec which ghdl]]
   } else {
-    set ghdl [exec which ghdl]
+    set delimiter [expr {[string match "*;*" $::env(PATH)] ? ";" : ":"}]
+    foreach dir [split $::env(PATH) $delimiter] {
+      set fullPath [file join $dir "ghdl.exe"]
+      if {[file exists $fullPath] && [file executable $fullPath]} {
+        set ghdl [file normalize $fullPath]
+				break
+      }
+    }
   }
    
   regexp {GHDL\s+\d+\.\d+\S*} [exec $ghdl --version] VersionString
