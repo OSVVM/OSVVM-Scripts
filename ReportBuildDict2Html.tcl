@@ -223,6 +223,15 @@ proc CreateTestSuiteSummary  {} {
   variable ReportBuildName
 
   if { $HaveTestSuites } {
+    # Show Brief column only when at least one suite explicitly sets Brief.
+    set ShowSuiteBriefCol 0
+    foreach TsForBrief $TestSuiteSummaryArrayOfDictionaries {
+      if { [dict exists $TsForBrief Brief] && [string trim [dict get $TsForBrief Brief]] ne "" } {
+        set ShowSuiteBriefCol 1
+        break
+      }
+    }
+
     puts $ResultsFile "  <div class=\"testsuite\">"
     puts $ResultsFile "    <details open=\"open\" class=\"testsuite-details\"><summary>Test Suite Summary</summary>"
     puts $ResultsFile "      <table class=\"testsuite-summary-table\">"
@@ -233,6 +242,9 @@ proc CreateTestSuiteSummary  {} {
     puts $ResultsFile "              <th rowspan=\"2\">Requirements<br>passed / goal</th>"
     puts $ResultsFile "              <th rowspan=\"2\">Disabled<br>Alerts</th>"
     puts $ResultsFile "              <th rowspan=\"2\">Elapsed<br>Time</th>"
+    if {$ShowSuiteBriefCol} {
+      puts $ResultsFile "              <th rowspan=\"2\" style=\"width: 50%; text-align: center;\">Brief</th>"
+    }
     puts $ResultsFile "          </tr>"
     puts $ResultsFile "          <tr>"
     puts $ResultsFile "              <th>PASSED </th>"
@@ -244,7 +256,19 @@ proc CreateTestSuiteSummary  {} {
 
     foreach TestSuite $TestSuiteSummaryArrayOfDictionaries {
       set SuiteName [dict get $TestSuite Name]
+      set SuiteDisplayName $SuiteName
+      if {[dict exists $TestSuite Title]} {
+        set CandidateTitle [string trim [dict get $TestSuite Title]]
+        if {$CandidateTitle ne ""} {
+          set SuiteDisplayName $CandidateTitle
+        }
+      }
       set SuiteStatus  [dict get $TestSuite Status]
+      if {$ShowSuiteBriefCol && [dict exists $TestSuite Brief]} {
+        set SuiteBrief [dict get $TestSuite Brief]
+      } else {
+        set SuiteBrief ""
+      }
 
       set PassedClass  "" 
       set FailedClass  "" 
@@ -259,7 +283,7 @@ proc CreateTestSuiteSummary  {} {
       }
 
       puts $ResultsFile "          <tr>"
-      puts $ResultsFile "            <td><a href=\"#${SuiteName}\">${SuiteName}</a></td>"
+      puts $ResultsFile "            <td><a href=\"#${SuiteName}\">[EscapeHtml ${SuiteDisplayName}]</a></td>"
       puts $ResultsFile "            <td ${StatusClass}>$SuiteStatus</td>"
       puts $ResultsFile "            <td ${PassedClass}>[dict get $TestSuite PASSED] </td>"
       puts $ResultsFile "            <td ${FailedClass}>[dict get $TestSuite FAILED] </td>"
@@ -279,6 +303,13 @@ proc CreateTestSuiteSummary  {} {
       }
       puts $ResultsFile "          <td>[dict get $TestSuite DisabledAlerts]</td>"
       puts $ResultsFile "          <td>[dict get $TestSuite ElapsedTime]</td>"
+      if {$ShowSuiteBriefCol} {
+        puts $ResultsFile "          <td style=\"text-align: left;\">"
+        if {${SuiteBrief} ne ""} {
+          puts $ResultsFile "            [EscapeHtml $SuiteBrief]"
+        }
+        puts $ResultsFile "          </td>"
+      }
       puts $ResultsFile "        </tr>"
     }
     puts $ResultsFile "        </tbody>"
@@ -297,19 +328,199 @@ proc CreateTestCaseSummaries {TestDict} {
   if { [dict exists $TestDict TestSuites] } {
     foreach TestSuite [dict get $TestDict TestSuites] {
       set SuiteName [dict get $TestSuite Name]
+      set SuiteDisplayName $SuiteName
+      if {[dict exists $TestSuite Title]} {
+        set CandidateTitle [string trim [dict get $TestSuite Title]]
+        if {$CandidateTitle ne ""} {
+          set SuiteDisplayName $CandidateTitle
+        }
+      }
+
+      # Show Brief column only when at least one testcase explicitly sets Brief.
+      set ShowTestBriefCol 0
+      foreach TcForBrief [dict get $TestSuite TestCases] {
+        if { [dict exists $TcForBrief Brief] && [string trim [dict get $TcForBrief Brief]] ne "" } {
+          set ShowTestBriefCol 1
+          break
+        }
+      }
+
+      # Configuration hooks (set via OSVVM-Scripts/OsvvmScriptsCore.tcl APIs)
+      set ConfigShowGenerics 1
+      if {[info exists ::osvvm::TestCaseSummaryShowGenerics]} {
+        set ConfigShowGenerics $::osvvm::TestCaseSummaryShowGenerics
+      }
+      set ConfigGenericWhitelist {}
+      if {[info exists ::osvvm::TestCaseSummaryGenericNames]} {
+        set ConfigGenericWhitelist $::osvvm::TestCaseSummaryGenericNames
+      }
+
+      # Default: cap the number of generic columns to keep tables readable.
+      set ConfigMaxGenericsColumns 0
+      if {[info exists ::osvvm::TestCaseSummaryMaxGenericsColumns]} {
+        set ConfigMaxGenericsColumns $::osvvm::TestCaseSummaryMaxGenericsColumns
+      }
+
+      # Default: show tags in the Test Case Summary table
+      set ConfigShowTags 1
+      if {[info exists ::osvvm::TestCaseSummaryShowTags]} {
+        set ConfigShowTags $::osvvm::TestCaseSummaryShowTags
+      }
+      set ConfigTagWhitelist {}
+      if {[info exists ::osvvm::TestCaseSummaryTagNames]} {
+        set ConfigTagWhitelist $::osvvm::TestCaseSummaryTagNames
+      }
+
+      # Default: cap the number of tag columns to keep tables readable.
+      set ConfigMaxTagsColumns 0
+      if {[info exists ::osvvm::TestCaseSummaryMaxTagsColumns]} {
+        set ConfigMaxTagsColumns $::osvvm::TestCaseSummaryMaxTagsColumns
+      }
+
+      # Collect a stable list of generic names used by any test case in this suite.
+      # These become the subcolumns under the "Generics" column group.
+      set SuiteGenericNamesAll {}
+      foreach TcForGenerics [dict get $TestSuite TestCases] {
+        if { [dict exists $TcForGenerics Generics] } {
+          set GenDict [dict get $TcForGenerics Generics]
+          if {![catch {dict size $GenDict}]} {
+            foreach GenName [dict keys $GenDict] {
+              if {[lsearch -exact $SuiteGenericNamesAll $GenName] < 0} {
+                lappend SuiteGenericNamesAll $GenName
+              }
+            }
+          }
+        }
+      }
+
+      # Apply generics configuration
+      if {!$ConfigShowGenerics} {
+        set SuiteGenericNames {}
+      } elseif {[llength $ConfigGenericWhitelist] == 0} {
+        set SuiteGenericNames $SuiteGenericNamesAll
+      } else {
+        set SuiteGenericNames {}
+        foreach GenName $ConfigGenericWhitelist {
+          if {[lsearch -exact $SuiteGenericNamesAll $GenName] >= 0} {
+            lappend SuiteGenericNames $GenName
+          }
+        }
+      }
+      set SuiteGenericCount [llength $SuiteGenericNames]
+      set SuiteGenericCountAll [llength $SuiteGenericNamesAll]
+
+      # Enforce max generics columns (0/negative => unlimited)
+      if {$SuiteGenericCount > 0 && $ConfigMaxGenericsColumns > 0 && $SuiteGenericCount > $ConfigMaxGenericsColumns} {
+        puts "Warning: Test Case Summary generics columns truncated from $SuiteGenericCount to $ConfigMaxGenericsColumns for suite $SuiteName"
+        set SuiteGenericNames [lrange $SuiteGenericNames 0 [expr {$ConfigMaxGenericsColumns - 1}]]
+        set SuiteGenericCount [llength $SuiteGenericNames]
+      }
+
+      # Collect tag names (stable order) and determine visibility across all testcases.
+      # A tag column is included if the tag is visible in ANY testcase.
+      set SuiteTagNamesAll {}
+      set SuiteTagVisibleAny [dict create]
+      if {$ConfigShowTags} {
+        foreach TcForTags [dict get $TestSuite TestCases] {
+          if { [dict exists $TcForTags Tags] } {
+            set TagsDict [dict get $TcForTags Tags]
+            if {![catch {dict size $TagsDict}]} {
+              foreach TagName [dict keys $TagsDict] {
+                # Maintain stable ordering based on first occurrence in the suite.
+                if {[lsearch -exact $SuiteTagNamesAll $TagName] < 0} {
+                  lappend SuiteTagNamesAll $TagName
+                }
+
+                # Per-tag visibility for this testcase (default visible).
+                # New schema: Tags(tag).Visibility.Summary
+                set IsVisible 1
+                set TagRec [dict get $TagsDict $TagName]
+                if {![catch {dict size $TagRec}] && [dict exists $TagRec Visibility]} {
+                  set VisRec [dict get $TagRec Visibility]
+                  if {![catch {dict size $VisRec}] && [dict exists $VisRec Summary]} {
+                    set VisVal [dict get $VisRec Summary]
+                    if {$VisVal eq 0 || $VisVal eq "0" || [string equal -nocase $VisVal "false"]} {
+                      set IsVisible 0
+                    }
+                  }
+                }
+
+                # Track if visible in any testcase.
+                if {$IsVisible} {
+                  dict set SuiteTagVisibleAny $TagName 1
+                } elseif {![dict exists $SuiteTagVisibleAny $TagName]} {
+                  dict set SuiteTagVisibleAny $TagName 0
+                }
+              }
+            }
+          }
+        }
+      }
+
+      # Filter final set of tag columns: include only tags visible in ANY testcase.
+      if {!$ConfigShowTags} {
+        set SuiteTagNames {}
+      } else {
+        # Candidate tags by order (either auto-discovered or whitelist)
+        if {[llength $ConfigTagWhitelist] == 0} {
+          set CandidateTagNames $SuiteTagNamesAll
+        } else {
+          set CandidateTagNames $ConfigTagWhitelist
+        }
+
+        set SuiteTagNames {}
+        foreach TagName $CandidateTagNames {
+          # If a whitelist asks for a tag not present in the suite, skip it.
+          if {[lsearch -exact $SuiteTagNamesAll $TagName] < 0} {
+            continue
+          }
+          # Only include if visible in any testcase.
+          if {[dict exists $SuiteTagVisibleAny $TagName] && [dict get $SuiteTagVisibleAny $TagName]} {
+            lappend SuiteTagNames $TagName
+          }
+        }
+      }
+      set SuiteTagCount [llength $SuiteTagNames]
+
+      # Enforce max tags columns (0/negative => unlimited)
+      if {$SuiteTagCount > 0 && $ConfigMaxTagsColumns > 0 && $SuiteTagCount > $ConfigMaxTagsColumns} {
+        puts "Warning: Test Case Summary tag columns truncated from $SuiteTagCount to $ConfigMaxTagsColumns for suite $SuiteName"
+        set SuiteTagNames [lrange $SuiteTagNames 0 [expr {$ConfigMaxTagsColumns - 1}]]
+        set SuiteTagCount [llength $SuiteTagNames]
+      }
+
       puts $ResultsFile "  <div class=\"testcase\">"
-      puts $ResultsFile "    <details open><summary id=\"$SuiteName\">$SuiteName Test Case Summary</summary>"
+      puts $ResultsFile "    <details open class=\"suite-testcase-summary\"><summary id=\"$SuiteName\" class=\"suite-testcase-summary-heading\"><span class=\"suite-name\">[EscapeHtml $SuiteDisplayName]</span><span class=\"suite-sep\"> — </span><span class=\"suite-suffix\">Test Case Summary</span></summary>"
       puts $ResultsFile "      <table class=\"testcase-summary-table\">"
       puts $ResultsFile "        <thead>"
       puts $ResultsFile "          <tr><th rowspan=\"2\">Test Case</th>"
+      if { $SuiteGenericCount > 0 } {
+        puts $ResultsFile "              <th colspan=\"$SuiteGenericCount\">Generics</th>"
+      }
+      if { $SuiteTagCount > 0 } {
+        puts $ResultsFile "              <th colspan=\"$SuiteTagCount\">Tags</th>"
+      }
       puts $ResultsFile "              <th rowspan=\"2\">Status</th>"
       puts $ResultsFile "              <th colspan=\"3\">Checks</th>"
       puts $ResultsFile "              <th colspan=\"2\">Requirements</th>"
       puts $ResultsFile "              <th rowspan=\"2\">Functional<br>Coverage</th>"
       puts $ResultsFile "              <th rowspan=\"2\">Disabled<br>Alerts</th>"
       puts $ResultsFile "              <th rowspan=\"2\">Elapsed<br>Time</th>"
+      if {$ShowTestBriefCol} {
+        puts $ResultsFile "              <th rowspan=\"2\" style=\"width: 50%; text-align: center;\">Brief</th>"
+      }
       puts $ResultsFile "          </tr>"
       puts $ResultsFile "          <tr>"
+      if { $SuiteGenericCount > 0 } {
+        foreach GenName $SuiteGenericNames {
+          puts $ResultsFile "              <th style=\"text-align: center;\">$GenName</th>"
+        }
+      }
+      if { $SuiteTagCount > 0 } {
+        foreach TagName $SuiteTagNames {
+          puts $ResultsFile "              <th style=\"text-align: center;\">$TagName</th>"
+        }
+      }
       puts $ResultsFile "              <th>Total</th>"
       puts $ResultsFile "              <th>Passed</th>"
       puts $ResultsFile "              <th>Failed</th>"
@@ -323,6 +534,22 @@ proc CreateTestCaseSummaries {TestDict} {
 
       foreach TestCase [dict get $TestSuite TestCases] {
         set TestName     [dict get $TestCase TestCaseName]
+
+        # Display title in the Name column when explicitly set.
+        set DisplayName $TestName
+        if {[dict exists $TestCase Title]} {
+          set CandidateTitle [string trim [dict get $TestCase Title]]
+          if {$CandidateTitle ne ""} {
+            set DisplayName $CandidateTitle
+          }
+        }
+
+        # Get test brief only if explicitly set
+        if {$ShowTestBriefCol && [dict exists $TestCase Brief]} {
+          set TestBrief [dict get $TestCase Brief]
+        } else {
+          set TestBrief ""
+        }
         if { [dict exists $TestCase Status] } { 
           set TestStatus    [dict get $TestCase Status]
           set TestResults [dict get $TestCase Results]
@@ -375,25 +602,82 @@ proc CreateTestCaseSummaries {TestDict} {
         }
         set TestCaseHtmlFile [file join ${TestSuiteReportsDirectory} ${TestFileName}.html]
         set TestCaseName $TestName
-        if { [dict exists $TestCase Generics] } { 
+        set DisplayNameWithGenerics $DisplayName
+        # Backward compatibility: if there are no generic columns, append generic values to the Test Case name.
+        # Do this only when the suite truly has no generics (not when generics are hidden via config).
+        if { ($SuiteGenericCountAll == 0) && [dict exists $TestCase Generics] } {
           set TestCaseGenerics [dict get $TestCase Generics]
-          if {${TestCaseGenerics} ne ""} {
-            set GenericValueList [dict values $TestCaseGenerics] 
+          if {![catch {dict size $TestCaseGenerics}] && ([dict size $TestCaseGenerics] > 0)} {
+            set GenericValueList [dict values $TestCaseGenerics]
             set i 0
             set ListLen [llength ${GenericValueList}]
-            append TestCaseName " (" 
+            append TestCaseName " ("
+            append DisplayNameWithGenerics " ("
             foreach GenericValue $GenericValueList {
               incr i
               if {$i != $ListLen} {
                 append TestCaseName $GenericValue " ,"
+                append DisplayNameWithGenerics $GenericValue " ,"
               } else {
                 append TestCaseName $GenericValue ")"
+                append DisplayNameWithGenerics $GenericValue ")"
               }
             }
           }
         }
         puts $ResultsFile "          <tr>"
-        puts $ResultsFile "            <td><a href=\"${TestCaseHtmlFile}\">${TestCaseName}</a></td>"
+        puts $ResultsFile "            <td><a href=\"${TestCaseHtmlFile}\">${DisplayNameWithGenerics}</a></td>"
+
+        # Generics are the second column group (after Test Case name).
+        if { $SuiteGenericCount > 0 } {
+          if { [dict exists $TestCase Generics] } {
+            set TestCaseGenerics [dict get $TestCase Generics]
+          } else {
+            set TestCaseGenerics ""
+          }
+          set HasGenerics 0
+          if {![catch {dict size $TestCaseGenerics}] && ([dict size $TestCaseGenerics] > 0)} {
+            set HasGenerics 1
+          }
+          foreach GenName $SuiteGenericNames {
+            if { $HasGenerics && [dict exists $TestCaseGenerics $GenName] } {
+              set GenValue [dict get $TestCaseGenerics $GenName]
+            } else {
+              set GenValue "⸻"
+            }
+            set GenDisplayValue [FormatGenericValueForHtml $GenName $GenValue $TestFileName]
+            puts $ResultsFile "            <td style=\"text-align: right;\">$GenDisplayValue</td>"
+          }
+        }
+
+        # Optional Tags column group (after Generics, before Status).
+        if { $SuiteTagCount > 0 } {
+          if { [dict exists $TestCase Tags] } {
+            set TestCaseTags [dict get $TestCase Tags]
+          } else {
+            set TestCaseTags ""
+          }
+          set HasTags 0
+          if {![catch {dict size $TestCaseTags}] && ([dict size $TestCaseTags] > 0)} {
+            set HasTags 1
+          }
+          foreach TagName $SuiteTagNames {
+            # Column exists only for tags visible in any testcase.
+            # For each testcase that has the tag, display Tags(tag).Value.
+            if { $HasTags && [dict exists $TestCaseTags $TagName] } {
+              set TagRec [dict get $TestCaseTags $TagName]
+              set TagValue ""
+              if {![catch {dict size $TagRec}] && [dict exists $TagRec Value]} {
+                set TagValue [dict get $TagRec Value]
+              }
+              set TagDisplay [EscapeHtml [FormatScalarForHtml $TagValue]]
+            } else {
+              set TagDisplay "⸻"
+            }
+            puts $ResultsFile "            <td style=\"text-align: right;\">$TagDisplay</td>"
+          }
+        }
+
         puts $ResultsFile "            <td ${StatusClass}>$TestStatus</td>"
         if { $TestReport eq "REPORT" } {
           puts $ResultsFile "            <td ${PassedClass}>[dict get $TestResults AffirmCount]</td>"
@@ -425,8 +709,17 @@ proc CreateTestCaseSummaries {TestDict} {
             set TestCaseElapsedTime missing
           }
           puts $ResultsFile "            <td>$TestCaseElapsedTime</td>"
+          if {$ShowTestBriefCol} {
+            puts $ResultsFile "            <td style=\"text-align: left;\">"
+            if {${TestBrief} ne ""} {
+              puts $ResultsFile "              [EscapeHtml $TestBrief]"
+            }
+            puts $ResultsFile "            </td>"
+          }
         } else {
-          puts $ResultsFile "            <td style=\"text-align: left\" colspan=\"8\"> &emsp; $Reason</td>"
+          # Remaining columns after Test Case + (optional Generics) + Status
+          set RemainingColumns [expr {8 + ($ShowTestBriefCol ? 1 : 0)}]
+          puts $ResultsFile "            <td style=\"text-align: left\" colspan=\"$RemainingColumns\"> &emsp; $Reason</td>"
         }
         puts $ResultsFile "          </tr>"
       }

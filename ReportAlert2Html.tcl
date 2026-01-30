@@ -63,20 +63,47 @@ proc LocalAlert2Html {TestCaseName TestSuiteName AlertYamlFile} {
   variable ResultsFile
 
   set Alert2HtmlDict [::yaml::yaml2dict -file ${AlertYamlFile}]
+
+  # Prefer Title (if set) for visible headings; fall back to YAML Name.
+  set DisplayName ""
+  if {[dict exists $Alert2HtmlDict Name]} {
+    set DisplayName [dict get $Alert2HtmlDict Name]
+  }
+  if {[dict exists $Alert2HtmlDict Title]} {
+    set CandidateTitle [string trim [dict get $Alert2HtmlDict Title]]
+    if {$CandidateTitle ne ""} {
+      set DisplayName $CandidateTitle
+    }
+  }
   
-  AlertSettings $Alert2HtmlDict
+  AlertSettings $Alert2HtmlDict $DisplayName
   
-  CreateAlertResultsHeader $TestCaseName
+  # Extract and store Description and Tags for use in other reports
+  if {[dict exists $Alert2HtmlDict Description]} {
+    set ::osvvm::Report2TestDescription [dict get $Alert2HtmlDict Description]
+  } else {
+    set ::osvvm::Report2TestDescription ""
+  }
+  if {[dict exists $Alert2HtmlDict Tags]} {
+    set ::osvvm::Report2TestTags [dict get $Alert2HtmlDict Tags]
+  } else {
+    set ::osvvm::Report2TestTags ""
+  }
+  
+  CreateAlertResultsHeader $DisplayName
   
   AlertWrite $Alert2HtmlDict
   
   CreateAlertResultsFooter
 }
 
-proc AlertSettings {AlertDict} {
+proc AlertSettings {AlertDict {DisplayName ""}} {
   variable ResultsFile
-  
+
   set Name     [dict get $AlertDict Name]
+  if {$DisplayName eq ""} {
+    set DisplayName $Name
+  }
   set Settings [dict get $AlertDict Settings]
   set External [dict get $Settings ExternalErrors]
   set Failure [dict get $External Failure]
@@ -91,9 +118,9 @@ proc AlertSettings {AlertDict} {
 
   puts $ResultsFile "  <hr />"
   puts $ResultsFile "  <div class=\"AlertSummary\">"
-  puts $ResultsFile "    <h2 id=\"AlertSummary\">$Name Alert Report</h2>"
+  puts $ResultsFile "    <h2 id=\"AlertSummary\" class=\"testcase-section-title\"><span class=\"tc-name\">[EscapeHtml $DisplayName]</span><span class=\"tc-sep\"> — </span><span class=\"tc-suffix\">Alert Report</span></h2>"
   puts $ResultsFile "    <div class=\"AlertSettings\">"
-  puts $ResultsFile "      <details open><summary class=\"subtitle\">$Name Alert Settings</summary>"
+  puts $ResultsFile "      <details open><summary class=\"subtitle testcase-section-heading\"><span class=\"tc-name\">[EscapeHtml $DisplayName]</span><span class=\"tc-sep\"> — </span><span class=\"tc-suffix\">Alert Settings</span></summary>"
   puts $ResultsFile "        <table class=\"AlertSettings\">"
   puts $ResultsFile "          <thead>"
   puts $ResultsFile "            <tr>"
@@ -156,7 +183,7 @@ proc CreateAlertResultsHeader {TestCaseName} {
   variable ResultsFile
   
   puts $ResultsFile "    <div class=\"AlertResults\">"
-  puts $ResultsFile "      <details open><summary class=\"subtitle\">$TestCaseName Alert Results</summary>"
+  puts $ResultsFile "      <details open><summary class=\"subtitle testcase-section-heading\"><span class=\"tc-name\">[EscapeHtml $TestCaseName]</span><span class=\"tc-sep\"> — </span><span class=\"tc-suffix\">Alert Results</span></summary>"
   puts $ResultsFile "        <table class=\"AlertResults\">"
   puts $ResultsFile "          <thead>"
   puts $ResultsFile "            <tr>"
@@ -194,6 +221,13 @@ proc AlertWrite {AlertDict {Prefix ""}} {
     set DisabledAlertCount   [dict get $Results      DisabledAlertCount]
 
     set Name                 [dict get $AlertDict          Name]
+    set DisplayName $Name
+    if {$Prefix eq "" && [dict exists $AlertDict Title]} {
+      set CandidateTitle [string trim [dict get $AlertDict Title]]
+      if {$CandidateTitle ne ""} {
+        set DisplayName $CandidateTitle
+      }
+    }
     set Status               [dict get $AlertDict          Status]
     set PassedCount          [dict get $Results            PassedCount]
     set AffirmCount          [dict get $Results            AffirmCount]
@@ -272,7 +306,7 @@ proc AlertWrite {AlertDict {Prefix ""}} {
     }
 
     puts $ResultsFile "            <tr>"
-    puts $ResultsFile "              <td>${Prefix}${Name}</td>"
+    puts $ResultsFile "              <td>${Prefix}${DisplayName}</td>"
     puts $ResultsFile "              <td ${StatusClass}>$Status</td>"
     puts $ResultsFile "              <td ${PassedCountClass}>$AffirmCount</td>"
     puts $ResultsFile "              <td ${PassedCountClass}>$PassedCount</td>"

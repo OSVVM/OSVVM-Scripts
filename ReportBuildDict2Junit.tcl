@@ -48,6 +48,16 @@
 package require yaml
 
 # -------------------------------------------------
+# EscapeXmlAttr
+#
+# Escape content for safe use inside XML attribute values.
+proc EscapeXmlAttr {Text} {
+  set Escaped $Text
+  set Escaped [string map [list "&" "&amp;" "<" "&lt;" ">" "&gt;" "\"" "&quot;" "'" "&apos;"] $Escaped]
+  return $Escaped
+}
+
+# -------------------------------------------------
 # ReportBuildDict2Junit
 #
 proc ReportBuildDict2Junit {} {
@@ -180,31 +190,87 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
         set ResolvedTestName $TestName
       }
 
+      # Collect testcase properties (generics + brief + tags)
+      set PropertyLines {}
+      if { [dict exists $TestCase Generics] } {
+        set TestCaseGenerics [dict get $TestCase Generics]
+        if {${TestCaseGenerics} ne ""} {
+          foreach {GenericName GenericValue} $TestCaseGenerics {
+            set GName [EscapeXmlAttr $GenericName]
+            set GValue [EscapeXmlAttr "${GenericName}=${GenericValue}"]
+            lappend PropertyLines "  <property name=\"generic\" value=\"${GValue}\" /> "
+          }
+        }
+      }
+
+      if { [dict exists $TestCase Brief] } {
+        set BriefValue [dict get $TestCase Brief]
+        if {$BriefValue ne ""} {
+          set BriefEsc [EscapeXmlAttr $BriefValue]
+          lappend PropertyLines "  <property name=\"brief\" value=\"${BriefEsc}\" /> "
+        }
+      }
+
+      if { [dict exists $TestCase Title] } {
+        set TitleValue [dict get $TestCase Title]
+        if {$TitleValue ne ""} {
+          set TitleEsc [EscapeXmlAttr $TitleValue]
+          lappend PropertyLines "  <property name=\"title\" value=\"${TitleEsc}\" /> "
+        }
+      }
+
+      if { [dict exists $TestCase Tags] } {
+        set TagsDict [dict get $TestCase Tags]
+        if {![catch {dict size $TagsDict}] && ([dict size $TagsDict] > 0)} {
+          foreach TagName [dict keys $TagsDict] {
+            set TagRec [dict get $TagsDict $TagName]
+
+            set TagValue ""
+            if {[dict exists $TagRec Value]} {
+              set TagValue [dict get $TagRec Value]
+            }
+
+            # Type is required when Tags are present (no fallback/inference).
+            if {![dict exists $TagRec Type]} {
+              error "JUnit: Missing Type for tag '$TagName'." 
+            }
+            set TagTypeToken [dict get $TagRec Type]
+
+            set TagNameEsc [EscapeXmlAttr $TagName]
+            set TagValueEsc [EscapeXmlAttr $TagValue]
+            lappend PropertyLines "  <property name=\"${TagNameEsc}\" value=\"${TagValueEsc}\" /> "
+
+            set TagTypeNameEsc [EscapeXmlAttr "tagtype:${TagName}"]
+            set TagTypeValueEsc [EscapeXmlAttr $TagTypeToken]
+            lappend PropertyLines "  <property name=\"${TagTypeNameEsc}\" value=\"${TagTypeValueEsc}\" /> "
+          }
+        }
+      }
+
       puts $ResultsFile "<testcase "
-      puts $ResultsFile "   name=\"$ResolvedTestName\""
+      puts $ResultsFile "   name=\"[EscapeXmlAttr $ResolvedTestName]\""
 #      puts $ResultsFile "   classname=\"$VhdlName\""
-      puts $ResultsFile "   classname=\"$TestSuiteName\""
+      puts $ResultsFile "   classname=\"[EscapeXmlAttr $TestSuiteName]\""
       puts $ResultsFile "   assertions=\"$AffirmCount\""
       puts $ResultsFile "   time=\"$ElapsedTime\""
       puts $ResultsFile ">"
-      
-      if { [dict exists $TestCase Generics] } { 
-        set TestCaseGenerics [dict get $TestCase Generics]
-        if {${TestCaseGenerics} ne ""} {
-          puts $ResultsFile "<properties> "
-          foreach {GenericName GenericValue} $TestCaseGenerics {
-            puts $ResultsFile "  <property name=\"generic\" value=\"${GenericName}=${GenericValue}\" /> "
-          }
-          puts $ResultsFile "</properties> "
+
+      if {[llength $PropertyLines] > 0} {
+        puts $ResultsFile "<properties> "
+        foreach Line $PropertyLines {
+          puts $ResultsFile $Line
         }
+        puts $ResultsFile "</properties> "
       }
       
       if { $TestStatus eq "FAILED" } {
-        puts $ResultsFile "<failure message=\"$Reason\">$Reason</failure>"
+        set ReasonEsc [EscapeXmlAttr $Reason]
+        puts $ResultsFile "<failure message=\"$ReasonEsc\">$ReasonEsc</failure>"
       
       } elseif { $TestStatus eq "SKIPPED" } {
         set Reason [dict get $TestResults Reason]
-        puts $ResultsFile "<skipped message=\"$Reason\">$Reason</skipped>"
+        set ReasonEsc [EscapeXmlAttr $Reason]
+        puts $ResultsFile "<skipped message=\"$ReasonEsc\">$ReasonEsc</skipped>"
       }
       puts $ResultsFile "</testcase>"
     }

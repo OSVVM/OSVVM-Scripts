@@ -211,6 +211,21 @@ proc ElaborateTestSuites {TestDict} {
         set SuiteStatus "FAILED"
         set BuildStatus "FAILED"
       }
+      if {[dict exists $TestSuite Description]} {
+        set SuiteDescription [dict get $TestSuite Description]
+      } else {
+        set SuiteDescription ""
+      }
+      if {[dict exists $TestSuite Title]} {
+        set SuiteTitle [dict get $TestSuite Title]
+      } else {
+        set SuiteTitle ""
+      }
+      if {[dict exists $TestSuite Brief]} {
+        set SuiteBrief [dict get $TestSuite Brief]
+      } else {
+        set SuiteBrief ""
+      }
       set SuiteDict [dict create Name       $SuiteName]
       dict append SuiteDict Status          $SuiteStatus
       dict append SuiteDict PASSED          $SuitePassed
@@ -220,6 +235,9 @@ proc ElaborateTestSuites {TestDict} {
       dict append SuiteDict ReqGoal         $SuiteReqGoal
       dict append SuiteDict DisabledAlerts  $SuiteDisabledAlerts
       dict append SuiteDict ElapsedTime     $SuiteElapsedTime
+      dict set    SuiteDict Title           $SuiteTitle
+      dict set    SuiteDict Brief           $SuiteBrief
+      dict set    SuiteDict Description     $SuiteDescription
       lappend TestSuiteSummaryArrayOfDictionaries $SuiteDict
     }
   }
