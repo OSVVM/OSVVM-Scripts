@@ -92,8 +92,9 @@ proc StartUp {} {
 
 
 namespace eval ::osvvm {
-
-
+  variable _ruff_preamble {
+    Here could be some documentation for the namespace.
+  }
 
 # -------------------------------------------------
 # IterateFile
@@ -1100,25 +1101,27 @@ proc LinkCurrentLibraries {} {
 #
 proc analyze {FileName args} {
   # Analyze an HDL source file.
-	#
+  #
   #  FileName - Path to the HDL source file.
   #  args     - Further options.
-	#
-	# This procedure executes a tool-specific analyze command depending on what tool was detected. Some of the used
-	# analyze option depend on the current context. For example the use VHDL library this source file and its design units
-	# are compiled into, depend on the last [library] call.
-	#
-	# **Procedures influencing the context for the `analyze` command:**
-	#
-	# * [library] - set the VHDl working library
-	# * [SetVHDLVersion] - tbd
-	# * [SetExtendedAnalyzeOptions] - tbd
-	# * [SetVhdlAnalyzeOptions] - tbd
-	#
+  #
+  # This procedure executes a tool-specific analyze command depending on what tool was detected. Some of the used
+  # analyze option depend on the current context. For example the use VHDL library this source file and its design units
+  # are compiled into, depend on the last [library] call.
+  #
+  # **Procedures influencing the context for the `analyze` command:**
+  #
+  # * [library] - set the VHDL working library
+  # * [SetVHDLVersion] - tbd
+  # * [SetExtendedAnalyzeOptions] - tbd
+  # * [SetVhdlAnalyzeOptions] - tbd
+  #
   # **Supported HDL sourcefile languages:**
-	# * VHDL `*.vhd`/`*.vhdl`
-	# * Verilog `*.v`
-	# * SystemVerilog `*.sv`
+  # * VHDL `*.vhd`/`*.vhdl`
+  # * Verilog `*.v`
+  # * SystemVerilog `*.sv`
+  #
+  # :ref:`ghdl::analyze <RUFF/osvvm/ghdl/analyze>`
   variable AnalyzeErrorCount 
   variable AnalyzeErrorStopCount
   variable ConsecutiveAnalyzeErrors 
@@ -1494,7 +1497,7 @@ proc RunTest {FileName {SimName ""} args} {
   puts "RunTest $RunArgs"               ; # EchoOsvvmCmd
   set CompoundCommand TRUE
 
-	if {$SimName eq ""} {
+  if {$SimName eq ""} {
     set SimName [file rootname [file tail $FileName]]
     TestName $SimName
   } else {

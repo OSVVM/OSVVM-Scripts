@@ -50,6 +50,7 @@ DEBUG=0
 COMMAND=1
 CLEAN=0
 RUFF=0
+POST=1
 SPHINX=0
 BUILDERS=()
 HTML=0
@@ -68,15 +69,18 @@ while [[ $# -gt 0 ]]; do
 			COMMAND=3
 			RUFF=1
 			;;
+		-n|--no-post-process)
+			POST=0
+			;;
 		-s|--sphinx)
 			COMMAND=3
 			SPHINX=1
 			;;
-		--html)
+		-H|--html)
 			HTML=1
 			BUILDERS+=("html")
 			;;
-		--latex)
+		-l|--latex)
 			LATEX=1
 			BUILDERS+=("latex")
 			;;
@@ -114,23 +118,24 @@ if [[ ${COMMAND} -le 1 ]]; then
 	printf "%s\n" "  ${ANSI_LIGHT_CYAN}$(basename "$0")${ANSI_NOCOLOR} [<verbosity>] [--clean] [--all] [--ruff] [--sphinx]"
 	printf "\n"
 	printf "%s\n" "${ANSI_CYAN}Common commands:${ANSI_NOCOLOR}"
-	printf "%s\n" "  -h --help       Print this help page"
-	printf "%s\n" "  -c --clean      Remove all generated files"
+	printf "%s\n" "  -h --help              Print this help page"
+	printf "%s\n" "  -c --clean             Remove all generated files"
 	printf "\n"
 	printf "%s\n" "${ANSI_CYAN}Steps:${ANSI_NOCOLOR}"
-	printf "%s\n" "  -a --all        Run all steps (--ruff --sphinx)."
-	printf "%s\n" "  -r --ruff       Extract code documentation from TCL code using Ruff!."
-	printf "%s\n" "  -s --sphinx     Build documentation using Sphinx."
-	printf "%s\n" "                  If not specified, build only HTML variant."
-	printf "%s\n" "     --html       Build HTML documentation using Sphinx."
-	printf "%s\n" "     --latex      Build LaTeX documentation using Sphinx."
+	printf "%s\n" "  -a --all               Run all steps (--ruff --sphinx)."
+	printf "%s\n" "  -r --ruff              Extract code documentation from TCL code using Ruff!."
+	printf "%s\n" "  -n --no-post-process   No post-processing of Ruff! generated files."
+	printf "%s\n" "  -s --sphinx            Build documentation using Sphinx."
+	printf "%s\n" "                         If not specified, build only HTML variant."
+	printf "%s\n" "  -H --html              Build HTML documentation using Sphinx."
+	printf "%s\n" "  -l --latex             Build LaTeX documentation using Sphinx."
 	printf "\n"
 	printf "%s\n" "${ANSI_CYAN}Verbosity:${ANSI_NOCOLOR}"
-	printf "%s\n" "  -v --verbose    Print verbose messages."
-	printf "%s\n" "  -d --debug      Print debug messages."
+	printf "%s\n" "  -v --verbose           Print verbose messages."
+	printf "%s\n" "  -d --debug             Print debug messages."
 	printf "\n"
 	printf "%s\n" "${ANSI_CYAN}Requirements:${ANSI_NOCOLOR}"
-	printf "%s\n" "  -i --install    Install / update required Python packages."
+	printf "%s\n" "  -i --install           Install / update required Python packages."
 	exit ${COMMAND}
 fi
 
@@ -206,30 +211,40 @@ EOF
 		ls ${RUFF_DIR} | sed 's/^/  /'
 	fi
 
-	printf -- "${ANSI_MAGENTA}[BUILD] Patch ReST files ...\n"
-	#printf -- "  ${ANSI_CYAN}Patching ${RUFF_DIR}/index.rst ...${ANSI_NOCOLOR}\n"
-	#sed -i -E 's/.rst$//g' ${RUFF_DIR}/index.rst                     # for page split
-	#sed -i -E 's/:maxdepth: .*$/:hidden:/g' ${RUFF_DIR}/index.rst    # for page split
-	#sed -i -E 's/:caption: .*$//g' ${RUFF_DIR}/index.rst             # for page split
-	#sed -i -E 's/   osvvm$//g' ${RUFF_DIR}/index.rst                 # for page split
+	if [[ ${POST} -eq 1 ]]; then
+			printf -- "${ANSI_MAGENTA}[BUILD] Patch ReST files ...${ANSI_NOCOLOR}\n"
+		#printf -- "  ${ANSI_CYAN}Patching ${RUFF_DIR}/index.rst ...${ANSI_NOCOLOR}\n"
+		#sed -i -E 's/.rst$//g' ${RUFF_DIR}/index.rst                     # for page split
+		#sed -i -E 's/:maxdepth: .*$/:hidden:/g' ${RUFF_DIR}/index.rst    # for page split
+		#sed -i -E 's/:caption: .*$//g' ${RUFF_DIR}/index.rst             # for page split
+		#sed -i -E 's/   osvvm$//g' ${RUFF_DIR}/index.rst                 # for page split
 
-	for rstFile in ${RUFF_DIR}/*.rst; do
-		printf -- "  ${ANSI_CYAN}Patching ${rstFile} ...${ANSI_NOCOLOR}\n"
-		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove intermediate 'Commands' heading${ANSI_NOCOLOR}\n"
-			sed -i -E 's/^Commands//g' ${rstFile}
-			sed -i -E 's/^========//g' ${rstFile}
+		for rstFile in ${RUFF_DIR}/*.rst; do
+			printf -- "  ${ANSI_CYAN}Patching ${rstFile} ...${ANSI_NOCOLOR}\n"
 
-		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Correct index entry${ANSI_NOCOLOR}\n"
-			sed -i -E 's/   single: ::osvvm::/   single: ::osvvm; /g' ${rstFile}
+			filename="${rstFile##*/}"
+			namespace="${filename%.*}"
 
-		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove links from headings${ANSI_NOCOLOR}\n"
-			sed -i -E 's/^``(\w+)``.*$/\1/g' ${rstFile}
-			#sed -i -E 's/-----------------------------------------------$//g' ${rstFile}    # for pagesplit
-			sed -i -E 's/-----------------------------------------$//g' ${rstFile}           # for single page
+			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Insert index entry for '${namespace}' namespace${ANSI_NOCOLOR}\n"
+				sed -i -E "/^\.\. _r-${namespace}:$/a \\\n.. index::\n   single: ${namespace}" "${rstFile}"
 
-		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove inline code markers from parameter names${ANSI_NOCOLOR}\n"
-			sed -i -E 's/^:``(\w+)``:/:\1:/g' ${rstFile}
-	done
+			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove intermediate 'Commands' heading${ANSI_NOCOLOR}\n"
+				sed -i -E "/^\.\. _r-3a3a${namespace}.*Commands:/,/^========$/d" "${rstFile}"
+
+			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Correct index entry${ANSI_NOCOLOR}\n"
+				sed -i -E "/^\.\. index::/{N; N; s|\n\.\. index::||}" "${rstFile}"
+				sed -i -E "s|   single: ${namespace} namespace;|   single: ${namespace}; |g" "${rstFile}"
+
+			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove backticks from heading${ANSI_NOCOLOR}\n"
+				sed -i -E 's/^``(\w+)``$/\1/g' "${rstFile}"
+				sed -i -E 's/----$//g' "${rstFile}"
+
+			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove inline code markers from parameter names${ANSI_NOCOLOR}\n"
+				sed -i -E 's/^:``(\w+)``:/:\1:/g' "${rstFile}"
+		done
+	else
+		printf -- "${ANSI_MAGENTA}[BUILD] Patch ReST files ... ${ANSI_YELLOW}[SKIPPED]\n${ANSI_NOCOLOR}"
+	fi
 fi
 
 # Build documentation using Sphinx

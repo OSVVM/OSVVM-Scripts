@@ -31,12 +31,12 @@ License
 
 .. only:: html
 
-   The ``::osvvm`` TCL namespace (source code) is licensed under `Apache License 2.0 <Code-License.html>`__. |br|
+   The ``::osvvm`` Tcl namespace (source code) is licensed under `Apache License 2.0 <Code-License.html>`__. |br|
    The accompanying documentation is licensed under `Creative Commons - Attribution 4.0 (CC-BY 4.0) <Doc-License.html>`__.
 
 .. only:: latex
 
-   This ``::osvvm`` TCL namespace (source code) is licensed under **Apache License 2.0**. |br|
+   This ``::osvvm`` Tcl namespace (source code) is licensed under **Apache License 2.0**. |br|
    The accompanying documentation is licensed under **Creative Commons - Attribution 4.0 (CC-BY 4.0)**.
 
 
@@ -66,7 +66,7 @@ License
    :caption: References and Reports
    :hidden:
 
-   TCL Command Reference <osvvm-scripts/osvvm>
+   Tcl Command Reference <osvvm-scripts/osvvm>
    YAML/index
 
 .. raw:: latex
