@@ -46,6 +46,7 @@ License
 
    Installation
    QuickStartGuide
+   ToolSpecific
 
 .. raw:: latex
 
