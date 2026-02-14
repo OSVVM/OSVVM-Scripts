@@ -3,25 +3,27 @@
 Installation/Updates
 ####################
 
-.. image:: https://img.shields.io/badge/OSVVM-OsvvmLibraries-EDB74E.svg?longCache=true&logo=GitHub&labelColor=333333
+.. image:: https://img.shields.io/badge/OSVVM-OSVVM--Scripts-EDB74E.svg?longCache=true&logo=GitHub&labelColor=333333
    :alt: Sourcecode on GitHub
    :height: 22
-   :target: https://github.com/OSVVM/OsvvmLibraries
+   :target: https://github.com/OSVVM/OSVVM-Scripts
 .. image:: https://img.shields.io/github/v/tag/OSVVM/OsvvmLibraries
    :target: https://github.com/OSVVM/OsvvmLibraries/releases/latest
    :alt: GitHub Release
 
-OSVVM is hosted and developed on https://github.com/OSVVM. It's components are split into multiple Git repositories,
-which be used individually or as a group. The all-in-one repository is called
+OSVVM is hosted and developed at https://github.com/OSVVM. It's components are split into multiple Git repositories,
+which can be used individually or as a group. The all-in-one repository is called
 `OsvvmLibraries <https://github.com/OSVVM/OsvvmLibraries>`__.
 
+See :ref:`INSTALL/Download` for downloadable archives.
 
-OSVVM is available as either a git repository OSVVM Libraries or a zip file from osvvm.org Downloads Page.
+
+.. _INSTALL/Clone:
 
 Clone OsvvmLibraries
 ********************
 
-OsvvmLibraries summarizes all OSVVM repositories into a single parent repository, which has OSVVM's components
+OsvvmLibraries aggregates all OSVVM repositories into a single parent repository, which has OSVVM's components
 registered as Git submodules. |br|
 When cloning ensure to append the ``–recursive`` flag.
 
@@ -33,6 +35,8 @@ When cloning ensure to append the ``–recursive`` flag.
 
    Git Documentation: `git clone <https://git-scm.com/docs/git-clone>`__
 
+
+.. _INSTALL/Submodule:
 
 Register OsvvmLibraries as Git Submodule
 ****************************************
@@ -51,12 +55,17 @@ OSVVM as a submodule into that project. The following commands assume, OSVVM get
    Git Documentation: `git submodule add <https://git-scm.com/docs/git-submodule>`__
 
 
+.. _INSTALL/IndividualSubmodules:
+
 Register Individual VCs as Git Submodule
 ****************************************
 
 .. todo::
 
    describe individual submodule workflow
+
+
+.. _INSTALL/Updating:
 
 Updating OSVVM or OSVVM Components
 **********************************
@@ -65,6 +74,8 @@ Updating OSVVM or OSVVM Components
 
    describe update process using Git
 
+
+.. _INSTALL/Download:
 
 Download OSVVM Libraries
 ************************
@@ -85,6 +96,14 @@ OsvvmLibraries is also offered as an archive at https://github.com/OSVVM/OsvvmLi
    OSVVM added a CI job for packaging all sources (incl. submodules) into a single archive.
 
 
+.. todo::
+
+   OSVVM is available as either a git repository OSVVM Libraries or a zip file from osvvm.org Downloads Page.
+
+   `Downlaods from osvvm.org <https://osvvm.org/downloads>`__
+
+.. _INSTALL/BusinessContinuity:
+
 Business Continuity Planning
 ****************************
 
@@ -95,4 +114,3 @@ Business Continuity Planning
    1. fork on GitHub
    2. mirror to local Git server (e.g. GitLab)
    3. clone to local machine
-

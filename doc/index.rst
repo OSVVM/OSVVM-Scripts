@@ -1,10 +1,10 @@
 The OSVVM Simulator Script Library
 ##################################
 
-.. image:: https://img.shields.io/badge/OSVVM-OsvvmLibraries-EDB74E.svg?longCache=true&logo=GitHub&labelColor=333333
+.. image:: https://img.shields.io/badge/OSVVM-OSVVM--Scripts-EDB74E.svg?longCache=true&logo=GitHub&labelColor=333333
    :alt: Sourcecode on GitHub
    :height: 22
-   :target: https://github.com/OSVVM/OsvvmLibraries
+   :target: https://github.com/OSVVM/OSVVM-Scripts
 .. image:: https://img.shields.io/badge/code-Apache%20License,%202.0-97ca00.svg?longCache=true&logo=Apache&labelColor=555555
    :alt: Code license
    :height: 22
@@ -25,8 +25,39 @@ This scripting approach provides:
 * Simple path management – everything is relative to the script location
 * Simple usage of libraries
 
+This is an evolving approach. Input is welcome.
 
+.. _NEWS:
 
+News
+****
+
+Latest blog posts and news are available at the `OSVVM Blog <https://osvvm.org/blog>`__.
+
+v2026.01 (upcoming)
+===================
+
+* tbd
+
+v2025.06a
+=========
+
+* tbd
+
+v2025.06
+========
+
+* tbd
+
+v2025.04
+========
+
+* tbd
+
+v2025.02
+========
+
+* tbd
 
 
 .. _CONTRIBUTORS:
@@ -73,7 +104,8 @@ License
    :hidden:
 
    UserGuide
-   Reports
+   Reports/index
+   RequirementsTracking
 
 .. raw:: latex
 

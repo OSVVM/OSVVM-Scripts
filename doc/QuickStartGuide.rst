@@ -3,6 +3,10 @@
 Quick Start Guide
 #################
 
+.. important::
+
+   If you haven't installed OsvvmLibraries yet, please get OSVVM using one of the described methods in :ref:`INSTALL`
+
 Create a Simulation directory
 *****************************
 
@@ -14,6 +18,13 @@ The following assumes you have created a directory named :file:`sim` in the :fil
 
 Alternately, you can run simulations out of the Scripts, but cleanup is a mess as a simulator tends to create numerous
 temporaries.
+
+.. todo::
+
+   Is :file:`sim_vendor-name` still valid?
+
+   What about :file:`temp`?
+
 
 Start the Script environment in the Simulator
 *********************************************
@@ -132,3 +143,13 @@ API. The script API is created using Tcl procedures.
 
       If you were to open :file:`testbench_MultipleMemory.pro`, you would find that ``RunTest`` is used instead as it is
       an abbreviation for the ``analyze``, ``TestName`` and ``simulate`` when the names are the same.
+
+
+Regression.tcl
+**************
+
+.. todo::
+
+   Show how a regression.tcl could look like assuming OSVVM is a git submodule.
+
+

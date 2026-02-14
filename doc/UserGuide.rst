@@ -1,13 +1,136 @@
 .. _UG:
 
-User Guide
-##########
+Scripting Guide
+###############
+
+Overview
+********
+
+.. todo::
+
+   anaylze
+   simulate
+
+   build
+     testsuite
+       testcase
+
+   context
+
+
+Basic Commands
+**************
+
+* build
+* TestSuite
+* library
+* analyze
+* simulate
+* TestName
+* RunTest
+
+build
+=====
+
+Build is a layer on top of include (it calls include) that creates a logging point.
+In general, build is called from the simulator API (when we run something)
+and include is called from scripts.
+
+By default, OSVVM creates collects all tool output for a build into
+an html based log file in ./logs/<tool_name>-<version>/<script-name>.html.
+
+To compile all of the OSVVM libraries, use build as shown below.
+
+.. code-block:: tcl
+
+   build ../OsvvmLibraries/OsvvmLibraries.pro
+
+ Build sets the tcl variables $::ARGC and $::ARGV (an array).
+
+Discouraged Tcl Commands
+************************
+
+Tcl's **source** / EDA Tool's **do**
+====================================
+
+.. caution::
+
+   Do not use Tcl's ``source``!
+   Do not use Tcl's EDA tool's ``do``!
+
+OSVVM uses :ref:`RUFF/osvvm/include` since it helps manage the path of where the script files are located. Include uses
+Tcl's ``source`` internally. However, if you use Tcl's ``source`` (or EDA tool's ``do``) instead, you will not get
+include's directory management features and your scripts will need to manage the directory paths themselves.
+
+Tcl's **cd**
+============
+
+.. caution::
+
+   Do not use Tcl's ``cd``
+
+Simulators create files containing library mappings and other information in the simulation directory. If you use ``cd``
+you lose all of this information. OSVVM tracks the simulation directory in the ``::osvvm::CurrentSimulationDirectory``
+variable.
+
+OSVVM tracks the directory in which scripts run as ``CurrentWorkingDirectory``. All OSVVM API commands run relative to
+``CurrentWorkingDirectory``. When you call a script in another directory using :ref:`RUFF/osvvm/include`,
+``CurrentWorkingDirectory`` is automatically updated to be the directory that contains the script. When
+:ref:`RUFF/osvvm/include` finishes it restores ``CurrentWorkingDirectory`` to be its value before
+:ref:`RUFF/osvvm/include` was called.
+
+If while running a script, you need to adjust the ``CurrentWorkingDirectory``, use :ref:`RUFF/osvvm/ChangeWorkingDirectory`.
+Like ``cd``, :ref:`RUFF/osvvm/ChangeWorkingDirectory` allows either relative or absolute paths.
+
+.. code-block:: tcl
+
+   ChangeWorkingDirectory src
+   analyze Axi4Manager.vhd
+
+If you need to determine a path relative to the ``CurrentWorkingDirectory``, use :ref:`RUFF/osvvm/JoinWorkingDirectory`.
+In the following, the relative path used by :ref:`RUFF/osvvm/LinkLibraryDirectory` is:
+
+.. code-block:: tcl
+
+   LinkLibraryDirectory [JoinWorkingDirectory RelativePath]
 
 
 Structuring Project Files
 *************************
 
+Including Scripts
+=================
 
+We build our designs hierarchically.
+Therefore our scripts need to be build hierarchically.
+When one script calls another script, such as OsvvmLibraries.pro does, we use include.
+The code for OsvvmLibraries.pro is as follows.
+The ``if`` is Tcl and is only building the UART, AXI4, and DpRam if
+their corresponding directories exist.
+
+.. code-block:: tcl
+
+   include ./osvvm/osvvm.pro
+   include ./Common
+
+   if {[DirectoryExists UART]} {
+     include ./UART
+   }
+   if {[DirectoryExists AXI4]} {
+     include ./AXI4
+   }
+   if {[DirectoryExists DpRam]} {
+     include ./DpRam
+   }
+
+Note the paths specified to include are relative to OsvvmLibriaries
+directory since that is where OsvvmLibraries.pro is located.  Note
+that the includes above only specify directory names.   When this
+happens, include looks for a file of the name build.pro or naming
+pattern <DirectoryName>.pro.
+
+Include sets the tcl variables $::ARGC and $::ARGV (an array).
+Rather than using these it is recommended to use tcl procedures.
 
 
 Conditions in Project Files
@@ -51,7 +174,7 @@ Calling generic this way allows OSVVM to set generics using the method required 
 Waveforms
 *********
 
-Adding Other Wave Files
+Adding other Wave Files
 =======================
 
 To include wave files with names different from above, use the :ref:`RUFF/osvvm/DoWaves` function. DoWaves is called in
@@ -76,7 +199,7 @@ In Aldec and Siemens, these are run via the simulator command line (via ``-do``)
    Note the square brackets are required and tell Tcl to call the function to create the arguments for
    :ref:`RUFF/osvvm/simulate` or :ref:`RUFF/osvvm/RunTest`.
 
-Saving Waveforms With GHDL and NVC
+Saving Waveforms with GHDL and NVC
 ==================================
 
 The open source simulators GHDL and NVC run in a batch mode, but can save waveforms to see with a separate waveform
@@ -91,14 +214,103 @@ without a ``true`` or ``false`` value, the default is ``true``.
    SetSaveWaves true
 
 
+.. _UG/CodeCoverage:
+
+Code Coverage
+*************
+
+Code coverage is a metric that tells us if certain parts of our design
+have been exercised or not.  Turning on code coverage with OSVVM is simple.
+In the following example, we enable coverage options during analysis and
+simulation separately.
+
+.. code-block:: tcl
+
+   # File name:  Dut.pro
+   SetCoverageAnalyzeEnable true
+   analyze   Dut.vhd
+   SetCoverageAnalyzeEnable false
+   SetCoverageSimulateEnable true
+   analyze   TbDut.vhd
+   simulate  TbDut
+   SetCoverageSimulateEnable false
+
+Note that CoverageAnalyzeEnable is specifically turned off
+before compiling the testbench so that the testbench is not
+included in the coverage metrics.
+
+You can also set specific options by using SetCoverageAnalyzeOptions
+and SetCoverageSimulateOptions.  By default, OSVVM sets these options
+so that statement, branch, and statemachine coverage is collected.
+
+When coverage is turned on for a build, coverage is collected for each test.
+If there are multiple test suites in the build,
+when a test suite completes execution,
+the coverage for each test in the test suite is merged.
+When a build completes the coverage from each test suite
+is merged and an html coverage report is produced.
+
+
 .. _UG/Debugging:
 
 Debugging
 *********
 
+By default, OSVVM's scripting focuses on running regressions fast. Adding debugging information, logging signals, and/or
+displaying waveforms will slow things down. In addition, by default, if one simulation crashes, the scripts will
+continue and run the next simulation.
+
+Debug Mode
+==========
+
+To add debugging information to your simulation, call :ref:`RUFF/osvvm/SetDebugMode`. If you do not call
+:ref:`RUFF/osvvm/SetDebugMode`, the debug mode is false. If you call :ref:`RUFF/osvvm/SetDebugMode` without a ``true``
+or ``false`` value, the default is true.
+
+.. code-block:: tcl
+
+   SetDebugMode true
+
+Stop on Error
+=============
+
+Whether :ref:`RUFF/osvvm/analyze` or :ref:`RUFF/osvvm/simulate` (also :ref:`RUFF/osvvm/RunTest`) stop on a failure or
+not is controlled by the internal variables ``AnalyzeErrorStopCount`` and ``SimulateErrorStopCount``. By default, these
+variables are set to 0, which means do not stop. Setting them to a non-zero value, causes either
+:ref:`RUFF/osvvm/analyze` or :ref:`RUFF/osvvm/simulate` to stop when the specified number of errors occur. Hence, to
+stop after one error, set them as follows:
+
+ .. code-block:: tcl
+
+   set ::osvvm::AnalyzeErrorStopCount  1
+   set ::osvvm::SimulateErrorStopCount 1
+
+Logging Signal Values (for later display)
+=========================================
+
+To log signals so they can be displayed after the simulation finishes, call :ref:`RUFF/osvvm/SetLogSignals`. If you do
+not call :ref:`RUFF/osvvm/SetLogSignals`, the log signals mode is false. If you call :ref:`RUFF/osvvm/SetLogSignals`
+without a ``true`` or ``false`` value, the default is true.
+
+.. code-block:: tcl
+
+   SetLogSignals true
 
 
+Interactive Mode
+================
 
+To do all of the above in one step, call :ref:`RUFF/osvvm/SetInteractiveMode`. If you call
+:ref:`RUFF/osvvm/SetInteractiveMode` without a ``true`` or ``false`` value, the default is true.
+
+.. seealso::
+
+   :ref:`UG/Config/Override`
+     If you do not like the OSVVM default settings, you can add any of these to your :file:`LocalScriptDefaults.tcl`.
+   :ref:`UG/Config/HookFiles`
+     Also note that there are scripts that automatically run when you call a :ref:`RUFF/osvvm/simulate` or
+     :ref:`RUFF/osvvm/RunTest` command. |br|
+     You can use these scripts to display waveforms.
 
 
 .. _UG/Configuration:
@@ -106,7 +318,10 @@ Debugging
 Configuration
 *************
 
+.. _UG/Config/Override:
 
+Override OSVVM Script Defaults
+==============================
 
 
 
