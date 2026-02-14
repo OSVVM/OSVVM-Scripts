@@ -5,6 +5,8 @@ RUFF_TITLE="OSVVM Scripts"
 RUFF_NAMESPACES="::osvvm"
 RUFF_DIR="osvvm-scripts"
 
+RUFF_SPHINX_PREFIX="RUFF"
+
 # Sphinx settings
 SPHINX_BUILD_DIR="_build"
 
@@ -234,6 +236,9 @@ EOF
 			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Correct index entry${ANSI_NOCOLOR}\n"
 				sed -i -E "/^\.\. index::/{N; N; s|\n\.\. index::||}" "${rstFile}"
 				sed -i -E "s|   single: ${namespace} namespace;|   single: ${namespace}; |g" "${rstFile}"
+
+			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Add readable label${ANSI_NOCOLOR}\n"
+				sed -i -E "s|^\.\. _r-3a3a(\w+)3a3a(\w+):|&\n.. _${RUFF_SPHINX_PREFIX}/\1/\2:| " "${rstFile}"
 
 			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove backticks from heading${ANSI_NOCOLOR}\n"
 				sed -i -E 's/^``(\w+)``$/\1/g' "${rstFile}"

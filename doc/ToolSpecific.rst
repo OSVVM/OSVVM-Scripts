@@ -54,7 +54,7 @@ Quick Overview
 
       .. code-block:: tcl
 
-         source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
+         source <path-to-OsvvmLibraries>/Scripts/StartUp.tcl
 
    .. tab-item:: Siemens Visualizer
       :sync: Visualizer
@@ -63,7 +63,7 @@ Quick Overview
 
       .. code-block:: tcl
 
-         source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
+         source <path-to-OsvvmLibraries>/Scripts/StartUp.tcl
 
    .. tab-item:: Siemens EDA Questa / QuestaSim
       :sync: Questa
@@ -72,7 +72,7 @@ Quick Overview
 
       .. code-block:: tcl
 
-         source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
+         source <path-to-OsvvmLibraries>/Scripts/StartUp.tcl
 
    .. tab-item:: Siemens EDA ModelSim
       :sync: ModelSim
@@ -81,7 +81,7 @@ Quick Overview
 
       .. code-block:: tcl
 
-         source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
+         source <path-to-OsvvmLibraries>/Scripts/StartUp.tcl
 
 
 .. _SIM/Aldec:
@@ -99,7 +99,7 @@ Initialize the OSVVM Script environment with the following commands:
 .. code-block:: tcl
 
    scripterconf -tcl
-   do -tcl <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
+   do -tcl <path-to-OsvvmLibraries>/Scripts/StartUp.tcl
 
 Want to avoid doing this every time? For ActiveHDL, edit :file:`/script/startup.do` and add above to it. Similarly for
 **VSimSA**, edit :file:`/BIN/startup.do` and add the above to it.
@@ -150,9 +150,9 @@ Initialize the OSVVM Script environment within **tclsh**:
 .. code-block:: tcl
 
    winpty tclsh
-   source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
+   source <path-to-OsvvmLibraries>/Scripts/StartUp.tcl
 
-To simplify the startup process, put :file:`source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl` into
+To simplify the startup process, put :file:`source <path-to-OsvvmLibraries>/Scripts/StartUp.tcl` into
 :file:`.tclshrc` and add a Windows short cut that calls ``C:\msys64\ucrt64.exe winpty tclsh``. This will open a UCRT64
 console window with a Tcl shell and pre-loaded OSVVM Script environment.
 
@@ -177,9 +177,9 @@ Initialize the OSVVM Script environment within **tclsh**:
 .. code-block:: tcl
 
    rlwrap tclsh
-   source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl
+   source <path-to-OsvvmLibraries>/Scripts/StartUp.tcl
 
-To simplify this, put :file:`source <path-to-OsvvmLibraries>/OsvvmLibraries/Scripts/StartUp.tcl` in the :file:`.tclshrc`
+To simplify this, put :file:`source <path-to-OsvvmLibraries>/Scripts/StartUp.tcl` in the :file:`.tclshrc`
 file and in Bash add ``alias gsim='rlwrap tclsh'`` to your :file:`.bashrc`.
 
 .. _SIM/NVC:

@@ -1,6 +1,21 @@
 The OSVVM Simulator Script Library
 ##################################
 
+.. image:: https://img.shields.io/badge/OSVVM-OsvvmLibraries-EDB74E.svg?longCache=true&logo=GitHub&labelColor=333333
+   :alt: Sourcecode on GitHub
+   :height: 22
+   :target: https://github.com/OSVVM/OsvvmLibraries
+.. image:: https://img.shields.io/badge/code-Apache%20License,%202.0-97ca00.svg?longCache=true&logo=Apache&labelColor=555555
+   :alt: Code license
+   :height: 22
+   :target: License.html
+.. image:: https://img.shields.io/github/v/tag/OSVVM/OsvvmLibraries
+   :target: https://github.com/OSVVM/OsvvmLibraries/releases/latest
+   :alt: GitHub Release
+.. image:: https://img.shields.io/github/v/release/OSVVM/OsvvmLibraries
+   :target: https://github.com/OSVVM/OsvvmLibraries/releases/latest
+   :alt: GitHub Release
+
 The *OSVVM Simulator Script Library* provides a simple way to compile designs, run simulations, and use libraries.
 
 This scripting approach provides:
@@ -47,6 +62,7 @@ License
    Installation
    QuickStartGuide
    ToolSpecific
+   Support
 
 .. raw:: latex
 
@@ -56,8 +72,8 @@ License
    :caption: User Guide
    :hidden:
 
-   UserGuide/index
-   Reports/index
+   UserGuide
+   Reports
 
 .. raw:: latex
 
