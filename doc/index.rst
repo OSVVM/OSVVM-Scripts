@@ -103,13 +103,28 @@ License
    :caption: OSVVM Utility Library
    :hidden:
 
-   AlertLog
+   UtilityLibrary/AlertLog
+   UtilityLibrary/Coverage
+   UtilityLibrary/Random
 
 .. toctree::
    :caption: Verification Components
    :hidden:
 
-   AXI4/index
+   VC/AXI4/index
+   VC/DpRAM
+   VC/Ethernet
+   VC/SPI
+   VC/UART
+   VC/VideoBus
+   VC/WishBone
+
+.. toctree::
+   :caption: Co-Simulation
+   :hidden:
+
+   CoSim/index
+   CoSim/PCIe
 
 .. toctree::
    :caption: Scripting Guide
@@ -127,7 +142,7 @@ License
    :caption: References and Reports
    :hidden:
 
-   ModelIndependentTransactions
+   VC/ModelIndependentTransactions
    Tcl Command Reference <osvvm-scripts/osvvm>
    YAML/index
 
