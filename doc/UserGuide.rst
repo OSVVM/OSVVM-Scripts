@@ -1,7 +1,7 @@
 .. _UG:
 
-Scripting Guide
-###############
+User Guide
+##########
 
 Overview
 ********
@@ -16,6 +16,23 @@ Overview
        testcase
 
    context
+
+Concepts
+========
+
+.. _UG/Concepts/CurrentSimulationDirectory:
+
+CurrentSimulationDirectory
+--------------------------
+
+.. todo:: explain :file:`CurrentSimulationDirectory`
+
+
+.. admonition:: Naming Style
+
+   Commands are case sensitive. |br|
+   Single word names are all lower case. |br|
+   Multiple word names are CamelCase.
 
 
 Basic Commands
@@ -46,6 +63,40 @@ To compile all of the OSVVM libraries, use build as shown below.
    build ../OsvvmLibraries/OsvvmLibraries.pro
 
  Build sets the tcl variables $::ARGC and $::ARGV (an array).
+
+VHDL Library Handling
+*********************
+
+:ref:`RUFF/osvvm/SetLibraryDirectory`
+:ref:`RUFF/osvvm/SetLibraryDirectory`
+  sdbsbfs dfvdfvggdy
+:tclcode:`SetLibraryDirectory [LibraryDirectory]`
+  - Set the directory in which the libraries will be created to ``LibraryDirectory``.
+  - If ``LibraryDirectory`` is not specified, use the ``CurrentSimulationDirectory``.
+  - By default, libraries are created in :file:`<LibraryDirectory>/VHDL_LIBS/<tool version>/`.
+:tclcode:`GetLibraryDirectory`
+   - Get the Library Directory.
+:tclcode:`library <LibraryName> [<path>]`
+   - Make LibraryName found in library directory specified by path the active library.
+   - Create the LibraryName if it does not exist.
+   - If path is not specified, use the library directory specified by SetLibraryDirectory.
+:tclcode:`LinkLibrary <library> [<path>]`
+   - Create a mapping to a library that is in the library directory specified by path.
+   - If path is not specified, use the library directory specified by SetLibraryDirectory.
+:tclcode:`LinkLibraryDirectory [LibraryDirectory]`
+   - Map all of the libraries in the specified ``LibraryDirectory``.
+     If ``LibraryDirectory`` is not specified, use the library directory specified by SetLibraryDirectory.
+:tclcode:`LinkCurrentLibraries`
+   - If you use ``cd``, then use LinkCurrentLibraries immediately after
+     to map all current visible libraries to the new CurrentSimulationDirectory.
+:tclcode:`RemoveLibrary LibraryName [<path>]`
+   - Remove the named library.
+     Path is only used to find and delete libraries that have not been mapped in OSVVM.
+:tclcode:`RemoveLibraryDirectory [<path>]`
+   - Remove the Library specified in path.
+   - If path is not specified, the library directory specified by SetLibraryDirectory is used.
+:tclcode:`RemoveAllLibraries`
+   - Call RemoveLibraryDirectory on all library directories known to OSVVM.
 
 Discouraged Tcl Commands
 ************************

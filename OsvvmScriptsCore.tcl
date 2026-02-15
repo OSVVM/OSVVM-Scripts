@@ -971,6 +971,25 @@ proc ListLibraries {} {
 # Library
 #
 proc library {LibraryName {PathToLib ""}} {
+  # Set the active VHDL library to *LibraryName* (working library).
+  #
+  #  LibraryName - Name of the active VHDL library.
+  #  PathToLib - If not specified, use the library directory specified by :ref:`RUFF/osvvm/SetLibraryDirectory`. |br|
+  #
+  # If a VHDL library named *LibraryName* doesn't exist, create a new VHDL library *LibraryName* in the specified
+  # library directory.
+  #
+  # This command influences how :ref:`RUFF/osvvm/analyze` behaves.
+  #
+  # .. todo::
+  #
+  #    * Make *LibraryName* found in library directory specified by path the active library.
+  #
+  # .. seealso::
+  #
+  #    * :ref:`RUFF/osvvm/SetLibraryDirectory`
+  #    * :ref:`RUFF/osvvm/GetLibraryDirectory`
+  #
   variable VhdlWorkingLibrary
   variable LibraryList
   variable VhdlLibraryFullPath
@@ -1121,8 +1140,7 @@ proc analyze {FileName args} {
   # * Verilog `*.v`
   # * SystemVerilog `*.sv`
   #
-  # :ref:`ghdl::analyze <RUFF/osvvm/ghdl/analyze>`
-  variable AnalyzeErrorCount 
+  variable AnalyzeErrorCount
   variable AnalyzeErrorStopCount
   variable ConsecutiveAnalyzeErrors 
    
@@ -1842,13 +1860,35 @@ proc GetSimulatorResolution {} {
 # SetLibraryDirectory
 #
 proc SetLibraryDirectory {{LibraryDirectory "."}} {
+  # Set the directory into which VHDL libraries will be created.
+  #
+  #  LibraryDirectory - Directory to use. |br| If not set, use :ref:`UG/Concepts/CurrentSimulationDirectory`. |br|
+  #
+  # By default, VHDL libraries are created in :file:`<LibraryDirectory>/VHDL_LIBS/<tool version>/`.
+  #
+  # This command influences how :ref:`RUFF/osvvm/library` behaves.
+  #
+  # .. seealso::
+  #
+  #    * :ref:`RUFF/osvvm/library`
+  #    * :ref:`RUFF/osvvm/GetLibraryDirectory`
+  #
   variable VhdlLibraryParentDirectory
   
   set VhdlLibraryParentDirectory [file normalize $LibraryDirectory]
-  
 }
 
 proc GetLibraryDirectory {} {
+  # Get the Library directory.
+  #
+  # Returns the directory into which VHDL libraries will be created. |br|
+  # If not modified by :ref:`RUFF/osvvm/SetLibraryDirectory` it defaults to :file:`<LibraryDirectory>/VHDL_LIBS/<tool version>/`.
+  #
+  # .. seealso::
+  #
+  #    * :ref:`RUFF/osvvm/library`
+  #    * :ref:`RUFF/osvvm/SetLibraryDirectory`
+  #
   variable VhdlLibraryParentDirectory
 
   if {[info exists VhdlLibraryParentDirectory]} {

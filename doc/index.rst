@@ -100,7 +100,19 @@ License
    \part{Main Documentation}
 
 .. toctree::
-   :caption: User Guide
+   :caption: OSVVM Utility Library
+   :hidden:
+
+   AlertLog
+
+.. toctree::
+   :caption: Verification Components
+   :hidden:
+
+   AXI4/index
+
+.. toctree::
+   :caption: Scripting Guide
    :hidden:
 
    UserGuide
@@ -115,6 +127,7 @@ License
    :caption: References and Reports
    :hidden:
 
+   ModelIndependentTransactions
    Tcl Command Reference <osvvm-scripts/osvvm>
    YAML/index
 

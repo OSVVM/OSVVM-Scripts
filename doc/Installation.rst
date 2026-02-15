@@ -13,7 +13,7 @@ Installation/Updates
 
 OSVVM is hosted and developed at https://github.com/OSVVM. It's components are split into multiple Git repositories,
 which can be used individually or as a group. The all-in-one repository is called
-`OsvvmLibraries <https://github.com/OSVVM/OsvvmLibraries>`__.
+`OsvvmLibraries <https://github.com/OSVVM/OsvvmLibraries>`__. **OSVVM-Scripts** is part of **OsvvmLibraries**.
 
 See :ref:`INSTALL/Download` for downloadable archives.
 

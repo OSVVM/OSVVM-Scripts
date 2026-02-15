@@ -241,11 +241,21 @@ EOF
 				sed -i -E "s|^\.\. _r-3a3a(\w+)3a3a(\w+):|&\n.. _${RUFF_SPHINX_PREFIX}/\1/\2:| " "${rstFile}"
 
 			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove backticks from heading${ANSI_NOCOLOR}\n"
-				sed -i -E 's/^``(\w+)``$/\1/g' "${rstFile}"
-				sed -i -E 's/----$//g' "${rstFile}"
+				sed -i -E 's|^``(\w+)``$|\1|g' "${rstFile}"
+				sed -i -E 's|----$||g' "${rstFile}"
 
 			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove inline code markers from parameter names${ANSI_NOCOLOR}\n"
-				sed -i -E 's/^:``(\w+)``:/:\1:/g' "${rstFile}"
+				sed -i -E 's|^:``(\w+)``:|:\1:|g' "${rstFile}"
+
+			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Cleanup ReST roles${ANSI_NOCOLOR}\n"
+				sed -i -E 's|:ref:``([^`]*)``|:ref:`\1`|g'   "${rstFile}"
+				sed -i -E 's|:file:``([^`]*)``|:file:`\1`|g' "${rstFile}"
+
+			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Fix todo directive${ANSI_NOCOLOR}\n"
+				sed -i '/^\.\. todo::/,/^\.\. seealso::/ s/^- /   - /' "${rstFile}"
+
+			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Fix seealso directive${ANSI_NOCOLOR}\n"
+				sed -i '/^\.\. seealso::/,/^\.\. index::/ s/^- /   - /' "${rstFile}"
 		done
 	else
 		printf -- "${ANSI_MAGENTA}[BUILD] Patch ReST files ... ${ANSI_YELLOW}[SKIPPED]\n${ANSI_NOCOLOR}"
