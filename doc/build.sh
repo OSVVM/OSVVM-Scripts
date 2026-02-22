@@ -256,6 +256,65 @@ EOF
 
 			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Fix seealso directive${ANSI_NOCOLOR}\n"
 				sed -i '/^\.\. seealso::/,/^\.\. index::/ s/^- /   - /' "${rstFile}"
+
+			test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Move return value up${ANSI_NOCOLOR}\n"
+				awk -i inplace '
+function flush_buffers() {
+    # If we have a Return Value block, print it first
+    if (return_buf != "") {
+        printf "%s", return_buf;
+    }
+    # Then print the Description/Seealso/Middle block
+    if (desc_buf != "") {
+        printf "%s", desc_buf;
+    }
+    desc_buf = ""; return_buf = "";
+    in_desc = 0; in_return = 0;
+}
+
+# 1. Detect the start of the Description block
+/^.. rubric:: Description/ {
+    flush_buffers(); # Safety flush in case of back-to-back procedures
+    in_desc = 1;
+    desc_buf = $0 ORS;
+    next;
+}
+
+# 2. Detect the start of the Return value block
+/^.. rubric:: Return value/ {
+    if (in_desc) {
+        in_desc = 0;
+        in_return = 1;
+        return_buf = $0 ORS;
+        next;
+    }
+    print; # If found outside a description context, print normally
+    next;
+}
+
+# 3. Detect the end of the procedure (the index)
+/^.. index::/ {
+    if (in_return) {
+        flush_buffers();
+    } else if (in_desc) {
+        # If we reached index without finding a Return Value
+        printf "%s", desc_buf;
+        desc_buf = "";
+        in_desc = 0;
+    }
+    print;
+    next;
+}
+
+# 4. Collection Logic
+in_desc   { desc_buf = desc_buf $0 ORS; next }
+in_return { return_buf = return_buf $0 ORS; next }
+
+# 5. Default Print
+{ print }
+
+END { flush_buffers() }
+' "${rstFile}"
 		done
 	else
 		printf -- "${ANSI_MAGENTA}[BUILD] Patch ReST files ... ${ANSI_YELLOW}[SKIPPED]\n${ANSI_NOCOLOR}"
