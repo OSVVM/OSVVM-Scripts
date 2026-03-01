@@ -92,8 +92,9 @@ proc StartUp {} {
 
 
 namespace eval ::osvvm {
-
-
+  variable _ruff_preamble {
+    Here could be some documentation for the namespace.
+  }
 
 # -------------------------------------------------
 # IterateFile
@@ -970,6 +971,25 @@ proc ListLibraries {} {
 # Library
 #
 proc library {LibraryName {PathToLib ""}} {
+  # Set the active VHDL library to *LibraryName* (working library).
+  #
+  #  LibraryName - Name of the active VHDL library.
+  #  PathToLib - If not specified, use the library directory specified by :ref:`RUFF/osvvm/SetLibraryDirectory`. |br|
+  #
+  # If a VHDL library named *LibraryName* doesn't exist, create a new VHDL library *LibraryName* in the specified
+  # library directory.
+  #
+  # This command influences how :ref:`RUFF/osvvm/analyze` behaves.
+  #
+  # .. todo::
+  #
+  #    * Make *LibraryName* found in library directory specified by path the active library.
+  #
+  # .. seealso::
+  #
+  #    * :ref:`RUFF/osvvm/SetLibraryDirectory`
+  #    * :ref:`RUFF/osvvm/GetLibraryDirectory`
+  #
   variable VhdlWorkingLibrary
   variable LibraryList
   variable VhdlLibraryFullPath
@@ -1100,26 +1120,27 @@ proc LinkCurrentLibraries {} {
 #
 proc analyze {FileName args} {
   # Analyze an HDL source file.
-	#
+  #
   #  FileName - Path to the HDL source file.
   #  args     - Further options.
-	#
-	# This procedure executes a tool-specific analyze command depending on what tool was detected. Some of the used
-	# analyze option depend on the current context. For example the use VHDL library this source file and its design units
-	# are compiled into, depend on the last [library] call.
-	#
-	# **Procedures influencing the context for the `analyze` command:**
-	#
-	# * [library] - set the VHDl working library
-	# * [SetVHDLVersion] - tbd
-	# * [SetExtendedAnalyzeOptions] - tbd
-	# * [SetVhdlAnalyzeOptions] - tbd
-	#
+  #
+  # This procedure executes a tool-specific analyze command depending on what tool was detected. Some of the used
+  # analyze option depend on the current context. For example the use VHDL library this source file and its design units
+  # are compiled into, depend on the last [library] call.
+  #
+  # **Procedures influencing the context for the `analyze` command:**
+  #
+  # * [library] - set the VHDL working library
+  # * [SetVHDLVersion] - tbd
+  # * [SetExtendedAnalyzeOptions] - tbd
+  # * [SetVhdlAnalyzeOptions] - tbd
+  #
   # **Supported HDL sourcefile languages:**
-	# * VHDL `*.vhd`/`*.vhdl`
-	# * Verilog `*.v`
-	# * SystemVerilog `*.sv`
-  variable AnalyzeErrorCount 
+  # * VHDL `*.vhd`/`*.vhdl`
+  # * Verilog `*.v`
+  # * SystemVerilog `*.sv`
+  #
+  variable AnalyzeErrorCount
   variable AnalyzeErrorStopCount
   variable ConsecutiveAnalyzeErrors 
    
@@ -1494,7 +1515,7 @@ proc RunTest {FileName {SimName ""} args} {
   puts "RunTest $RunArgs"               ; # EchoOsvvmCmd
   set CompoundCommand TRUE
 
-	if {$SimName eq ""} {
+  if {$SimName eq ""} {
     set SimName [file rootname [file tail $FileName]]
     TestName $SimName
   } else {
@@ -1839,13 +1860,35 @@ proc GetSimulatorResolution {} {
 # SetLibraryDirectory
 #
 proc SetLibraryDirectory {{LibraryDirectory "."}} {
+  # Set the directory into which VHDL libraries will be created.
+  #
+  #  LibraryDirectory - Directory to use. |br| If not set, use :ref:`UG/Concepts/CurrentSimulationDirectory`. |br|
+  #
+  # By default, VHDL libraries are created in :file:`<LibraryDirectory>/VHDL_LIBS/<tool version>/`.
+  #
+  # This command influences how :ref:`RUFF/osvvm/library` behaves.
+  #
+  # .. seealso::
+  #
+  #    * :ref:`RUFF/osvvm/library`
+  #    * :ref:`RUFF/osvvm/GetLibraryDirectory`
+  #
   variable VhdlLibraryParentDirectory
   
   set VhdlLibraryParentDirectory [file normalize $LibraryDirectory]
-  
 }
 
 proc GetLibraryDirectory {} {
+  # Get the Library directory.
+  #
+  # Returns the directory into which VHDL libraries will be created. |br|
+  # If not modified by :ref:`RUFF/osvvm/SetLibraryDirectory` it defaults to :file:`<LibraryDirectory>/VHDL_LIBS/<tool version>/`.
+  #
+  # .. seealso::
+  #
+  #    * :ref:`RUFF/osvvm/library`
+  #    * :ref:`RUFF/osvvm/SetLibraryDirectory`
+  #
   variable VhdlLibraryParentDirectory
 
   if {[info exists VhdlLibraryParentDirectory]} {
