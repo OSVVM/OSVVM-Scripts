@@ -1198,6 +1198,7 @@ proc simulate {LibraryUnit args} {
 
   if {$::osvvm::LastAnalyzeHasError} {
     AnalyzeFailed $LibraryUnit "Previous analyze failed.  Skipping simulate."
+    ClearGenericSettings
 
   } elseif {!($::osvvm::BuildStarted)} {
     # called simulate from console - run as a build with just simulate in it.
@@ -1349,6 +1350,13 @@ proc generic {Name Value} {
 #x  lappend GenericOptions [vendor_generic ${Name} ${Value}] 
   append GenericOptions " " [vendor_generic ${Name} ${Value}]
   return ""
+}
+
+# -------------------------------------------------
+proc ClearGenericSettings {} {
+  set ::osvvm::GenericDict ""
+  set ::osvvm::GenericNames ""
+  set ::osvvm::GenericOptions ""
 }
 
 #--------------------------------------------------------------
