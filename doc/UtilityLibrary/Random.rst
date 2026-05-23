@@ -1,0 +1,5 @@
+.. _RAND:
+
+Constrained Random
+##################
+
