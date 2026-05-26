@@ -450,17 +450,22 @@ proc build {{Path_Or_File "."} args} {
       } 
       # Fail on Test Case Errors
       if {($::osvvm::BuildStatus ne "PASSED") && ($::osvvm::FailOnTestCaseErrors)} {
-        error "Test finished with Test Case Errors."
+        ExitCode 1 "Test finished with Test Case Errors."
       }
       # Fail on Report / Script Errors?
       if {($ReportYamlErrorCode != 0) || ($ReportErrorCode != 0) || ($Log2ErrorCode != 0) || ($ScriptErrorCount != 0)} {  
         # End Simulation with errors
         if {$::osvvm::FailOnReportErrors} {
-          error "Test finished with either Report or Script (wave.do) errors."
+          ExitCode 1 "Test finished with either Report or Script (wave.do) errors."
         }
       } 
     } 
   }
+}
+
+proc ExitCode {Code {Message ""}} {
+  puts $Message
+  exit $Code 
 }
 
 proc LocalBuild {Path_Or_File args} {
