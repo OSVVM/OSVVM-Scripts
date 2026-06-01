@@ -124,10 +124,10 @@ proc vendor_SetCoverageSimulateDefaults {} {
 # -------------------------------------------------
 # Exit Code
 #
-proc ExitCode {Code {Message ""}} {
-  puts $Message
-  exit -code $Code 
-}
+# proc ExitCode {Code {Message ""}} {
+#   puts $Message
+#   exit -code $Code 
+# }
 
 # -------------------------------------------------
 # IsVendorCommand

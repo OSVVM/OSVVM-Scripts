@@ -164,7 +164,7 @@ namespace eval ::osvvm {
     variable LogSignals                "false"
     variable OpenBuildHtmlFile         "false"
     variable SaveWaves                 "false"
-    variable SimulateInteractive       "false"
+    variable ExitOnBuildDone           "false"
 
   #
   #  VHDL File Viewer Controls

@@ -448,17 +448,21 @@ proc build {{Path_Or_File "."} args} {
       if {($ReportErrorCode != 0) || ($ScriptErrorCount != 0)} { 
         CallbackOnError_AfterBuildReports $LocalReportErrorInfo
       } 
-      # Fail on Test Case Errors
-      if {($::osvvm::BuildStatus ne "PASSED") && ($::osvvm::FailOnTestCaseErrors)} {
-        ExitCode 1 "Test finished with Test Case Errors."
-      }
-      # Fail on Report / Script Errors?
-      if {($ReportYamlErrorCode != 0) || ($ReportErrorCode != 0) || ($Log2ErrorCode != 0) || ($ScriptErrorCount != 0)} {  
-        # End Simulation with errors
-        if {$::osvvm::FailOnReportErrors} {
-          ExitCode 1 "Test finished with either Report or Script (wave.do) errors."
+      # Exit on Test Case Errors
+      if {$::osvvm::ExitOnBuildDone && !($::osvvm::SimulateInteractive || $::osvvm::Debug)} {
+        if {($::osvvm::BuildStatus ne "PASSED") && ($::osvvm::FailOnTestCaseErrors)} {
+          ExitCode 1 "Test finished with Test Case Errors."
         }
-      } 
+        # Exit on Report / Script Errors?
+        if {($ReportYamlErrorCode != 0) || ($ReportErrorCode != 0)} {  
+          # End Simulation with errors
+          if {$::osvvm::FailOnReportErrors} {
+              EndSimulation
+            ExitCode 1 "Test finished with either Report or Script (wave.do) errors."
+          }
+        } 
+        ExitCode 0
+      }
     } 
   }
 }
@@ -1208,6 +1212,7 @@ proc simulate {LibraryUnit args} {
   } elseif {!($::osvvm::BuildStarted)} {
     # called simulate from console - run as a build with just simulate in it.
     set SavedInteractive [GetInteractiveMode] 
+    set SavedCurrentWorkingDirectory $::osvvm::CurrentWorkingDirectory
     CheckWorkingDir
     SetInteractiveMode "true"
     set  SimProFileName [file join $::osvvm::CurrentSimulationDirectory $::osvvm::OsvvmTempOutputDirectory OsvvmSimulateBuild.pro]
@@ -1218,6 +1223,7 @@ proc simulate {LibraryUnit args} {
     catch [build $SimProFileName [BuildName $LibraryUnit]]  ;# Errors to std_output, but interactive and stopping anyway
 
     SetInteractiveMode $SavedInteractive  ; # Restore original value
+    set ::osvvm::CurrentWorkingDirectory $SavedCurrentWorkingDirectory   ;#Restore original value
     catch [file delete -force $SimProFile]  
 
   } else {
@@ -1553,320 +1559,6 @@ proc AnalyzeFailed { {LibraryUnit "NotProvided"} {Reason "Not Provided"} } {
   puts "SimulateError: simulate $LibraryUnit $Reason"
   
   AnalyzeFailedBuildYaml $LibraryUnit $Reason
-}
-
-
-# -------------------------------------------------
-# SetVHDLVersion, GetVHDLVersion
-#
-proc SetVHDLVersion {Version} {
-  variable VhdlVersion
-  variable VhdlShortVersion
-
-  if {$Version eq "2008" || $Version eq "08"} {
-    set VhdlVersion 2008
-    set VhdlShortVersion 08
-  } elseif {$Version eq "2019" || $Version eq "19" } {
-    set VhdlVersion 2019
-    set VhdlShortVersion 19
-  } elseif {$Version eq "2002" || $Version eq "02" } {
-    set VhdlVersion 2002
-    set VhdlShortVersion 02
-    puts "\nWARNING:  VHDL Version set to 2002.  OSVVM Requires 2008 or newer\n"
-  } elseif {$Version eq "1993" || $Version eq "93" } {
-    set VhdlVersion 93
-    set VhdlShortVersion 93
-    puts "\nWARNING:  VHDL Version set to 1993.  OSVVM Requires 2008 or newer\n"
-  } else {
-    set VhdlVersion 2008
-    set VhdlShortVersion 08
-    puts "\nWARNING:  Input to SetVHDLVersion not recognized.   Using 2008.\n"
-  }
-}
-
-proc GetVHDLVersion {} {
-  variable VhdlVersion
-  return $VhdlVersion
-}
-
-# -------------------------------------------------
-# SetTranscriptType, GetTranscriptType
-#
-proc SetTranscriptType {{TranscriptType "html"}} {
-  variable TranscriptExtension
-
-  set lowerTranscriptType [string tolower $TranscriptType]
-
-  set TranscriptExtension $lowerTranscriptType
-  if {($lowerTranscriptType ne "html") && ($lowerTranscriptType ne "none")} {
-    set TranscriptExtension "log"
-  }
-}
-
-proc GetTranscriptType {} {
-  variable TranscriptExtension
-  return $TranscriptExtension
-}
-
-# -------------------------------------------------
-# SetVhdlAnalyzeOptions, SetVerilogAnalyzeOptions
-#
-proc SetVhdlAnalyzeOptions {{Options ""}} {
-  variable VhdlAnalyzeOptions
-  set      VhdlAnalyzeOptions $Options
-}
-proc GetVhdlAnalyzeOptions {} {
-  variable VhdlAnalyzeOptions
-  return  $VhdlAnalyzeOptions
-}
-
-proc SetVerilogAnalyzeOptions {{Options ""}} {
-  variable VerilogAnalyzeOptions
-  set      VerilogAnalyzeOptions $Options
-}
-proc GetVerilogAnalyzeOptions {} {
-  variable VerilogAnalyzeOptions
-  return  $VerilogAnalyzeOptions
-}
-
-# -------------------------------------------------
-# SetExtendedAnalyzeOptions, SetExtendedSimulateOptions
-#
-proc SetExtendedAnalyzeOptions {{Options ""}} {
-  variable ExtendedAnalyzeOptions
-  set ExtendedAnalyzeOptions $Options
-}
-proc GetExtendedAnalyzeOptions {} {
-  variable ExtendedAnalyzeOptions
-  return $ExtendedAnalyzeOptions
-}
-
-proc SetExtendedOptimizeOptions {{Options ""}} {
-  variable ExtendedOptimizeOptions
-  set ExtendedOptimizeOptions $Options
-}
-proc GetExtendedOptimizeOptions {} {
-  variable ExtendedOptimizeOptions
-  return $ExtendedOptimizeOptions
-}
-
-proc SetExtendedSimulateOptions {{Options ""}} {
-  variable ExtendedSimulateOptions
-  set ExtendedSimulateOptions $Options
-}
-proc GetExtendedSimulateOptions {} {
-  variable ExtendedSimulateOptions
-  return $ExtendedSimulateOptions
-}
-
-# -------------------------------------------------
-# SetExtendedElaborateOptions, SetExtendedRunOptions
-#    Only for simulators that elaborate and run separately - like GHDL
-#    Currently only implemented for GHDL
-#
-proc SetExtendedElaborateOptions {{Options ""}} {
-  variable ExtendedElaborateOptions
-  set ExtendedElaborateOptions $Options
-}
-proc GetExtendedElaborateOptions {} {
-  variable ExtendedElaborateOptions
-  return $ExtendedElaborateOptions
-}
-
-proc SetExtendedRunOptions {{Options ""}} {
-  variable ExtendedRunOptions
-  set ExtendedRunOptions $Options
-}
-proc GetExtendedRunOptions {} {
-  variable ExtendedRunOptions
-  return $ExtendedRunOptions
-}
-
-# -------------------------------------------------
-# SetSaveWaves
-#    Important for simulators that do everything from the command line
-#    Currently only implemented for GHDL and NVC
-#
-proc SetSaveWaves {{Options "true"}} {
-  variable SaveWaves
-  set SaveWaves $Options
-}
-proc GetSaveWaves {} {
-  variable SaveWaves
-  return $SaveWaves
-}
-
-# -------------------------------------------------
-# SetInteractiveMode, SetDebugMode, SetLogSignals
-#
-proc SetInteractiveMode {{Options "true"}} {
-  variable SimulateInteractive
-  variable AnalyzeErrorStopCount 
-  variable SimulateErrorStopCount
-  variable SavedAnalyzeErrorStopCount 
-  variable SavedSimulateErrorStopCount
-
-  set PreviousSimulateInteractive $SimulateInteractive
-  set SimulateInteractive $Options
-  
-  if {($SimulateInteractive) && !($PreviousSimulateInteractive)} {
-    # Only save ErrorStopCounts when options change from FALSE to TRUE
-    set SavedAnalyzeErrorStopCount  $AnalyzeErrorStopCount
-    set SavedSimulateErrorStopCount $SimulateErrorStopCount
-  }
-
-  if {($SimulateInteractive)} {
-    # When running interactive, set ErrorStopCounts to 1
-    set AnalyzeErrorStopCount  1
-    set SimulateErrorStopCount 1
-  } else {
-    set AnalyzeErrorStopCount  $SavedAnalyzeErrorStopCount 
-    set SimulateErrorStopCount $SavedSimulateErrorStopCount
-  }
-  if {! $::osvvm::DebugIsSet} {
-    set ::osvvm::Debug $Options
-  }
-  if {! $::osvvm::LogSignalsIsSet} {
-    set ::osvvm::LogSignals $Options
-  }
-}
-# SetInteractive is deprecated.   
-proc SetInteractive {{Options "true"}} {
-  puts "SetInteractive is deprecated.  Use SetInteractiveMode instead"
-  SetInteractiveMode $Options 
-}
-
-proc GetInteractiveMode {} {
-  variable SimulateInteractive
-  return $SimulateInteractive
-}
-
-proc SetDebugMode {{Options "true"}} {
-  set ::osvvm::DebugIsSet "true"
-  set ::osvvm::Debug $Options
-}
-proc GetDebugMode {} {
-  return $::osvvm::Debug
-}
-
-proc SetLogSignals {{Options "true"}} {
-  set ::osvvm::LogSignalsIsSet "true"
-  set ::osvvm::LogSignals $Options
-}
-
-proc GetLogSignals {} {
-  variable LogSignals
-  return $LogSignals
-}
-
-# -------------------------------------------------
-# SetSecondSimulationTopLevel, GetSecondSimulationTopLevel
-#
-proc SetSecondSimulationTopLevel {{LibraryDotDesignUnit ""}} {  ; # Specify as Libary.DesignUnit 
-  variable SecondSimulationTopLevel
-  set      SecondSimulationTopLevel $LibraryDotDesignUnit 
-}
-proc GetSecondSimulationTopLevel {} {
-  variable SecondSimulationTopLevel
-  return  $SecondSimulationTopLevel
-}
-
-# -------------------------------------------------
-# SetCoverageEnable, GetCoverageEnable
-#
-proc SetCoverageEnable {{Enable "true"}} {
-  variable CoverageEnable
-  if {[string tolower $Enable] eq "true"} {
-    set CoverageEnable "true"
-  } else {
-    set CoverageEnable "false"
-  }
-  puts "SetCoverageEnable $CoverageEnable"
-}
-proc GetCoverageEnable {} {
-  variable CoverageEnable
-  return $CoverageEnable
-}
-
-# -------------------------------------------------
-# SetCoverageAnalyzeOptions, SetCoverageAnalyzeEnable
-#
-proc SetCoverageAnalyzeOptions {{Options ""}} {
-  set ::osvvm::CoverageAnalyzeOptions $Options
-}
-proc GetCoverageAnalyzeOptions {} {
-  return $::osvvm::CoverageAnalyzeOptions
-}
-
-proc SetCoverageAnalyzeEnable {{Enable "true"}} {
-  variable CoverageAnalyzeEnable
-  if {[string tolower $Enable] eq "true"} {
-    set CoverageAnalyzeEnable "true" 
-  } else {
-    set CoverageAnalyzeEnable "false" 
-  }
-  puts "SetCoverageAnalyzeEnable $CoverageAnalyzeEnable"
-}
-
-proc GetCoverageAnalyzeEnable {} {
-  return $::osvvm::CoverageAnalyzeEnable
-}
-
-# -------------------------------------------------
-# SetCoverageSimulateOptions, SetCoverageSimulateEnable
-#
-proc SetCoverageSimulateOptions {{Options ""}} {
-  set ::osvvm::CoverageSimulateOptions $Options
-}
-proc GetCoverageSimulateOptions {} {
-  return $::osvvm::CoverageSimulateOptions
-}
-
-proc SetCoverageSimulateEnable {{Enable "true"}} {
-  variable CoverageSimulateEnable
-  if {[string tolower $Enable] eq "true"} {
-    set CoverageSimulateEnable "true" ;
-  } else {
-    set CoverageSimulateEnable "false" ;
-  }
-  puts "SetCoverageSimulateEnable $CoverageSimulateEnable"
-}
-proc GetCoverageSimulateEnable {} {
-  return $::osvvm::CoverageSimulateEnable
-}
-
-# -------------------------------------------------
-# SetSimulatorResolution, GetSimulatorResolution
-#
-proc SetSimulatorResolution {SimulatorResolution} {
-  variable SimulateTimeUnits
-  set SimulateTimeUnits $SimulatorResolution
-}
-
-proc GetSimulatorResolution {} {
-  variable SimulateTimeUnits
-  return $SimulateTimeUnits
-}
-
-# -------------------------------------------------
-# SetLibraryDirectory
-#
-proc SetLibraryDirectory {{LibraryDirectory "."}} {
-  variable VhdlLibraryParentDirectory
-  
-  set VhdlLibraryParentDirectory [file normalize $LibraryDirectory]
-  
-}
-
-proc GetLibraryDirectory {} {
-  variable VhdlLibraryParentDirectory
-
-  if {[info exists VhdlLibraryParentDirectory]} {
-    return "${VhdlLibraryParentDirectory}"
-  } else {
-    puts "WARNING:  GetLibraryDirectory VhdlLibraryParentDirectory not defined"
-    return ""
-  }
 }
 
 # -------------------------------------------------
@@ -2294,27 +1986,9 @@ proc GetTimeString {} {
 namespace export analyze simulate build include library RunTest SkipTest TestSuite TestName TestCase BuildName
 namespace export generic DoWaves NoNullRangeWarning
 namespace export IterateFile StartTranscript StopTranscript 
+namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries
 namespace export RemoveLibrary RemoveLibraryDirectory RemoveAllLibraries RemoveLocalLibraries 
 namespace export CreateDirectory
-namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
-namespace export SetLibraryDirectory GetLibraryDirectory SetTranscriptType GetTranscriptType
-namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries
-namespace export SetExtendedAnalyzeOptions GetExtendedAnalyzeOptions
-namespace export SetExtendedOptimizeOptions GetExtendedOptimizeOptions
-namespace export SetExtendedSimulateOptions GetExtendedSimulateOptions
-namespace export SetVhdlAnalyzeOptions GetVhdlAnalyzeOptions SetVerilogAnalyzeOptions GetVerilogAnalyzeOptions 
-namespace export SetCoverageEnable GetCoverageEnable
-namespace export SetCoverageAnalyzeOptions GetCoverageAnalyzeOptions
-namespace export SetCoverageAnalyzeEnable GetCoverageAnalyzeEnable
-namespace export SetCoverageSimulateOptions GetCoverageSimulateOptions
-namespace export SetCoverageSimulateEnable GetCoverageSimulateEnable
-namespace export SetExtendedElaborateOptions GetExtendedElaborateOptions
-namespace export SetExtendedRunOptions GetExtendedRunOptions
-namespace export SetSaveWaves GetSaveWaves
-namespace export SetInteractiveMode GetInteractiveMode
-namespace export SetDebugMode GetDebugMode
-namespace export SetLogSignals GetLogSignals
-namespace export SetSecondSimulationTopLevel GetSecondSimulationTopLevel
 namespace export MergeCoverage
 namespace export OsvvmLibraryPath
 namespace export EndSimulation 
