@@ -2,6 +2,10 @@
 
 | **Revision**  |   **Release Summary**                                                                         | 
 |---------------|-----------------------------------------------------------------------------------------------| 
+| 2026.05       |  Bug fix to simulate to maintain CurrentWorkingDirectory when run from command line           |
+|               |  Refactored OsvvmScriptsCore.tcl to separate out OsvvmScriptsSetGetOptions.tcl                |
+|               |  Fixed issues with VhdlLsToml file creation.                                                  |
+|               |  Clear generic settings if simulate did not start.                                            |
 | 2026.01       |  Simulate - if run from command line, runs as build and creates reports linked into index     |
 |               |  Simluate generates ANALYZED_FAILED if LastAnalyzeHasErrors                                   |
 |               |  Added CreateDryRunDict, CreateVhdlLsToml, CreateAnalyzeOrderList                             |
