@@ -129,7 +129,7 @@ proc vendor_end_previous_simulation {} {
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
   dict lappend ::osvvm::SimulateDict $LibraryName \
-    [dict create FileName [file normalize $FileName] \
+    [dict create LibraryUnit [file normalize $LibraryUnit] \
                 LanguageVersion ${::osvvm::VhdlVersion} \
                 Generics  ${::osvvm::GenericDict} \
                 TimeUnits ${::osvvm::SimulateTimeUnits}  ]

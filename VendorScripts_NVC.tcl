@@ -90,10 +90,13 @@
     variable Supports2019AssertApi           "true"
     variable Supports2019Integer64Bits       "true"
   }
+  if {[expr [string compare $ToolVersion "1.20"] >= 0]} {
+    variable Supports2019Generics            "true"
+  }
 
   # Default memory to use for NVC
   variable SimulatorMemory         "-H 128m"  
-  variable ExtendedGlobalOptions   "--stderr=failure --ieee-warnings=off"
+  variable ExtendedGlobalOptions   "--stderr=failure --ieee-warnings=off-at-0 --ignore-time"
   variable ExtendedRunOptions      "--exit-severity=failure"
 
 # -------------------------------------------------
@@ -117,6 +120,14 @@ proc vendor_SetCoverageSimulateDefaults {} {
   variable CoverageSimulateOptions
 #    set defaults here
 }
+
+# -------------------------------------------------
+# Exit Code
+#
+# proc ExitCode {Code {Message ""}} {
+#   puts $Message
+#   exit -code $Code 
+# }
 
 # -------------------------------------------------
 # IsVendorCommand

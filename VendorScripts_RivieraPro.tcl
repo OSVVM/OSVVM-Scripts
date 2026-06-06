@@ -74,8 +74,14 @@
     variable Supports2019ImpureFunctions     "true"
     variable Supports2019FilePath            "true"
     variable Supports2019AssertApi           "true"
+    variable Supports2019Generics            "false"
   }
   
+  if {[expr [string compare $ToolVersion "2026.04"] >= 0]} {
+    variable Supports2019Interface           "true"
+    variable Supports2019Generics            "true"
+  }
+
   if {$ToolVersion eq "2025.07"} {
     variable Supports2019Integer64Bits       "true"
   }
@@ -102,6 +108,14 @@ proc vendor_StartTranscript {FileName} {
 
 proc vendor_StopTranscript {FileName} {
   transcript file -close $FileName
+}
+
+# -------------------------------------------------
+# Exit Code
+#
+proc ExitCode {Code {Message ""}} {
+  puts $Message
+  exit -code $Code 
 }
 
 # -------------------------------------------------

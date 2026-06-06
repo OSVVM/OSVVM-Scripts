@@ -62,6 +62,7 @@ namespace eval ::osvvm {
   variable Supports2019FilePath            "false"
   variable Supports2019AssertApi           "false"
   variable Supports2019Integer64Bits       "false"
+  variable Supports2019Generics            "false"
 
   variable ToolArgs ""
   variable NoGui "true"

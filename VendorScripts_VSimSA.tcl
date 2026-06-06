@@ -93,6 +93,14 @@ proc vendor_StopTranscript {FileName} {
 }
 
 # -------------------------------------------------
+# Exit Code
+#
+proc ExitCode {Code {Message ""}} {
+  puts $Message
+  exit -code $Code 
+}
+
+# -------------------------------------------------
 # IsVendorCommand
 #
 proc IsVendorCommand {LineOfText} {
