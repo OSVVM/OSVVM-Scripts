@@ -176,7 +176,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
       puts $ElaborateMessage
     }
   } else {
-    set  ElaborateOptions [concat $BasicElaborateOptions -snapshot ${LibraryName}_${LibraryUnit}]
+    set  ElaborateOptions [concat $BasicElaborateOptions --debug all -snapshot ${LibraryName}_${LibraryUnit}]
     puts "xelab {*}$ElaborateOptions"
     if {[catch {exec xelab {*}$ElaborateOptions 2>@1} ElaborateMessage]} { 
       PrintWithPrefix "Elaborate Error:"  $ElaborateMessage
