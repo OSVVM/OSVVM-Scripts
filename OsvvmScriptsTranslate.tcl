@@ -160,17 +160,19 @@ proc ProToYaml {ProFileToBuild {FilePath "."}} {
   variable SimulateDict
   CreateDryRunDict $ProFileToBuild
 
+  set ProFileName [file rootname [file tail $ProFileToBuild]]
+
   # Convert Analyze Dict to Yaml via Huddle
   # {library [file {name language_ver}]}
   set AnalyzeHud [huddle compile {dict * {list {dict}}} $::osvvm::AnalyzeDict]
-  set    AnalyzeYamlFile   [open [file join $FilePath "Analyze.yaml"] w]
+  set    AnalyzeYamlFile   [open [file join $FilePath "${ProFileName}_Analyze.yml"] w]
   puts  $AnalyzeYamlFile   [yaml::huddle2yaml $AnalyzeHud]
   close $AnalyzeYamlFile
 
   # Convert Simulate Dict to Yaml via Huddle
   # {library [file {name language_ver}]}
   set SimulateHud [huddle compile {dict * {list {dict}}} $::osvvm::SimulateDict]
-  set    SimulateYamlFile   [open [file join $FilePath "Simulate.yaml"] w]
+  set    SimulateYamlFile   [open [file join $FilePath "${ProFileName}_Simulate.yml"] w]
   puts  $SimulateYamlFile   [yaml::huddle2yaml $SimulateHud]
   close $SimulateYamlFile
 }
@@ -188,17 +190,19 @@ proc ProToJson {ProFileToBuild {FilePath "."}} {
   variable SimulateDict
   CreateDryRunDict $ProFileToBuild
 
+  set ProFileName [file rootname [file tail $ProFileToBuild]]
+
   # Convert Analyze Dict to Yaml via Huddle
   # {library [file {name language_ver}]}
   set AnalyzeHud [huddle compile {dict * {list {dict}}} $::osvvm::AnalyzeDict]
-  set    AnalyzeJsonFile   [open [file join $FilePath "Analyze.json"] w]
+  set    AnalyzeJsonFile   [open [file join $FilePath "${ProFileName}_Analyze.json"] w]
   puts  $AnalyzeJsonFile   [huddle jsondump $AnalyzeHud]
   close $AnalyzeJsonFile
 
   # Convert Simulate Dict to Yaml via Huddle
   # {library [file {name language_ver}]}
   set SimulateHud [huddle compile {dict * {list {dict}}} $::osvvm::SimulateDict]
-  set    SimulateJsonFile   [open [file join $FilePath "Simulate.json"] w]
+  set    SimulateJsonFile   [open [file join $FilePath "${ProFileName}_Simulate.json"] w]
   puts  $SimulateJsonFile   [huddle jsondump $SimulateHud]
   close $SimulateJsonFile
 }
