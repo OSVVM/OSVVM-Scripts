@@ -40,6 +40,8 @@
 #
 
 package require fileutil
+package require huddle
+package require yaml
 
 namespace eval ::osvvm {
   # Declare existance as a global, but do not initialize as it will clear it
@@ -145,6 +147,62 @@ proc CreateAnalyzeOrderCsv {ProFileToBuild {FileNameAndPath "./AnalyzeOrder.csv"
   close $CsvFile 
 }
 
+proc ProToYaml {ProFileToBuild {FilePath "."}} {
+  # ProToYaml runs a build script in DryRunMode and 
+  # creates a Analyze.yaml and Simulate.yaml file.
+	#
+  #  ProFileToBuild  - Path to the pro file that build the entire design.
+  #  FilePath        - Path to Analyze.yaml and Simulate.yaml
+	#
+
+  # Create AnalyzeDict and SimulateDict for the ProFileToBuild script
+  variable AnalyzeDict
+  variable SimulateDict
+  CreateDryRunDict $ProFileToBuild
+
+  # Convert Analyze Dict to Yaml via Huddle
+  # {library [file {name language_ver}]}
+  set AnalyzeHud [huddle compile {dict * {list {dict}}} $::osvvm::AnalyzeDict]
+  set    AnalyzeYamlFile   [open [file join $FilePath "Analyze.yaml"] w]
+  puts  $AnalyzeYamlFile   [yaml::huddle2yaml $AnalyzeHud]
+  close $AnalyzeYamlFile
+
+  # Convert Simulate Dict to Yaml via Huddle
+  # {library [file {name language_ver}]}
+  set SimulateHud [huddle compile {dict * {list {dict}}} $::osvvm::SimulateDict]
+  set    SimulateYamlFile   [open [file join $FilePath "Simulate.yaml"] w]
+  puts  $SimulateYamlFile   [yaml::huddle2yaml $SimulateHud]
+  close $SimulateYamlFile
+}
+
+proc ProToJson {ProFileToBuild {FilePath "."}} {
+  # ProToJson runs a build script in DryRunMode and 
+  # creates a Analyze.json and Simulate.json file.
+	#
+  #  ProFileToBuild  - Path to the pro file that build the entire design.
+  #  FilePath        - Path to Analyze.json and Simulate.json
+	#
+
+  # Create AnalyzeDict and SimulateDict for the ProFileToBuild script
+  variable AnalyzeDict
+  variable SimulateDict
+  CreateDryRunDict $ProFileToBuild
+
+  # Convert Analyze Dict to Yaml via Huddle
+  # {library [file {name language_ver}]}
+  set AnalyzeHud [huddle compile {dict * {list {dict}}} $::osvvm::AnalyzeDict]
+  set    AnalyzeJsonFile   [open [file join $FilePath "Analyze.json"] w]
+  puts  $AnalyzeJsonFile   [huddle jsondump $AnalyzeHud]
+  close $AnalyzeJsonFile
+
+  # Convert Simulate Dict to Yaml via Huddle
+  # {library [file {name language_ver}]}
+  set SimulateHud [huddle compile {dict * {list {dict}}} $::osvvm::SimulateDict]
+  set    SimulateJsonFile   [open [file join $FilePath "Simulate.json"] w]
+  puts  $SimulateJsonFile   [huddle jsondump $SimulateHud]
+  close $SimulateJsonFile
+}
+
 
 # Don't export the following due to conflicts with Tcl built-ins
 # map
@@ -152,7 +210,8 @@ proc CreateAnalyzeOrderCsv {ProFileToBuild {FileNameAndPath "./AnalyzeOrder.csv"
 namespace export CreateDryRunDict
 namespace export CreateVhdlLsToml
 namespace export CreateAnalyzeOrderCsv
-
+namespace export ProToYaml
+namespace export ProToJson
 
 
 # end namespace ::osvvm
