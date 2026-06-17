@@ -47,7 +47,7 @@ proc Requirements2Csv {RequirementsYamlFile} {
     set FileRoot [file rootname $RequirementsYamlFile]
     set CsvFileName ${FileRoot}.csv
     set ResultsFile [open ${CsvFileName} w]
-    set ReportName [regsub {_req} [file tail $FileRoot] ""] 
+    set ReportName [regsub {_req} [file tail $FileRoot] ""]
     set ErrorCode [catch {LocalRequirements2Csv $RequirementsYamlFile $ReportName} errmsg]
     close $ResultsFile
 
@@ -63,9 +63,9 @@ proc LocalRequirements2Csv {RequirementsYamlFile ReportName} {
 
   set Requirements2Dict [::yaml::yaml2dict -file ${RequirementsYamlFile}]
 
-#  CSV only for merged Requirements which are already sorted  
+#  CSV only for merged Requirements which are already sorted
 #  set Requirements2Dict [lsort -index 1 $UnsortedRequirements2Dict]
-    
+
   foreach item $Requirements2Dict {
     set Requirement [dict get $item Requirement]
     set TestCases [dict get $item TestCases]
@@ -74,24 +74,35 @@ proc LocalRequirements2Csv {RequirementsYamlFile ReportName} {
       set TestCase [lindex $TestCases 0]
       WriteOneRequirementCsv $TestCase $Requirement
     } else {
-      WriteMergeTestCaseCsv $TestCases $Requirement
+#      WriteMergeTestCaseCsv $TestCases $Requirement
+      WriteOneRequirementCsv [MergeTestCaseResults $TestCases] $Requirement
     }
-  }  
-  
-}
+  }
 
+}
 
 proc WriteOneRequirementCsv {TestCase {Requirement ""}} {
   variable ResultsFile
- 
+
   set TestName             [dict get $TestCase  TestName]
   set Status               [dict get $TestCase  Status]
   set ResultsDict          [dict get $TestCase  Results]
   set Goal                 [dict get $ResultsDict  Goal]
-  set Passed               [dict get $ResultsDict  Passed]
+  set PassedReq            [dict get $ResultsDict  Passed]
   set TotalErrors          [dict get $ResultsDict  Errors]
   set Checked              [dict get $ResultsDict  Checked]
-  
+
+  if {[dict exists $ResultsDict PassedSum]} {
+    set PassedChecks        [dict get $ResultsDict  PassedSum]
+  } else {
+    set PassedChecks $PassedReq
+  }
+
+  set RequirementsFailed  [expr {($PassedReq    < $Goal) && ![dict exists $TestCase FromSpecification]}]
+  if {$RequirementsFailed } {
+    set Status "FAILED"
+  }
+
   set AlertCount           [dict get $ResultsDict        AlertCount]
   set AlertFailure         [dict get $AlertCount         Failure]
   set AlertError           [dict get $AlertCount         Error]
@@ -99,68 +110,73 @@ proc WriteOneRequirementCsv {TestCase {Requirement ""}} {
   set DisabledAlertCount   [dict get $ResultsDict        DisabledAlertCount]
   set DisabledAlertFailure [dict get $DisabledAlertCount Failure]
   set DisabledAlertError   [dict get $DisabledAlertCount Error]
-  set DisabledAlertWarning [dict get $DisabledAlertCount Warning]   
+  set DisabledAlertWarning [dict get $DisabledAlertCount Warning]
 
-  set Failures         [expr {$AlertFailure   +  $DisabledAlertFailure}] 
-  set Errors           [expr {$AlertError     +  $DisabledAlertError  }] 
-  set Warnings         [expr {$AlertWarning   +  $DisabledAlertWarning}] 
-  
-  puts $ResultsFile "$Requirement, $Goal, $Passed, $TotalErrors, $Failures, $Errors, $Warnings, $Checked"
-}
+  # Unique part to CSV Report
+  set Failures         [expr {$AlertFailure   +  $DisabledAlertFailure}]
+  set Errors           [expr {$AlertError     +  $DisabledAlertError  }]
+  set Warnings         [expr {$AlertWarning   +  $DisabledAlertWarning}]
 
-proc WriteMergeTestCaseCsv { TestCases {Requirement ""}} {
-  variable ResultsFile
-
-  set TestName             Merged
-  set Status               PASSED
-  set Goal                 0
-  set Passed               0
-  set TotalErrors          0
-  set Checked              0
-
-  set AlertFailure         0
-  set AlertError           0
-  set AlertWarning         0
-  set DisabledAlertFailure 0
-  set DisabledAlertError   0
-  set DisabledAlertWarning 0
-
-  foreach TestCase $TestCases {
-    set CurStatus               [dict get $TestCase  Status]
-    set ResultsDict             [dict get $TestCase  Results]
-    set CurGoal                 [dict get $ResultsDict  Goal]
-    set DictPassed              [dict get $ResultsDict  Passed]
-    set CurPassed           [expr {$DictPassed < $CurGoal ? $DictPassed : $CurGoal}]
-    set CurErrors               [dict get $ResultsDict  Errors]
-    set CurChecked              [dict get $ResultsDict  Checked]
-    set AlertCount              [dict get $ResultsDict        AlertCount]
-    set CurAlertFailure         [dict get $AlertCount         Failure]
-    set CurAlertError           [dict get $AlertCount         Error]
-    set CurAlertWarning         [dict get $AlertCount         Warning]
-    set DisabledAlertCount      [dict get $ResultsDict        DisabledAlertCount]
-    set CurDisabledAlertFailure [dict get $DisabledAlertCount Failure]
-    set CurDisabledAlertError   [dict get $DisabledAlertCount Error]
-    set CurDisabledAlertWarning [dict get $DisabledAlertCount Warning]   
-    
-    if {$CurStatus eq "FAILED"} {
-      set Status "FAILED"
-    }
-    set Goal                 [expr {$Goal > $CurGoal ? $Goal : $CurGoal}]
-    set Passed               [expr {$Passed  + $CurPassed}]
-    set TotalErrors          [expr {$TotalErrors  + $CurErrors}]
-    set Checked              [expr {$Checked + $CurChecked}]
-
-    set AlertFailure         [expr {$AlertFailure + $CurAlertFailure}]
-    set AlertError           [expr {$AlertError   + $CurAlertError}]
-    set AlertWarning         [expr {$AlertWarning + $CurAlertWarning}]
-    set DisabledAlertFailure [expr {$DisabledAlertFailure + $CurDisabledAlertFailure}]
-    set DisabledAlertError   [expr {$DisabledAlertError   + $CurDisabledAlertError}]
-    set DisabledAlertWarning [expr {$DisabledAlertWarning + $CurDisabledAlertWarning}]
+  if {$::osvvm::REQUIREMENTS_CSV_PRINT_STATUS} {
+    puts $ResultsFile "$Requirement, $Status, $Goal, $PassedReq, $TotalErrors, $Failures, $Errors, $Warnings, $Checked, $PassedChecks"
+  } else {
+    puts $ResultsFile "$Requirement, $Goal, $PassedReq, $TotalErrors, $Failures, $Errors, $Warnings, $Checked, $PassedChecks"
   }
-  
-  set Failures         [expr {$AlertFailure   +  $DisabledAlertFailure}] 
-  set Errors           [expr {$AlertError     +  $DisabledAlertError  }] 
-  set Warnings         [expr {$AlertWarning   +  $DisabledAlertWarning}] 
-  
-  puts $ResultsFile "$Requirement, $Goal, $Passed, $TotalErrors, $Failures, $Errors, $Warnings, $Checked"
 }
+
+#proc WriteMergeTestCaseCsv { TestCases {Requirement ""}} {
+#  variable ResultsFile
+#
+#  set TestName             Merged
+#  set Status               PASSED
+#  set Goal                 0
+#  set Passed               0
+#  set TotalErrors          0
+#  set Checked              0
+#
+#  set AlertFailure         0
+#  set AlertError           0
+#  set AlertWarning         0
+#  set DisabledAlertFailure 0
+#  set DisabledAlertError   0
+#  set DisabledAlertWarning 0
+#
+#  foreach TestCase $TestCases {
+#    set CurStatus               [dict get $TestCase  Status]
+#    set ResultsDict             [dict get $TestCase  Results]
+#    set CurGoal                 [dict get $ResultsDict  Goal]
+#    set DictPassed              [dict get $ResultsDict  Passed]
+#    set CurPassed           [expr {$DictPassed < $CurGoal ? $DictPassed : $CurGoal}]
+#    set CurErrors               [dict get $ResultsDict  Errors]
+#    set CurChecked              [dict get $ResultsDict  Checked]
+#    set AlertCount              [dict get $ResultsDict        AlertCount]
+#    set CurAlertFailure         [dict get $AlertCount         Failure]
+#    set CurAlertError           [dict get $AlertCount         Error]
+#    set CurAlertWarning         [dict get $AlertCount         Warning]
+#    set DisabledAlertCount      [dict get $ResultsDict        DisabledAlertCount]
+#    set CurDisabledAlertFailure [dict get $DisabledAlertCount Failure]
+#    set CurDisabledAlertError   [dict get $DisabledAlertCount Error]
+#    set CurDisabledAlertWarning [dict get $DisabledAlertCount Warning]
+#
+#    if {$CurStatus eq "FAILED"} {
+#      set Status "FAILED"
+#    }
+#    set Goal                 [expr {$Goal > $CurGoal ? $Goal : $CurGoal}]
+#    set Passed               [expr {$Passed  + $CurPassed}]
+#    set TotalErrors          [expr {$TotalErrors  + $CurErrors}]
+#    set Checked              [expr {$Checked + $CurChecked}]
+#
+#    set AlertFailure         [expr {$AlertFailure + $CurAlertFailure}]
+#    set AlertError           [expr {$AlertError   + $CurAlertError}]
+#    set AlertWarning         [expr {$AlertWarning + $CurAlertWarning}]
+#    set DisabledAlertFailure [expr {$DisabledAlertFailure + $CurDisabledAlertFailure}]
+#    set DisabledAlertError   [expr {$DisabledAlertError   + $CurDisabledAlertError}]
+#    set DisabledAlertWarning [expr {$DisabledAlertWarning + $CurDisabledAlertWarning}]
+#  }
+#
+#  set Failures         [expr {$AlertFailure   +  $DisabledAlertFailure}]
+#  set Errors           [expr {$AlertError     +  $DisabledAlertError  }]
+#  set Warnings         [expr {$AlertWarning   +  $DisabledAlertWarning}]
+#
+#  puts $ResultsFile "$Requirement, $Goal, $Passed, $TotalErrors, $Failures, $Errors, $Warnings, $Checked"
+#}

@@ -1,4 +1,4 @@
-#  File Name:         Requirements2Html.tcl
+#  File Name:         Requirements2HtmlCsv.tcl
 #  Purpose:           Create HTML for Requirements
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
@@ -7,7 +7,7 @@
 #     Jim Lewis      email:  jim@synthworks.com
 #
 #  Description
-#    Visible externally:  Requirements2Html
+#    Visible externally:  Requirements2Html Requirements2Csv
 #
 #  Developed by:
 #        SynthWorks Design Inc.
@@ -43,35 +43,49 @@
 package require yaml
 
 proc Requirements2Html {RequirementsYamlFile {AdditionalPath ""} } {
+  RequirementsTo "html" $RequirementsYamlFile $AdditionalPath
+}
+
+proc Requirements2Csv {RequirementsYamlFile {AdditionalPath ""} } {
+  RequirementsTo "csv" $RequirementsYamlFile $AdditionalPath
+}
+
+proc RequirementsTo {Extension RequirementsYamlFile {AdditionalPath ""} } {
   variable ResultsFile
 
   if {[file exists $RequirementsYamlFile]} {
+    set IsHtml [expr {${Extension} eq "html"}]
     # Extract HTML file name and ReportName from YamlFile
     set FileRoot [file rootname $RequirementsYamlFile]
-    set HtmlFileName ${FileRoot}.html
+    set ResultsFileName ${FileRoot}.${Extension}
+    set ResultsFile [open ${ResultsFileName} w]
     set ReportName [regsub {_req} [file tail $FileRoot] ""]
 
-    set ResultsFile [open ${HtmlFileName} w]
-
     # Convert requirements YAML to HTML and catch errors
-    set ErrorCode [catch {LocalRequirements2Html $RequirementsYamlFile $ReportName $AdditionalPath} errmsg]
+    set ErrorCode [catch {LocalRequirementsTo $IsHtml $RequirementsYamlFile $ReportName $AdditionalPath} errmsg]
     close $ResultsFile
 
     if {$ErrorCode} {
-      CallbackOnError_AnyReport "Requirements2Html" "RequirementsYamlFile: $RequirementsYamlFile" $errmsg
+      CallbackOnError_AnyReport "RequirementsTo ${Extension}" "RequirementsYamlFile: $RequirementsYamlFile" $errmsg
     }
   }
 }
 
 
-proc LocalRequirements2Html { RequirementsYamlFile ReportName AdditionalPath } {
+proc LocalRequirementsTo { IsHtml RequirementsYamlFile ReportName AdditionalPath } {
   variable ResultsFile
 
-  RequirementsTableHeader $ReportName $AdditionalPath
+  if {$IsHtml} {
+    RequirementsTableHeader $ReportName $AdditionalPath
+  }
 
   set UnsortedRequirements2Dict [::yaml::yaml2dict -file ${RequirementsYamlFile}]
 
   set Requirements2Dict [lsort -index 1 $UnsortedRequirements2Dict]
+
+  set TopFailIfLessThanGoal "true"             ;# Top Level Always fails
+  set SpecificationFailIfLessThanGoal "false"  ;# Spec does not fail
+  set TestCaseFailIfLessThanGoal $::osvvm::REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL
 
   foreach item $Requirements2Dict {
     set Requirement [dict get $item Requirement]
@@ -79,22 +93,26 @@ proc LocalRequirements2Html { RequirementsYamlFile ReportName AdditionalPath } {
     set NumTestCases [llength $TestCases]
     if {$NumTestCases == 1} {
       set TestCase [lindex $TestCases 0]
-      WriteOneRequirement $TestCase $Requirement
+      WriteOneRequirement  $TopFailIfLessThanGoal $IsHtml $TestCase $Requirement
     } else {
-      WriteOneRequirement [MergeTestCaseResults $TestCases] $Requirement
-      foreach TestCase $TestCases {
-        if {  [dict exists $TestCase FromSpecification] } {
-          WriteOneRequirement $TestCase
+      WriteOneRequirement  $TopFailIfLessThanGoal $IsHtml [MergeTestCaseResults $TestCases] $Requirement
+      if {$IsHtml} {
+        foreach TestCase $TestCases {
+          if {  [dict exists $TestCase FromSpecification] } {
+            WriteOneRequirement $SpecificationFailIfLessThanGoal $IsHtml $TestCase
+          }
         }
-      }
-      foreach TestCase $TestCases {
-        if { ![dict exists $TestCase FromSpecification] } {
-          WriteOneRequirement $TestCase
+        foreach TestCase $TestCases {
+          if { ![dict exists $TestCase FromSpecification] } {
+            WriteOneRequirement $TestCaseFailIfLessThanGoal $IsHtml $TestCase
+          }
         }
       }
     }
   }
-  RequirementsTableFooter
+  if {$IsHtml} {
+    RequirementsTableFooter
+  }
 }
 
 proc RequirementsTableHeader { ReportName AdditionalPath } {
@@ -148,7 +166,7 @@ proc RequirementsTableHeader { ReportName AdditionalPath } {
   puts $ResultsFile "      <tbody>"
 }
 
-proc WriteOneRequirement {TestCase {Requirement ""}} {
+proc WriteOneRequirement {FailIfLessThanGoal IsHtml TestCase {Requirement ""}} {
   variable ResultsFile
 
   set TestName             [dict get $TestCase  TestName]
@@ -156,7 +174,7 @@ proc WriteOneRequirement {TestCase {Requirement ""}} {
   set ResultsDict          [dict get $TestCase  Results]
   set Goal                 [dict get $ResultsDict  Goal]
   set PassedReq            [dict get $ResultsDict  Passed]
-  set Errors               [dict get $ResultsDict  Errors]
+  set TotalErrors          [dict get $ResultsDict  Errors]
   set Checked              [dict get $ResultsDict  Checked]
 
   if {[dict exists $ResultsDict PassedSum]} {
@@ -165,10 +183,11 @@ proc WriteOneRequirement {TestCase {Requirement ""}} {
     set PassedChecks $PassedReq
   }
 
-  set RequirementsFailed  [expr {($PassedReq    < $Goal) && ![dict exists $TestCase FromSpecification]}]
-  if {$RequirementsFailed } {
+  set RequirementsFailed  [expr {($PassedReq    < $Goal) && $FailIfLessThanGoal}]
+  if {$RequirementsFailed} {
     set Status "FAILED"
   }
+
 
   set AlertCount           [dict get $ResultsDict        AlertCount]
   set AlertFailure         [dict get $AlertCount         Failure]
@@ -179,41 +198,54 @@ proc WriteOneRequirement {TestCase {Requirement ""}} {
   set DisabledAlertError   [dict get $DisabledAlertCount Error]
   set DisabledAlertWarning [dict get $DisabledAlertCount Warning]
 
-  # Unique part to HTML report
-  if {$Status eq "FAILED"} {
-    set StatusClass "class=\"failed\""
-  } elseif {$Status eq "PASSED" } {
-    set StatusClass "class=\"passed\""
+  if {$IsHtml} {
+    # Unique part to HTML report
+    if {$Status eq "FAILED"} {
+      set StatusClass "class=\"failed\""
+    } elseif {$Status eq "PASSED" } {
+      set StatusClass "class=\"passed\""
+    } else {
+      set StatusClass "class=\"skipped\""
+    }
+    set RequirementsClass  [expr {$RequirementsFailed       ? "class=\"failed\"" : ""}]
+    set PassedChecksClass  [expr {$PassedChecks < $Checked  ? "class=\"warning\"" : ""}]
+    set ChecksClass        [expr {$TotalErrors > 0               ? "class=\"failed\"" : ${PassedChecksClass}}]
+
+    set AlertFailureClass         [expr {$AlertFailure > 0         ? "class=\"failed\"" : ""}]
+    set AlertErrorClass           [expr {$AlertError   > 0         ? "class=\"failed\"" : ""}]
+    set AlertWarningClass         [expr {$AlertWarning > 0         ? "class=\"failed\"" : ""}]
+    set DisabledAlertFailureClass [expr {$DisabledAlertFailure > 0 ? "class=\"failed\"" : ""}]
+    set DisabledAlertErrorClass   [expr {$DisabledAlertError   > 0 ? "class=\"failed\"" : ""}]
+    set DisabledAlertWarningClass [expr {$DisabledAlertWarning > 0 ? "class=\"failed\"" : ""}]
+
+    puts $ResultsFile "        <tr>"
+    puts $ResultsFile "            <td>${Requirement}</td>"
+    puts $ResultsFile "            <td>${TestName}</td>"
+    puts $ResultsFile "            <td ${StatusClass}>$Status</td>"
+    puts $ResultsFile "            <td ${RequirementsClass}>$Goal</td>"
+    puts $ResultsFile "            <td ${RequirementsClass}>$PassedReq</td>"
+    puts $ResultsFile "            <td ${ChecksClass}>$Checked</td>"
+    puts $ResultsFile "            <td ${ChecksClass}>$PassedChecks</td>"
+    puts $ResultsFile "            <td ${ChecksClass}>$TotalErrors</td>"
+    puts $ResultsFile "            <td ${AlertFailureClass}>$AlertFailure</td>"
+    puts $ResultsFile "            <td ${AlertErrorClass}>$AlertError</td>"
+    puts $ResultsFile "            <td ${AlertWarningClass}>$AlertWarning</td>"
+    puts $ResultsFile "            <td ${DisabledAlertErrorClass}>$DisabledAlertFailure</td>"
+    puts $ResultsFile "            <td ${DisabledAlertErrorClass}>$DisabledAlertError</td>"
+    puts $ResultsFile "            <td ${DisabledAlertWarningClass}>$DisabledAlertWarning</td>"
+    puts $ResultsFile "        </tr>"
   } else {
-    set StatusClass "class=\"skipped\""
+    # Unique part to CSV Report
+    set AlertFailures         [expr {$AlertFailure   +  $DisabledAlertFailure}]
+    set AlertErrors           [expr {$AlertError     +  $DisabledAlertError  }]
+    set AlertWarnings         [expr {$AlertWarning   +  $DisabledAlertWarning}]
+
+    if {$::osvvm::REQUIREMENT_CSV_PRINT_STATUS} {
+      puts $ResultsFile "$Requirement, $Status, $Goal, $PassedReq, $TotalErrors, $AlertFailures, $AlertErrors, $AlertWarnings, $Checked, $PassedChecks"
+    } else {
+      puts $ResultsFile "$Requirement, $Goal, $PassedReq, $TotalErrors, $AlertFailures, $AlertErrors, $AlertWarnings, $Checked, $PassedChecks"
+    }
   }
-  set RequirementsClass  [expr {$RequirementsFailed       ? "class=\"failed\"" : ""}]
-  set PassedChecksClass  [expr {$PassedChecks < $Checked  ? "class=\"warning\"" : ""}]
-  set ChecksClass        [expr {$Errors > 0               ? "class=\"failed\"" : ${PassedChecksClass}}]
-
-  set AlertFailureClass         [expr {$AlertFailure > 0         ? "class=\"failed\"" : ""}]
-  set AlertErrorClass           [expr {$AlertError   > 0         ? "class=\"failed\"" : ""}]
-  set AlertWarningClass         [expr {$AlertWarning > 0         ? "class=\"failed\"" : ""}]
-  set DisabledAlertFailureClass [expr {$DisabledAlertFailure > 0 ? "class=\"failed\"" : ""}]
-  set DisabledAlertErrorClass   [expr {$DisabledAlertError   > 0 ? "class=\"failed\"" : ""}]
-  set DisabledAlertWarningClass [expr {$DisabledAlertWarning > 0 ? "class=\"failed\"" : ""}]
-
-  puts $ResultsFile "        <tr>"
-  puts $ResultsFile "            <td>${Requirement}</td>"
-  puts $ResultsFile "            <td>${TestName}</td>"
-  puts $ResultsFile "            <td ${StatusClass}>$Status</td>"
-  puts $ResultsFile "            <td ${RequirementsClass}>$Goal</td>"
-  puts $ResultsFile "            <td ${RequirementsClass}>$PassedReq</td>"
-  puts $ResultsFile "            <td ${ChecksClass}>$Checked</td>"
-  puts $ResultsFile "            <td ${ChecksClass}>$PassedChecks</td>"
-  puts $ResultsFile "            <td ${ChecksClass}>$Errors</td>"
-  puts $ResultsFile "            <td ${AlertFailureClass}>$AlertFailure</td>"
-  puts $ResultsFile "            <td ${AlertErrorClass}>$AlertError</td>"
-  puts $ResultsFile "            <td ${AlertWarningClass}>$AlertWarning</td>"
-  puts $ResultsFile "            <td ${DisabledAlertErrorClass}>$DisabledAlertFailure</td>"
-  puts $ResultsFile "            <td ${DisabledAlertErrorClass}>$DisabledAlertError</td>"
-  puts $ResultsFile "            <td ${DisabledAlertWarningClass}>$DisabledAlertWarning</td>"
-  puts $ResultsFile "        </tr>"
 }
 
 proc MergeTestCaseResults { TestCases } {
@@ -239,7 +271,11 @@ proc MergeTestCaseResults { TestCases } {
     set CurGoal                 [dict get $ResultsDict  Goal]
     set CurPassed               [dict get $ResultsDict  Passed]
 # CurPassedReq = Minimum of CurPassed and CurGoal
-    set CurPassedReq        [expr {$CurPassed < $CurGoal ? $CurPassed : $CurGoal}]
+    if {$::osvvm::REQUIREMENT_DOES_NOT_EXCEED_GOAL} {
+      set CurPassedReq          [expr {$CurPassed < $CurGoal ? $CurPassed : $CurGoal}]
+    } else {
+      set CurPassedReq          $CurPassed
+    }
     set CurErrors               [dict get $ResultsDict  Errors]
     set CurChecked              [dict get $ResultsDict  Checked]
     set AlertCount              [dict get $ResultsDict        AlertCount]
@@ -272,7 +308,7 @@ proc MergeTestCaseResults { TestCases } {
     set DisabledAlertError   [expr {$DisabledAlertError   + $CurDisabledAlertError}]
     set DisabledAlertWarning [expr {$DisabledAlertWarning + $CurDisabledAlertWarning}]
   }
-
+  # For merged requirements always fail if too few PassedReq
   set TestName Merged
 
   return "TestName Merged Status $Status Results { \

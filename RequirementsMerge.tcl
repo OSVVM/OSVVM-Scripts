@@ -77,6 +77,9 @@ proc LocalMergeRequirements {ReqFiles} {
     foreach TestCase $TestCases {
       puts $ResultsFile "  - TestName: [dict get $TestCase TestName]"
       puts $ResultsFile "    Status: [dict get $TestCase Status]"
+      if {[dict exists $TestCase FromSpecification] } {
+        puts $ResultsFile "    FromSpecification: \"true\""
+      }
       set Results [dict get $TestCase Results]
       puts $ResultsFile "    Results: {\
         Goal: [dict get $Results Goal],\

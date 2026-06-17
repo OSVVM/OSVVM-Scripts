@@ -1,22 +1,22 @@
 #  File Name:         OsvvmSettingsDefault.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
-# 
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
-#  Contributor(s):            
-#     Jim Lewis      email:  jim@synthworks.com   
-# 
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Jim Lewis      email:  jim@synthworks.com
+#
 #  Description
 #    Sets the defaults for the OSVVM Scripts
 #    Primarily settings that can be overridden in OsvvmSettingsLocal.tcl
-#    
-#  Developed by: 
-#        SynthWorks Design Inc. 
+#
+#  Developed by:
+#        SynthWorks Design Inc.
 #        VHDL Training Classes
 #        OSVVM Methodology and Model Library
 #        11898 SW 128th Ave.  Tigard, Or  97223
 #        http://www.SynthWorks.com
-# 
+#
 #  Revision History:
 #    Date      Version    Description
 #    04/2024   2024.03    Renamed to OsvvmSettingsDefault.tcl
@@ -26,15 +26,15 @@
 #
 #
 #  This file is part of OSVVM.
-#  
-#  Copyright (c) 2021 - 2025 by SynthWorks Design Inc.  
-#  
+#
+#  Copyright (c) 2021 - 2025 by SynthWorks Design Inc.
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#  
+#
 #      https://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,7 +47,7 @@
 # DO NOT CHANGE THESE SETTINGS
 #   This file is overwritten with each new release.
 #   Instead, create a OsvvmSettingsLocal.tcl and change them there.
-#   If you do not have a OsvvmSettingsLocal.tcl, 
+#   If you do not have a OsvvmSettingsLocal.tcl,
 #   copy OsvvmSettingsLocal_example.tcl to OsvvmSettingsLocal.tcl
 #
 
@@ -57,24 +57,24 @@ namespace eval ::osvvm {
   #
   #  Initialize internal settings -- Do not change these
   #
-    # CurrentWorkingDirectory is a relative path to the scripts currently running 
+    # CurrentWorkingDirectory is a relative path to the scripts currently running
     variable CurrentWorkingDirectory ""
     # CurrentSimulationDirectory is an absolute path to the simulation directory (for reports and such)
     # ** Note it is intentionally different from InvalidDirectory
     variable CurrentSimulationDirectory "Invalid Initial Path !@#$%^&*()+=|><| Should be replaced By CheckWorkingDir"  ;# **
-  
+
   #
   # Directory structure and results file management
   #
-    # OsvvmTempOutputDirectory is where temporary OSVVM output goes.   
+    # OsvvmTempOutputDirectory is where temporary OSVVM output goes.
     # Caution:  If you change the value of OsvvmTempOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
     # Files only remain in this directory when a tool does not complete correctly
     variable OutputBaseDirectory                  ""      ; # Container for all OSVVM ouput
-#     variable OsvvmTempOutputSubdirectory         "OsvvmTemp"  
+#     variable OsvvmTempOutputSubdirectory         "OsvvmTemp"
 #     variable OsvvmTempOutputSubdirectory         "OsvvmTemp_${ToolNameVersion}"   ; # Temporary directory name.  Renamed by BuildName
-    variable OsvvmTempOutputSubdirectory          "OsvvmTemp_${ToolName}"  
+    variable OsvvmTempOutputSubdirectory          "OsvvmTemp_${ToolName}"
 #     variable LogSubdirectory                      "logs/${ToolNameVersion}"  ;# note ToolNameVersion not available here any more
-    variable LogSubdirectory                      "logs"  ; #  With build directories does not need $ToolNameVersion.  Was "logs/${ToolNameVersion}" 
+    variable LogSubdirectory                      "logs"  ; #  With build directories does not need $ToolNameVersion.  Was "logs/${ToolNameVersion}"
     variable ReportsSubdirectory                  "reports"  ; # Directory scripts put reports into.
     variable ResultsSubdirectory                  "results"  ; # Directory for files opened by TranscriptOpen
     variable CoverageSubdirectory                 "CodeCoverage"
@@ -86,19 +86,19 @@ namespace eval ::osvvm {
     variable VhdlLibrarySubdirectory              "${ToolNameVersion}"
 
     variable HtmlThemeSubdirectory                ${ReportsSubdirectory}
-    
-    # OsvvmSettingsSubdirectory 
-    # Location for package local and generated package bodies 
+
+    # OsvvmSettingsSubdirectory
+    # Location for package local and generated package bodies
     # Settings are relative to $OsvvmLibraries/osvvm if SettingsAreRelativeToSimulationDirectory is false
     variable SettingsAreRelativeToSimulationDirectory "false"
-    variable OsvvmSettingsSubdirectory      "" 
+    variable OsvvmSettingsSubdirectory      ""
 
 
-  # 
-  # TCL Error signaling during a build 
+  #
+  # TCL Error signaling during a build
   #   If statements make the persistent with running StartUp
   #
-    
+
     if {![info exists FailOnBuildErrors]} {
       variable FailOnBuildErrors        "false"
     }
@@ -120,38 +120,54 @@ namespace eval ::osvvm {
   #
     variable AnalyzeErrorStopCount       0
     variable SimulateErrorStopCount      0
-  
+
   #
-  #  Generate HTML transcripts if TranscriptExtension = "html".  
-  #    Text based log files are always created  
+  #  Generate HTML transcripts if TranscriptExtension = "html".
+  #    Text based log files are always created
   #
     variable TranscriptExtension      "html"     ;# Generate log and html transcripts
     variable CreateSimScripts         "false"    ;# Create a script with every simulator command run during this session
     variable CreateOsvvmOutput        "false"    ;# Text file with just OSVVM output
-    
+
   #
   #  Requirements Tracking settings
   #
   #    USE_SUM_OF_GOALS
   #      when false, uses maximum goal - good when merging in specification which provides the maximum goal which is divided across teests
   #      when true,  uses sum of goals - good when not merging the specification and need to sum up goals to get the total
-    variable USE_SUM_OF_GOALS         "false"    ;# when false, uses maximum  
-    #  variable USE_SUM_OF_GOALS      "true"     ;# when true uses sum of goals 
+    variable USE_SUM_OF_GOALS         "false"    ;# when false, uses maximum
+    #  variable USE_SUM_OF_GOALS      "true"     ;# when true uses sum of goals
+
+  #    REQUIREMENT_CSV_PRINT_STATUS
+  #      when false, do not print status in CSV
+  #      when true,  print status in CSV
+    variable REQUIREMENT_CSV_PRINT_STATUS  "false"    ;# do not print Status in CSV
+
+  #    REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL
+  #      when false, test case status remains unchanged (Errors=0 => PASSED)
+  #      when true,  if requirements < goal, change test case status to FAILED
+    variable REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL  "false"    ;# do not print Status in CSV
+
+  #    REQUIREMENT_DOES_NOT_EXCEED_GOAL
+  #      when false, sum up actual requirement value
+  #      when true,  requirement = Minimum(Requirement, Goal)
+    variable REQUIREMENT_DOES_NOT_EXCEED_GOAL  "true"    ;# do not print Status in CSV
+
 
   #
-  # VHDL Simulation Settings 
+  # VHDL Simulation Settings
   #
     variable DefaultVHDLVersion     "2008"     ; # OSVVM requires > 2008.  Valid values 1993, 2002, 2008, 2019
     variable SimulateTimeUnits      "ps"
     variable DefaultLibraryName     "DefaultLib"
-  
-  # 
+
+  #
   # Default Code Coverage Options
   #
     variable CoverageEnable           "true"
     variable CoverageAnalyzeEnable    "false"
     variable CoverageSimulateEnable   "false"
-    variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults] 
+    variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults]
     variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
 
   #
@@ -184,6 +200,6 @@ namespace eval ::osvvm {
   # Second Top
   #
     variable SecondSimulationTopLevel ""
-  
-  
+
+
 }
