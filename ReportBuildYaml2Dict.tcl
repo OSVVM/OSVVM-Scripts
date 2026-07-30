@@ -48,9 +48,9 @@
 
 package require yaml
 
-#  Notes:  
+#  Notes:
 #  The following variables are set by GetPathSettings that read the YAML file
-#      Report2HtmlThemeDirectory 
+#      Report2HtmlThemeDirectory
 #      Report2BaseDirectory
 #      Report2ReportsSubdirectory
 #      Report2LogSubdirectory
@@ -85,14 +85,14 @@ proc ReportBuildYaml2Dict {ReportFile} {
   set Report2BaseDirectory   [file dirname $ReportFile]    ;# Set before GetOsvvmPathSettings
   set ReportFileRoot         [file rootname $ReportFile]
   set ReportBuildName        [file tail $ReportFileRoot]
-  
-  
+
+
   # Read the YAML file into a dictionary
   set BuildDict [::yaml::yaml2dict -file ${ReportFile}]
 
   # Convert YAML file to HTML & catch results
   set ErrorCode [catch {LocalReportBuildYaml2Dict $BuildDict} errmsg]
-  
+
   if {$ErrorCode} {
     CallbackOnError_ReportBuildYaml2Dict $ReportFile $errmsg
   }
@@ -103,13 +103,13 @@ proc ReportBuildYaml2Dict {ReportFile} {
 #
 proc LocalReportBuildYaml2Dict {BuildDict} {
   variable ReportBuildName
-  
-  GetOsvvmPathSettings $BuildDict 
-  
+
+  GetOsvvmPathSettings $BuildDict
+
   ElaborateTestSuites $BuildDict
 
   GetBuildStatus $BuildDict
-  
+
 }
 
 # -------------------------------------------------
@@ -120,11 +120,11 @@ proc ReportBuildStatus {} {
   variable ReportBuildErrorCode
   variable ReportAnalyzeErrorCount
   variable ReportSimulateErrorCount
-  variable BuildStatus 
-  variable TestCasesPassed 
-  variable TestCasesFailed 
-  variable TestCasesSkipped 
-  
+  variable BuildStatus
+  variable TestCasesPassed
+  variable TestCasesFailed
+  variable TestCasesSkipped
+
   if {$BuildStatus eq "PASSED"} {
     puts "Build: ${ReportBuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${ReportAnalyzeErrorCount},  Simulate Errors: ${ReportSimulateErrorCount}"
   } else {
@@ -145,7 +145,7 @@ proc ElaborateTestSuites {TestDict} {
   variable TestCasesPassed 0
   variable TestCasesFailed 0
   variable TestCasesSkipped 0
-  
+
   set HaveTestSuites [dict exists $TestDict TestSuites]
 
   if { $HaveTestSuites } {
@@ -162,7 +162,7 @@ proc ElaborateTestSuites {TestDict} {
 #!! This could all be simplified with a dict merge that sets TestStatus "FAILED", TestReqGoal 0, TestReqPassed 0, DisabledAlertCount 0
 #!! Independent of SkipTest, ..., VHDL side will fail with no results and no TestStatus
 #!! Good defaults could minimize info provided by SkipTest and others
-        if { [dict exists $TestCase Results] } { 
+        if { [dict exists $TestCase Results] } {
           set TestStatus  [dict get $TestCase Status]
           set TestResults [dict get $TestCase Results]
           if { $TestStatus ne "SKIPPED" && $TestStatus ne "ANALYZE_FAILED"} {
@@ -183,12 +183,12 @@ proc ElaborateTestSuites {TestDict} {
           set VhdlName $TestName
         }
         # Count results.
-        # If test cases run parallel, must be done here. 
+        # If test cases run parallel, must be done here.
         if { $TestStatus eq "SKIPPED" } {
           incr SuiteSkipped
           incr TestCasesSkipped
         } else {
-          if { ${TestName} ne ${VhdlName}  } {
+          if { (${TestName} ne ${VhdlName}) && $::osvvm::FailOnVhdlNameNotMatchTestName} {
             incr SuiteFailed
             incr TestCasesFailed
           } elseif { ($TestStatus eq "PASSED") || (($TestStatus eq "NOCHECKS") && !($::osvvm::FailOnNoChecks)) } {
@@ -246,11 +246,11 @@ proc ElaborateTestSuites {TestDict} {
 #
 proc GetBuildStatus {TestDict} {
   variable ReportBuildName
-  
+
   variable ReportBuildErrorCode
   variable ReportAnalyzeErrorCount
   variable ReportSimulateErrorCount
-  variable BuildStatus 
+  variable BuildStatus
   variable ReportStartTime
   variable ReportIsoStartTime
   variable ReportFinishTime
@@ -265,7 +265,7 @@ proc GetBuildStatus {TestDict} {
 
 #!! Simplify with dict merge
   if { [dict exists $TestDict BuildInfo] } {
-    set RunInfo   [dict get $TestDict BuildInfo] 
+    set RunInfo   [dict get $TestDict BuildInfo]
   } else {
     set RunInfo   [dict create BuildErrorCode 1]
   }
@@ -287,7 +287,7 @@ proc GetBuildStatus {TestDict} {
   if {($ReportBuildErrorCode != 0) || $ReportAnalyzeErrorCount || $ReportSimulateErrorCount} {
     set BuildStatus "FAILED"
   }
-  
+
   # Print BuildInfo
   set BuildInfo $RunInfo
   if {[dict exists $RunInfo StartTime]} {
@@ -296,12 +296,12 @@ proc GetBuildStatus {TestDict} {
   } else {
     set ReportIsoStartTime ""
     set ReportStartTime ""
-  } 
+  }
   if {[dict exists $RunInfo FinishTime]} {
     set ReportFinishTime [IsoToOsvvmTime [dict get $RunInfo FinishTime]]
   } else {
     set ReportFinishTime ""
-  } 
+  }
 
   if {[dict exists $RunInfo ElapsedTime]} {
     set ElapsedTimeSeconds [dict get $RunInfo ElapsedTime]
@@ -315,25 +315,25 @@ proc GetBuildStatus {TestDict} {
     set ReportSimulator [dict get $RunInfo Simulator]
   } else {
     set ReportSimulator "Unknown"
-  } 
-  
+  }
+
   if {[dict exists $RunInfo SimulatorVersion]} {
     set ReportSimulatorVersion [dict get $RunInfo SimulatorVersion]
   } else {
     set ReportSimulatorVersion "Unknown"
-  } 
+  }
 
   if {[dict exists $RunInfo OsvvmVersion]} {
     set OsvvmVersion [dict get $RunInfo OsvvmVersion]
   } else {
     set OsvvmVersion ""
-  } 
+  }
 
   if {$::osvvm::Report2RequirementsSubdirectory ne ""} {
     set RequirementsRelativeHtml [file join $::osvvm::Report2RequirementsSubdirectory ${ReportBuildName}_req.html]
   } else {
     set RequirementsRelativeHtml ""
-  }  
+  }
 }
 
 

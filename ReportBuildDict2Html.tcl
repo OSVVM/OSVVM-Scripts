@@ -52,9 +52,9 @@
 package require yaml
 package require fileutil
 
-#  Notes:  
+#  Notes:
 #  The following variables are set by GetPathSettings that read the YAML file
-#      Report2HtmlThemeDirectory 
+#      Report2HtmlThemeDirectory
 #      Report2BaseDirectory
 #      Report2ReportsSubdirectory
 #      Report2LogSubdirectory
@@ -71,12 +71,12 @@ proc ReportBuildDict2Html {} {
   variable ResultsFile
   variable ReportFileRoot
 
-  # Open results file  
+  # Open results file
   set ResultsFile [open ${ReportFileRoot}.html w]
-  
+
   # Convert YAML file to HTML & catch results
   set ErrorCode [catch {LocalReportBuildDict2Html} errmsg]
-  
+
   # Close Results file - done here s.t. it is closed even if it fails
   close $ResultsFile
 
@@ -92,15 +92,15 @@ proc LocalReportBuildDict2Html {} {
   variable ResultsFile
   variable ReportBuildName
   variable BuildDict
-  
+
   CreateOsvvmReportHeader $ResultsFile "$ReportBuildName Build Report"
-  
+
   CreateHtmlSummary $BuildDict
-  
-  CreateTestSuiteSummary 
-  
+
+  CreateTestSuiteSummary
+
   CreateTestCaseSummaries $BuildDict
-  
+
   CreateOsvvmReportFooter $ResultsFile
 }
 
@@ -111,11 +111,11 @@ proc LocalReportBuildDict2Html {} {
 proc CreateHtmlSummary {TestDict} {
   variable ResultsFile
   variable ReportBuildName
-  
+
   variable ReportBuildErrorCode
   variable ReportAnalyzeErrorCount
   variable ReportSimulateErrorCount
-  variable BuildStatus 
+  variable BuildStatus
   variable ReportStartTime
   variable ReportFinishTime
   variable ElapsedTimeSeconds
@@ -126,21 +126,21 @@ proc CreateHtmlSummary {TestDict} {
   variable OsvvmVersion
   variable RequirementsRelativeHtml
 
-  variable TestCasesPassed 
-  variable TestCasesFailed 
-  variable TestCasesSkipped 
-  
+  variable TestCasesPassed
+  variable TestCasesFailed
+  variable TestCasesSkipped
+
   set PassedClass  ""
   set FailedClass  ""
   set SkippedClass ""
   if { ${BuildStatus} eq "PASSED" } {
-    set StatusClass  "class=\"passed\"" 
+    set StatusClass  "class=\"passed\""
     set PassedClass  "class=\"passed\""
   } elseif { ${BuildStatus} eq "FAILED" } {
     set StatusClass  "class=\"failed\""
     set FailedClass  "class=\"failed\""
   } else {
-    set StatusClass  "class=\"skipped\"" 
+    set StatusClass  "class=\"skipped\""
     set SkippedClass "class=\"skipped\""
   }
   if {$ReportAnalyzeErrorCount} {
@@ -153,7 +153,7 @@ proc CreateHtmlSummary {TestDict} {
   } else {
     set SimulateClass  ""
   }
-  
+
   puts $ResultsFile "  <div class=\"summary-parent\">"
   puts $ResultsFile "    <div  class=\"summary-table\">"
   puts $ResultsFile "      <table  class=\"summary-table\">"
@@ -171,17 +171,17 @@ proc CreateHtmlSummary {TestDict} {
   # Print BuildInfo
   if {$ReportStartTime ne ""} {
     puts $ResultsFile "          <tr><td>Start Time</td> <td>$ReportStartTime</td></tr>"
-  } 
+  }
   if {$ReportFinishTime ne ""} {
     puts $ResultsFile "          <tr><td>Finish Time</td> <td>$ReportFinishTime</td></tr>"
-  } 
+  }
 
   puts $ResultsFile "          <tr><td>Elapsed Time (hh:mm:ss)</td>                <td>$ElapsedTimeHms</td></tr>"
   puts $ResultsFile "          <tr><td>Simulator (Version)</td> <td>${ReportSimulator} ($ReportSimulatorVersion)</td></tr>"
 
   if {$OsvvmVersion ne ""} {
     puts $ResultsFile "          <tr><td>OSVVM Version</td> <td>$OsvvmVersion</td></tr>"
-  } 
+  }
 
   if {$::osvvm::Report2SimulationLogFile ne ""} {
     puts $ResultsFile "          <tr><td>Simulation Transcript</td><td><a href=\"${::osvvm::Report2SimulationLogFile}\">${ReportBuildName}.log</a></td></tr>"
@@ -197,7 +197,7 @@ proc CreateHtmlSummary {TestDict} {
   if {$::osvvm::Report2CoverageSubdirectory ne ""} {
     puts $ResultsFile "          <tr><td>Code Coverage</td><td><a href=\"${::osvvm::Report2CoverageSubdirectory}\">Code Coverage Results</a></td></tr>"
   }
-  
+
   set IndexPath [file normalize [file join $::osvvm::CurrentSimulationDirectory $::osvvm::OutputBaseDirectory index.html]]
   set RelativeIndexPath  "[::fileutil::relative [file normalize [file join ${::osvvm::OutputBaseDirectory} $ReportBuildName]] $IndexPath]"
   puts $ResultsFile "          <tr><td>Build Index</td><td><a href=\"$RelativeIndexPath\">index.html</a></td></tr>"
@@ -205,11 +205,11 @@ proc CreateHtmlSummary {TestDict} {
   puts $ResultsFile "        </tbody>"
   puts $ResultsFile "      </table>"
   puts $ResultsFile "    </div>"
-  
+
   LinkLogoFile $ResultsFile
 
   puts $ResultsFile "  </div>"
-  
+
 }
 
 # -------------------------------------------------
@@ -245,16 +245,16 @@ proc CreateTestSuiteSummary  {} {
       set SuiteName [dict get $TestSuite Name]
       set SuiteStatus  [dict get $TestSuite Status]
 
-      set PassedClass  "" 
-      set FailedClass  "" 
+      set PassedClass  ""
+      set FailedClass  ""
       if { ${SuiteStatus} eq "PASSED" } {
-        set StatusClass  "class=\"passed\"" 
-        set PassedClass  "class=\"passed\"" 
+        set StatusClass  "class=\"passed\""
+        set PassedClass  "class=\"passed\""
       } elseif { ${SuiteStatus} eq "FAILED" } {
-        set StatusClass  "class=\"failed\"" 
-        set FailedClass  "class=\"failed\"" 
+        set StatusClass  "class=\"failed\""
+        set FailedClass  "class=\"failed\""
       } else {
-        set StatusClass  "class=\"skipped\"" 
+        set StatusClass  "class=\"skipped\""
       }
 
       puts $ResultsFile "          <tr>"
@@ -322,7 +322,7 @@ proc CreateTestCaseSummaries {TestDict} {
 
       foreach TestCase [dict get $TestSuite TestCases] {
         set TestName     [dict get $TestCase TestCaseName]
-        if { [dict exists $TestCase Status] } { 
+        if { [dict exists $TestCase Status] } {
           set TestStatus    [dict get $TestCase Status]
           set TestResults [dict get $TestCase Results]
           if { $TestStatus eq "SKIPPED" || $TestStatus eq "ANALYZE_FAILED"} {
@@ -332,30 +332,30 @@ proc CreateTestCaseSummaries {TestDict} {
             set TestReport  "REPORT"
             set VhdlName    [dict get $TestCase Name]
           }
-        } elseif { ![dict exists $TestCase FunctionalCoverage] } { 
+        } elseif { ![dict exists $TestCase FunctionalCoverage] } {
           set TestReport "NONE"
           set TestStatus "FAILED"
           set Reason     "Simulate Did Not Run"
-        } else { 
+        } else {
           set TestReport "NONE"
           set TestStatus "FAILED"
           set Reason     "No VHDL Results.  Test did not call EndOfTestReports"
         }
-        
-        set PassedClass  "" 
-        set FailedClass  "" 
+
+        set PassedClass  ""
+        set FailedClass  ""
         if { ${TestReport} eq "REPORT"} {
-          if { ${TestName} ne ${VhdlName} } {
+          if { (${TestName} ne ${VhdlName}) && $::osvvm::FailOnVhdlNameNotMatchTestName} {
             set TestStatus   "NAME_MISMATCH"
-            set StatusClass  "class=\"warning\"" 
-            set PassedClass  "class=\"warning\"" 
-            set FailedClass  "class=\"warning\"" 
+            set StatusClass  "class=\"warning\""
+            set PassedClass  "class=\"warning\""
+            set FailedClass  "class=\"warning\""
           } elseif { ${TestStatus} eq "PASSED" } {
-            set StatusClass  "class=\"passed\"" 
-            set PassedClass  "class=\"passed\"" 
+            set StatusClass  "class=\"passed\""
+            set PassedClass  "class=\"passed\""
           } else {
-            set StatusClass  "class=\"failed\"" 
-            set FailedClass  "class=\"failed\"" 
+            set StatusClass  "class=\"failed\""
+            set FailedClass  "class=\"failed\""
           }
         } else {
           if { ${TestStatus} eq "SKIPPED" } {
@@ -363,24 +363,24 @@ proc CreateTestCaseSummaries {TestDict} {
             set PassedClass  "class=\"skipped\""
             set FailedClass  "class=\"skipped\""
           } else {
-            set StatusClass  "class=\"failed\"" 
-            set FailedClass  "class=\"failed\"" 
+            set StatusClass  "class=\"failed\""
+            set FailedClass  "class=\"failed\""
           }
         }
-        if { [dict exists $TestCase TestCaseFileName] } { 
+        if { [dict exists $TestCase TestCaseFileName] } {
           set TestFileName [dict get $TestCase TestCaseFileName]
         } else {
           set TestFileName $TestName
         }
         set TestCaseHtmlFile [file join ${TestSuiteReportsDirectory} ${TestFileName}.html]
         set TestCaseName $TestName
-        if { [dict exists $TestCase Generics] } { 
+        if { [dict exists $TestCase Generics] } {
           set TestCaseGenerics [dict get $TestCase Generics]
           if {${TestCaseGenerics} ne ""} {
-            set GenericValueList [dict values $TestCaseGenerics] 
+            set GenericValueList [dict values $TestCaseGenerics]
             set i 0
             set ListLen [llength ${GenericValueList}]
-            append TestCaseName " (" 
+            append TestCaseName " ("
             foreach GenericValue $GenericValueList {
               incr i
               if {$i != $ListLen} {
@@ -392,7 +392,8 @@ proc CreateTestCaseSummaries {TestDict} {
           }
         }
         puts $ResultsFile "          <tr>"
-        if {($TestStatus eq "PASSED") || ($TestStatus eq "FAILED")} {
+#        if {($TestStatus eq "PASSED") || ($TestStatus eq "FAILED")} {}
+        if { ${TestReport} eq "REPORT"} {
           puts $ResultsFile "            <td><a href=\"${TestCaseHtmlFile}\">${TestCaseName}</a></td>"
         } else {
 #!! Long term link to place SkipTest is called in the build log output.
@@ -412,7 +413,7 @@ proc CreateTestCaseSummaries {TestDict} {
             puts $ResultsFile "            <td>⸻</td>"
             puts $ResultsFile "            <td>⸻</td>"
           }
-          if { [dict exists $TestCase FunctionalCoverage] } { 
+          if { [dict exists $TestCase FunctionalCoverage] } {
             set FunctionalCov [dict get $TestCase FunctionalCoverage]
           } else {
             set FunctionalCov ""
