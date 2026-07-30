@@ -111,6 +111,9 @@ namespace eval ::osvvm {
     if {![info exists FailOnEmptyTestSuite]} {
       variable FailOnEmptyTestSuite     "true"
     }
+    if {![info exists FailOnVhdlNameNotMatchTestName]} {
+      variable FailOnVhdlNameNotMatchTestName        "true"
+    }
     variable GenerateOsvvmReports      "true"
 
   #
@@ -146,7 +149,7 @@ namespace eval ::osvvm {
   #    REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL
   #      when false, test case status remains unchanged (Errors=0 => PASSED)
   #      when true,  if requirements < goal, change test case status to FAILED
-    variable REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL  "false"    ;# do not print Status in CSV
+    variable REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL  "true"
 
   #    REQUIREMENT_DOES_NOT_EXCEED_GOAL
   #      when false, sum up actual requirement value
