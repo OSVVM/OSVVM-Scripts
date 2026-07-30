@@ -1,21 +1,21 @@
 #  File Name:         Log2Osvvm.tcl
 #  Purpose:           Extract information from OSVVM Log Files
 #  Revision:          OSVVM MODELS STANDARD VERSION
-# 
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
-#  Contributor(s):            
-#     Jim Lewis      email:  jim@synthworks.com   
-# 
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Jim Lewis      email:  jim@synthworks.com
+#
 #  Description
 #    Log2Osvvm - Create HTML, Simulation Scripts, and osvvm logs
-#    
-#  Developed by: 
-#        SynthWorks Design Inc. 
+#
+#  Developed by:
+#        SynthWorks Design Inc.
 #        VHDL Training Classes
 #        OSVVM Methodology and Model Library
 #        11898 SW 128th Ave.  Tigard, Or  97223
 #        http://www.SynthWorks.com
-# 
+#
 #  Revision History:
 #    Date      Version    Description
 #    07/2024   2024.07    Minor name updates
@@ -23,15 +23,15 @@
 #
 #
 #  This file is part of OSVVM.
-#  
-#  Copyright (c) 2022 by SynthWorks Design Inc.  
-#  
+#
+#  Copyright (c) 2022 by SynthWorks Design Inc.
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#  
+#
 #      https://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,7 +49,7 @@ namespace eval ::osvvm {
     variable LocalLogType           "html"
     variable LocalCreateSimScripts  "false"
     variable LocalCreateOsvvmOutput "false"
-    
+
     if {[info exists ::osvvm::TranscriptExtension]} {
       set LocalLogType $::osvvm::TranscriptExtension
     }
@@ -59,11 +59,11 @@ namespace eval ::osvvm {
     if {[info exists ::osvvm::CreateOsvvmOutput]} {
       set LocalCreateOsvvmOutput $::osvvm::CreateOsvvmOutput
     }
-    
+
     set LogFileHandle [open $LogFile r]
     set LogDir  [file dirname $LogFile]
     set LogName [file rootname [file tail $LogFile]]
-    
+
     if {$LocalLogType eq "html"} {
       set HtmlFile [file join ${LogDir} ${LogName}_log.html]
       set HtmlFileHandle [open $HtmlFile w]
@@ -85,7 +85,7 @@ namespace eval ::osvvm {
       puts $HtmlFileHandle "</style>"
       puts $HtmlFileHandle "<body>"
       puts $HtmlFileHandle "<pre>"
-    }   
+    }
     if {$LocalCreateSimScripts} {
       set SimFile [file join ${LogDir} ${LogName}_sim.tcl]
       set SimFileHandle [open $SimFile w]
@@ -94,22 +94,22 @@ namespace eval ::osvvm {
       set OsvvmFile [file join ${LogDir} ${LogName}_osvvm.log]
       set OsvvmFileHandle [open $OsvvmFile w]
     }
-    
+
     set ErrorCode [catch {LocalLog2Osvvm $LogFile $LocalLogType $LocalCreateSimScripts $LocalCreateOsvvmOutput} errmsg]
-    
-    close $LogFileHandle 
-    
+
+    close $LogFileHandle
+
     if {$LocalLogType eq "html"} {
       puts $HtmlFileHandle "</body>"
-      close $HtmlFileHandle 
+      close $HtmlFileHandle
     }
     if {$LocalCreateSimScripts} {
-      close $SimFileHandle 
+      close $SimFileHandle
     }
     if {$LocalCreateOsvvmOutput} {
-      close $OsvvmFileHandle 
+      close $OsvvmFileHandle
     }
-    
+
     if {$ErrorCode} {
       CallbackOnError_Log2Osvvm $LogFile $errmsg
     }
@@ -122,29 +122,29 @@ namespace eval ::osvvm {
     variable LogTestSuiteName Default
     variable LogTestCaseName  Default
     variable PrintPrefix ""
-    variable FoundBuild "false" 
+    variable FoundBuild "false"
     variable FirstLine  "true"
 
     # Read line by line - For OSVVM regressions, this is 50 to 100 ms slower
-    #   while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {  } ; 
-    
+    #   while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {  } ;
+
     # Read whole file and split it into lines
     foreach RawLineOfLogFile [split [read $LogFileHandle] \n] {
       set LineOfLogFile [regsub {^KERNEL: } [regsub {^# } $RawLineOfLogFile ""] ""]
-      
+
       if {!$FoundBuild} {
         set FoundBuild [FindBuildInLog]
       }
-      
+
       if {$FoundBuild} {
         if {$LocalLogType eq "html"} {
-          Log2Html  
+          Log2Html
         }
         if {$LocalCreateSimScripts} {
-          Log2Sim 
+          Log2Sim
         }
         if {$LocalCreateOsvvmOutput} {
-          Log2OsvvmOutput  
+          Log2OsvvmOutput
         }
       }
     }
@@ -154,8 +154,8 @@ namespace eval ::osvvm {
     variable HtmlFileHandle
     variable LineOfLogFile
     variable FirstLine
-    variable PrintPrefix 
-    
+    variable PrintPrefix
+
     return [regexp {^build} $LineOfLogFile]
 #    if {[regexp {^build} $LineOfLogFile] } {
 #      return "true"
@@ -175,10 +175,10 @@ namespace eval ::osvvm {
     variable HtmlFileHandle
     variable LineOfLogFile
     variable InRunTest
-    variable LogTestSuiteName 
-    variable LogTestCaseName 
-    variable PrintPrefix 
-    
+    variable LogTestSuiteName
+    variable LogTestCaseName
+    variable PrintPrefix
+
     if {[regexp {^Build Start} $LineOfLogFile] } {
 #      if {$PrintPrefix eq "</details>"} { }
       if {[regexp {</details>} ${PrintPrefix}]}  {
@@ -187,7 +187,7 @@ namespace eval ::osvvm {
         puts $HtmlFileHandle "${PrintPrefix}\n${LineOfLogFile}"
       }
       set PrintPrefix ""
-    } elseif {[regexp {^build|^include|^MkVproc|^MkVprocNoClean|^MkVprocSkt|^MkVprocGhdlMain} $LineOfLogFile] } {
+    } elseif {[regexp {^build|^include|^library|^MkVproc|^MkVprocNoClean|^MkVprocSkt|^MkVprocGhdlMain} $LineOfLogFile] } {
       puts $HtmlFileHandle "${PrintPrefix}<details><summary>${LineOfLogFile}</summary>"
       set PrintPrefix "</details>"
     } elseif {[regexp {^TestSuite} $LineOfLogFile] } {
@@ -247,7 +247,7 @@ namespace eval ::osvvm {
   proc Log2Sim {} {
     variable SimFileHandle
     variable LineOfLogFile
-    
+
     if {[IsVendorCommand $LineOfLogFile]} {
       puts $SimFileHandle [regsub {\{\*\}} $LineOfLogFile ""]
     }
@@ -261,7 +261,7 @@ namespace eval ::osvvm {
       puts $OsvvmFileHandle $LineOfLogFile
     }
   }
-  
+
 namespace export Log2Osvvm
 
 # end namespace ::osvvm
