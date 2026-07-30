@@ -290,6 +290,9 @@ proc MergeTestCaseResults { TestCases } {
     if {$CurStatus eq "FAILED"} {
       set Status "FAILED"
     }
+    if {$::osvvm::REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL && $CurPassed < $CurGoal} {
+      set Status "FAILED"
+    }
 # Goal handling = Maximum vs Sum of goals
     if {$::osvvm::USE_SUM_OF_GOALS} {
       set Goal               [expr {$Goal + $CurGoal}]
