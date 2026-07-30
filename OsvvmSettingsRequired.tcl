@@ -1,45 +1,45 @@
 #  File Name:         OsvvmSettingsRequired.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
-# 
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
-#  Contributor(s):            
-#     Jim Lewis      email:  jim@synthworks.com   
-# 
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Jim Lewis      email:  jim@synthworks.com
+#
 #  Description
-#    Required initializations for variables. 
+#    Required initializations for variables.
 #    DO NOT CHANGE THESE.
 #    For things users can change, see OsvvmDefaultSettings.tcl
-#    
-#  Developed by: 
-#        SynthWorks Design Inc. 
+#
+#  Developed by:
+#        SynthWorks Design Inc.
 #        VHDL Training Classes
 #        OSVVM Methodology and Model Library
 #        11898 SW 128th Ave.  Tigard, Or  97223
 #        http://www.SynthWorks.com
-# 
+#
 #  Revision History:
 #    Date      Version    Description
 #     7/2024   2024.07    Set FailOnNoChecks and ClockResetVersion if not already set in OsvvmSettingsLocal (user defined)
-#                         Naming updates.  Added WaveFiles default. 
+#                         Naming updates.  Added WaveFiles default.
 #     3/2024   2024.03    Revision Update for release
 #                         Added default values for argc, argv, argv0 for questa -batch
 #                         Sets OsvvmVersionCompatibility if it is not set in LocalScriptDefaults.tcl
-#     1/2023   2023.01    Added OsvvmHomeDirectory and OsvvmCoSimDirectory.  
-#                         Added options for CoSim 
+#     1/2023   2023.01    Added OsvvmHomeDirectory and OsvvmCoSimDirectory.
+#                         Added options for CoSim
 #     5/2022   2022.05    Refactored Variable handling
 #
 #
 #  This file is part of OSVVM.
-#  
-#  Copyright (c) 2022 - 2025 by SynthWorks Design Inc.  
-#  
+#
+#  Copyright (c) 2022 - 2025 by SynthWorks Design Inc.
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#  
+#
 #      https://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,7 +50,7 @@
 # DO NOT CHANGE THESE SETTINGS
 #   These settings are required by OSVVM to function properly
 #   For user settings use LocalScriptDefaults.tcl.
-#   If you do not have a LocalScriptDefaults.tcl, 
+#   If you do not have a LocalScriptDefaults.tcl,
 #   copy Example_LocalScriptDefaults.tcl to LocalScriptDefaults.tcl
 #
 
@@ -78,20 +78,20 @@ namespace eval ::osvvm {
     variable ClockResetVersion $OsvvmVersionCompatibility
   }
 
-  # 
+  #
   # OsvvmTempOutputDirectory - Used as temp directory for output
   # DefaultBuildOutputDirectory - Default value if a build is not active
-  # OsvvmBuildOutputDirectory   - Apply default to Build Output Directory 
+  # OsvvmBuildOutputDirectory   - Apply default to Build Output Directory
   #
   # ToolName not set when OsvvmSettingsDefault called
   variable OsvvmTempOutputDirectory    $OsvvmTempOutputSubdirectory
-#    variable OsvvmTempOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory] 
+#    variable OsvvmTempOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory]
   # Default OsvvmBuildOutputDirectory - otherwise it is [file join $OutputBaseDirectory $BuildName]
-#  variable DefaultBuildOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory] 
+#  variable DefaultBuildOutputDirectory    [file join $OutputBaseDirectory  $OsvvmTempOutputSubdirectory]
   variable DefaultBuildOutputDirectory    $OsvvmTempOutputSubdirectory
-  variable OsvvmBuildOutputDirectory    $DefaultBuildOutputDirectory 
+  variable OsvvmBuildOutputDirectory    $DefaultBuildOutputDirectory
 
-  # 
+  #
   # Formalize settings in OsvvmDefaultSettings + LocalScriptDefaults
   #    Call OSVVM functions to do parameter checking and normalization
   #
@@ -100,8 +100,8 @@ namespace eval ::osvvm {
   }
   #  SetSimulatorResolution $SimulateTimeUnits  ;# SimulateTimeUnits is the definitive value
   SetTranscriptType      $TranscriptExtension
-  SetLibraryDirectory    $VhdlLibraryParentDirectory 
-    
+  SetLibraryDirectory    $VhdlLibraryParentDirectory
+
 
   #
   # Create derived directory paths
@@ -121,7 +121,7 @@ namespace eval ::osvvm {
     # Wave files for a single simulation run - set by vendor_DoWaves for some simulators
     variable WaveFiles ""
 
-  
+
     #
     # Extended TCL information about errors - for debugging
     #   TCL's errorInfo is saved to these as build finishes
@@ -140,6 +140,7 @@ namespace eval ::osvvm {
 
 
     variable BuildStarted          "false"   ; # Detects if build is running and if build is called, call include instead
+    variable BuildNameCalled       "false"
     variable HaveNotCreatedBuildOutputDirectory "true"
     variable BuildName             ""
     variable BuildStatus           "FAILED"
@@ -150,7 +151,7 @@ namespace eval ::osvvm {
     variable GenericOptions        ""
     variable RunningCoSim              "false"
     variable RanSimulationWithCoverage "false"
-    
+
     if {[catch {set OperatingSystemName [string tolower [exec uname]]} err]} {
       set OperatingSystemName windows
     }
@@ -161,15 +162,15 @@ namespace eval ::osvvm {
 
     # OsvvmTempYamlFile: temporary OSVVM name.  Moved to ${OutputBaseDirectory}/${BuildName}/${BuildName}.yaml when build finishes
     # Both VHDL and Scripts add to this file
-    variable OsvvmTempYamlFile     [file join ${OsvvmTempOutputDirectory} "OsvvmRun.yml"] ;  
+    variable OsvvmTempYamlFile     [file join ${OsvvmTempOutputDirectory} "OsvvmRun.yml"] ;
 
     #  TempTranscriptYamlFile: temporary file that contains set of files used in TranscriptOpen.  Deleted by scripts.
-    variable TempTranscriptYamlFile     [file join ${OsvvmTempOutputDirectory} "OSVVM_transcript.yml"] ;  
-    
+    variable TempTranscriptYamlFile     [file join ${OsvvmTempOutputDirectory} "OSVVM_transcript.yml"] ;
+
     # OsvvmTempLogFile: temporary OSVVM name. Moved to ${OutputBaseDirectory}/${BuildName}/${LogSubDirectory}/${BuildName}.log when scripts complete
-    # Created in temporary space since BuildName may not have been established yet.   
-    variable OsvvmTempLogFile      [file join ${OsvvmTempOutputDirectory} "OsvvmBuild.log"] ;  
-    
+    # Created in temporary space since BuildName may not have been established yet.
+    variable OsvvmTempLogFile      [file join ${OsvvmTempOutputDirectory} "OsvvmBuild.log"] ;
+
 
     # Error handling
     variable AnalyzeErrorCount 0
@@ -177,12 +178,12 @@ namespace eval ::osvvm {
     variable ConsecutiveAnalyzeErrors 0
     variable SimulateErrorCount 0
     variable ConsecutiveSimulateErrors 0
-    variable ScriptErrorCount 0 
-    
+    variable ScriptErrorCount 0
+
     variable GotTee false
 
     # Initial saved values for ErrorStopCounts
     variable SavedAnalyzeErrorStopCount  $AnalyzeErrorStopCount
     variable SavedSimulateErrorStopCount $SimulateErrorStopCount
-    
+
 }
