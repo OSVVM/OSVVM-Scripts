@@ -54,12 +54,12 @@ proc Index2Html {} {
   # Read the YAML file into a dictionary
   set IndexDict [dict get [::yaml::yaml2dict -file ${::osvvm::OsvvmIndexYamlFile}] Builds]
 
-  # Open results file  
+  # Open results file
   set ResultsFile [open $::osvvm::OsvvmIndexHtmlFile w]
-  
+
   # Convert YAML file to HTML & catch results
   set ErrorCode [catch {LocalIndex2Html} errmsg]
-  
+
   # Close Results file - done here s.t. it is closed even if it fails
   close $ResultsFile
 
@@ -75,15 +75,15 @@ proc LocalIndex2Html {} {
   variable ResultsFile
   variable IndexDict
   variable FirstBuildName
-  
+
   set FirstBuildName [dict get [lindex $IndexDict 0] Name]
 #   CreateOsvvmReportHeader $ResultsFile "Index of Builds" [file join $::osvvm::OutputBaseDirectory $FirstBuildName] 1
   CreateOsvvmReportHeader $ResultsFile "Index of Builds" $FirstBuildName 1
-  
-  CreateBuildIndexHeader 
-  
-  CreateBuildIndexSummary 
-  
+
+  CreateBuildIndexHeader
+
+  CreateBuildIndexSummary
+
   CreateOsvvmReportFooter $ResultsFile
 }
 
@@ -113,7 +113,7 @@ proc CreateBuildIndexHeader {} {
   puts $ResultsFile "              <th>SKIPPED</th>"
   puts $ResultsFile "          </tr>"
   puts $ResultsFile "        </thead>"
-  
+
 }
 
 
@@ -129,21 +129,21 @@ proc CreateBuildIndexSummary  {} {
 
   set NoInfoDict {Name NA Directory "" Status FAILED Passed 0 Failed 1 Skipped 0 Tests 0 AnalyzeErrorCount 0 SimulateErrorCount 0 BuildErrorCode 0 StartTime 2011-02-07T12:00:00-08:00 FinishTime 2012-01-09T12:00:00-08:00 ElapsedTime 0.0 ToolName OsvvmNameDay ToolVersion 0.1 OsvvmVersion 2012.01}
 
-  foreach RawBuildItem  $IndexDict {
+  foreach RawBuildItem  [lreverse $IndexDict] {
     set BuildItem        [dict merge $NoInfoDict $RawBuildItem]
     set BuildItemName    [dict get $BuildItem Name]
     set BuildDirectory   [dict get $BuildItem Directory]
     set BuildStatus      [dict get $BuildItem Status]
-    set PassedClass  "" 
-    set FailedClass  "" 
+    set PassedClass  ""
+    set FailedClass  ""
     if { ${BuildStatus} eq "PASSED" } {
-      set StatusClass  "class=\"passed\"" 
-      set PassedClass  "class=\"passed\"" 
+      set StatusClass  "class=\"passed\""
+      set PassedClass  "class=\"passed\""
     } elseif { ${BuildStatus} eq "FAILED" } {
-      set StatusClass  "class=\"failed\"" 
-      set FailedClass  "class=\"failed\"" 
+      set StatusClass  "class=\"failed\""
+      set FailedClass  "class=\"failed\""
     } else {
-      set StatusClass  "class=\"skipped\"" 
+      set StatusClass  "class=\"skipped\""
     }
 
     puts $ResultsFile "          <tr>"
@@ -167,7 +167,7 @@ proc CreateBuildIndexSummary  {} {
   }
   puts $ResultsFile "        </tbody>"
   puts $ResultsFile "      </table>"
-  puts $ResultsFile "    </div>"  
+  puts $ResultsFile "    </div>"
 }
 
 
