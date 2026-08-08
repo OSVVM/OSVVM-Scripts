@@ -107,6 +107,8 @@ proc ReadListFromFile {RawFileWithNames} {
   return $ListOfNames
 }
 
+
+
 proc IterateFile {RawActionForName RawFileWithNames} {
 #  puts "$FileWithNames"
   set FileWithNames [file join $::osvvm::CurrentWorkingDirectory $RawFileWithNames]

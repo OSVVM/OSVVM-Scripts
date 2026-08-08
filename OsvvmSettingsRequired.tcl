@@ -56,7 +56,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion                   2026.05+Dev
+  variable OsvvmVersion                   2026.08
   variable OsvvmYamlVersion               0.1
   variable OsvvmIndexYamlVersion          $OsvvmYamlVersion
   variable OsvvmBuildYamlVersion          $OsvvmYamlVersion
