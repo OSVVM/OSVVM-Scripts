@@ -62,7 +62,9 @@ proc FindOsvvmSettingsDirectory {{OsvvmSubdirectory "osvvm"}} {
     set SettingsRootDirectory [file normalize ${::osvvm::CurrentSimulationDirectory}]
   }
 
-  if {[info exists ::env(OSVVM_SETTINGS_DIR)]} {
+  if {$::osvvm::OsvvmSettingsDirectory ne ""} {
+    set SettingsDirectory $::osvvm::OsvvmSettingsDirectory
+  } elseif {[info exists ::env(OSVVM_SETTINGS_DIR)]} {
     # Note that OSVVM_SETTINGS_DIR may be either an absolute or relative path
     # For relative paths, use OsvvmHomeDirectory (location of OsvvmLibraries) as the base
     set SettingsDirectory $::env(OSVVM_SETTINGS_DIR)
@@ -313,13 +315,13 @@ proc FileDiff {File1 File2} {
   if {$ReadFile1Code} {return "true"}
   set LinesOfFile1   [split [read $FileHandle1] \n]
   close $FileHandle1
-  set LengthOfFile1  [llength $$LinesOfFile1]
+  set LengthOfFile1  [llength $LinesOfFile1]
 
   set ReadFile2Code [catch {set FileHandle2 [open $File2 r]} ReadErrMsg]
   if {$ReadFile2Code} {return "true"}
   set LinesOfFile2   [split [read $FileHandle2] \n]
   close $FileHandle2
-  set LengthOfFile2  [llength $$LinesOfFile2]
+  set LengthOfFile2  [llength $LinesOfFile2]
 
   if {$LengthOfFile1 != $LengthOfFile2} {return "true"}
 
@@ -365,6 +367,7 @@ proc MakeArch {FileName} {
 
 # -------------------------------------------------
 #  GetNewName - local
+#  Should be an OSVVM utility as other things do this too
 #
 proc GetNewName {FileName} {
   #
@@ -376,7 +379,8 @@ proc GetNewName {FileName} {
 }
 
 # -------------------------------------------------
-# CopyFileIfDiffOtherwiseDelete - local
+#  CopyFileIfDiffOtherwiseDelete - local
+#  Should be an OSVVM utility as other things do this too
 #
 proc CopyFileIfDiffOtherwiseDelete {NewFileName FileName} {
   #
@@ -385,7 +389,7 @@ proc CopyFileIfDiffOtherwiseDelete {NewFileName FileName} {
   #  NewFileName - New file
   #  FileName    - File to replace if they differ
 	#
-  if {[FileDiff ${NewFileName} ${FileName}]} {
+  if {![file exists $FileName] || [FileDiff ${NewFileName} ${FileName}]} {
     file rename -force ${NewFileName} ${FileName}
   } else {
     file delete -force ${NewFileName}
@@ -435,7 +439,8 @@ proc MakePkgBodyTemplate {PkgBodyFile TemplatePkgBodyFile} {
   set TemplatePkgBodyFilePath    [file join ${::osvvm::CurrentWorkingDirectory} ${TemplatePkgBodyFile}]
   set NewTemplatePkgBodyFilePath [GetNewName $TemplatePkgBodyFilePath]
   #   Write to this file from a stream (sed):  pattern to match                                           Read this source file         replace pattern with this
-	PrintTo ${NewTemplatePkgBodyFilePath} [regsub -all -nocase {constant\s+(\w+)\s*:\s*([^:=]+):=\s*[^;]+;} [ReadFrom ${PkgBodyFilePath}] {constant \1 : \2:= ${\1} ;}]
+#	PrintTo ${NewTemplatePkgBodyFilePath} [regsub -all -nocase {(constant\s+(\w+)\s*:\s*[^:=]+):=\s*[^;]+;} [ReadFrom ${PkgBodyFilePath}] {\1:= ${\2} ;}]
+	PrintTo ${NewTemplatePkgBodyFilePath} [regsub -all -linestop -nocase {(constant\s+(\w+)\s*:.*?):=\s*[^;]+;} [ReadFrom ${PkgBodyFilePath}] {\1:= ${\2} ;}]
   CopyFileIfDiffOtherwiseDelete $NewTemplatePkgBodyFilePath $TemplatePkgBodyFilePath
 }
 
@@ -461,7 +466,7 @@ proc MakePkgSettings {PkgBodyFile SettingsFile} {
   set OutputFile [open ${NewSettingsFilePath} w]
   foreach item [ReadListFromFile ${PkgBodyFilePath}] {
     # Only for lines that contain the word constant
-    if {[regexp -nocase {constant} $item] } {
+    if {![regexp {^\s*--} $item] && [regexp -nocase {constant} $item] } {
       #                       Match this pattern                                     in item  create this in result
       regsub -all -nocase -- {^\s*constant\s+(\w+)\s*:\s*[\w\.\(\)]+\s*:=\s*(.*?);.*$} $item {\1: \2} result
       puts $OutputFile $result

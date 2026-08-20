@@ -87,12 +87,13 @@ namespace eval ::osvvm {
 
     variable HtmlThemeSubdirectory                ${ReportsSubdirectory}
 
+    variable OsvvmSettingsDirectory               ""
+
     # OsvvmSettingsSubdirectory
     # Location for package local and generated package bodies
     # Settings are relative to $OsvvmLibraries/osvvm if SettingsAreRelativeToSimulationDirectory is false
     variable SettingsAreRelativeToSimulationDirectory "false"
     variable OsvvmSettingsSubdirectory      ""
-
 
   #
   # TCL Error signaling during a build
@@ -131,6 +132,12 @@ namespace eval ::osvvm {
     variable TranscriptExtension      "html"     ;# Generate log and html transcripts
     variable CreateSimScripts         "false"    ;# Create a script with every simulator command run during this session
     variable CreateOsvvmOutput        "false"    ;# Text file with just OSVVM output
+
+
+  #
+  # Feature Controls for Memory
+  #
+    variable  UseMemoryPkg01         "false"    ;# Currently choosing between 01 (stores values 01) and UX01 (Stores values UX01, but 2X storage if using > 16 bits)
 
   #
   #  Requirements Tracking settings
@@ -191,13 +198,13 @@ namespace eval ::osvvm {
     variable VhdlFileViewerPrefix      ""  ;# viewer = html browser.
   #  variable VhdlFileViewerPrefix      "vscode://file/"   ;# viewer = vscode.  Set in OsvvmSettingsLocal.tcl
 
-
   #
   #  OsvvmDeveloper Controls
   #
     variable TclDebug                     "false"
     variable ReportDebug                  "false"
     variable OsvvmDevDeriveArchitectures  "false"
+    variable OsvvmDevDerivePackageHeaders "false"
 
   #
   # Second Top

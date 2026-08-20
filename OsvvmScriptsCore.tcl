@@ -1496,7 +1496,6 @@ proc TestSuite {SuiteName} {
   puts "TestSuite $SuiteName"                     ; # EchoOsvvmCmd
 
   set FirstRun [expr ![info exists TestSuiteName]]
-
   if {! $FirstRun} {
     if {$SuiteName eq $TestSuiteName} {
       # Do nothing if test suite already set
@@ -1832,21 +1831,24 @@ proc InstallProject { {ProjectDir $OsvvmLibraries} {ProjectBuildScript $ProjectD
 # SimulateDoneMoveTestCaseFiles
 #
 proc SimulateDoneMoveTestCaseFiles {} {
-  variable OsvvmTempOutputDirectory
+  # Inputs
   variable TestCaseName
   variable TestCaseFileName
-  variable GenericDict
-  variable GenericNames
-  variable TestSuiteName
-#  variable BuildName
+  variable TestSuiteName   ;# uses name Default if not set
+  variable OsvvmTempOutputDirectory
+  variable ReportsTestSuiteDirectory
+# ::osvvm::GenericNames
+# ::osvvm::ReportsSubdirectory
+# ::osvvm::TempTranscriptYamlFile
+# ::osvvm::ResultsDirectory
+# ::osvvm::ResultsSubdirectory
+# ::osvvm::SimulateInteractive
 
+  #Outputs
   variable RequirementsYamlFile
   variable AlertYamlFile
   variable CovYamlFile
   variable ScoreboardDict
-  variable SimGenericNames
-  variable ReportsTestSuiteDirectory
-#  variable SimulationHtmlLogFile
   variable TranscriptFiles
 
   set RequirementsYamlSourceFile [file join $OsvvmTempOutputDirectory ${TestCaseName}_req.yml]
@@ -1914,13 +1916,6 @@ proc SimulateDoneMoveTestCaseFiles {} {
     # Remove file so it does not impact any following simulation
     file delete -force -- ${::osvvm::TempTranscriptYamlFile}
   }
-
-##  CopyHtmlThemeFiles ${::osvvm::OsvvmScriptDirectory} ${::osvvm::OsvvmBuildOutputDirectory} $::osvvm::HtmlThemeSubdirectory
-#  FindHtmlThemeFiles ${::osvvm::OsvvmBuildOutputDirectory} $::osvvm::HtmlThemeSubdirectory
-#
-#  if {([GetTranscriptType] eq "html") && ($BuildName ne "")} {
-#    set SimulationHtmlLogFile [file join ${::osvvm::LogSubdirectory} ${BuildName}_log.html]
-#  } else { set SimulationHtmlLogFile "" }
 }
 
 # -------------------------------------------------
@@ -2027,6 +2022,11 @@ proc GetTimeString {} {
   return [GetIsoTime [clock seconds]]
 }
 
+# -------------------------------------------------
+proc -- {args} {
+  puts "Please stop using VHDL comments in Tcl.  Line in issue is:"
+  puts "$args"
+}
 
 # Don't export the following due to conflicts with Tcl built-ins
 # map
@@ -2046,6 +2046,7 @@ namespace export OpenBuildHtml OpenIndex
 namespace export DirectoryExists FileExists FileModified
 namespace export JoinWorkingDirectory ChangeWorkingDirectory
 namespace export GetTimeString
+namespace export --
 
 # Experimental
 namespace export RunAllTests
