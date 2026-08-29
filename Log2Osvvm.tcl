@@ -41,6 +41,8 @@
 
 namespace eval ::osvvm {
 
+  package require fileutil
+
   proc Log2Osvvm {LogFile} {
     variable LogFileHandle
     variable HtmlFileHandle
@@ -49,6 +51,8 @@ namespace eval ::osvvm {
     variable LocalLogType           "html"
     variable LocalCreateSimScripts  "false"
     variable LocalCreateOsvvmOutput "false"
+    variable ResultsDirectory
+    variable RelativePathToResults
 
     if {[info exists ::osvvm::TranscriptExtension]} {
       set LocalLogType $::osvvm::TranscriptExtension
@@ -64,27 +68,12 @@ namespace eval ::osvvm {
     set LogDir  [file dirname $LogFile]
     set LogName [file rootname [file tail $LogFile]]
 
+    set RelativePathToResults [::fileutil::relative ${LogDir} ${ResultsDirectory}]
+
     if {$LocalLogType eq "html"} {
       set HtmlFile [file join ${LogDir} ${LogName}_log.html]
       set HtmlFileHandle [open $HtmlFile w]
-      # Refactor into CreateHeaderLog2Html
-      puts $HtmlFileHandle "<html>"
-      puts $HtmlFileHandle "<style>"
-      puts $HtmlFileHandle "details > summary {"
-      puts $HtmlFileHandle "  position: sticky; "
-      puts $HtmlFileHandle "  top: 0; "
-      puts $HtmlFileHandle "}"
-      puts $HtmlFileHandle "details\[open\] > summary {"
-      puts $HtmlFileHandle "  color: white; "
-      puts $HtmlFileHandle "  background: black; "
-      puts $HtmlFileHandle "}"
-      puts $HtmlFileHandle ".SummaryEnd {"
-      puts $HtmlFileHandle "  color: white; "
-      puts $HtmlFileHandle "  background: gray; "
-      puts $HtmlFileHandle "}"
-      puts $HtmlFileHandle "</style>"
-      puts $HtmlFileHandle "<body>"
-      puts $HtmlFileHandle "<pre>"
+      CreateHeaderLog2Html
     }
     if {$LocalCreateSimScripts} {
       set SimFile [file join ${LogDir} ${LogName}_sim.tcl]
@@ -115,6 +104,27 @@ namespace eval ::osvvm {
     }
   }
 
+  proc CreateHeaderLog2Html {} {
+    variable HtmlFileHandle
+    puts $HtmlFileHandle "<html>"
+    puts $HtmlFileHandle "<style>"
+    puts $HtmlFileHandle "details > summary {"
+    puts $HtmlFileHandle "  position: sticky; "
+    puts $HtmlFileHandle "  top: 0; "
+    puts $HtmlFileHandle "}"
+    puts $HtmlFileHandle "details\[open\] > summary {"
+    puts $HtmlFileHandle "  color: white; "
+    puts $HtmlFileHandle "  background: black; "
+    puts $HtmlFileHandle "}"
+    puts $HtmlFileHandle ".SummaryEnd {"
+    puts $HtmlFileHandle "  color: white; "
+    puts $HtmlFileHandle "  background: gray; "
+    puts $HtmlFileHandle "}"
+    puts $HtmlFileHandle "</style>"
+    puts $HtmlFileHandle "<body>"
+    puts $HtmlFileHandle "<pre>"
+  }
+
   proc LocalLog2Osvvm {LogFile LocalLogType LocalCreateSimScripts LocalCreateOsvvmOutput} {
     variable LogFileHandle
     variable LineOfLogFile
@@ -124,12 +134,17 @@ namespace eval ::osvvm {
     variable PrintPrefix ""
     variable FoundBuild "false"
     variable FirstLine  "true"
-
-    # Read line by line - For OSVVM regressions, this is 50 to 100 ms slower
-    #   while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {  } ;
+    variable Log2HtmlTextColor
+    variable InSimulate FALSE
+    variable FoundTranscript FALSE
+    variable RelativePathToResults
 
     # Read whole file and split it into lines
-    foreach RawLineOfLogFile [split [read $LogFileHandle] \n] {
+    # foreach RawLineOfLogFile [split [read $LogFileHandle] \n] {  } ;
+
+    # Read line by line - Recommended
+    while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
+
       set LineOfLogFile [regsub {^KERNEL: } [regsub {^# } $RawLineOfLogFile ""] ""]
 
       if {!$FoundBuild} {
@@ -149,6 +164,7 @@ namespace eval ::osvvm {
       }
     }
   }
+
 
   proc FindBuildInLog {} {
     variable HtmlFileHandle
@@ -178,32 +194,73 @@ namespace eval ::osvvm {
     variable LogTestSuiteName
     variable LogTestCaseName
     variable PrintPrefix
+    variable Log2HtmlTextColor
+    variable InSimulate
+    variable FoundTranscript
+    variable RelativePathToResults
+    variable ResultsDirectory
 
-    if {[regexp {^Build Start} $LineOfLogFile] } {
-#      if {$PrintPrefix eq "</details>"} { }
-      if {[regexp {</details>} ${PrintPrefix}]}  {
-        puts $HtmlFileHandle "${PrintPrefix}${LineOfLogFile}"
-      } else {
-        puts $HtmlFileHandle "${PrintPrefix}\n${LineOfLogFile}"
+    #
+    # Check for things that happen more in the log file
+    #
+    if {[regexp {Log *(PASSED)} $LineOfLogFile] } {
+      set FoundTranscript TRUE
+      set Log2HtmlTextColor #00A000
+      puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+    } elseif {[regexp {Log *(INFO|ALWAYS|DEBUG|FINAL)} $LineOfLogFile] } {
+      set FoundTranscript TRUE
+      puts $HtmlFileHandle $LineOfLogFile
+
+    } elseif {[regexp {Alert *(ERROR|FAILURE)} $LineOfLogFile] } {
+      set FoundTranscript TRUE
+      set Log2HtmlTextColor #FF0000
+      puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+    } elseif {[regexp {Alert *WARNING} $LineOfLogFile] } {
+      set FoundTranscript TRUE
+      set Log2HtmlTextColor #FF8000
+      puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+    } elseif {[regexp {%%>} $LineOfLogFile]} {
+#!! May need to set Log2HtmlTextColor in other branches too.
+        puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+    } elseif {[regexp {DONE *(FAILED|STOPLIMIT|TIMEOUT|NOCHECKS)} $LineOfLogFile]} {
+      if {$InSimulate && !($FoundTranscript)} {
+        # Link in transcript html if transcript matches test case name
+        if {[file exists [file join $ResultsDirectory ${LogTestSuiteName} ${LogTestCaseName}.html]]} {
+          puts $HtmlFileHandle "<iframe src=\"[file join $RelativePathToResults ${LogTestSuiteName} ${LogTestCaseName}.html]\"  style=\"border: none; margin: 0; padding: 0; display: block;\" width=\"100%\" height=\"60%\" title=\"Embedded Page\"></iframe>"
+        }
+        set InSimulate FALSE
       }
-      set PrintPrefix ""
-    } elseif {[regexp {^build|^include|^library|^MkVproc|^MkVprocNoClean|^MkVprocSkt|^MkVprocGhdlMain} $LineOfLogFile] } {
-      puts $HtmlFileHandle "${PrintPrefix}<details><summary>${LineOfLogFile}</summary>"
-      set PrintPrefix "</details>"
-    } elseif {[regexp {^TestSuite} $LineOfLogFile] } {
-      set LogTestSuiteName [lindex $LineOfLogFile 1]
-      puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary>"
-      set PrintPrefix "</details>"
-    } elseif {[regexp {^RunTest} $LineOfLogFile] } {
-      set InRunTest 1
-      puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary>"
-      set PrintPrefix "<span class=\"SummaryEnd\">&#9650; ${LineOfLogFile}<\span></details>"
-    } elseif {[regexp {^AnalyzeError:|^SimulateError:|^ScriptError:|^ReportError:|^LibraryError:|^BuildError:} $LineOfLogFile] } {
-      puts $HtmlFileHandle "${PrintPrefix}<span style=color:#FF0000>$LineOfLogFile</span>"
-      set PrintPrefix ""
-    } elseif {[regexp {^Build:} $LineOfLogFile] } {
-      puts $HtmlFileHandle "${PrintPrefix}<span style=color:#00C000>$LineOfLogFile</span>"
-      set PrintPrefix ""
+      set Log2HtmlTextColor #FF0000
+      set PrintPrefix "${PrintPrefix}<span style=color:${Log2HtmlTextColor}>$LineOfLogFile\n</span>"
+      puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+    } elseif {[regexp {DONE *MANUALCHECK} $LineOfLogFile]} {
+      if {$InSimulate && !($FoundTranscript)} {
+        # Link in transcript html if transcript matches test case name
+        if {[file exists [file join $ResultsDirectory ${LogTestSuiteName} ${LogTestCaseName}.html]]} {
+          puts $HtmlFileHandle "<iframe src=\"[file join $RelativePathToResults ${LogTestSuiteName} ${LogTestCaseName}.html]\"  style=\"border: none; margin: 0; padding: 0; display: block;\" width=\"100%\" height=\"60%\" title=\"Embedded Page\"></iframe>"
+        }
+        set InSimulate FALSE
+      }
+      set Log2HtmlTextColor #FF8000
+      set PrintPrefix "${PrintPrefix}<span style=color:${Log2HtmlTextColor}>$LineOfLogFile\n</span>"
+      puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+    } elseif {[regexp {DONE *PASSED} $LineOfLogFile]} {
+      if {$InSimulate && !($FoundTranscript)} {
+        # Link in transcript
+        if {[file exists [file join $ResultsDirectory ${LogTestSuiteName} ${LogTestCaseName}.html]]} {
+          puts $HtmlFileHandle "<iframe src=\"[file join $RelativePathToResults ${LogTestSuiteName} ${LogTestCaseName}.html]\"  style=\"border: none; margin: 0; padding: 0; display: block;\" width=\"100%\" height=\"60%\" title=\"Embedded Page\"></iframe>"
+        }
+        set InSimulate FALSE
+      }
+      set Log2HtmlTextColor #00A000
+      puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
     } elseif {[regexp {^analyze} $LineOfLogFile] } {
       if {! $InRunTest} {
         puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary>"
@@ -211,7 +268,19 @@ namespace eval ::osvvm {
       } else {
         puts $HtmlFileHandle $LineOfLogFile
       }
+
+    } elseif {[regexp {^RunTest} $LineOfLogFile] } {
+      set InRunTest 1
+      puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary>"
+      set PrintPrefix "<span class=\"SummaryEnd\">&#9650; ${LineOfLogFile}<\span></details>"
+
+    } elseif {[regexp {^TestName} $LineOfLogFile] } {
+        set LogTestCaseName [lindex $LineOfLogFile 1]
+        puts $HtmlFileHandle $LineOfLogFile
+
     } elseif {[regexp {^simulate} $LineOfLogFile] } {
+      set InSimulate TRUE
+      set FoundTranscript FALSE
       set GenericNames ""
       if {[regexp {generic} $LineOfLogFile] } {
         set GenericDict [regsub {\].*} [regsub -all {[^\[]*\[generic ([^\]]*)} $LineOfLogFile {\1 }] ""]
@@ -227,20 +296,43 @@ namespace eval ::osvvm {
         puts $HtmlFileHandle "$LineOfLogFile <span id=\"${LogTestSuiteName}_${LogTestCaseName}${GenericNames}\" />"
       }
       set InRunTest 0
-    } else {
-      if {[regexp {^TestName} $LineOfLogFile] } {
-        set LogTestCaseName [lindex $LineOfLogFile 1]
-      }
-      if {[regexp {DONE   FAILED} $LineOfLogFile]} {
-        set PrintPrefix "${PrintPrefix}<span style=color:#FF0000>$LineOfLogFile</span>"
-        puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
-      } elseif {[regexp {^WaveError:} $LineOfLogFile] } {
-        puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
-      } elseif {[regexp {^Error:|^error:|Alert  ERROR} $LineOfLogFile] } {
-        puts $HtmlFileHandle "<span style=color:#FF0000>$LineOfLogFile</span>"
+
+    } elseif {[regexp {^build|^include|^library|^MkVproc|^MkVprocNoClean|^MkVprocSkt|^MkVprocGhdlMain} $LineOfLogFile] } {
+      puts $HtmlFileHandle "${PrintPrefix}<details><summary>${LineOfLogFile}</summary>"
+      set PrintPrefix "</details>"
+
+    } elseif {[regexp {^TestSuite} $LineOfLogFile] } {
+      set LogTestSuiteName [lindex $LineOfLogFile 1]
+      puts $HtmlFileHandle "${PrintPrefix}<details><summary>$LineOfLogFile</summary>"
+      set PrintPrefix "</details>"
+
+    } elseif {[regexp {^Build Start} $LineOfLogFile] } {
+      if {[regexp {</details>} ${PrintPrefix}]}  {
+        puts $HtmlFileHandle "${PrintPrefix}${LineOfLogFile}"
       } else {
-        puts $HtmlFileHandle $LineOfLogFile
+        puts $HtmlFileHandle "${PrintPrefix}\n${LineOfLogFile}"
       }
+      set PrintPrefix ""
+
+    } elseif {[regexp {^AnalyzeError:|^SimulateError:|^ScriptError:|^ReportError:|^LibraryError:|^BuildError:} $LineOfLogFile] } {
+      puts $HtmlFileHandle "${PrintPrefix}<span style=color:#FF0000>$LineOfLogFile</span>"
+      set PrintPrefix ""
+
+    } elseif {[regexp {^Build:} $LineOfLogFile] } {
+      puts $HtmlFileHandle "${PrintPrefix}<span style=color:#00A000>$LineOfLogFile</span>"
+      set PrintPrefix ""
+
+    } elseif {[regexp {^WaveError:} $LineOfLogFile] } {
+      set Log2HtmlTextColor #FF0000
+      puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+    } elseif {[regexp {^(E|e)rror:} $LineOfLogFile] } {
+      set Log2HtmlTextColor #FF0000
+      puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+    } else {
+      set Log2HtmlTextColor #000000
+      puts $HtmlFileHandle $LineOfLogFile
     }
   }
 
@@ -262,7 +354,75 @@ namespace eval ::osvvm {
     }
   }
 
-namespace export Log2Osvvm
+  proc Transcript2Html {TranscriptFile} {
+    variable HtmlFileHandle
+    variable TranscriptFileHandle
+
+    # Open Transcript File to Read
+    set TranscriptFileHandle [open $TranscriptFile r]
+    set TranscriptDir  [file dirname $TranscriptFile]
+    set TranscriptName [file rootname [file tail $TranscriptFile]]
+
+    # Open HTML File to Write
+    set HtmlFile [file join ${TranscriptDir} ${TranscriptName}.html]
+    set HtmlFileHandle [open $HtmlFile w]
+
+    # Header for HTML file
+    CreateHeaderLog2Html
+
+    set ErrorCode [catch {LocalTranscript2Html} errmsg]
+
+    close $TranscriptFileHandle
+
+    puts $HtmlFileHandle "</body>"
+    close $HtmlFileHandle
+
+    if {$ErrorCode} {
+      CallbackOnError_Transcript2Html $TranscriptFile $errmsg
+    }
+  }
+
+
+  proc LocalTranscript2Html {} {
+    variable TranscriptFileHandle
+    variable HtmlFileHandle
+    variable Log2HtmlTextColor
+
+    # Read whole file and split it into lines
+    foreach LineOfLogFile [split [read $TranscriptFileHandle] \n] {
+      # Simple subset of checks done by Log2Html
+      if {[regexp {Alert *(ERROR|FAILURE)} $LineOfLogFile] } {
+        set Log2HtmlTextColor #FF0000
+        puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+      } elseif {[regexp {Alert *WARNING} $LineOfLogFile] } {
+        set Log2HtmlTextColor #FF8000
+        puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+      } elseif {[regexp {%%>} $LineOfLogFile]} {
+          # uses previous Log2HtmlTextColor
+          puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+      } elseif {[regexp {DONE *(FAILED|STOPLIMIT|TIMEOUT|NOCHECKS)} $LineOfLogFile]} {
+        set Log2HtmlTextColor #FF0000
+        puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+      } elseif {[regexp {DONE *MANUALCHECK} $LineOfLogFile]} {
+        set Log2HtmlTextColor #FF8000
+        puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+      } elseif {[regexp {DONE *PASSED} $LineOfLogFile]} {
+        set Log2HtmlTextColor #00A000
+        puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
+
+      } else {
+        set Log2HtmlTextColor #000000
+        puts $HtmlFileHandle $LineOfLogFile
+      }
+    }
+  }
+
+namespace export Log2Osvvm Transcript2Html
 
 # end namespace ::osvvm
 }

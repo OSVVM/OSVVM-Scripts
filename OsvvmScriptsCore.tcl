@@ -1892,13 +1892,14 @@ proc SimulateDoneMoveTestCaseFiles {} {
         set TranscriptRootBaseName  [file rootname $TranscriptBaseName]
         set TranscriptExtension     [file extension $TranscriptBaseName]
         set TranscriptGenericName   ${TranscriptRootBaseName}${::osvvm::GenericNames}${TranscriptExtension}
-        set TranscriptDestFile [file join ${::osvvm::ResultsDirectory} ${TestSuiteName} ${TranscriptGenericName}]
+        set TranscriptDestFile  [file join ${::osvvm::ResultsDirectory} ${TestSuiteName} ${TranscriptGenericName}]
         lappend TranscriptFiles [file join ${::osvvm::ResultsSubdirectory} ${TestSuiteName} ${TranscriptGenericName}]
         if {[file normalize ${TranscriptFile}] ne [file normalize ${TranscriptDestFile}]} {
           # Move transcript if it is not already in destination location
 # Done by CheckSimulationDirs          CreateDirectory [file join ${::osvvm::ResultsDirectory} ${TestSuiteName}]
 #          file rename -force ${TranscriptFile}  ${TranscriptDestFile}
           file copy -force ${TranscriptFile}  ${TranscriptDestFile}
+          # Create
           if {[catch {file delete -force ${TranscriptFile}} err]} {
             puts "ScriptWarning: Simulation did not close ${TranscriptFile}.  Will EndSimulation to close it if SimulationInteractive is false.   SimulationInteractive = $::osvvm::SimulateInteractive"
             # end simulation to try to free locks on the file, and try to delete again - in the event the test case forgot TranscriptClose
@@ -1911,6 +1912,8 @@ proc SimulateDoneMoveTestCaseFiles {} {
             }
           }
         }
+        # Done after moving file (if necessary)
+        Transcript2Html ${TranscriptDestFile}
       }
     }
     # Remove file so it does not impact any following simulation
