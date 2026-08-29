@@ -69,7 +69,7 @@ namespace eval ::osvvm {
     # OsvvmTempOutputDirectory is where temporary OSVVM output goes.
     # Caution:  If you change the value of OsvvmTempOutputDirectory, you must rerun OsvvmLibraries/osvvm/osvvm.pro
     # Files only remain in this directory when a tool does not complete correctly
-    variable OutputBaseDirectory                  ""      ; # Container for all OSVVM ouput
+    variable OutputBaseDirectory                  ""      ; # Container for all OSVVM output
 #     variable OsvvmTempOutputSubdirectory         "OsvvmTemp"
 #     variable OsvvmTempOutputSubdirectory         "OsvvmTemp_${ToolNameVersion}"   ; # Temporary directory name.  Renamed by BuildName
     variable OsvvmTempOutputSubdirectory          "OsvvmTemp_${ToolName}"

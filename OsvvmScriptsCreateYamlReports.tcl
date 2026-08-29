@@ -49,7 +49,7 @@ package require fileutil
 
 
   variable  TclZone      [clock format [clock seconds] -format %z]
-  variable  IsoZone      [format "%s:%s" [string range $TclZone 0 2] [string range $TclZone 3 4]] 
+  variable  IsoZone      [format "%s:%s" [string range $TclZone 0 2] [string range $TclZone 3 4]]
 #  variable  TimeZoneName [clock format [clock seconds] -format %Z]
 
 # -------------------------------------------------
@@ -101,7 +101,7 @@ proc WriteBuildInfoYaml {RunFile BuildName {NamePrefix ""} {InfoPrefix ""} } {
   variable SimulateErrorCount
   variable BuildFinishTime
   variable BuildElapsedTime
-  
+
   puts  $RunFile "${NamePrefix}Name:     \"$BuildName\""
   puts  $RunFile "${InfoPrefix}BuildInfo:"
   puts  $RunFile "${InfoPrefix}  StartTime:            [GetIsoTime $BuildStartTime]"
@@ -110,7 +110,7 @@ proc WriteBuildInfoYaml {RunFile BuildName {NamePrefix ""} {InfoPrefix ""} } {
   puts  $RunFile "${InfoPrefix}  ElapsedTime:              $BuildElapsedTime"
   if {$::osvvm::ToolArgs eq ""} {
     puts  $RunFile "${InfoPrefix}  Simulator:            \"${::osvvm::ToolName}\""
-  } else { 
+  } else {
     puts  $RunFile "${InfoPrefix}  Simulator:            \"${::osvvm::ToolName} ${::osvvm::ToolArgs}\""
   }
   puts  $RunFile "${InfoPrefix}  SimulatorVersion:     \"$::osvvm::ToolVersion\""
@@ -134,9 +134,9 @@ proc FinishBuildYaml {BuildName} {
   set   BuildFinishTime     [clock seconds]
   set   BuildElapsedTime    [ElapsedTimeMs $BuildStartTimeMs]
   set   BuildElapsedTimeSec    [expr ($BuildFinishTime - $BuildStartTime)]
-  
-  WriteBuildInfoYaml $RunFile $BuildName 
-    
+
+  WriteBuildInfoYaml $RunFile $BuildName
+
   WriteOsvvmSettingsYaml $RunFile
 
   close $RunFile
@@ -151,11 +151,11 @@ proc WriteIndexYaml {BuildName} {
   variable BuildStartTime
   variable BuildFinishTime
   variable BuildElapsedTime
-  
-  variable BuildStatus 
-  variable TestCasesPassed 
-  variable TestCasesFailed 
-  variable TestCasesSkipped 
+
+  variable BuildStatus
+  variable TestCasesPassed
+  variable TestCasesFailed
+  variable TestCasesSkipped
   variable ReportBuildErrorCode
   variable ReportAnalyzeErrorCount
   variable ReportSimulateErrorCount
@@ -165,14 +165,14 @@ proc WriteIndexYaml {BuildName} {
   variable OsvvmVersion
 
   # Print Elapsed time for last TestSuite (if any ran) and the entire build
-  if {[file exists ${::osvvm::OsvvmIndexYamlFile}]} { 
+  if {[file exists ${::osvvm::OsvvmIndexYamlFile}]} {
     set   RunFile  [open ${::osvvm::OsvvmIndexYamlFile} a]
   } else {
     set   RunFile  [open ${::osvvm::OsvvmIndexYamlFile} w]
     puts $RunFile "Version:    \"${::osvvm::OsvvmIndexYamlVersion}\""
     puts $RunFile "Builds:"
   }
-  
+
   # WriteBuildInfoYaml $RunFile $BuildName "  - " "    "
   puts  $RunFile "  - Name:     \"$BuildName\""
   puts  $RunFile "    Directory:           \"${BuildName}\""
@@ -189,7 +189,7 @@ proc WriteIndexYaml {BuildName} {
   puts  $RunFile "    ElapsedTime:             $BuildElapsedTime"
   if {$::osvvm::ToolArgs eq ""} {
     puts  $RunFile "    ToolName:            \"${ToolName}\""
-  } else { 
+  } else {
     puts  $RunFile "    ToolName:            \"${ToolName} ${ToolArgs}\""
   }
   puts  $RunFile "    ToolVersion:          \"$ToolVersion\""
@@ -254,11 +254,11 @@ proc WriteDictOfRelativePath2Yaml {YamlFile DictKey RelativePath {PathValue ""} 
 
 # -------------------------------------------------
 proc WriteOsvvmSettingsYaml {ReportFile} {
-  
+
   puts  $ReportFile "OsvvmSettingsInfo:"
 #  puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OsvvmBuildOutputDirectory\""  ;# no absolute paths
   puts  $ReportFile "  ReportsSubdirectory:  \"$::osvvm::ReportsSubdirectory\""
-#  puts  $ReportFile "  HtmlThemeSubdirectory:      \"$::osvvm::HtmlThemeSubdirectory\""  
+#  puts  $ReportFile "  HtmlThemeSubdirectory:      \"$::osvvm::HtmlThemeSubdirectory\""
   if {$::osvvm::TranscriptExtension ne "none"} {
     puts  $ReportFile "  SimulationLogFile: \"[file join ${::osvvm::LogSubdirectory} ${::osvvm::BuildName}.log]\""
   } else {
@@ -269,12 +269,12 @@ proc WriteOsvvmSettingsYaml {ReportFile} {
   } else {
     puts  $ReportFile "  SimulationHtmlLogFile: \"\""
   }
-  
+
 #   if {[catch {set HtmlThemeSourceDirectoryRel [::fileutil::relative [pwd] $::osvvm::OsvvmScriptDirectory]} errmsg]}  {
 #     set HtmlThemeSourceDirectoryRel $::osvvm::OsvvmScriptDirectory
 #   }
 #   puts  $ReportFile "  HtmlThemeSourceDirectory:   \"${HtmlThemeSourceDirectoryRel}\""
-  
+
   if {[file exists [file join $::osvvm::ReportsDirectory ${::osvvm::BuildName}_req.yml]]} {
     puts  $ReportFile "  RequirementsSubdirectory: \"$::osvvm::ReportsSubdirectory\""
   } else {
@@ -282,11 +282,11 @@ proc WriteOsvvmSettingsYaml {ReportFile} {
   }
   if {$::osvvm::RanSimulationWithCoverage eq "true"} {
     set CodeCoverageFile [vendor_GetCoverageFileName ${::osvvm::BuildName}]
-    puts  $ReportFile "  CoverageSubdirectory:    \"[file join $::osvvm::CoverageSubdirectory  $CodeCoverageFile]\"" 
+    puts  $ReportFile "  CoverageSubdirectory:    \"[file join $::osvvm::CoverageSubdirectory  $CodeCoverageFile]\""
   } else {
     puts  $ReportFile "  CoverageSubdirectory: \"\""
   }
-  
+
   WriteDictOfList2Yaml   $ReportFile Report2CssFiles   $::osvvm::Report2CssFiles "  "
   puts $ReportFile "  Report2PngFile:  \"$::osvvm::Report2PngFile\""
 }
@@ -309,7 +309,7 @@ proc WriteTestCaseSettingsYaml {FileName} {
   WriteDictOfString2Yaml $YamlFile TestSuiteName  $LocalTestSuiteName
   WriteDictOfString2Yaml $YamlFile BuildName $::osvvm::BuildName
   WriteDictOfDict2Yaml   $YamlFile Generics $::osvvm::GenericDict
-  
+
   WriteDictOfRelativePath2Yaml  $YamlFile  ReportsTestSuiteDirectory  $LocalOutDir  $::osvvm::ReportsTestSuiteDirectory
   WriteDictOfRelativePath2Yaml $YamlFile RequirementsYamlFile         $LocalOutDir $::osvvm::RequirementsYamlFile
   WriteDictOfRelativePath2Yaml $YamlFile AlertYamlFile                $LocalOutDir $::osvvm::AlertYamlFile
@@ -321,14 +321,14 @@ proc WriteTestCaseSettingsYaml {FileName} {
   WriteDictOfString2Yaml $YamlFile GenericNames                 $::osvvm::GenericNames
 
   WriteOsvvmSettingsYaml $YamlFile
-  
+
   close $YamlFile
 }
 
 # -------------------------------------------------
 proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
   variable TestSuiteStartTimeMs
-  
+
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
 
   if {$FirstRun} {
@@ -339,7 +339,7 @@ proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
 #  puts  $RunFile "    ReportsDirectory: [file join ${::osvvm::ReportsSubdirectory} $SuiteName]"
   puts  $RunFile "    TestCases:"
   close $RunFile
-  
+
   # Starting a Test Suite here
   set TestSuiteStartTimeMs   [clock milliseconds]
 }
@@ -374,7 +374,7 @@ proc FinishSimulateBuildYaml {} {
   variable TestCaseFileName
   variable SimulateStartTime
   variable SimulateStartTimeMs
-  
+
   #puts "Start time  [clock format $SimulateStartTime -format %T]"
   set  SimulateFinishTime    [clock seconds]
   set  SimulateElapsedTime   [expr ($SimulateFinishTime - $SimulateStartTime)]
@@ -383,7 +383,7 @@ proc FinishSimulateBuildYaml {} {
 
   set  SimulateFinishTimeMs  [clock milliseconds]
   set  SimulateElapsedTimeMs [expr ($SimulateFinishTimeMs - $SimulateStartTimeMs)]
-  
+
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "        TestCaseFileName: \"$TestCaseFileName\""
   WriteDictOfDict2Yaml $RunFile Generics $::osvvm::GenericDict  "        "
@@ -400,7 +400,7 @@ proc SkipTestBuildYaml {SimName Reason} {
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "      - TestCaseName: $SimName"
   puts  $RunFile "        Name: $SimName"
-  puts  $RunFile "        Status: SKIPPED"
+  puts  $RunFile "        Status: \"SKIPPED\""
   puts  $RunFile "        Results: null"
   puts  $RunFile "        Reason: \"$Reason\""
   puts  $RunFile "        ElapsedTime: 0"
@@ -408,19 +408,49 @@ proc SkipTestBuildYaml {SimName Reason} {
 }
 
 # -------------------------------------------------
-# SkipTest
+# AnalyzeFailed
 #
 proc AnalyzeFailedBuildYaml {LibraryUnit Reason} {
 
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "      - TestCaseName: $LibraryUnit"
   puts  $RunFile "        Name: $LibraryUnit"
-  puts  $RunFile "        Status: ANALYZE_FAILED"
+  puts  $RunFile "        Status: \"ANALYZE_FAILED\""
   puts  $RunFile "        Results: null"
   puts  $RunFile "        Reason: \"$Reason\""
   puts  $RunFile "        ElapsedTime: 0"
   close $RunFile
 }
+
+# -------------------------------------------------
+# ExpectedStatus
+#
+proc ExpectedStatus {Status Failure Error Warning {Reason ""}} {
+
+  set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
+  puts  $RunFile "        ExpectedResults:"
+  puts  $RunFile "          Status: \"$Status\""
+  puts  $RunFile "          TotalErrors: [expr $Failure + $Error + $Warning]"
+  puts  $RunFile "          AlertCount:"
+  puts  $RunFile "            Failure: $Failure"
+  puts  $RunFile "            Error: $Error"
+  puts  $RunFile "            Warning: $Warning"
+  puts  $RunFile "        Reason: \"$Reason\""
+  close $RunFile
+}
+
+# -------------------------------------------------
+# KnownStatus
+#
+proc KnownStatus {Status Reason} {
+
+  set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
+  puts  $RunFile "        KnownStatus: \"$Status\""
+  puts  $RunFile "        Reason: \"$Reason\""
+  close $RunFile
+}
+
+namespace export ExpectedStatus KnownStatus
 
 # end namespace ::osvvm
 }

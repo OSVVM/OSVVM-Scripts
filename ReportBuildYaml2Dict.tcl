@@ -132,6 +132,31 @@ proc ReportBuildStatus {} {
   }
 }
 
+# -------------------------------------------------
+# MatchExpectedResults
+#
+proc MatchExpectedResults {TestCase} {
+  set ExpectedResults      [dict get $TestCase ExpectedResults]
+  set ExpectedAlertCount   [dict get $ExpectedResults AlertCount]
+  set ExpectedStatus       [dict get $ExpectedResults Status]
+  set ExpectedTotalErrors  [dict get $ExpectedResults TotalErrors]
+  set ExpectedFailure      [dict get $ExpectedAlertCount Failure]
+  set ExpectedError        [dict get $ExpectedAlertCount Error]
+  set ExpectedWarning      [dict get $ExpectedAlertCount Warning]
+
+  set ActualStatus         [dict get $TestCase Status]
+  set ActualResults        [dict get $TestCase Results]
+  set ActualAlertCount     [dict get $ActualResults AlertCount]
+  set ActualTotalErrors    [dict get $ActualResults TotalErrors]
+  set ActualFailure        [dict get $ActualAlertCount Failure]
+  set ActualError          [dict get $ActualAlertCount Error]
+  set ActualWarning        [dict get $ActualAlertCount Warning]
+
+  # set MatchStatus [expr $ExpectedStatus eq $TestStatus]
+  set MatchErrors [expr {$ExpectedTotalErrors == $ActualTotalErrors}]
+  set MatchAlerts [expr ($ExpectedFailure == $ActualFailure) && ($ExpectedError == $ActualError) && ($ExpectedWarning == $ActualWarning)]
+  return [expr {($ExpectedStatus eq $ActualStatus) && $MatchErrors && $MatchAlerts}]
+}
 
 # -------------------------------------------------
 # ElaborateTestSuites
@@ -184,7 +209,15 @@ proc ElaborateTestSuites {TestDict} {
         }
         # Count results.
         # If test cases run parallel, must be done here.
-        if { $TestStatus eq "SKIPPED" } {
+        if { [dict exists $TestCase ExpectedResults] } {
+          if {[MatchExpectedResults $TestCase]} {
+            incr SuitePassed
+            incr TestCasesPassed
+          } else {
+            incr SuiteFailed
+            incr TestCasesFailed
+          }
+        } elseif { $TestStatus eq "SKIPPED" } {
           incr SuiteSkipped
           incr TestCasesSkipped
         } else {
@@ -201,7 +234,7 @@ proc ElaborateTestSuites {TestDict} {
               }
             }
           } else {
-            # TestStatus = FAILED or TIMEOUT or ANALYZE_FAILED
+            # TestStatus = FAILED or TIMEOUT or ANALYZE_FAILED or STOPLIMIT
             # TestStatus = NOCHECKS if OsvvmVersionCompatibility is 2024.07 (or later) or
             #    FailOnNoChecks is set to TRUE in OsvvmSettingsLocal.tcl
             incr SuiteFailed

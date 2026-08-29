@@ -332,24 +332,32 @@ proc CreateTestCaseSummaries {TestDict} {
             set TestReport  "REPORT"
             set VhdlName    [dict get $TestCase Name]
           }
-        } elseif { ![dict exists $TestCase FunctionalCoverage] } {
-          set TestReport "NONE"
-          set TestStatus "FAILED"
-          set Reason     "Simulate Did Not Run"
+        # No Test Status - EndOfTestReports did not run
         } else {
-          set TestReport "NONE"
           set TestStatus "FAILED"
-          set Reason     "No VHDL Results.  Test did not call EndOfTestReports"
+          set TestReport "NONE"
+          set Reason     "Simulate:  Test did not complete.  EndOfTestReports was not called."
         }
-
         set PassedClass  ""
         set FailedClass  ""
         if { ${TestReport} eq "REPORT"} {
+          # Check for Matching ExpectedResults
+          set HasExpectedResults FALSE
+          if { [dict exists $TestCase ExpectedResults] } {
+            set HasExpectedResults TRUE
+            if {[MatchExpectedResults $TestCase]} {
+              set TestStatus "PASSED"
+            } else {
+              set TestStatus "FAILED"
+            }
+          }
+          # Check for Matching Test Case and VHDL Names
           if { (${TestName} ne ${VhdlName}) && $::osvvm::FailOnVhdlNameNotMatchTestName} {
             set TestStatus   "NAME_MISMATCH"
             set StatusClass  "class=\"warning\""
             set PassedClass  "class=\"warning\""
             set FailedClass  "class=\"warning\""
+            set Reason "Name mismatch. Tcl Test Name: ${TestName}.  VHDL Test Name: ${VhdlName}"
           } elseif { ${TestStatus} eq "PASSED" } {
             set StatusClass  "class=\"passed\""
             set PassedClass  "class=\"passed\""
@@ -434,6 +442,31 @@ proc CreateTestCaseSummaries {TestDict} {
           puts $ResultsFile "            <td style=\"text-align: left\" colspan=\"8\"> &emsp; $Reason</td>"
         }
         puts $ResultsFile "          </tr>"
+        # add extra line for Expected Results
+        if {$HasExpectedResults} {
+          set ExpectedResults      [dict get $TestCase ExpectedResults]
+          set ExpectedStatus       [dict get $ExpectedResults Status]
+          set ExpectedTotalErrors  [dict get $ExpectedResults TotalErrors]
+          set Reason               [dict get $TestCase Reason]
+          puts $ResultsFile "          <tr>"
+          puts $ResultsFile "            <td> &nbsp; &nbsp; Expected Status</td>"
+          puts $ResultsFile "            <td ${StatusClass}>$ExpectedStatus</td>"
+          puts $ResultsFile "            <td ${PassedClass}>⸻</td>"
+          puts $ResultsFile "            <td ${PassedClass}>⸻</td>"
+          puts $ResultsFile "            <td ${FailedClass}>$ExpectedTotalErrors</td>"
+          puts $ResultsFile "            <td style=\"text-align: left\" colspan=\"5\"> &emsp; $Reason</td>"
+          puts $ResultsFile "          </tr>"
+        }
+        # add extra line for Known Status
+        if { [dict exists $TestCase KnownStatus] } {
+          set KnownStatus          [dict get $TestCase KnownStatus]
+          set Reason               [dict get $TestCase Reason]
+          puts $ResultsFile "          <tr>"
+          puts $ResultsFile "            <td> &nbsp; &nbsp; Known Status</td>"
+          puts $ResultsFile "            <td ${StatusClass}>$KnownStatus</td>"
+          puts $ResultsFile "            <td style=\"text-align: left\" colspan=\"8\"> &emsp; $Reason</td>"
+          puts $ResultsFile "          </tr>"
+        }
       }
       puts $ResultsFile "        </tbody>"
       puts $ResultsFile "      </table>"
@@ -447,7 +480,7 @@ proc CreateTestCaseSummaries {TestDict} {
 # SumAlertCount
 #
 proc SumAlertCount {AlertCountDict} {
-  return [expr [dict get $AlertCountDict Failure] + [dict get $AlertCountDict Error] + [dict get $AlertCountDict Warning]]
+  return [expr {abs([dict get $AlertCountDict Failure]) + abs([dict get $AlertCountDict Error]) + abs([dict get $AlertCountDict Warning])}]
 }
 
 
