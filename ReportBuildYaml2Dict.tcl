@@ -170,6 +170,8 @@ proc ElaborateTestSuites {TestDict} {
   variable TestCasesPassed 0
   variable TestCasesFailed 0
   variable TestCasesSkipped 0
+  variable TrackedTestCasesFailed 0
+  variable TrackedTestCasesStatusChange 0
 
   set HaveTestSuites [dict exists $TestDict TestSuites]
 
@@ -178,6 +180,8 @@ proc ElaborateTestSuites {TestDict} {
       set SuitePassed 0
       set SuiteFailed 0
       set SuiteSkipped 0
+      set TrackedSuiteFailed 0
+      set TrackedSuiteStatusChange 0
       set SuiteReqPassed 0
       set SuiteReqGoal 0
       set SuiteDisabledAlerts 0
@@ -207,8 +211,10 @@ proc ElaborateTestSuites {TestDict} {
           set TestReqPassed 0
           set VhdlName $TestName
         }
+
         # Count results.
         # If test cases run parallel, must be done here.
+        set  ThisTestFailed FALSE
         if { [dict exists $TestCase ExpectedResults] } {
           if {[MatchExpectedResults $TestCase]} {
             incr SuitePassed
@@ -216,6 +222,7 @@ proc ElaborateTestSuites {TestDict} {
           } else {
             incr SuiteFailed
             incr TestCasesFailed
+            set  ThisTestFailed TRUE
           }
         } elseif { $TestStatus eq "SKIPPED" } {
           incr SuiteSkipped
@@ -224,6 +231,7 @@ proc ElaborateTestSuites {TestDict} {
           if { (${TestName} ne ${VhdlName}) && $::osvvm::FailOnVhdlNameNotMatchTestName} {
             incr SuiteFailed
             incr TestCasesFailed
+            set  ThisTestFailed TRUE
           } elseif { ($TestStatus eq "PASSED") || (($TestStatus eq "NOCHECKS") && !($::osvvm::FailOnNoChecks)) } {
             incr SuitePassed
             incr TestCasesPassed
@@ -239,6 +247,20 @@ proc ElaborateTestSuites {TestDict} {
             #    FailOnNoChecks is set to TRUE in OsvvmSettingsLocal.tcl
             incr SuiteFailed
             incr TestCasesFailed
+            set  ThisTestFailed TRUE
+          }
+        }
+# Mark FAILED before this and if
+        if { [dict exists $TestCase KnownStatus] } {
+          set KnownStatus     [dict get $TestCase KnownStatus]
+          if {$TestStatus eq $KnownStatus} {
+            if {$ThisTestFailed} {
+              incr TrackedTestCasesFailed
+              incr TrackedSuiteFailed
+            }
+          } else {
+            incr TrackedTestCasesStatusChange
+            incr TrackedSuiteStatusChange
           }
         }
       }

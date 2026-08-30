@@ -129,6 +129,7 @@ proc CreateHtmlSummary {TestDict} {
   variable TestCasesPassed
   variable TestCasesFailed
   variable TestCasesSkipped
+  variable TrackedTestCasesStatusChange
 
   set PassedClass  ""
   set FailedClass  ""
@@ -153,6 +154,17 @@ proc CreateHtmlSummary {TestDict} {
   } else {
     set SimulateClass  ""
   }
+  if {$TrackedTestCasesStatusChange > 0} {
+    set StatusChangeClass  "class=\"failed\""
+  } else {
+    set StatusChangeClass  ""
+  }
+  set UntrackedFailures [expr {$TestCasesFailed - $::osvvm::TrackedTestCasesFailed}]
+  if {$UntrackedFailures > 0} {
+    set UntrackedFailureClass  "class=\"failed\""
+  } else {
+    set UntrackedFailureClass  ""
+  }
 
   puts $ResultsFile "  <div class=\"summary-parent\">"
   puts $ResultsFile "    <div  class=\"summary-table\">"
@@ -164,6 +176,8 @@ proc CreateHtmlSummary {TestDict} {
   puts $ResultsFile "          <tr ${StatusClass}><td>Status</td>   <td>$BuildStatus</td></tr>"
   puts $ResultsFile "          <tr ${PassedClass}><td>PASSED</td>   <td>$TestCasesPassed</td></tr>"
   puts $ResultsFile "          <tr ${FailedClass}><td>FAILED</td>   <td>$TestCasesFailed</td></tr>"
+  puts $ResultsFile "          <tr ${UntrackedFailureClass}><td>Untracked Failures</td>   <td>$UntrackedFailures</td></tr>"
+  puts $ResultsFile "          <tr ${StatusChangeClass}><td>Tracked Test Case Changed</td>   <td>$TrackedTestCasesStatusChange</td></tr>"
   puts $ResultsFile "          <tr ${SkippedClass}><td>SKIPPED</td> <td>$TestCasesSkipped</td></tr>"
   puts $ResultsFile "          <tr ${AnalyzeClass}><td>Analyze Failures</td>   <td>$ReportAnalyzeErrorCount</td></tr>"
   puts $ResultsFile "          <tr ${SimulateClass}><td>Simulate Failures</td> <td>$ReportSimulateErrorCount</td></tr>"
