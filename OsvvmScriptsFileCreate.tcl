@@ -84,7 +84,6 @@ proc FindOsvvmSettingsDirectory {{OsvvmSubdirectory "osvvm"}} {
   return $SettingsDirectoryFullPath
 }
 
-
 # -------------------------------------------------
 #  CreateOsvvmScriptSettingsPkg
 #
@@ -139,12 +138,12 @@ proc FindOsvvmScriptSettingsPkg { } {
     return $SettingsDirectory/OsvvmScriptSettingsPkg_local.vhd
 
   # If SettingsDirectory is in a subdirectory for a tool and/or vendor it may be appropriate to look above to find a local "default one"
-  # elsif {[FileExists $SettingsDirectory/../OsvvmScriptSettingsPkg_local.vhd]} { analyze $SettingsDirectory/../OsvvmScriptSettingsPkg_local.vhd }
+  # elsif {[FileExists $SettingsDirectory/${::osvvm::ToolName}/OsvvmScriptSettingsPkg_local.vhd]} { return $SettingsDirectory/${::osvvm::ToolName}/OsvvmScriptSettingsPkg_local.vhd }
 
   } else {
     # Generate the file if possible
     set GeneratedPkg [CreateOsvvmScriptSettingsPkg $SettingsDirectory]
-    puts "GeneratedPkg = $GeneratedPkg"
+#    puts "GeneratedPkg = $GeneratedPkg"
     if {[FileExists $GeneratedPkg]} {
       return   $GeneratedPkg
     } else {
@@ -546,12 +545,63 @@ proc MakePkgBody {OsvvmSettingsFile UserSettingsFile TemplatePkgBodyFile PkgBody
   CopyFileIfDiffOtherwiseDelete $NewPkgBodyFilePath $PkgBodyFilePath
 }
 
+# -------------------------------------------------
+# MakeSettingsPkg
+#
+proc MakeSettingsPkg {SettingsPkgBaseName} {
+  #
+  # For a package body of deferred constants, create the header, template, and settings (vset)
+	#
+  # SettingsPkgBaseName   - base name of the package (which is named $SettingsPkgBaseName_default.vhd)
+  #
+	# **MakeSettingPkg calls:**
+	#
+	# * [MakePkgHeader] - Create the header package ${SettingsPkgBaseName}.vhd
+	# * [MakePkgBodyTemplate] - Create the template package ${SettingsPkgBaseName}_template.vhd
+	# * [MakePkgSettings] - Create the package settings in ${SettingsPkgBaseName}_default.vset
+  #
+  MakePkgHeader         ${SettingsPkgBaseName}_default.vhd   ${SettingsPkgBaseName}.vhd
+  MakePkgBodyTemplate   ${SettingsPkgBaseName}_default.vhd   ${SettingsPkgBaseName}_template.vhd
+  MakePkgSettings       ${SettingsPkgBaseName}_default.vhd   ${SettingsPkgBaseName}_default.vset
+}
+
+# -------------------------------------------------
+# FindSettingsPkgBody
+#
+proc FindSettingsPkgBody {SettingsPkgBaseName} {
+  #
+  # Choose the package body from to use for $SettingsPkgBaseName  either the settings directory or the local default, ${SettingsPkgBaseName}_default.vhd.
+  # If a settings file named ${SettingsPkgBaseName}_local.vset exists in the settings directory, Create ${SettingsPkgBaseName}_generated.vhd and return that name.
+  # Else if the file ${SettingsPkgBaseName}_local.vhd exists in the settings directory, then return that name.
+  # Otherwise return the local file name: ${SettingsPkgBaseName}_default.vhd
+	#
+	# **MakeSettingPkg calls:**
+	#
+	# * [FindOsvvmSettingsDirectory] - Locates the settings directory
+	# * [MakePkgBody] - Creates ${SettingsPkgBaseName}_generated.vhd using ${SettingsPkgBaseName}_local.vset from the settings directory
+  #
+  set SettingsDirectory [FindOsvvmSettingsDirectory]
+
+  if {[FileExists ${SettingsDirectory}/${SettingsPkgBaseName}_local.vset]} {
+    MakePkgBody ${SettingsPkgBaseName}_default.vset \
+                ${SettingsDirectory}/${SettingsPkgBaseName}_local.vset \
+                ${SettingsPkgBaseName}_template.vhd \
+                ${SettingsDirectory}/${SettingsPkgBaseName}_generated.vhd
+    return "${SettingsDirectory}/${SettingsPkgBaseName}_generated.vhd"
+  } elseif {[FileExists $SettingsDirectory/${SettingsPkgBaseName}_local.vhd]} {
+    return "${SettingsDirectory}/${SettingsPkgBaseName}_local.vhd"
+  } else {
+    return "${SettingsPkgBaseName}_default.vhd"
+  }
+}
+
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
 namespace export CreateOsvvmScriptSettingsPkg FindOsvvmSettingsDirectory CreateAndAnalyzeTestSettingsPkg
 namespace export CreateTestCaseCommonPkg
 namespace export MakePkgHeader MakePkgBodyTemplate MakePkgSettings MakePkgBody
+namespace export MakeSettingsPkg FindSettingsPkgBody
 
 # end namespace ::osvvm
 }
