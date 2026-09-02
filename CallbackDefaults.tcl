@@ -104,8 +104,14 @@ namespace eval ::osvvm {
 #  }
 
   proc CallbackOnError_Build {Path_Or_File BuildErrorMessage LocalBuildErrorInfo} {
+    if {$::osvvm::BuildErrorInfo eq ""} {
+      set NewBuildError TRUE
+    } else {
+      set NewBuildError FALSE
+    }
+    puts "Build Error: build $Path_Or_File failed"
     set ::osvvm::BuildErrorInfo $LocalBuildErrorInfo
-    if {$::osvvm::TclDebug || $::osvvm::Debug} {
+    if {($::osvvm::TclDebug || $::osvvm::Debug)&& $NewBuildError } {
       puts "Build Error:  Info from \$::osvvm::BuildErrorInfo "
       puts "$::osvvm::BuildErrorInfo"
     } else {
@@ -113,6 +119,8 @@ namespace eval ::osvvm {
     }
     if {$::osvvm::FailOnBuildErrors} {
       error $BuildErrorMessage
+    } else {
+      puts $BuildErrorMessage
     }
   }
 
@@ -170,12 +178,12 @@ namespace eval ::osvvm {
 #    set ConsecutiveAnalyzeErrors [expr $ConsecutiveAnalyzeErrors+1]
 
     puts  "AnalyzeError: See messages above in \"analyze $args\""
-    if {$::osvvm::TclDebug || $::osvvm::Debug} {
-      puts  "AnalyzeError:  Info from  \$::osvvm::AnalyzeErrorInfo"
-      puts  "$::osvvm::AnalyzeErrorInfo"
-    } else {
+#!    if {$::osvvm::TclDebug || $::osvvm::Debug} {
+#!      puts  "AnalyzeError:  Info from  \$::osvvm::AnalyzeErrorInfo"
+#!      puts  "$::osvvm::AnalyzeErrorInfo"
+#!    } else {
       puts  "AnalyzeError: For Tcl errorInfo, puts \$::osvvm::AnalyzeErrorInfo"
-    }
+#!    }
 
     # These settings are in OsvvmDefaultSettings.  Override them in LocalScriptDefaults.tcl
     if {$AnalyzeErrorStopCount != 0 && $AnalyzeErrorCount >= $AnalyzeErrorStopCount } {
@@ -192,12 +200,12 @@ namespace eval ::osvvm {
     set SimulateErrorCount            [expr $SimulateErrorCount+1]
 #    set ConsecutiveSimulateErrors     [expr $ConsecutiveSimulateErrors+1]
     puts  "SimulateError: See messages above in \"simulate $args\""
-    if {$::osvvm::TclDebug || $::osvvm::Debug} {
-      puts  "SimulateError:  Info from  \$::osvvm::SimulateErrorInfo"
-      puts  "$::osvvm::SimulateErrorInfo"
-    } else {
+#    if {$::osvvm::TclDebug || $::osvvm::Debug} {
+#      puts  "SimulateError:  Info from  \$::osvvm::SimulateErrorInfo"
+#      puts  "$::osvvm::SimulateErrorInfo"
+#    } else {
       puts  "SimulateError: For Tcl errorInfo, puts \$::osvvm::SimulateErrorInfo"
-    }
+#    }
 
     # These settings are in OsvvmDefaultSettings.  Override them in LocalScriptDefaults.tcl
     if {$SimulateErrorStopCount != 0 && $SimulateErrorCount >= $SimulateErrorStopCount } {
