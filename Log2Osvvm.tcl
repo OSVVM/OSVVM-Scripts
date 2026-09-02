@@ -135,8 +135,8 @@ namespace eval ::osvvm {
     variable FoundBuild "false"
     variable FirstLine  "true"
     variable Log2HtmlTextColor
-    variable InSimulate FALSE
-    variable FoundTranscript FALSE
+#!!    variable InSimulate FALSE
+#!!    variable FoundTranscript FALSE
     variable RelativePathToResults
 
     # Read whole file and split it into lines
@@ -145,6 +145,7 @@ namespace eval ::osvvm {
     # Read line by line - Recommended
     while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
 
+# replace with a single regsub by detecting Aldec
       set LineOfLogFile [regsub {^KERNEL: } [regsub {^# } $RawLineOfLogFile ""] ""]
 
       if {!$FoundBuild} {
@@ -195,8 +196,8 @@ namespace eval ::osvvm {
     variable LogTestCaseName
     variable PrintPrefix
     variable Log2HtmlTextColor
-    variable InSimulate
-    variable FoundTranscript
+#!!    variable InSimulate
+#!!    variable FoundTranscript
     variable RelativePathToResults
     variable ResultsDirectory
 
@@ -204,21 +205,21 @@ namespace eval ::osvvm {
     # Check for things that happen more in the log file
     #
     if {[regexp {Log *(PASSED)} $LineOfLogFile] } {
-      set FoundTranscript TRUE
+#!!      set FoundTranscript TRUE
       set Log2HtmlTextColor #00A000
       puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
 
     } elseif {[regexp {Log *(INFO|ALWAYS|DEBUG|FINAL)} $LineOfLogFile] } {
-      set FoundTranscript TRUE
+#!!      set FoundTranscript TRUE
       puts $HtmlFileHandle $LineOfLogFile
 
     } elseif {[regexp {Alert *(ERROR|FAILURE)} $LineOfLogFile] } {
-      set FoundTranscript TRUE
+#!!      set FoundTranscript TRUE
       set Log2HtmlTextColor #FF0000
       puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
 
     } elseif {[regexp {Alert *WARNING} $LineOfLogFile] } {
-      set FoundTranscript TRUE
+#!!      set FoundTranscript TRUE
       set Log2HtmlTextColor #FF8000
       puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
 
@@ -226,38 +227,43 @@ namespace eval ::osvvm {
 #!! May need to set Log2HtmlTextColor in other branches too.
         puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
 
-    } elseif {[regexp {DONE *(FAILED|STOPLIMIT|TIMEOUT|NOCHECKS)} $LineOfLogFile]} {
-      if {$InSimulate && !($FoundTranscript)} {
-        # Link in transcript html if transcript matches test case name
-        if {[file exists [file join $ResultsDirectory ${LogTestSuiteName} ${LogTestCaseName}.html]]} {
-          puts $HtmlFileHandle "<iframe src=\"[file join $RelativePathToResults ${LogTestSuiteName} ${LogTestCaseName}.html]\"  style=\"border: none; margin: 0; padding: 0; display: block;\" width=\"100%\" height=\"60%\" title=\"Embedded Page\"></iframe>"
-        }
-        set InSimulate FALSE
+    } elseif {[regexp {%%x} $LineOfLogFile]} {
+      if {[file exists [file join $ResultsDirectory ${LogTestSuiteName} ${LogTestCaseName}.html]]} {
+        puts $HtmlFileHandle "<iframe src=\"[file join $RelativePathToResults ${LogTestSuiteName} ${LogTestCaseName}.html]\"  style=\"border: none; margin: 0; padding: 0; display: block;\" width=\"100%\" height=\"60%\" title=\"Embedded Page\"></iframe>"
       }
+
+    } elseif {[regexp {DONE *(FAILED|STOPLIMIT|TIMEOUT|NOCHECKS)} $LineOfLogFile]} {
+#!!      if {$InSimulate && !($FoundTranscript)} {
+#!!        # Link in transcript html if transcript matches test case name
+#!!        if {[file exists [file join $ResultsDirectory ${LogTestSuiteName} ${LogTestCaseName}.html]]} {
+#!!          puts $HtmlFileHandle "<iframe src=\"[file join $RelativePathToResults ${LogTestSuiteName} ${LogTestCaseName}.html]\"  style=\"border: none; margin: 0; padding: 0; display: block;\" width=\"100%\" height=\"60%\" title=\"Embedded Page\"></iframe>"
+#!!        }
+#!!        set InSimulate FALSE
+#!!      }
       set Log2HtmlTextColor #FF0000
       set PrintPrefix "${PrintPrefix}<span style=color:${Log2HtmlTextColor}>$LineOfLogFile\n</span>"
       puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
 
     } elseif {[regexp {DONE *MANUALCHECK} $LineOfLogFile]} {
-      if {$InSimulate && !($FoundTranscript)} {
-        # Link in transcript html if transcript matches test case name
-        if {[file exists [file join $ResultsDirectory ${LogTestSuiteName} ${LogTestCaseName}.html]]} {
-          puts $HtmlFileHandle "<iframe src=\"[file join $RelativePathToResults ${LogTestSuiteName} ${LogTestCaseName}.html]\"  style=\"border: none; margin: 0; padding: 0; display: block;\" width=\"100%\" height=\"60%\" title=\"Embedded Page\"></iframe>"
-        }
-        set InSimulate FALSE
-      }
+#!!      if {$InSimulate && !($FoundTranscript)} {
+#!!        # Link in transcript html if transcript matches test case name
+#!!        if {[file exists [file join $ResultsDirectory ${LogTestSuiteName} ${LogTestCaseName}.html]]} {
+#!!          puts $HtmlFileHandle "<iframe src=\"[file join $RelativePathToResults ${LogTestSuiteName} ${LogTestCaseName}.html]\"  style=\"border: none; margin: 0; padding: 0; display: block;\" width=\"100%\" height=\"60%\" title=\"Embedded Page\"></iframe>"
+#!!        }
+#!!        set InSimulate FALSE
+#!!      }
       set Log2HtmlTextColor #FF8000
       set PrintPrefix "${PrintPrefix}<span style=color:${Log2HtmlTextColor}>$LineOfLogFile\n</span>"
       puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
 
     } elseif {[regexp {DONE *PASSED} $LineOfLogFile]} {
-      if {$InSimulate && !($FoundTranscript)} {
-        # Link in transcript
-        if {[file exists [file join $ResultsDirectory ${LogTestSuiteName} ${LogTestCaseName}.html]]} {
-          puts $HtmlFileHandle "<iframe src=\"[file join $RelativePathToResults ${LogTestSuiteName} ${LogTestCaseName}.html]\"  style=\"border: none; margin: 0; padding: 0; display: block;\" width=\"100%\" height=\"60%\" title=\"Embedded Page\"></iframe>"
-        }
-        set InSimulate FALSE
-      }
+#!!      if {$InSimulate && !($FoundTranscript)} {
+#!!        # Link in transcript
+#!!        if {[file exists [file join $ResultsDirectory ${LogTestSuiteName} ${LogTestCaseName}.html]]} {
+#!!          puts $HtmlFileHandle "<iframe src=\"[file join $RelativePathToResults ${LogTestSuiteName} ${LogTestCaseName}.html]\"  style=\"border: none; margin: 0; padding: 0; display: block;\" width=\"100%\" height=\"60%\" title=\"Embedded Page\"></iframe>"
+#!!        }
+#!!        set InSimulate FALSE
+#!!      }
       set Log2HtmlTextColor #00A000
       puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
 
@@ -279,8 +285,8 @@ namespace eval ::osvvm {
         puts $HtmlFileHandle $LineOfLogFile
 
     } elseif {[regexp {^simulate} $LineOfLogFile] } {
-      set InSimulate TRUE
-      set FoundTranscript FALSE
+#!!      set InSimulate TRUE
+#!!      set FoundTranscript FALSE
       set GenericNames ""
       if {[regexp {generic} $LineOfLogFile] } {
         set GenericDict [regsub {\].*} [regsub -all {[^\[]*\[generic ([^\]]*)} $LineOfLogFile {\1 }] ""]
