@@ -401,7 +401,7 @@ proc build {{Path_Or_File "."} args} {
   variable AnalyzeErrorCount
   variable SimulateErrorCount
   variable ScriptErrorCount
-  variable BuildErrorInfo
+  variable BuildErrorInfo ""
   variable Log2ErrorInfo
   variable BuildStarted
   variable BuildName
@@ -475,12 +475,12 @@ proc build {{Path_Or_File "."} args} {
       #  Wrap up with error handling via call backs
       #
       # Run Callbacks on Error after trying to produce all reports
-      if {$BuildErrorCode != 0} {
-        CallbackOnError_Build $Path_Or_File $BuildErrMsg $LocalBuildErrorInfo
-      }
       if {$AnalyzeErrorCount > 0 || $SimulateErrorCount > 0} {
         CallbackOnError_Build $Path_Or_File "Failed with Analyze Errors: $AnalyzeErrorCount and/or Simulate Errors: $SimulateErrorCount" $LocalBuildErrorInfo
+      } elseif {$BuildErrorCode != 0} {
+        CallbackOnError_Build $Path_Or_File $BuildErrMsg $LocalBuildErrorInfo
       }
+
       if {($ReportErrorCode != 0) || ($ScriptErrorCount != 0)} {
         CallbackOnError_AfterBuildReports $LocalReportErrorInfo
       }
@@ -1240,6 +1240,7 @@ proc NoNullRangeWarning  {} {
 #
 proc simulate {LibraryUnit args} {
   variable vendor_simulate_started
+  variable TestCaseName
 
   if {$::osvvm::LastAnalyzeHasError} {
     AnalyzeFailed $LibraryUnit "Previous analyze failed.  Skipping simulate."
@@ -1248,6 +1249,8 @@ proc simulate {LibraryUnit args} {
       unset TestCaseName
     }
     set ::osvvm::LastAnalyzeHasError "false"
+
+    CallbackOnError_Simulate "Last analyze failed" " " [concat $LibraryUnit $args]
 
   } elseif {!($::osvvm::BuildStarted)} {
     # called simulate from console - run as a build with just simulate in it.
