@@ -356,9 +356,7 @@ proc CreateTestCaseSummaries {TestDict} {
         set FailedClass  ""
         if { ${TestReport} eq "REPORT"} {
           # Check for Matching ExpectedResults
-          set HasExpectedResults FALSE
           if { [dict exists $TestCase ExpectedResults] } {
-            set HasExpectedResults TRUE
             if {[MatchExpectedResults $TestCase]} {
               set TestStatus "PASSED"
             } else {
@@ -457,7 +455,7 @@ proc CreateTestCaseSummaries {TestDict} {
         }
         puts $ResultsFile "          </tr>"
         # add extra line for Expected Results
-        if {$HasExpectedResults} {
+        if { [dict exists $TestCase ExpectedResults] } {
           set ExpectedResults      [dict get $TestCase ExpectedResults]
           set ExpectedStatus       [dict get $ExpectedResults Status]
           set ExpectedTotalErrors  [dict get $ExpectedResults TotalErrors]
