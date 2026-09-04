@@ -58,6 +58,7 @@ package require fileutil
 #
   variable ToolType    "simulator"
   variable ToolVendor  "Siemens"
+
   variable SiemensVsimError 0
   catch {onElabError {set ::osvvm::SiemensVsimError 1}}
 
@@ -106,7 +107,7 @@ package require fileutil
     } else {
       variable NoGui "false"
       variable EnableTranscriptInBatchMode "true"  ; # not relevant
-      variable SiemensSimulateOptions "-c"
+      variable SiemensSimulateOptions ""  ;# was -c
     }
   } else {
     # Started from Shell

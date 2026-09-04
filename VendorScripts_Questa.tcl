@@ -92,7 +92,7 @@ package require fileutil
     } else {
       variable NoGui "false"
       variable EnableTranscriptInBatchMode "true"  ; # not relevant
-      variable SiemensSimulateOptions "-c"
+      variable SiemensSimulateOptions "" ;# was -c
     }
   } else {
     # Started from Shell
