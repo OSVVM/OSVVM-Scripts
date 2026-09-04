@@ -93,6 +93,10 @@ proc StartUp {} {
 
 namespace eval ::osvvm {
 
+proc LoadVendorScripts {ScriptFile} {
+  puts "source $::osvvm::OsvvmScriptDirectory/${ScriptFile}"
+  source $::osvvm::OsvvmScriptDirectory/${ScriptFile}
+}
 
 
 # -------------------------------------------------
@@ -2028,12 +2032,6 @@ proc GetTimeString {} {
   return [GetIsoTime [clock seconds]]
 }
 
-# -------------------------------------------------
-proc -- {args} {
-  puts "Please stop using VHDL comments in Tcl.  Line in issue is:"
-  puts "$args"
-}
-
 # Don't export the following due to conflicts with Tcl built-ins
 # map
 
@@ -2052,7 +2050,7 @@ namespace export OpenBuildHtml OpenIndex
 namespace export DirectoryExists FileExists FileModified
 namespace export JoinWorkingDirectory ChangeWorkingDirectory
 namespace export GetTimeString
-namespace export --
+namespace export LoadVendorScripts
 
 # Experimental
 namespace export RunAllTests
@@ -2063,3 +2061,4 @@ namespace export FindLibraryPath CreateLibraryPath FindExistingLibraryPath TimeI
 
 # end namespace ::osvvm
 }
+
