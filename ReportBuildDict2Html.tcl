@@ -177,7 +177,7 @@ proc CreateHtmlSummary {TestDict} {
   puts $ResultsFile "          <tr ${PassedClass}><td>PASSED</td>   <td>$TestCasesPassed</td></tr>"
   puts $ResultsFile "          <tr ${FailedClass}><td>FAILED</td>   <td>$TestCasesFailed</td></tr>"
   puts $ResultsFile "          <tr ${UntrackedFailureClass}><td>Untracked Failures</td>   <td>$UntrackedFailures</td></tr>"
-  puts $ResultsFile "          <tr ${StatusChangeClass}><td>Tracked Test Case Changed</td>   <td>$TrackedTestCasesStatusChange</td></tr>"
+  puts $ResultsFile "          <tr ${StatusChangeClass}><td>Tracked Test Case Changes</td>   <td>$TrackedTestCasesStatusChange</td></tr>"
   puts $ResultsFile "          <tr ${SkippedClass}><td>SKIPPED</td> <td>$TestCasesSkipped</td></tr>"
   puts $ResultsFile "          <tr ${AnalyzeClass}><td>Analyze Failures</td>   <td>$ReportAnalyzeErrorCount</td></tr>"
   puts $ResultsFile "          <tr ${SimulateClass}><td>Simulate Failures</td> <td>$ReportSimulateErrorCount</td></tr>"
