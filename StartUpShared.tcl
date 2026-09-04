@@ -83,6 +83,7 @@ source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsSimulateSupport.tcl     ;#  
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsFileCreate.tcl          ;#  OSVVM API for file creation
 source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsTranslate.tcl           ;#  OSVVM Create Project files for other tools
 
+
 # --------------------------------
 # Load Vendor Script Default settings
 #   These are updated by VendorScripts_vvv.tcl
@@ -94,6 +95,13 @@ source ${::osvvm::OsvvmScriptDirectory}/OsvvmSettingsVendorScriptsDefault.tcl
 # --------------------------------
 namespace eval ::osvvm {
   source ${::osvvm::OsvvmScriptDirectory}/VendorScripts_${::osvvm::ScriptBaseName}.tcl
+}
+
+# --------------------------------
+# Define a procedure for "--" so VHDL comments are ignored
+# --------------------------------
+if {($::osvvm::ToolName ne "ActiveHDL") && ($::osvvm::ToolName ne "VSimSA")} {
+  source ${::osvvm::OsvvmScriptDirectory}/OsvvmScriptsIgnoreVhdlComments.tcl
 }
 
 # --------------------------------
