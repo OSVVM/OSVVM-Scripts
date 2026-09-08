@@ -143,7 +143,7 @@ namespace eval ::osvvm {
   #  Requirements Tracking settings
   #
   #    USE_SUM_OF_GOALS
-  #      when false, uses maximum goal - good when merging in specification which provides the maximum goal which is divided across teests
+  #      when false, uses maximum goal - good when merging in specification which provides the maximum goal which is divided across tests
   #      when true,  uses sum of goals - good when not merging the specification and need to sum up goals to get the total
     variable USE_SUM_OF_GOALS         "false"    ;# when false, uses maximum
     #  variable USE_SUM_OF_GOALS      "true"     ;# when true uses sum of goals
