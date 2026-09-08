@@ -69,49 +69,47 @@ proc Simulate2Html {SettingsFileWithPath BaseDirectory} {
   # TestCaseVhdlFileName.vhd - TestCase File Name for this test case (last file analyzed before simulate)
   # TestCaseResultsFile.log  - Test case transcript that was opened with OSVVM's TranscriptOpen
   # BuildName.log - Link to Simulation Results in simulator transcript file (marked with html tag)
-  #  
+  #
   variable ResultsFile
-  
-  variable Report2AlertYamlFile              
-#  variable Report2RequirementsYamlFile 
-  variable Report2CovYamlFile        
+
+  variable Report2AlertYamlFile
+#  variable Report2RequirementsYamlFile
+  variable Report2CovYamlFile
   variable Report2BaseDirectory
 
   # Report2BaseDirectory - Path to report files.
   # Cannot be derived from $SettingsFileWithPath as too much freedom with directories
   # Set before GetOsvvmPathSettings
-  set Report2BaseDirectory   $BaseDirectory 
-  GetTestCaseSettings $SettingsFileWithPath 
-  
-  set TestCaseFileName $::osvvm::Report2TestCaseFileName
-  set TestCaseName     $::osvvm::Report2TestCaseName  
-  set TestSuiteName    $::osvvm::Report2TestSuiteName 
-  set BuildName        $::osvvm::Report2BuildName     
-  set GenericDict      $::osvvm::Report2GenericDict   
+  set Report2BaseDirectory   $BaseDirectory
+  GetTestCaseSettings $SettingsFileWithPath
 
-  
+  set TestCaseFileName $::osvvm::Report2TestCaseFileName
+  set TestCaseName     $::osvvm::Report2TestCaseName
+  set TestSuiteName    $::osvvm::Report2TestSuiteName
+  set BuildName        $::osvvm::Report2BuildName
+  set GenericDict      $::osvvm::Report2GenericDict
 
   CreateTestCaseSummaryTable ${TestCaseName} ${TestSuiteName} ${BuildName} ${GenericDict}
-  
+
   if {[file exists ${Report2AlertYamlFile}]} {
     Alert2Html ${TestCaseName} ${TestSuiteName} ${Report2AlertYamlFile}
   }
 
 #  if {[file exists ${Report2RequirementsYamlFile}]} {
-#    # Generate Test Case requirements file - redundant as reported as alerts too. 
+#    # Generate Test Case requirements file - redundant as reported as alerts too.
 #    Requirements2Html ${Report2RequirementsYamlFile} $TestCaseName $TestSuiteName ;# this form deprecated
 #  }
 
   if {[file exists ${Report2CovYamlFile}]} {
     Cov2Html ${TestCaseName} ${TestSuiteName} ${Report2CovYamlFile}
   }
-  
+
   if {$::osvvm::Report2ScoreboardDict ne ""} {
     foreach {SbName SbFileYaml} ${::osvvm::Report2ScoreboardDict} {
       Scoreboard2Html ${TestCaseName} ${TestSuiteName} [file join ${Report2BaseDirectory} ${SbFileYaml}] Scoreboard_${SbName}
     }
   }
-  
+
   FinalizeSimulationReportFile
 }
 
@@ -133,7 +131,7 @@ proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDic
   OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml] 1
 
   set ErrorCode [catch {LocalCreateTestCaseSummaryTable $TestCaseName $TestSuiteName $BuildName $GenericDict} errmsg]
-  
+
   close $ResultsFile
 
   if {$ErrorCode} {
@@ -145,7 +143,7 @@ proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDic
 proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDict} {
   variable ResultsFile
 
-  
+
   if {$::osvvm::Report2ReportsSubdirectory eq ""} {
     set ReportsPrefix ".."
   } else {
@@ -176,19 +174,19 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   if {[file exists ${::osvvm::Report2CovYamlFile}]} {
     puts $ResultsFile "          <tr><td><a href=\"#FunctionalCoverage\">Functional Coverage Report(s)</a></td></tr>"
   }
-  
+
   if {$::osvvm::Report2ScoreboardDict ne ""} {
     foreach SbName [dict keys ${::osvvm::Report2ScoreboardDict}] {
       puts $ResultsFile "          <tr><td><a href=\"#Scoreboard_${SbName}\">ScoreboardPkg_${SbName} Report(s)</a></td></tr>"
     }
   }
-  
+
   # Add link to simulation results in HTML Log File
   if {$::osvvm::Report2SimulationHtmlLogFile ne ""} {
     set TestCaseLink "#${TestSuiteName}_${TestCaseName}${::osvvm::Report2GenericNames}"
     puts $ResultsFile "          <tr><td><a href=\"${ReportsPrefix}/${::osvvm::Report2SimulationHtmlLogFile}${TestCaseLink}\">Link to Simulation Results</a></td></tr>"
   }
-  
+
   # Add link to Test Case file
 #  set TestCaseFile [::fileutil::relative $::osvvm::Report2ReportsDirectory $::osvvm::Report2TestCaseFile]
   # Already relative path
@@ -197,12 +195,13 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
   if {$::osvvm::Report2TestCaseFile ne ""} {
     puts $ResultsFile "          <tr><td><a href=\"${::osvvm::VhdlFileViewerPrefix}${TestCaseFile}\">$TestCaseFileTail</a></td></tr>"
   }
-  
+
   # Add Transcript Filess to Table
   if {$::osvvm::Report2TranscriptFiles ne ""} {
     foreach TranscriptFile ${::osvvm::Report2TranscriptFiles} {
-      set TranscriptFileName [file tail $TranscriptFile]
-      puts $ResultsFile "          <tr><td><a href=\"${ReportsPrefix}/${TranscriptFile}\">${TranscriptFileName}</a></td></tr>"
+      set TranscriptFileHtml [file rootname $TranscriptFile].html
+      set TranscriptFileName [file tail $TranscriptFileHtml]
+      puts $ResultsFile "          <tr><td><a href=\"${ReportsPrefix}/${TranscriptFileHtml}\">${TranscriptFileName}</a></td></tr>"
     }
   }
 
@@ -211,7 +210,7 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
     set BuildLink ${ReportsPrefix}/${BuildName}.html
     puts $ResultsFile "          <tr><td><a href=\"${ReportsPrefix}/${BuildName}.html\">${BuildName} Build Summary</a></td></tr>"
   }
-    
+
   puts $ResultsFile "        </tbody>"
   puts $ResultsFile "      </table>"
   puts $ResultsFile "    </div>"
@@ -225,8 +224,8 @@ proc FinalizeSimulationReportFile {} {
   variable ResultsFile
 
   OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml]
-  
-  CreateOsvvmReportFooter $ResultsFile  
-  
+
+  CreateOsvvmReportFooter $ResultsFile
+
   close $ResultsFile
 }

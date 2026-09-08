@@ -22,7 +22,7 @@
 #  Revision History:
 #    Date      Version    Description
 #    07/2024   2024.07    Reporting for Affirm Counts and Generics
-#    05/2024   2024.05    Refactored. 
+#    05/2024   2024.05    Refactored.
 #    04/2024   2024.04    Updated report formatting
 #    12/2022   2022.12    Refactored to only use static OSVVM information
 #    10/2021   Initial    Initial Revision
@@ -57,7 +57,7 @@ proc ReportBuildDict2Junit {} {
   set ResultsFile [open ${ReportFileRoot}.xml w]
 
   set ErrorCode [catch {LocalReportBuildDict2Junit} errmsg]
-  
+
   close $ResultsFile
 
   if {$ErrorCode} {
@@ -73,11 +73,11 @@ proc LocalReportBuildDict2Junit {} {
   variable BuildDict
   variable TestSuiteSummaryArrayOfDictionaries
   variable HaveTestSuites
-  
-  CreateJunitSummary $BuildDict 
+
+  CreateJunitSummary $BuildDict
 
   if { $HaveTestSuites } {
-    CreateJunitTestSuiteSummaries $BuildDict $TestSuiteSummaryArrayOfDictionaries 
+    CreateJunitTestSuiteSummaries $BuildDict $TestSuiteSummaryArrayOfDictionaries
   }
   puts $ResultsFile "</testsuites>"
 }
@@ -96,9 +96,9 @@ proc CreateJunitSummary {TestDict} {
   variable ReportSimulator
   variable ReportSimulatorVersion
 
-  variable TestCasesPassed 
-  variable TestCasesFailed 
-  variable TestCasesSkipped 
+  variable TestCasesPassed
+  variable TestCasesFailed
+  variable TestCasesSkipped
 
   # Print Initial Build Summary
   #  <testsuites name="Build" time="25.0" tests="20" failures="5" errors="0" skipped="2">
@@ -119,7 +119,7 @@ proc CreateJunitSummary {TestDict} {
   puts $ResultsFile "  <property name=\"SimulatorVersion\" value=\"$ReportSimulatorVersion\" /> "
 
   puts $ResultsFile "</properties> "
-  
+
 }
 
 # -------------------------------------------------
@@ -128,19 +128,19 @@ proc CreateJunitSummary {TestDict} {
 proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
   variable ResultsFile
   variable TestSuiteName
-  
+
   set Index 0
   foreach TestSuite [dict get $TestDict TestSuites] {
     CreateJunitTestCaseSummary [lindex $TestSuiteSummary $Index]
-    incr Index 
-    
+    incr Index
+
     foreach TestCase [dict get $TestSuite TestCases] {
     # <testcase classname="S3.T1" name="S3.T1" time="0.3"><failure message="Failed" /></testcase>
     # <testcase classname="S3.T2" name="S3.T2" time="0.3"></testcase>
     # <testcase classname="S3.T3" name="S3.T3" time="0.3"><skipped message="We don't do this either" /></testcase>
 
       set TestName    [dict get $TestCase TestCaseName]
-      
+
       if { [dict exists $TestCase Results] } {    ;# Check for Status instead?
         set TestResults [dict get $TestCase Results]
         if { [dict exists $TestResults AffirmCount] } {
@@ -159,7 +159,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
           set TestStatus FAILED
         }
         if {[dict exists $TestCase Reason]} {
-          set Reason [dict exists $TestCase Reason] 
+          set Reason [dict exists $TestCase Reason]
         } elseif {$TestStatus ne "PASSED"} {  ; # SKIPPED has a reason
           set Reason "Test Case Error"
         } else {
@@ -172,12 +172,20 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
         set AffirmCount 0
         set Reason "Test did not run"
       }
-      
-      if { ${TestName} ne ${VhdlName} } {
-        set TestStatus "FAILED"
-        set Reason "Name mismatch"
+      # Check for Matching ExpectedResults
+      if { [dict exists $TestCase ExpectedResults] } {
+        if {[MatchExpectedResults $TestCase]} {
+          set TestStatus "PASSED"
+        } else {
+          set TestStatus "FAILED"
+        }
       }
-      if { [dict exists $TestCase TestCaseFileName] } { 
+      # Check for Matching Test Case and VHDL Names
+      if { (${TestName} ne ${VhdlName}) && $::osvvm::FailOnVhdlNameNotMatchTestName} {
+        set TestStatus "FAILED"
+        set Reason "Name mismatch. Tcl Test Name: ${TestName}.  VHDL Test Name: ${VhdlName}"
+      }
+      if { [dict exists $TestCase TestCaseFileName] } {
         set ResolvedTestName [dict get $TestCase TestCaseFileName]
       } else {
         set ResolvedTestName $TestName
@@ -190,8 +198,8 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
       puts $ResultsFile "   assertions=\"$AffirmCount\""
       puts $ResultsFile "   time=\"$ElapsedTime\""
       puts $ResultsFile ">"
-      
-      if { [dict exists $TestCase Generics] } { 
+
+      if { [dict exists $TestCase Generics] } {
         set TestCaseGenerics [dict get $TestCase Generics]
         if {${TestCaseGenerics} ne ""} {
           puts $ResultsFile "<properties> "
@@ -201,10 +209,10 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
           puts $ResultsFile "</properties> "
         }
       }
-      
+
       if { $TestStatus eq "FAILED" } {
         puts $ResultsFile "<failure message=\"$Reason\">$Reason</failure>"
-      
+
       } elseif { $TestStatus eq "SKIPPED" } {
 #        set Reason [dict get $TestCase Reason]
         puts $ResultsFile "<skipped message=\"$Reason\">$Reason</skipped>"

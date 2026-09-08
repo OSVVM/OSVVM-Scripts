@@ -49,9 +49,9 @@ proc Alert2Html {TestCaseName TestSuiteName AlertYamlFile} {
 
   set FilePath [file dirname $AlertYamlFile]
   OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml]
-  
+
   set ErrorCode [catch {LocalAlert2Html $TestCaseName $TestSuiteName $AlertYamlFile} errmsg]
-  
+
   close $ResultsFile
 
   if {$ErrorCode} {
@@ -63,31 +63,30 @@ proc LocalAlert2Html {TestCaseName TestSuiteName AlertYamlFile} {
   variable ResultsFile
 
   set Alert2HtmlDict [::yaml::yaml2dict -file ${AlertYamlFile}]
-  
+
   AlertSettings $Alert2HtmlDict
-  
+
   CreateAlertResultsHeader $TestCaseName
-  
+
   AlertWrite $Alert2HtmlDict
-  
+
   CreateAlertResultsFooter
 }
 
 proc AlertSettings {AlertDict} {
   variable ResultsFile
-  
+
   set Name     [dict get $AlertDict Name]
   set Settings [dict get $AlertDict Settings]
-  set External [dict get $Settings ExternalErrors]
-  set Failure [dict get $External Failure]
-  set Error   [dict get $External Error]
-  set Warning [dict get $External Warning]
-  set ExpectedFailure [expr {$Failure > 0 ? 0 : -$Failure}  ]
-  set ExpectedError   [expr {$Error   > 0 ? 0 : -$Error}    ]
-  set ExpectedWarning [expr {$Warning > 0 ? 0 : -$Warning}  ]
-  set ExternalFailure [expr {$Failure > 0 ? $Failure : 0}   ]
-  set ExternalError   [expr {$Error   > 0 ? $Error   : 0}   ]
-  set ExternalWarning [expr {$Warning > 0 ? $Warning : 0}   ]
+  set Results  [dict get $AlertDict Results]
+  set Expected [dict get $Results ExpectedCount]
+  set ExpectedFailure [dict get $Expected Failure]
+  set ExpectedError   [dict get $Expected Error]
+  set ExpectedWarning [dict get $Expected Warning]
+  set External [dict get $Results ExternalErrors]
+  set ExternalFailure [dict get $External Failure]
+  set ExternalError   [dict get $External Error]
+  set ExternalWarning [dict get $External Warning]
 
   puts $ResultsFile "  <hr />"
   puts $ResultsFile "  <div class=\"AlertSummary\">"
@@ -154,7 +153,7 @@ proc AlertSettings {AlertDict} {
 
 proc CreateAlertResultsHeader {TestCaseName} {
   variable ResultsFile
-  
+
   puts $ResultsFile "    <div class=\"AlertResults\">"
   puts $ResultsFile "      <details open><summary class=\"subtitle\">$TestCaseName Alert Results</summary>"
   puts $ResultsFile "        <table class=\"AlertResults\">"
@@ -188,7 +187,7 @@ proc AlertWrite {AlertDict {Prefix ""}} {
   variable ResultsFile
 
   if {[dict exists $AlertDict Name]} {
-   
+
     set Results              [dict get $AlertDict    Results]
     set AlertCount           [dict get $Results      AlertCount]
     set DisabledAlertCount   [dict get $Results      DisabledAlertCount]
@@ -205,8 +204,8 @@ proc AlertWrite {AlertDict {Prefix ""}} {
     set RequirementsGoal     [dict get $Results            RequirementsGoal]
     set DisabledAlertFailure [dict get $DisabledAlertCount Failure]
     set DisabledAlertError   [dict get $DisabledAlertCount Error]
-    set DisabledAlertWarning [dict get $DisabledAlertCount Warning]    
-    
+    set DisabledAlertWarning [dict get $DisabledAlertCount Warning]
+
     set StatusClass               "class=\"passed\""
     set PassedCountClass          "class=\"passed\""
     set AlertFailureClass         ""
@@ -286,7 +285,7 @@ proc AlertWrite {AlertDict {Prefix ""}} {
     puts $ResultsFile "              <td ${DisabledAlertErrorClass}>$DisabledAlertError</td>"
     puts $ResultsFile "              <td ${DisabledAlertWarningClass}>$DisabledAlertWarning</td>"
     puts $ResultsFile "            </tr>"
-       
+
     set Children [dict get $AlertDict Children]
     foreach Child $Children {
       set NewPrefix "&emsp; ${Prefix}"
@@ -297,7 +296,7 @@ proc AlertWrite {AlertDict {Prefix ""}} {
 
 proc CreateAlertResultsFooter {} {
   variable ResultsFile
-  
+
   puts $ResultsFile "          <tbody>"
   puts $ResultsFile "        </table>"
   puts $ResultsFile "      </details>"

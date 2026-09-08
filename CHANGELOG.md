@@ -1,7 +1,13 @@
 # The OSVVM Verification Script Library Change Log
 
-| **Revision**  |   **Release Summary**                                                                         | 
-|---------------|-----------------------------------------------------------------------------------------------| 
+| **Revision**  |   **Release Summary**                                                                         |
+|---------------|-----------------------------------------------------------------------------------------------|
+| 2026.08       |  Generate Package header and settings from deferred constants in package body                 |
+|               |  Added ExpectedStatus and KnownStatus and updated reports                                     |
+|               |  Added settings for requirements                                                              |
+|               |  Added ProToYaml and ProToJson to convert pro scripts to YAML and JSON files                  |
+|               |  Index.yaml - reversed order of presenting builds                                             |
+|               |  Create Transcript.html and provide as frame in log.html when transcript not mirroed          |
 | 2026.05       |  Bug fix to simulate to maintain CurrentWorkingDirectory when run from command line           |
 |               |  Refactored OsvvmScriptsCore.tcl to separate out OsvvmScriptsSetGetOptions.tcl                |
 |               |  Fixed issues with VhdlLsToml file creation.                                                  |
@@ -118,10 +124,10 @@
 |               |  that call procedures.                                                                        |
 | 2018.11       |  Initial release                                                                              |
 
- 
+
 ## Copyright and License
-Copyright (C) 2006-2024 by [SynthWorks Design Inc.](http://www.synthworks.com/)   
-Copyright (C) 2022-2024 by [OSVVM contributors](CONTRIBUTOR.md)   
+Copyright (C) 2006-2024 by [SynthWorks Design Inc.](http://www.synthworks.com/)
+Copyright (C) 2022-2024 by [OSVVM contributors](CONTRIBUTOR.md)
 
 This file is part of OSVVM.
 

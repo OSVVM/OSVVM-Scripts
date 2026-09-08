@@ -48,9 +48,9 @@
 
 package require yaml
 
-#  Notes:  
+#  Notes:
 #  The following variables are set by GetPathSettings that read the YAML file
-#      Report2HtmlThemeDirectory 
+#      Report2HtmlThemeDirectory
 #      Report2BaseDirectory
 #      Report2ReportsSubdirectory
 #      Report2LogSubdirectory
@@ -85,14 +85,14 @@ proc ReportBuildYaml2Dict {ReportFile} {
   set Report2BaseDirectory   [file dirname $ReportFile]    ;# Set before GetOsvvmPathSettings
   set ReportFileRoot         [file rootname $ReportFile]
   set ReportBuildName        [file tail $ReportFileRoot]
-  
-  
+
+
   # Read the YAML file into a dictionary
   set BuildDict [::yaml::yaml2dict -file ${ReportFile}]
 
   # Convert YAML file to HTML & catch results
   set ErrorCode [catch {LocalReportBuildYaml2Dict $BuildDict} errmsg]
-  
+
   if {$ErrorCode} {
     CallbackOnError_ReportBuildYaml2Dict $ReportFile $errmsg
   }
@@ -103,13 +103,13 @@ proc ReportBuildYaml2Dict {ReportFile} {
 #
 proc LocalReportBuildYaml2Dict {BuildDict} {
   variable ReportBuildName
-  
-  GetOsvvmPathSettings $BuildDict 
-  
+
+  GetOsvvmPathSettings $BuildDict
+
   ElaborateTestSuites $BuildDict
 
   GetBuildStatus $BuildDict
-  
+
 }
 
 # -------------------------------------------------
@@ -120,11 +120,11 @@ proc ReportBuildStatus {} {
   variable ReportBuildErrorCode
   variable ReportAnalyzeErrorCount
   variable ReportSimulateErrorCount
-  variable BuildStatus 
-  variable TestCasesPassed 
-  variable TestCasesFailed 
-  variable TestCasesSkipped 
-  
+  variable BuildStatus
+  variable TestCasesPassed
+  variable TestCasesFailed
+  variable TestCasesSkipped
+
   if {$BuildStatus eq "PASSED"} {
     puts "Build: ${ReportBuildName} ${BuildStatus},  Passed: ${TestCasesPassed},  Failed: ${TestCasesFailed},  Skipped: ${TestCasesSkipped},  Analyze Errors: ${ReportAnalyzeErrorCount},  Simulate Errors: ${ReportSimulateErrorCount}"
   } else {
@@ -132,6 +132,31 @@ proc ReportBuildStatus {} {
   }
 }
 
+# -------------------------------------------------
+# MatchExpectedResults
+#
+proc MatchExpectedResults {TestCase} {
+  set ExpectedResults      [dict get $TestCase ExpectedResults]
+  set ExpectedAlertCount   [dict get $ExpectedResults AlertCount]
+  set ExpectedStatus       [dict get $ExpectedResults Status]
+  set ExpectedTotalErrors  [dict get $ExpectedResults TotalErrors]
+  set ExpectedFailure      [dict get $ExpectedAlertCount Failure]
+  set ExpectedError        [dict get $ExpectedAlertCount Error]
+  set ExpectedWarning      [dict get $ExpectedAlertCount Warning]
+
+  set ActualStatus         [dict get $TestCase Status]
+  set ActualResults        [dict get $TestCase Results]
+  set ActualAlertCount     [dict get $ActualResults AlertCount]
+  set ActualTotalErrors    [dict get $ActualResults TotalErrors]
+  set ActualFailure        [dict get $ActualAlertCount Failure]
+  set ActualError          [dict get $ActualAlertCount Error]
+  set ActualWarning        [dict get $ActualAlertCount Warning]
+
+  # set MatchStatus [expr $ExpectedStatus eq $TestStatus]
+  set MatchErrors [expr {$ExpectedTotalErrors == $ActualTotalErrors}]
+  set MatchAlerts [expr ($ExpectedFailure == $ActualFailure) && ($ExpectedError == $ActualError) && ($ExpectedWarning == $ActualWarning)]
+  return [expr {($ExpectedStatus eq $ActualStatus) && $MatchErrors && $MatchAlerts}]
+}
 
 # -------------------------------------------------
 # ElaborateTestSuites
@@ -145,7 +170,9 @@ proc ElaborateTestSuites {TestDict} {
   variable TestCasesPassed 0
   variable TestCasesFailed 0
   variable TestCasesSkipped 0
-  
+  variable TrackedTestCasesFailed 0
+  variable TrackedTestCasesStatusChange 0
+
   set HaveTestSuites [dict exists $TestDict TestSuites]
 
   if { $HaveTestSuites } {
@@ -153,6 +180,8 @@ proc ElaborateTestSuites {TestDict} {
       set SuitePassed 0
       set SuiteFailed 0
       set SuiteSkipped 0
+      set TrackedSuiteFailed 0
+      set TrackedSuiteStatusChange 0
       set SuiteReqPassed 0
       set SuiteReqGoal 0
       set SuiteDisabledAlerts 0
@@ -162,7 +191,7 @@ proc ElaborateTestSuites {TestDict} {
 #!! This could all be simplified with a dict merge that sets TestStatus "FAILED", TestReqGoal 0, TestReqPassed 0, DisabledAlertCount 0
 #!! Independent of SkipTest, ..., VHDL side will fail with no results and no TestStatus
 #!! Good defaults could minimize info provided by SkipTest and others
-        if { [dict exists $TestCase Results] } { 
+        if { [dict exists $TestCase Results] } {
           set TestStatus  [dict get $TestCase Status]
           set TestResults [dict get $TestCase Results]
           if { $TestStatus ne "SKIPPED" && $TestStatus ne "ANALYZE_FAILED"} {
@@ -182,15 +211,27 @@ proc ElaborateTestSuites {TestDict} {
           set TestReqPassed 0
           set VhdlName $TestName
         }
+
         # Count results.
-        # If test cases run parallel, must be done here. 
-        if { $TestStatus eq "SKIPPED" } {
+        # If test cases run parallel, must be done here.
+        set  ThisTestFailed FALSE
+        if { [dict exists $TestCase ExpectedResults] } {
+          if {[MatchExpectedResults $TestCase]} {
+            incr SuitePassed
+            incr TestCasesPassed
+          } else {
+            incr SuiteFailed
+            incr TestCasesFailed
+            set  ThisTestFailed TRUE
+          }
+        } elseif { $TestStatus eq "SKIPPED" } {
           incr SuiteSkipped
           incr TestCasesSkipped
         } else {
-          if { ${TestName} ne ${VhdlName}  } {
+          if { (${TestName} ne ${VhdlName}) && $::osvvm::FailOnVhdlNameNotMatchTestName} {
             incr SuiteFailed
             incr TestCasesFailed
+            set  ThisTestFailed TRUE
           } elseif { ($TestStatus eq "PASSED") || (($TestStatus eq "NOCHECKS") && !($::osvvm::FailOnNoChecks)) } {
             incr SuitePassed
             incr TestCasesPassed
@@ -201,11 +242,25 @@ proc ElaborateTestSuites {TestDict} {
               }
             }
           } else {
-            # TestStatus = FAILED or TIMEOUT or ANALYZE_FAILED
+            # TestStatus = FAILED or TIMEOUT or ANALYZE_FAILED or STOPLIMIT
             # TestStatus = NOCHECKS if OsvvmVersionCompatibility is 2024.07 (or later) or
             #    FailOnNoChecks is set to TRUE in OsvvmSettingsLocal.tcl
             incr SuiteFailed
             incr TestCasesFailed
+            set  ThisTestFailed TRUE
+          }
+        }
+# Mark FAILED before this and if
+        if { [dict exists $TestCase KnownStatus] } {
+          set KnownStatus     [dict get $TestCase KnownStatus]
+          if {$TestStatus eq $KnownStatus} {
+            if {$ThisTestFailed} {
+              incr TrackedTestCasesFailed
+              incr TrackedSuiteFailed
+            }
+          } else {
+            incr TrackedTestCasesStatusChange
+            incr TrackedSuiteStatusChange
           }
         }
       }
@@ -246,11 +301,11 @@ proc ElaborateTestSuites {TestDict} {
 #
 proc GetBuildStatus {TestDict} {
   variable ReportBuildName
-  
+
   variable ReportBuildErrorCode
   variable ReportAnalyzeErrorCount
   variable ReportSimulateErrorCount
-  variable BuildStatus 
+  variable BuildStatus
   variable ReportStartTime
   variable ReportIsoStartTime
   variable ReportFinishTime
@@ -265,7 +320,7 @@ proc GetBuildStatus {TestDict} {
 
 #!! Simplify with dict merge
   if { [dict exists $TestDict BuildInfo] } {
-    set RunInfo   [dict get $TestDict BuildInfo] 
+    set RunInfo   [dict get $TestDict BuildInfo]
   } else {
     set RunInfo   [dict create BuildErrorCode 1]
   }
@@ -287,7 +342,7 @@ proc GetBuildStatus {TestDict} {
   if {($ReportBuildErrorCode != 0) || $ReportAnalyzeErrorCount || $ReportSimulateErrorCount} {
     set BuildStatus "FAILED"
   }
-  
+
   # Print BuildInfo
   set BuildInfo $RunInfo
   if {[dict exists $RunInfo StartTime]} {
@@ -296,12 +351,12 @@ proc GetBuildStatus {TestDict} {
   } else {
     set ReportIsoStartTime ""
     set ReportStartTime ""
-  } 
+  }
   if {[dict exists $RunInfo FinishTime]} {
     set ReportFinishTime [IsoToOsvvmTime [dict get $RunInfo FinishTime]]
   } else {
     set ReportFinishTime ""
-  } 
+  }
 
   if {[dict exists $RunInfo ElapsedTime]} {
     set ElapsedTimeSeconds [dict get $RunInfo ElapsedTime]
@@ -315,25 +370,25 @@ proc GetBuildStatus {TestDict} {
     set ReportSimulator [dict get $RunInfo Simulator]
   } else {
     set ReportSimulator "Unknown"
-  } 
-  
+  }
+
   if {[dict exists $RunInfo SimulatorVersion]} {
     set ReportSimulatorVersion [dict get $RunInfo SimulatorVersion]
   } else {
     set ReportSimulatorVersion "Unknown"
-  } 
+  }
 
   if {[dict exists $RunInfo OsvvmVersion]} {
     set OsvvmVersion [dict get $RunInfo OsvvmVersion]
   } else {
     set OsvvmVersion ""
-  } 
+  }
 
   if {$::osvvm::Report2RequirementsSubdirectory ne ""} {
     set RequirementsRelativeHtml [file join $::osvvm::Report2RequirementsSubdirectory ${ReportBuildName}_req.html]
   } else {
     set RequirementsRelativeHtml ""
-  }  
+  }
 }
 
 

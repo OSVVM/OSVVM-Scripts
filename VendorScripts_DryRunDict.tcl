@@ -1,36 +1,36 @@
 #  File Name:         VendorScripts_Reports.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
-# 
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
-#  Contributor(s):            
-#     Jim Lewis      email:  jim@synthworks.com   
-# 
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Jim Lewis      email:  jim@synthworks.com
+#
 #  Description
 #    VendorScript stub for report generation
-#    
-#  Developed by: 
-#        SynthWorks Design Inc. 
+#
+#  Developed by:
+#        SynthWorks Design Inc.
 #        VHDL Training Classes
 #        OSVVM Methodology and Model Library
 #        11898 SW 128th Ave.  Tigard, Or  97223
 #        http://www.SynthWorks.com
-# 
+#
 #  Revision History:
 #    Date      Version    Description
 #     1/2026   2026.01    Derived from VendorScripts_CompileList.tcl
 #
 #
 #  This file is part of OSVVM.
-#  
-#  Copyright (c) 2026 by SynthWorks Design Inc.  
-#  
+#
+#  Copyright (c) 2026 by SynthWorks Design Inc.
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#  
+#
 #      https://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -44,11 +44,11 @@
 #
 #  variable ScriptBaseName $::env(OSVVM_TOOL2)
 #  source ${::osvvm::OsvvmScriptDirectory}/VendorScripts_${::osvvm::ScriptBaseName}.tcl
-  
+
  #
  # Now replace base level procedures with the following
  #
- 
+
 
 # Namespace not used since calling from within OSVVM
 
@@ -102,18 +102,18 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {}
 #
 proc vendor_analyze_vhdl {LibraryName FileName args} {
   dict lappend ::osvvm::AnalyzeDict $LibraryName \
-    [dict create FileName [file normalize $FileName] LanguageVersion ${::osvvm::VhdlVersion} ]
+    [dict create FileName [file normalize [file join $FileName]] LanguageVersion ${::osvvm::VhdlVersion} ]
   lappend ::osvvm::AnalyzeOrderList \
-    [dict create FileName [file normalize $FileName] \
+    [dict create FileName [file normalize [file join $FileName]] \
       Library $LibraryName \
       LanguageVersion ${::osvvm::VhdlVersion} ]
 }
 
 proc vendor_analyze_verilog {LibraryName FileName args} {
   dict lappend ::osvvm::AnalyzeDict $LibraryName \
-    [dict create FileName [file normalize $FileName] LanguageVersion ${::osvvm::VhdlVersion} ]
+    [dict create FileName [file normalize [file join $FileName]] LanguageVersion ${::osvvm::VhdlVersion} ]
   lappend ::osvvm::AnalyzeOrderList \
-    [dict create FileName [file normalize $FileName] \
+    [dict create FileName [file normalize [file join $FileName]] \
       Library $LibraryName \
       LanguageVersion ${::osvvm::VhdlVersion} ]
 }
@@ -122,14 +122,14 @@ proc vendor_analyze_verilog {LibraryName FileName args} {
 # End Previous Simulation
 #
 proc vendor_end_previous_simulation {} {
-}  
+}
 
 # -------------------------------------------------
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
   dict lappend ::osvvm::SimulateDict $LibraryName \
-    [dict create LibraryUnit [file normalize $LibraryUnit] \
+    [dict create LibraryUnit $LibraryUnit \
                 LanguageVersion ${::osvvm::VhdlVersion} \
                 Generics  ${::osvvm::GenericDict} \
                 TimeUnits ${::osvvm::SimulateTimeUnits}  ]
@@ -143,13 +143,13 @@ proc vendor_generic {Name Value} {
 # -------------------------------------------------
 # Merge Coverage
 #
-proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
+proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
 }
 
-proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
+proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} {
 }
 
-proc vendor_GetCoverageFileName {TestName} { 
+proc vendor_GetCoverageFileName {TestName} {
   return $TestName
 }
 

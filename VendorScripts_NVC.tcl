@@ -222,8 +222,21 @@ proc vendor_analyze_vhdl {LibraryName FileName args} {
 }
 
 proc vendor_analyze_verilog {LibraryName FileName args} {
+  variable nvc
+  variable VhdlShortVersion
+  variable NVC_WORKING_LIBRARY_PATH
 
-  puts "Analyzing verilog files not supported by NVC" 
+  # VhdlShortVersion must be passed here for compatibility with VHDL
+  # sources analyzed into the same library.
+  set  GlobalOptions [concat --std=${VhdlShortVersion} $::osvvm::SimulatorMemory $::osvvm::ExtendedGlobalOptions --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion}]
+  set  AnalyzeOptions [concat {*}${args} ${FileName}]
+  puts "nvc ${GlobalOptions} -a $AnalyzeOptions"
+  if {[catch {exec $nvc {*}${GlobalOptions} -a {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
+    PrintWithPrefix "Error:" $AnalyzeErrorMessage
+    error "Failed: analyze $FileName"
+  } else {
+    puts $AnalyzeErrorMessage
+  }
 }
 
 # -------------------------------------------------

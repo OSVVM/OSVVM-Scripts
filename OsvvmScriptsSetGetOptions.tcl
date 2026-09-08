@@ -20,7 +20,7 @@
 #
 #  Revision History:
 #    Version    Description
-#    2025.06    Factored out from OsvvmScriptsCore.tcl.  
+#    2025.06    Factored out from OsvvmScriptsCore.tcl.
 #
 #
 #  This file is part of OSVVM.
@@ -191,14 +191,14 @@ proc GetSaveWaves {} {
 #
 proc SetInteractiveMode {{Options "true"}} {
   variable SimulateInteractive
-  variable AnalyzeErrorStopCount 
+  variable AnalyzeErrorStopCount
   variable SimulateErrorStopCount
-  variable SavedAnalyzeErrorStopCount 
+  variable SavedAnalyzeErrorStopCount
   variable SavedSimulateErrorStopCount
 
   set PreviousSimulateInteractive $SimulateInteractive
   set SimulateInteractive $Options
-  
+
   if {($SimulateInteractive) && !($PreviousSimulateInteractive)} {
     # Only save ErrorStopCounts when options change from FALSE to TRUE
     set SavedAnalyzeErrorStopCount  $AnalyzeErrorStopCount
@@ -210,7 +210,7 @@ proc SetInteractiveMode {{Options "true"}} {
     set AnalyzeErrorStopCount  1
     set SimulateErrorStopCount 1
   } else {
-    set AnalyzeErrorStopCount  $SavedAnalyzeErrorStopCount 
+    set AnalyzeErrorStopCount  $SavedAnalyzeErrorStopCount
     set SimulateErrorStopCount $SavedSimulateErrorStopCount
   }
   if {! $::osvvm::DebugIsSet} {
@@ -220,10 +220,10 @@ proc SetInteractiveMode {{Options "true"}} {
     set ::osvvm::LogSignals $Options
   }
 }
-# SetInteractive is deprecated.   
+# SetInteractive is deprecated.
 proc SetInteractive {{Options "true"}} {
   puts "SetInteractive is deprecated.  Use SetInteractiveMode instead"
-  SetInteractiveMode $Options 
+  SetInteractiveMode $Options
 }
 
 proc GetInteractiveMode {} {
@@ -252,9 +252,9 @@ proc GetLogSignals {} {
 # -------------------------------------------------
 # SetSecondSimulationTopLevel, GetSecondSimulationTopLevel
 #
-proc SetSecondSimulationTopLevel {{LibraryDotDesignUnit ""}} {  ; # Specify as Libary.DesignUnit 
+proc SetSecondSimulationTopLevel {{LibraryDotDesignUnit ""}} {  ; # Specify as Libary.DesignUnit
   variable SecondSimulationTopLevel
-  set      SecondSimulationTopLevel $LibraryDotDesignUnit 
+  set      SecondSimulationTopLevel $LibraryDotDesignUnit
 }
 proc GetSecondSimulationTopLevel {} {
   variable SecondSimulationTopLevel
@@ -291,9 +291,9 @@ proc GetCoverageAnalyzeOptions {} {
 proc SetCoverageAnalyzeEnable {{Enable "true"}} {
   variable CoverageAnalyzeEnable
   if {[string tolower $Enable] eq "true"} {
-    set CoverageAnalyzeEnable "true" 
+    set CoverageAnalyzeEnable "true"
   } else {
-    set CoverageAnalyzeEnable "false" 
+    set CoverageAnalyzeEnable "false"
   }
   puts "SetCoverageAnalyzeEnable $CoverageAnalyzeEnable"
 }
@@ -339,13 +339,37 @@ proc GetSimulatorResolution {} {
 }
 
 # -------------------------------------------------
+# SetRequirementsUseSumOfGoals SetRequirementsCsvPrintStatus
+#
+proc SetRequirementUseSumOfGoals {{Status "true"}} {
+  # Current default is false - historical assumed reading Spec.
+  set ::osvvm::USE_SUM_OF_GOALS $Status
+}
+
+proc SetRequirementCsvPrintStatus {{Status "true"}} {
+  # Current default is true
+  set ::osvvm::REQUIREMENT_CSV_PRINT_STATUS $Status
+}
+
+proc SetRequirementTestCaseFailsIfLessThanGoal {{Status "true"}} {
+  # Current default is true
+  set ::osvvm::REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL $Status
+}
+
+proc SetRequirementDoesNotExceedGoal {{Status "true"}} {
+  # Current default is true
+  set ::osvvm::REQUIREMENT_DOES_NOT_EXCEED_GOAL $Status
+}
+
+
+# -------------------------------------------------
 # SetLibraryDirectory
 #
 proc SetLibraryDirectory {{LibraryDirectory "."}} {
   variable VhdlLibraryParentDirectory
-  
+
   set VhdlLibraryParentDirectory [file normalize $LibraryDirectory]
-  
+
 }
 
 proc GetLibraryDirectory {} {
@@ -364,11 +388,11 @@ proc GetLibraryDirectory {} {
 # map
 
 namespace export SetVHDLVersion GetVHDLVersion SetSimulatorResolution GetSimulatorResolution
-namespace export SetLibraryDirectory GetLibraryDirectory SetTranscriptType GetTranscriptType
+namespace export SetTranscriptType GetTranscriptType
 namespace export SetExtendedAnalyzeOptions GetExtendedAnalyzeOptions
 namespace export SetExtendedOptimizeOptions GetExtendedOptimizeOptions
 namespace export SetExtendedSimulateOptions GetExtendedSimulateOptions
-namespace export SetVhdlAnalyzeOptions GetVhdlAnalyzeOptions SetVerilogAnalyzeOptions GetVerilogAnalyzeOptions 
+namespace export SetVhdlAnalyzeOptions GetVhdlAnalyzeOptions SetVerilogAnalyzeOptions GetVerilogAnalyzeOptions
 namespace export SetCoverageEnable GetCoverageEnable
 namespace export SetCoverageAnalyzeOptions GetCoverageAnalyzeOptions
 namespace export SetCoverageAnalyzeEnable GetCoverageAnalyzeEnable
@@ -381,6 +405,10 @@ namespace export SetInteractiveMode GetInteractiveMode
 namespace export SetDebugMode GetDebugMode
 namespace export SetLogSignals GetLogSignals
 namespace export SetSecondSimulationTopLevel GetSecondSimulationTopLevel
+namespace export SetRequirementUseSumOfGoals SetRequirementCsvPrintStatus
+namespace export SetRequirementTestCaseFailsIfLessThanGoal SetRequirementDoesNotExceedGoal
+
+namespace export SetLibraryDirectory GetLibraryDirectory
 
 # end namespace ::osvvm
 }
