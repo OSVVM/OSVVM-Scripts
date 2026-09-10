@@ -123,7 +123,7 @@ jobs:
           printf "::endgroup::\n"
 
       - name: 📤 Upload 'HTML Documentation' artifact
-        uses: pyTooling/upload-artifact@v6
+        uses: pyTooling/upload-artifact@v7
         continue-on-error: true
         with:
           name: ${{ inputs.html_artifact }}
@@ -279,7 +279,7 @@ jobs:
           done
 
       - name: 📤 Upload 'LaTeX Documentation' artifact
-        uses: pyTooling/upload-artifact@v6
+        uses: pyTooling/upload-artifact@v7
         continue-on-error: true
         with:
           name: ${{ inputs.latex_artifact }}
