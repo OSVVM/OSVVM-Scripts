@@ -348,21 +348,21 @@ proc CreateTestCaseSummaries {TestDict} {
           }
         # No Test Status - EndOfTestReports did not run
         } else {
-          set TestStatus "FAILED"
+          set TestStatus "NOREPORTS"
           set TestReport "NONE"
           set Reason     "Simulate:  Test did not complete.  EndOfTestReports was not called."
         }
         set PassedClass  ""
         set FailedClass  ""
-        if { ${TestReport} eq "REPORT"} {
-          # Check for Matching ExpectedResults
-          if { [dict exists $TestCase ExpectedResults] } {
-            if {[MatchExpectedResults $TestCase]} {
-              set TestStatus "PASSED"
-            } else {
-              set TestStatus "FAILED"
-            }
+        # Check for Matching ExpectedResults
+        if { [dict exists $TestCase ExpectedResults] } {
+          if {[MatchExpectedResults $TestStatus $TestCase]} {
+            set TestStatus "PASSED"
+          } else {
+            set TestStatus "FAILED"
           }
+        }
+        if { ${TestReport} eq "REPORT"} {
           # Check for Matching Test Case and VHDL Names
           if { (${TestName} ne ${VhdlName}) && $::osvvm::FailOnVhdlNameNotMatchTestName} {
             set TestStatus   "NAME_MISMATCH"
@@ -378,7 +378,10 @@ proc CreateTestCaseSummaries {TestDict} {
             set FailedClass  "class=\"failed\""
           }
         } else {
-          if { ${TestStatus} eq "SKIPPED" } {
+          if { ${TestStatus} eq "PASSED" } {
+            set StatusClass  "class=\"passed\""
+            set PassedClass  "class=\"passed\""
+          } elseif { ${TestStatus} eq "SKIPPED" } {
             set StatusClass  "class=\"skipped\""
             set PassedClass  "class=\"skipped\""
             set FailedClass  "class=\"skipped\""

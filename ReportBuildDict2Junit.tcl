@@ -166,7 +166,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
           set Reason "Test Case Passed"   ; # does not print
         }
       } else {
-        set TestStatus  "FAILED"
+        set TestStatus  "NOREPORTS"
         set VhdlName    $TestName
         set ElapsedTime 0
         set AffirmCount 0
@@ -174,7 +174,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
       }
       # Check for Matching ExpectedResults
       if { [dict exists $TestCase ExpectedResults] } {
-        if {[MatchExpectedResults $TestCase]} {
+        if {[MatchExpectedResults $TestStatus $TestCase]} {
           set TestStatus "PASSED"
         } else {
           set TestStatus "FAILED"
