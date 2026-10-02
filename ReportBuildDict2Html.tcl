@@ -397,7 +397,7 @@ proc CreateTestCaseSummaries {TestDict} {
         }
         set TestCaseHtmlFile [file join ${TestSuiteReportsDirectory} ${TestFileName}.html]
         set TestCaseName $TestName
-        if { [dict exists $TestCase Generics] } {
+        if { ($TestName ne $TestFileName) && [dict exists $TestCase Generics] } {
           set TestCaseGenerics [dict get $TestCase Generics]
           if {${TestCaseGenerics} ne ""} {
             set GenericValueList [dict values $TestCaseGenerics]
