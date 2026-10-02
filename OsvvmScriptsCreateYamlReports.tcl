@@ -430,7 +430,7 @@ proc ExpectedStatus {Status Failure Error Warning {Reason ""}} {
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "        ExpectedResults:"
   puts  $RunFile "          Status: \"$Status\""
-  puts  $RunFile "          TotalErrors: [expr $Failure + $Error + $Warning]"
+  puts  $RunFile "          TotalErrors: [expr {abs($Failure) + abs($Error) + abs($Warning)}]"
   puts  $RunFile "          AlertCount:"
   puts  $RunFile "            Failure: $Failure"
   puts  $RunFile "            Error: $Error"
