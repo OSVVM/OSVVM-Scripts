@@ -155,9 +155,6 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
         } else {
           set ElapsedTime missing
         }
-        if { $TestStatus eq "ANALYZE_FAILED" } {
-          set TestStatus FAILED
-        }
         if {[dict exists $TestCase Reason]} {
           set Reason [dict exists $TestCase Reason]
         } elseif {$TestStatus ne "PASSED"} {  ; # SKIPPED has a reason
@@ -166,7 +163,7 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
           set Reason "Test Case Passed"   ; # does not print
         }
       } else {
-        set TestStatus  "FAILED"
+        set TestStatus  "NOREPORTS"
         set VhdlName    $TestName
         set ElapsedTime 0
         set AffirmCount 0
@@ -174,11 +171,15 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
       }
       # Check for Matching ExpectedResults
       if { [dict exists $TestCase ExpectedResults] } {
-        if {[MatchExpectedResults $TestCase]} {
+        if {[MatchExpectedResults $TestStatus $TestCase]} {
           set TestStatus "PASSED"
         } else {
           set TestStatus "FAILED"
         }
+      }
+      if { $TestStatus eq "ANALYZE_FAILED" } {
+        set TestStatus FAILED
+        set Reason "Analyze FAILED"
       }
       # Check for Matching Test Case and VHDL Names
       if { (${TestName} ne ${VhdlName}) && $::osvvm::FailOnVhdlNameNotMatchTestName} {

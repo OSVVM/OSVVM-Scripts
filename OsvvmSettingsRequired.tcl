@@ -56,7 +56,7 @@
 
 namespace eval ::osvvm {
 
-  variable OsvvmVersion                   2026.08
+  variable OsvvmVersion                   2026.09
   variable OsvvmYamlVersion               0.1
   variable OsvvmIndexYamlVersion          $OsvvmYamlVersion
   variable OsvvmBuildYamlVersion          $OsvvmYamlVersion
@@ -144,6 +144,7 @@ namespace eval ::osvvm {
     variable HaveNotCreatedBuildOutputDirectory "true"
     variable BuildName             ""
     variable BuildStatus           "FAILED"
+    variable TestCaseStatus        "FAILED"
     variable LastBuildName         ""
     variable LastAnalyzedFile      ""
     variable GenericDict           ""

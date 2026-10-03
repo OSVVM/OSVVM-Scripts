@@ -135,7 +135,7 @@ proc ReportBuildStatus {} {
 # -------------------------------------------------
 # MatchExpectedResults
 #
-proc MatchExpectedResults {TestCase} {
+proc MatchExpectedResults {TestStatus TestCase} {
   set ExpectedResults      [dict get $TestCase ExpectedResults]
   set ExpectedAlertCount   [dict get $ExpectedResults AlertCount]
   set ExpectedStatus       [dict get $ExpectedResults Status]
@@ -144,18 +144,24 @@ proc MatchExpectedResults {TestCase} {
   set ExpectedError        [dict get $ExpectedAlertCount Error]
   set ExpectedWarning      [dict get $ExpectedAlertCount Warning]
 
-  set ActualStatus         [dict get $TestCase Status]
-  set ActualResults        [dict get $TestCase Results]
-  set ActualAlertCount     [dict get $ActualResults AlertCount]
-  set ActualTotalErrors    [dict get $ActualResults TotalErrors]
-  set ActualFailure        [dict get $ActualAlertCount Failure]
-  set ActualError          [dict get $ActualAlertCount Error]
-  set ActualWarning        [dict get $ActualAlertCount Warning]
+  if { $TestStatus eq "NOREPORTS" || $TestStatus eq "SKIPPED" || $TestStatus eq "ANALYZE_FAILED"} {
+    return [expr {($ExpectedStatus eq $TestStatus)}]
 
-  # set MatchStatus [expr $ExpectedStatus eq $TestStatus]
-  set MatchErrors [expr {$ExpectedTotalErrors == $ActualTotalErrors}]
-  set MatchAlerts [expr ($ExpectedFailure == $ActualFailure) && ($ExpectedError == $ActualError) && ($ExpectedWarning == $ActualWarning)]
-  return [expr {($ExpectedStatus eq $ActualStatus) && $MatchErrors && $MatchAlerts}]
+  } else {
+    set ActualStatus         [dict get $TestCase Status]
+    set ActualResults        [dict get $TestCase Results]
+    set ActualAlertCount     [dict get $ActualResults AlertCount]
+    set ActualTotalErrors    [dict get $ActualResults TotalErrors]
+    set ActualFailure        [dict get $ActualAlertCount Failure]
+    set ActualError          [dict get $ActualAlertCount Error]
+    set ActualWarning        [dict get $ActualAlertCount Warning]
+
+    # set MatchStatus [expr $ExpectedStatus eq $TestStatus]
+    set MatchErrors [expr {$ExpectedTotalErrors == $ActualTotalErrors}]
+    set MatchAlerts [expr ($ExpectedFailure == $ActualFailure) && ($ExpectedError == $ActualError) && ($ExpectedWarning == $ActualWarning)]
+    return [expr {($ExpectedStatus eq $ActualStatus) && $MatchErrors && $MatchAlerts}]
+  }
+
 }
 
 # -------------------------------------------------
@@ -206,7 +212,7 @@ proc ElaborateTestSuites {TestDict} {
           }
         } else {
           # Nothing is there
-          set TestStatus  "FAILED"
+          set TestStatus  "NOREPORTS"
           set TestReqGoal   0
           set TestReqPassed 0
           set VhdlName $TestName
@@ -216,7 +222,7 @@ proc ElaborateTestSuites {TestDict} {
         # If test cases run parallel, must be done here.
         set  ThisTestFailed FALSE
         if { [dict exists $TestCase ExpectedResults] } {
-          if {[MatchExpectedResults $TestCase]} {
+          if {[MatchExpectedResults $TestStatus $TestCase]} {
             incr SuitePassed
             incr TestCasesPassed
           } else {

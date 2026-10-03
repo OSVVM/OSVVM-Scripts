@@ -1245,6 +1245,7 @@ proc NoNullRangeWarning  {} {
 proc simulate {LibraryUnit args} {
   variable vendor_simulate_started
   variable TestCaseName
+  variable TestCaseStatus  "FAILED"
 
   if {$::osvvm::LastAnalyzeHasError} {
     AnalyzeFailed $LibraryUnit "Previous analyze failed.  Skipping simulate."
@@ -1325,10 +1326,10 @@ proc LocalSimulate {LibraryUnit args} {
 
 
   if {![info exists TestCaseName]} {
-    TestName $LibraryUnit
+    SetTestName $LibraryUnit
+    # Incorporate generics (if any) into TestCaseFileName
+    set TestCaseFileName ${TestCaseName}${::osvvm::GenericNames}
   }
-  # Generics are not finalized until the call to Simulate.  TestCaseName may be set before.
-  set TestCaseFileName ${TestCaseName}${::osvvm::GenericNames}
 
   CheckWorkingDir
   CheckLibraryExists
@@ -1524,7 +1525,7 @@ proc TestSuite {SuiteName} {
 }
 
 # -------------------------------------------------
-proc TestName {Name} {
+proc SetTestName {Name} {
   variable TestCaseName
   variable TestSuiteName
 
@@ -1541,8 +1542,17 @@ proc TestName {Name} {
   puts -nonewline ""
 }
 
+proc TestName {Name} {
+  SetTestName $Name
+  # if called directly, then do not use generics in the name
+  # if set by RunTest or Simulate incorporate generics in TestCaseFileName
+  set ::osvvm::TestCaseFileName $Name
+  puts -nonewline ""
+}
+
 # Maintain backward compatibility
 proc TestCase {Name} {
+  # Do same as TestName
   TestName $Name
 }
 
@@ -1553,6 +1563,7 @@ proc TestCase {Name} {
 proc RunTest {FileName {SimName ""} args} {
   variable CompoundCommand
   variable TestCaseName
+  variable TestCaseFileName
 
   set RunArgs [concat $FileName $SimName]
   if {$::osvvm::GenericDict ne ""} {
@@ -1563,16 +1574,22 @@ proc RunTest {FileName {SimName ""} args} {
 
 	if {$SimName eq ""} {
     set SimName [file rootname [file tail $FileName]]
-    # TestName $SimName  ;# prior TestName has priority
-    if {![info exists TestCaseName]} {
-      TestName $SimName
-    }
+    set DerivedTestName $SimName
+#    if {![info exists TestCaseName]} {
+#      SetTestName $SimName
+#    }
   } else {
     set ShortFileName [file rootname [file tail $FileName]]
-    # TestName "${SimName}(${ShortFileName})"  ;# prior TestName has priority
-    if {![info exists TestCaseName]} {
-      TestName "${SimName}(${ShortFileName})"
-    }
+    set DerivedTestName "${SimName}(${ShortFileName})"
+#    if {![info exists TestCaseName]} {
+#      SetTestName "${SimName}(${ShortFileName})"
+#    }
+  }
+
+  if {![info exists TestCaseName]} {
+    SetTestName "$DerivedTestName"
+    # Incorporate generics (if any) into TestCaseFileName
+    set TestCaseFileName ${TestCaseName}${::osvvm::GenericNames}
   }
 
   analyze   ${FileName}
@@ -1898,9 +1915,13 @@ proc SimulateDoneMoveTestCaseFiles {} {
         set TranscriptBaseName  [file tail $TranscriptFile]
         set TranscriptRootBaseName  [file rootname $TranscriptBaseName]
         set TranscriptExtension     [file extension $TranscriptBaseName]
-        set TranscriptGenericName   ${TranscriptRootBaseName}${::osvvm::GenericNames}${TranscriptExtension}
-        set TranscriptDestFile  [file join ${::osvvm::ResultsDirectory} ${TestSuiteName} ${TranscriptGenericName}]
-        lappend TranscriptFiles [file join ${::osvvm::ResultsSubdirectory} ${TestSuiteName} ${TranscriptGenericName}]
+        if {$TestCaseName ne $TestCaseFileName} {
+          set ResultTranscriptName   ${TranscriptRootBaseName}${::osvvm::GenericNames}${TranscriptExtension}
+        } else {
+          set ResultTranscriptName   ${TranscriptBaseName}
+        }
+        set TranscriptDestFile  [file join ${::osvvm::ResultsDirectory} ${TestSuiteName} ${ResultTranscriptName}]
+        lappend TranscriptFiles [file join ${::osvvm::ResultsSubdirectory} ${TestSuiteName} ${ResultTranscriptName}]
         if {[file normalize ${TranscriptFile}] ne [file normalize ${TranscriptDestFile}]} {
           # Move transcript if it is not already in destination location
 # Done by CheckSimulationDirs          CreateDirectory [file join ${::osvvm::ResultsDirectory} ${TestSuiteName}]

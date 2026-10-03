@@ -193,7 +193,7 @@ proc AlertWrite {AlertDict {Prefix ""}} {
     set DisabledAlertCount   [dict get $Results      DisabledAlertCount]
 
     set Name                 [dict get $AlertDict          Name]
-    set Status               [dict get $AlertDict          Status]
+    set TestStatus           [dict get $AlertDict          Status]
     set PassedCount          [dict get $Results            PassedCount]
     set AffirmCount          [dict get $Results            AffirmCount]
     set TotalErrors          [dict get $Results            TotalErrors]
@@ -215,7 +215,7 @@ proc AlertWrite {AlertDict {Prefix ""}} {
     set DisabledAlertFailureClass ""
     set DisabledAlertErrorClass   ""
     set DisabledAlertWarningClass ""
-    if { $Status ne "PASSED" } {
+    if { $TestStatus ne "PASSED" } {
       set StatusClass "class=\"failed\""
 # Errors that could have contributed to the root cause error(s)
       if {$PassedCount < $AffirmCount} {
@@ -272,7 +272,7 @@ proc AlertWrite {AlertDict {Prefix ""}} {
 
     puts $ResultsFile "            <tr>"
     puts $ResultsFile "              <td>${Prefix}${Name}</td>"
-    puts $ResultsFile "              <td ${StatusClass}>$Status</td>"
+    puts $ResultsFile "              <td ${StatusClass}>$TestStatus</td>"
     puts $ResultsFile "              <td ${PassedCountClass}>$AffirmCount</td>"
     puts $ResultsFile "              <td ${PassedCountClass}>$PassedCount</td>"
     puts $ResultsFile "              <td ${StatusClass}>$TotalErrors</td>"
@@ -291,6 +291,7 @@ proc AlertWrite {AlertDict {Prefix ""}} {
       set NewPrefix "&emsp; ${Prefix}"
       AlertWrite $Child ${NewPrefix}
     }
+    set ::osvvm::TestCaseStatus  $TestStatus
   }
 }
 

@@ -146,7 +146,8 @@ namespace eval ::osvvm {
     while { [gets $LogFileHandle RawLineOfLogFile] >= 0 } {
 
 # replace with a single regsub by detecting Aldec
-      set LineOfLogFile [regsub {^KERNEL: } [regsub {^# } $RawLineOfLogFile ""] ""]
+      # set LineOfLogFile [regsub {^KERNEL: } [regsub {^# } $RawLineOfLogFile ""] ""]
+      set LineOfLogFile [regsub {^(# KERNEL: |# )} $RawLineOfLogFile ""]
 
       if {!$FoundBuild} {
         set FoundBuild [FindBuildInLog]
@@ -204,6 +205,11 @@ namespace eval ::osvvm {
     #
     # Check for things that happen more in the log file
     #
+
+#  Add GT after switching the continuation line character
+#    set LineOfLogFile [string map {& &amp; < &lt;} $LineOfLogFile]
+    set LineOfLogFile [string map {& &amp; < &lt; > &gt;} $LineOfLogFile]
+
     if {[regexp {Log *(PASSED)} $LineOfLogFile] } {
 #!!      set FoundTranscript TRUE
       set Log2HtmlTextColor #00A000
@@ -223,7 +229,7 @@ namespace eval ::osvvm {
       set Log2HtmlTextColor #FF8000
       puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
 
-    } elseif {[regexp {%%>} $LineOfLogFile]} {
+    } elseif {[regexp {%%:} $LineOfLogFile]} {
 #!! May need to set Log2HtmlTextColor in other branches too.
         puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
 
@@ -325,7 +331,8 @@ namespace eval ::osvvm {
       set PrintPrefix ""
 
     } elseif {[regexp {^Build:} $LineOfLogFile] } {
-      puts $HtmlFileHandle "${PrintPrefix}<span style=color:#00A000>$LineOfLogFile</span>"
+      set Log2HtmlTextColor #00A000
+      puts $HtmlFileHandle "${PrintPrefix}<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
       set PrintPrefix ""
 
     } elseif {[regexp {^WaveError:} $LineOfLogFile] } {
@@ -405,7 +412,7 @@ namespace eval ::osvvm {
         set Log2HtmlTextColor #FF8000
         puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
 
-      } elseif {[regexp {%%>} $LineOfLogFile]} {
+      } elseif {[regexp {%%:} $LineOfLogFile]} {
           # uses previous Log2HtmlTextColor
           puts $HtmlFileHandle "<span style=color:${Log2HtmlTextColor}>$LineOfLogFile</span>"
 
