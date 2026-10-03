@@ -1563,6 +1563,7 @@ proc TestCase {Name} {
 proc RunTest {FileName {SimName ""} args} {
   variable CompoundCommand
   variable TestCaseName
+  variable TestCaseFileName
 
   set RunArgs [concat $FileName $SimName]
   if {$::osvvm::GenericDict ne ""} {
