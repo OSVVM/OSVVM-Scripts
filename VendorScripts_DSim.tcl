@@ -1,38 +1,38 @@
 #  File Name:         VendorScripts_Xsim.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
-# 
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
-#  Contributor(s):            
-#     Jim Lewis      email:  jim@synthworks.com   
-# 
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Jim Lewis      email:  jim@synthworks.com
+#
 #  Description
-#    Tcl procedures with the intent of making running 
+#    Tcl procedures with the intent of making running
 #    compiling and simulations tool independent
-#    
-#  Developed by: 
-#        SynthWorks Design Inc. 
+#
+#  Developed by:
+#        SynthWorks Design Inc.
 #        VHDL Training Classes
 #        OSVVM Methodology and Model Library
 #        11898 SW 128th Ave.  Tigard, Or  97223
 #        http://www.SynthWorks.com
-# 
+#
 #  Revision History:
 #    Date      Version    Description
-#     5/2024   2024.05    Added ToolVersion variable 
+#     5/2024   2024.05    Added ToolVersion variable
 #    04/2024   2024.04    Created from VendorScripts_xxx.tcl
 #
 #
 #  This file is part of OSVVM.
-#  
-#  Copyright (c) 2018 - 2024 by SynthWorks Design Inc.  
-#  
+#
+#  Copyright (c) 2018 - 2024 by SynthWorks Design Inc.
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#  
+#
 #      https://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -48,19 +48,19 @@
   variable ToolVendor  "Xilinx"
   variable ToolName    "DSim"
   variable ToolVersion 2024.04
-  variable ToolNameVersion ${ToolName}-2024.04   ;# produces "DSim-2024.04" 
-#  variable ToolNameVersion ${ToolName}-${ToolVersion}   ;# produces "DSim-2023.2" 
+  variable ToolNameVersion ${ToolName}-2024.04   ;# produces "DSim-2024.04"
+#  variable ToolNameVersion ${ToolName}-${ToolVersion}   ;# produces "DSim-2023.2"
 #   puts $ToolNameVersion
 
-  
-  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
+
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead
 
 
 # -------------------------------------------------
 # StartTranscript / StopTranscript
 #
 
-# 
+#
 #  With these commented out, it uses DefaultVendor_StartTranscript and DefaultVendor_StopTranscript
 #
 
@@ -68,7 +68,7 @@
 # # proc vendor_StartTranscript {FileName} {
 # # #  Do nothing - for now
 # # }
-# # # 
+# # #
 # # proc vendor_StopTranscript {FileName} {
 # #   # This will have everything from a session rather than just the current build.
 # #   # OK for bring up
@@ -79,8 +79,9 @@
 # IsVendorCommand
 #
 proc IsVendorCommand {LineOfText} {
-
-  return [regexp {^dlib|^dvhcom|^dsim} $LineOfText] 
+#!!    set cmd [lindex $LineOfText 0]
+#!!    return [expr {$cmd in {dlib dvhcom dsim}}]
+  return [regexp {^dlib|^dvhcom|^dsim} $LineOfText]
 }
 
 # -------------------------------------------------
@@ -133,9 +134,9 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlVersion
   variable VhdlLibraryFullPath
-  
+
   set DebugOptions ""
-  
+
   set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -lib ${LibraryName} {*}${args} ${FileName}]
   puts "dvhcom  {*}$AnalyzeOptions"
   if {[catch {exec dvhcom {*}$AnalyzeOptions} AnalyzeErrorMessage]} {
@@ -158,7 +159,7 @@ proc vendor_analyze_verilog {LibraryName FileName args} {
 proc vendor_end_previous_simulation {} {
 #  quit -sim
 #  framework.documents.closeall -vhdl
-}  
+}
 
 # -------------------------------------------------
 # Simulate
@@ -170,7 +171,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
   set  ElaborateOptions [concat -timescale 1${SimulateTimeUnits} -top ${LibraryName}.${LibraryUnit} ${::osvvm::SecondSimulationTopLevel} {*}${args} {*}$::osvvm::GenericOptions]
   puts "dsim {*}$ElaborateOptions"
-  if {[catch {exec dsim {*}$ElaborateOptions} ElaborateMessage]} { 
+  if {[catch {exec dsim {*}$ElaborateOptions} ElaborateMessage]} {
     PrintWithPrefix "Elaborate Error:"  $ElaborateMessage
     error "Failed: simulate $LibraryUnit"
   } else {
@@ -180,7 +181,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
 # -------------------------------------------------
 proc vendor_generic {Name Value} {
-  
+
 #  return "-generic_top \"${Name}=${Value}\""
   return "-defparams  ${Name}=${Value}"
 }
@@ -189,7 +190,7 @@ proc vendor_generic {Name Value} {
 # -------------------------------------------------
 # Merge Coverage
 #
-proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
+proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
 #  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
 #  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
 #  if {$CovFiles ne ""} {
@@ -197,11 +198,11 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
 #  }
 }
 
-proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
+proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} {
 #  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
 }
 
-proc vendor_GetCoverageFileName {TestName} { 
+proc vendor_GetCoverageFileName {TestName} {
   set CoverageFileName ${TestName}_code_cov.html
   return $CoverageFileName
 }

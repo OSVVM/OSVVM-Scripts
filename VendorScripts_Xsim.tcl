@@ -1,41 +1,41 @@
 #  File Name:         VendorScripts_Xsim.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
-# 
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
-#  Contributor(s):            
-#     Jim Lewis      email:  jim@synthworks.com   
-# 
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Jim Lewis      email:  jim@synthworks.com
+#
 #  Description
-#    Tcl procedures with the intent of making running 
+#    Tcl procedures with the intent of making running
 #    compiling and simulations tool independent
-#    
-#  Developed by: 
-#        SynthWorks Design Inc. 
+#
+#  Developed by:
+#        SynthWorks Design Inc.
 #        VHDL Training Classes
 #        OSVVM Methodology and Model Library
 #        11898 SW 128th Ave.  Tigard, Or  97223
 #        http://www.SynthWorks.com
-# 
+#
 #  Revision History:
 #    Date      Version    Description
-#     5/2024   2024.05    Added ToolVersion variable 
+#     5/2024   2024.05    Added ToolVersion variable
 #    12/2023   2024.01    Updated as 2023.02's OSVVM support is looking good.
-#    05/2022   2022.05    Updated variable naming 
+#    05/2022   2022.05    Updated variable naming
 #     2/2022   2022.02    Added template of procedures needed for coverage support
 #     9/2021   2021.09    Created from VendorScripts_xxx.tcl
 #
 #
 #  This file is part of OSVVM.
-#  
-#  Copyright (c) 2018 - 2023 by SynthWorks Design Inc.  
-#  
+#
+#  Copyright (c) 2018 - 2023 by SynthWorks Design Inc.
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#  
+#
 #      https://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -51,20 +51,20 @@
   variable ToolVendor  "Xilinx"
   variable ToolName    "XSIM"
   variable ToolVersion [version -short]
-  variable ToolNameVersion ${ToolName}-${ToolVersion}  
+  variable ToolNameVersion ${ToolName}-${ToolVersion}
 #   puts $ToolNameVersion
 
   # Make this version dependent when Xilinx starts supporting it
   variable ToolSupportsDeferredConstants "false"
-  
-  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
+
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead
 
 
 # -------------------------------------------------
 # StartTranscript / StopTranscript
 #
 
-# 
+#
 #  If uncomment the following will DefaultVendor_StartTranscript and DefaultVendor_StopTranscript
 #
 
@@ -73,7 +73,7 @@
 #  proc vendor_StartTranscript {FileName} {
 #  #  Do nothing - for now
 #  }
-#  # 
+#  #
 #  proc vendor_StopTranscript {FileName} {
 #    # This will have everything from a session rather than just the current build.
 #    # OK for bring up
@@ -84,8 +84,9 @@
 # IsVendorCommand
 #
 proc IsVendorCommand {LineOfText} {
-
-  return [regexp {^xvhdl|^xelab|^xsim} $LineOfText] 
+#!!    set cmd [lindex $LineOfText 0]
+#!!    return [expr {$cmd in {xvhdl xelab xsim}}]
+  return [regexp {xvhdl|xelab|xsim} $LineOfText]
 }
 
 # -------------------------------------------------
@@ -129,9 +130,9 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {}
 proc vendor_analyze_vhdl {LibraryName FileName args} {
   variable VhdlVersion
   variable VhdlLibraryFullPath
-  
+
   set DebugOptions ""
-  
+
   set  AnalyzeOptions [concat -${VhdlVersion} {*}${DebugOptions} -work ${LibraryName} {*}${args} ${FileName}]
   puts "xvhdl {*}$AnalyzeOptions"
 #  exec  xvhdl {*}$AnalyzeOptions
@@ -155,7 +156,7 @@ proc vendor_analyze_verilog {LibraryName FileName args} {
 proc vendor_end_previous_simulation {} {
 #  quit -sim
 #  framework.documents.closeall -vhdl
-}  
+}
 
 # -------------------------------------------------
 # Simulate
@@ -169,7 +170,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   if {!$::osvvm::Debug} {
     set  ElaborateOptions [concat $BasicElaborateOptions {*}${args} {*}$::osvvm::GenericOptions -runall]
     puts "xelab {*}$ElaborateOptions"
-    if {[catch {exec xelab {*}$ElaborateOptions 2>@1} ElaborateMessage]} { 
+    if {[catch {exec xelab {*}$ElaborateOptions 2>@1} ElaborateMessage]} {
       PrintWithPrefix "Elaborate Error:"  $ElaborateMessage
       error "Failed: simulate $LibraryUnit"
     } else {
@@ -178,13 +179,13 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   } else {
     set  ElaborateOptions [concat $BasicElaborateOptions --debug all -snapshot ${LibraryName}_${LibraryUnit}]
     puts "xelab {*}$ElaborateOptions"
-    if {[catch {exec xelab {*}$ElaborateOptions 2>@1} ElaborateMessage]} { 
+    if {[catch {exec xelab {*}$ElaborateOptions 2>@1} ElaborateMessage]} {
       PrintWithPrefix "Elaborate Error:"  $ElaborateMessage
       error "Failed: simulate $LibraryUnit"
     } else {
       puts $ElaborateMessage
     }
-    
+
     set  SimulateOptions "-runall ${LibraryName}_${LibraryUnit}"
     puts "xsim {*}$SimulateOptions"
     if { [catch {exec xsim {*}$SimulateOptions 2>@1} SimulateMessage]} {
@@ -195,12 +196,12 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
       puts $SimulateMessage
     }
   }
-  
+
 }
 
 # -------------------------------------------------
 proc vendor_generic {Name Value} {
-  
+
 #  return "-generic_top \"${Name}=${Value}\""
   return "-generic_top ${Name}=${Value}"
 }
@@ -209,7 +210,7 @@ proc vendor_generic {Name Value} {
 # -------------------------------------------------
 # Merge Coverage
 #
-proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
+proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
 #  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
 #  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
 #  if {$CovFiles ne ""} {
@@ -217,11 +218,11 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
 #  }
 }
 
-proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
+proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} {
 #  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
 }
 
-proc vendor_GetCoverageFileName {TestName} { 
+proc vendor_GetCoverageFileName {TestName} {
   set CoverageFileName ${TestName}_code_cov.html
   return $CoverageFileName
 }

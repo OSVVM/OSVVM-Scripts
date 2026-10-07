@@ -1,26 +1,26 @@
 #  File Name:         VendorScripts_VCS.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
-# 
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
-#  Contributor(s):            
-#     Jim Lewis      email:  jim@synthworks.com   
-# 
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Jim Lewis      email:  jim@synthworks.com
+#
 #  Description
-#    Tcl procedures with the intent of making running 
+#    Tcl procedures with the intent of making running
 #    compiling and simulations tool independent
-#    
-#  Developed by: 
-#        SynthWorks Design Inc. 
+#
+#  Developed by:
+#        SynthWorks Design Inc.
 #        VHDL Training Classes
 #        OSVVM Methodology and Model Library
 #        11898 SW 128th Ave.  Tigard, Or  97223
 #        http://www.SynthWorks.com
-# 
+#
 #  Revision History:
 #    Date      Version    Description
-#     7/2024   2024.07    Updated ToolVersion to run vhdlan 
-#     5/2024   2024.05    Added ToolVersion variable 
+#     7/2024   2024.07    Updated ToolVersion to run vhdlan
+#     5/2024   2024.05    Added ToolVersion variable
 #    12/2022   2022.12    Updated StartTranscript, StopTranscript, Analyze, Simulate
 #    05/2022   2022.05    Updated naming
 #     2/2022   2022.02    Added template of procedures needed for coverage support
@@ -29,15 +29,15 @@
 #
 #
 #  This file is part of OSVVM.
-#  
-#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.  
-#  
+#
+#  Copyright (c) 2018 - 2022 by SynthWorks Design Inc.
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#  
+#
 #      https://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -52,7 +52,7 @@
   variable ToolType    "simulator"
   variable ToolVendor  "Synopsys"
   variable ToolName    "VCS"
-  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead
 #  variable ToolNameVersion "${ToolName}-T2022.06"
 #  variable ToolVersion "T2022.06"
   variable ToolVersion [regsub {vhdlan.*: } [exec vhdlan -V] ""]
@@ -69,7 +69,7 @@
 # #
 # proc vendor_StartTranscript {FileName} {
 # }
-# 
+#
 # proc vendor_StopTranscript {FileName} {
 # }
 
@@ -77,8 +77,9 @@
 # IsVendorCommand
 #
 proc IsVendorCommand {LineOfText} {
-
-  return [regexp {vhdlan|vcs|simv} $LineOfText] 
+#!!    set cmd [lindex $LineOfText 0]
+#!!    return [expr {$cmd in {vhdlan vcs simv}}]
+  return [regexp {vhdlan|vcs|simv} $LineOfText]
 }
 
 # -------------------------------------------------
@@ -117,10 +118,10 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 # -------------------------------------------------
 proc CreateToolSetup {} {
   variable LibraryList
-  
+
   set SetupFile [open "synopsys_sim.setup" w]
-  puts $SetupFile "ASSERT_STOP=FAILURE" 
-  
+  puts $SetupFile "ASSERT_STOP=FAILURE"
+
   foreach item $LibraryList {
     set LibraryName [lindex $item 0]
     set PathToLib   [lreplace $item 0 0]
@@ -166,7 +167,7 @@ proc vendor_analyze_verilog {LibraryName FileName args} {
 proc vendor_end_previous_simulation {} {
 #  quit -sim
 #  framework.documents.closeall -vhdl
-}  
+}
 
 # -------------------------------------------------
 # Simulate
@@ -195,7 +196,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   if {[file exists ${OsvvmScriptDirectory}/${ToolName}.tcl]} {
     puts  $SynFile "source ${OsvvmScriptDirectory}/${ToolName}.tcl"
   }
- 
+
 ### User level settings for simulator in the simulation run directory
 # User Vendor script
   if {[file exists ${ToolVendor}.tcl]} {
@@ -217,14 +218,14 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   if {[file exists ${LibraryUnit}_${ToolName}.tcl]} {
     puts  $SynFile "source ${LibraryUnit}_${ToolName}.tcl"
   }
-  puts  $SynFile "run" 
-  
+  puts  $SynFile "run"
+
   # Save Coverage Information
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
 #   puts $RunFile "Save Coverage Information Command Goes here"
   }
-  
-  puts  $SynFile "quit" 
+
+  puts  $SynFile "quit"
   close $SynFile
 
   if {$::osvvm::NoGui || !($::osvvm::Debug)} {
@@ -241,26 +242,26 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   }
 
   set ElaborateOptions [concat -full64 -time $SimulateTimeUnits ${DebugOptions} {*}${ExtendedElaborateOptions} ${LibraryName}.${LibraryUnit} {*}${SynopsysGenericOptions}]
-  puts "vcs ${ElaborateOptions}" 
+  puts "vcs ${ElaborateOptions}"
   set VcsErrorCode [catch {exec vcs {*}${ElaborateOptions}} SimulateErrorMessage]
 #  puts "VcsErrorCode $VcsErrorCode" ;# returns 1 on success
-  puts "$SimulateErrorMessage" 
+  puts "$SimulateErrorMessage"
 ##!! TODO:  Need vcs error codes for proper handling
-#  if { [catch {exec vcs {*}${ElaborateOptions}} SimulateErrorMessage]} { 
+#  if { [catch {exec vcs {*}${ElaborateOptions}} SimulateErrorMessage]} {
 #    PrintWithPrefix "Error:" $SimulateErrorMessage
 #    error "Failed: simulate $LibraryUnit during vcs"
 #  } else {
 #    puts $SimulateErrorMessage
 #  }
-  
+
   set SimulateOptions [concat {*}${ExtendedRunOptions} -ucli -do temp_Synopsys_run.tcl]
-  puts "./simv ${SimulateOptions}" 
+  puts "./simv ${SimulateOptions}"
   set SimVErrorCode [catch {exec ./simv {*}${SimulateOptions}} SimulateErrorMessage]
 #  puts "SimVErrorCode $SimVErrorCode" ; # returns 0 on success
-  puts "$SimulateErrorMessage" 
+  puts "$SimulateErrorMessage"
 
 ##!! TODO:  Need simv error codes
-#  if { [catch {exec ./simv {*}${SimulateOptions}} SimulateErrorMessage]} { 
+#  if { [catch {exec ./simv {*}${SimulateOptions}} SimulateErrorMessage]} {
 #    PrintWithPrefix "Error:" $SimulateErrorMessage
 #    error "Failed: simulate $LibraryUnit during simv"
 #  } else {
@@ -290,7 +291,7 @@ proc CreateGenericFile {GenericDict} {
 # -------------------------------------------------
 # Merge Coverage
 #
-proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
+proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
 #  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
 #  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
 #  if {$CovFiles ne ""} {
@@ -298,11 +299,11 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
 #  }
 }
 
-proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
+proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} {
 #  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
 }
 
-proc vendor_GetCoverageFileName {TestName} { 
+proc vendor_GetCoverageFileName {TestName} {
   set CoverageFileName ${TestName}_code_cov.html
   return $CoverageFileName
 }

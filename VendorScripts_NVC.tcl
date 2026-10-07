@@ -1,41 +1,41 @@
 #  File Name:         VendorScripts_NVC.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
-# 
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
-#  Contributor(s):            
-#     Jim Lewis      email:  jim@synthworks.com   
-# 
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Jim Lewis      email:  jim@synthworks.com
+#
 #  Description
-#    Tcl procedures with the intent of making running 
+#    Tcl procedures with the intent of making running
 #    compiling and simulations tool independent
-#    
-#  Developed by: 
-#        SynthWorks Design Inc. 
+#
+#  Developed by:
+#        SynthWorks Design Inc.
 #        VHDL Training Classes
 #        OSVVM Methodology and Model Library
 #        11898 SW 128th Ave.  Tigard, Or  97223
 #        http://www.SynthWorks.com
-# 
+#
 #  Revision History:
 #    Date      Version    Description
 #     1/2026   2026.01    Added Supports2019fff to identify 2019 features supported
 #     7/2024   2024.07    Added ability to find nvc on the search path
-#     5/2024   2024.05    Added ToolVersion variable 
-#     1/2023   2023.01    Added options for CoSim 
+#     5/2024   2024.05    Added ToolVersion variable
+#     1/2023   2023.01    Added options for CoSim
 #    10/2022              Initial Version based on VendorScripts_GHDL.tcl
 #
 #
 #  This file is part of OSVVM.
-#  
-#  Copyright (c) 2020 - 2022 by SynthWorks Design Inc.  
-#  
+#
+#  Copyright (c) 2020 - 2022 by SynthWorks Design Inc.
+#
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
 #  You may obtain a copy of the License at
-#  
+#
 #      https://www.apache.org/licenses/LICENSE-2.0
-#  
+#
 #  Unless required by applicable law or agreed to in writing, software
 #  distributed under the License is distributed on an "AS IS" BASIS,
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,15 +50,15 @@
   variable ToolType   "simulator"
   variable ToolVendor "NVC"
   variable ToolName   "NVC"
-  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead 
-  
+  variable simulator   $ToolName ; # Variable simulator is deprecated.  Use ToolName instead
+
   # required for mintty
   if {[file writable "/dev/pty0" ]} {
     variable console "/dev/pty0"
   } else {
     variable console {}
   }
-  
+
 #  set nvc {*}[auto_execok nvc]
   if {[catch {[exec which nvc]} msg]} {
     set nvc nvc   ;# not running on linux/MSYS2
@@ -68,7 +68,7 @@
   } else {
     set nvc [exec which nvc]
   }
-  
+
   regexp {nvc\s+\d+\.\d+\S*} [exec $nvc --version] VersionString
   variable ToolVersion [regsub {nvc\s+} $VersionString ""]
   variable ToolNameVersion ${ToolName}-${ToolVersion}
@@ -76,12 +76,12 @@
   if {[expr [string compare $ToolVersion "1.15.2"] >= 0]} {
     variable FunctionalCoverageIntegratedInSimulator "NVC"
   }
-  
+
   if {[expr [string compare $ToolVersion "1.13.2"] >= 0]} {
     SetVHDLVersion 2019
     variable Supports2019ImpureFunctions     "true"
   }
-  
+
   if {[expr [string compare $ToolVersion "1.15.2"] >= 0]} {
     SetVHDLVersion 2019
     variable Supports2019Interface           "true"
@@ -95,7 +95,7 @@
   }
 
   # Default memory to use for NVC
-  variable SimulatorMemory         "-H 128m"  
+  variable SimulatorMemory         "-H 128m"
   variable ExtendedGlobalOptions   "--stderr=failure --ieee-warnings=off-at-0 --ignore-time"
   variable ExtendedRunOptions      "--exit-severity=failure"
 
@@ -103,7 +103,7 @@
 # StartTranscript / StopTranscript
 #
 
-# 
+#
 #  Uses DefaultVendor_StartTranscript and DefaultVendor_StopTranscript
 #
 
@@ -126,15 +126,16 @@ proc vendor_SetCoverageSimulateDefaults {} {
 #
 # proc ExitCode {Code {Message ""}} {
 #   puts $Message
-#   exit -code $Code 
+#   exit -code $Code
 # }
 
 # -------------------------------------------------
 # IsVendorCommand
 #
 proc IsVendorCommand {LineOfText} {
-
-  return [regexp {^nvc } $LineOfText] 
+#!!    set cmd [lindex $LineOfText 0]
+#!!    return [expr {$cmd in {nvc}}]
+  return [regexp {^nvc } $LineOfText]
 }
 
 # -------------------------------------------------
@@ -146,7 +147,7 @@ proc NvcLibraryPath {LibraryName PathToLib} {
 }
 
 proc vendor_library {LibraryName PathToLib} {
-  variable nvc 
+  variable nvc
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable NVC_WORKING_LIBRARY_PATH
   variable VhdlShortVersion
@@ -186,7 +187,7 @@ proc vendor_LinkLibrary {LibraryName PathToLib} {
 proc vendor_UnlinkLibrary {LibraryName PathToLib} {
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable LibraryList
-  
+
   # Was last library in directory deleted?
   if {[lsearch $LibraryList "* ${PathToLib}"] < 0} {
     # Remove it from NVC Library Paths
@@ -202,7 +203,7 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 # analyze
 #
 proc vendor_analyze_vhdl {LibraryName FileName args} {
-  variable nvc 
+  variable nvc
   variable VhdlShortVersion
 ##  variable console
 ##  variable NVC_TRANSCRIPT_FILE
@@ -244,13 +245,13 @@ proc vendor_analyze_verilog {LibraryName FileName args} {
 #
 proc vendor_end_previous_simulation {} {
   # Do Nothing
-}  
+}
 
 # -------------------------------------------------
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
-  variable nvc 
+  variable nvc
   variable VhdlShortVersion
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable NVC_WORKING_LIBRARY_PATH
@@ -274,8 +275,8 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   if {$::osvvm::SaveWaves} {
     set LocalRunOptions [concat {*}${LocalRunOptions} --wave=${::osvvm::ReportsTestSuiteDirectory}/${LibraryUnit}.fst ]
   }
-  
-# format for select file  
+
+# format for select file
   set GlobalOptions ${LocalGlobalOptions}
   set ElaborateOptions [concat {*}${LocalElaborateOptions} ${LibraryUnit}]
   set RunOptions [concat {*}${LocalRunOptions} ${LibraryUnit}]
@@ -313,7 +314,7 @@ proc FindFirstFile {Name} {
 
 # -------------------------------------------------
 proc vendor_generic {Name Value} {
-  
+
   return "-g${Name}=${Value}"
 }
 
@@ -321,7 +322,7 @@ proc vendor_generic {Name Value} {
 # -------------------------------------------------
 # Merge Coverage
 #
-proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} { 
+proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
 #  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
 #  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
 #  if {$CovFiles ne ""} {
@@ -329,11 +330,11 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
 #  }
 }
 
-proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} { 
+proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} {
 #  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
 }
 
-proc vendor_GetCoverageFileName {TestName} { 
+proc vendor_GetCoverageFileName {TestName} {
   set CoverageFileName ${TestName}_code_cov.html
   return $CoverageFileName
 }

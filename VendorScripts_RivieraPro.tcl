@@ -122,7 +122,8 @@ proc ExitCode {Code {Message ""}} {
 # IsVendorCommand
 #
 proc IsVendorCommand {LineOfText} {
-
+#!!    set cmd [lindex $LineOfText 0]
+#!!    return [expr {$cmd in {alib amap acom alog asim vlib vmap vcom vlog vsim run acdb}}]
   return [regexp {^alib |^amap |^acom |^alog |^asim |^vlib |^vmap |^vcom |^vlog |^vsim |^run |^acdb } $LineOfText]
 }
 

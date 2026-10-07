@@ -178,7 +178,8 @@ proc ExitCode {Code {Message ""}} {
 # IsVendorCommand
 #
 proc IsVendorCommand {LineOfText} {
-
+#!!    set cmd [lindex $LineOfText 0]
+#!!    return [expr {$cmd in {vlib vmap vcom vlog vopt vsim run coverage vcover}}]
   return [regexp {^vlib |^vmap |^vcom |^vlog |^vopt |^vsim |^run |^coverage |^vcover } $LineOfText]
 }
 
