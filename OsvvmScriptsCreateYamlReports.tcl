@@ -228,7 +228,8 @@ proc WriteDict2IndexYaml {YamlFile ListOfDictName {Indent "  "} } {
   foreach DictName $ListOfDictName {
     set Prefix [string cat $Indent "- "]
     foreach {Name Value} $DictName {
-      if {[regexp {Version} $Name] } {
+#!!      if {[regexp {Version} $Name] } { }
+      if {[string match {*Version} $Name] } {
         puts $YamlFile "${Prefix}${Name}: \"$Value\""
       } else {
         puts $YamlFile "${Prefix}${Name}: $Value"

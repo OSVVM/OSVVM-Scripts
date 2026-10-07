@@ -149,10 +149,9 @@ proc IterateFile {RawActionForName RawFileWithNames} {
 
 proc PrintWithPrefix {Prefix RawMessageList} {
   foreach Message [split $RawMessageList \n] {
-    # Remove Prefix if already exists
-#    set NoPrefixMessage [regsub -nocase "^$Prefix " $Message ""]
-#    puts "$Prefix $NoPrefixMessage"
-    if {[regexp -nocase "$Prefix" $Message]} {
+#!!    if {[regexp -nocase "$Prefix" $Message]} { }
+    if {[string match -nocase "$Prefix" $Message]} {
+      # Only add prefix if message does not already have it
       puts "$Message"
     } else {
       puts "$Prefix $Message"
