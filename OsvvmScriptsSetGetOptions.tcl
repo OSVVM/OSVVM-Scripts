@@ -396,11 +396,13 @@ proc GetCoverageSimulateEnable {} {
 proc SetCoverageExportEnable {{Enable "true"}} {
   # Enable or disable exporting the code coverage of every build into a well-known data format.
   #
-  #  Enable - `true` to export at the end of every build that collected code coverage.
+  #  Enable - A Tcl boolean: true (`true`, `yes`, `on`, `1`, any case) to export at the end of every build that
+  #           collected code coverage.
   #
-  # The export is the one of [ExportCodeCoverage], e.g. Cobertura XML for NVC. Default: `false`.
+  # Stores `true` or `false`; a value that isn't a Tcl boolean is an error. The export is the one of
+  # [ExportCodeCoverage], e.g. Cobertura XML for NVC. Default: `false`.
   variable CoverageExportEnable
-  if {[string tolower $Enable] eq "true"} {
+  if {$Enable} {
     set CoverageExportEnable "true"
   } else {
     set CoverageExportEnable "false"
