@@ -136,6 +136,16 @@ proc vendor_SetCoverageElaborateDefaults {} {
   set CoverageElaborateOptions ""
 }
 
+proc vendor_GetCoverageKindOptions {Step Kinds} {
+  # Translate the kinds of code coverage into the simulator's options for a step.
+  #
+  #  Step  - `analyze`, `elaborate` or `simulate`.
+  #  Kinds - The kinds of code coverage, see [SetCoverageKinds].
+  #
+  # Returns: The options for the step; none, there's no translation for this simulator yet.
+  return ""
+}
+
 proc vendor_SetCoverageSimulateDefaults {} {
   variable CoverageSimulateOptions
 #  set CoverageSimulateOptions "-acdb -acdb_cov sbmec -cc_all"
