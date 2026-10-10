@@ -100,7 +100,10 @@
   variable ExtendedRunOptions      "--exit-severity=failure"
 
   # Further options of NVC's code coverage, added to --cover=<kinds>,<options>: a space separated list, e.g.
-  # "fsm-no-default-enums count-from-undefined". Set it in OsvvmSettingsLocal_NVC.tcl.
+  # "fsm-no-default-enums count-from-undefined". They become part of CoverageElaborateOptions when it is derived from
+  # the kinds: set it in OsvvmSettingsLocal_NVC.tcl followed by
+  #   variable CoverageElaborateOptions [vendor_SetCoverageElaborateDefaults]
+  # or call SetCoverageKinds afterwards.
   variable NvcExtendedCoverageOptions ""
 
 # -------------------------------------------------
@@ -119,22 +122,25 @@
 proc vendor_SetCoverageAnalyzeDefaults {} {
   # Set the default code coverage options for analysis.
   #
-  # NVC has no code coverage options for analysis, so there are none.
+  # The options for the kinds of code coverage in `CoverageKinds` (see [SetCoverageKinds]), translated by
+  # `vendor_GetCoverageKindOptions`.
   #
-  # Returns: The default code coverage analysis options.
+  # Returns: The default code coverage analysis options; also stored in `CoverageAnalyzeOptions`.
   variable CoverageAnalyzeOptions
-  set CoverageAnalyzeOptions ""
+  variable CoverageKinds
+  set CoverageAnalyzeOptions [vendor_GetCoverageKindOptions analyze $CoverageKinds]
 }
 
 proc vendor_SetCoverageElaborateDefaults {} {
   # Set the default code coverage options for elaboration.
   #
-  # NVC collects code coverage at elaboration (`nvc -e --cover=...`). The kinds of coverage come from
-  # [SetCoverageKinds] (see [vendor_GetCoverageKindOptions]), so there are no further default options.
+  # The options for the kinds of code coverage in `CoverageKinds` (see [SetCoverageKinds]), translated by
+  # `vendor_GetCoverageKindOptions`, including NVC's further code coverage options in `NvcExtendedCoverageOptions`.
   #
-  # Returns: The default code coverage elaboration options.
+  # Returns: The default code coverage elaboration options; also stored in `CoverageElaborateOptions`.
   variable CoverageElaborateOptions
-  set CoverageElaborateOptions ""
+  variable CoverageKinds
+  set CoverageElaborateOptions [vendor_GetCoverageKindOptions elaborate $CoverageKinds]
 }
 
 proc vendor_GetCoverageKindOptions {Step Kinds} {
@@ -171,11 +177,13 @@ proc vendor_GetCoverageKindOptions {Step Kinds} {
 proc vendor_SetCoverageSimulateDefaults {} {
   # Set the default code coverage options for simulation.
   #
-  # NVC has no code coverage options for running a simulation, so there are none.
+  # The options for the kinds of code coverage in `CoverageKinds` (see [SetCoverageKinds]), translated by
+  # `vendor_GetCoverageKindOptions`.
   #
-  # Returns: The default code coverage simulation options.
+  # Returns: The default code coverage simulation options; also stored in `CoverageSimulateOptions`.
   variable CoverageSimulateOptions
-  set CoverageSimulateOptions ""
+  variable CoverageKinds
+  set CoverageSimulateOptions [vendor_GetCoverageKindOptions simulate $CoverageKinds]
 }
 
 # -------------------------------------------------
