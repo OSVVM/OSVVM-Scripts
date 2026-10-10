@@ -101,7 +101,7 @@
 
   # Further options of NVC's code coverage, added to --cover=<kinds>,<options>: a space separated list, e.g.
   # "fsm-no-default-enums count-from-undefined". Set it in OsvvmSettingsLocal_NVC.tcl.
-  variable NvcCoverageOptions      ""
+  variable NvcExtendedCoverageOptions ""
 
 # -------------------------------------------------
 # StartTranscript / StopTranscript
@@ -145,11 +145,11 @@ proc vendor_GetCoverageKindOptions {Step Kinds} {
   #
   # NVC collects code coverage at elaboration: `--cover=...` with `statement`, `branch`, `expression` (for both
   # `condition` and `expression`), `toggle`, `fsm-state` (for `fsm`) and `functional`, followed by NVC's further
-  # code coverage options in `NvcCoverageOptions`, e.g. `fsm-no-default-enums`:
+  # code coverage options in `NvcExtendedCoverageOptions`, e.g. `fsm-no-default-enums`:
   # `--cover=statement,branch,fsm-state,fsm-no-default-enums`.
   #
   # Returns: The options for the step; none for analysis and simulation.
-  variable NvcCoverageOptions
+  variable NvcExtendedCoverageOptions
 
   if {$Step ne "elaborate"} {
     return ""
@@ -161,7 +161,7 @@ proc vendor_GetCoverageKindOptions {Step Kinds} {
       lappend NvcKinds $NvcKind
     }
   }
-  set CoverItems [concat $NvcKinds $NvcCoverageOptions]
+  set CoverItems [concat $NvcKinds $NvcExtendedCoverageOptions]
   if {$CoverItems eq ""} {
     return ""
   }
