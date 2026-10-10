@@ -109,8 +109,8 @@
 
 # -------------------------------------------------
 # SetCoverageAnalyzeOptions
-# SetCoverageCoverageOptions
 # SetCoverageElaborateOptions
+# SetCoverageCoverageOptions
 #
 proc vendor_SetCoverageAnalyzeDefaults {} {
   # Set the default code coverage options for analysis.

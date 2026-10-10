@@ -111,12 +111,6 @@ proc vendor_SetCoverageAnalyzeDefaults {} {
   set CoverageAnalyzeOptions "-coverage sbm"
 }
 
-proc vendor_SetCoverageSimulateDefaults {} {
-  variable CoverageSimulateOptions
-#  set CoverageSimulateOptions "-acdb -acdb_cov sbmec -cc_all"
-  set CoverageSimulateOptions "-acdb -acdb_cov sbm -cc_all"
-}
-
 proc vendor_SetCoverageElaborateDefaults {} {
   # Set the default code coverage options for elaboration.
   #
@@ -125,6 +119,12 @@ proc vendor_SetCoverageElaborateDefaults {} {
   # Returns: The default code coverage elaboration options.
   variable CoverageElaborateOptions
   set CoverageElaborateOptions ""
+}
+
+proc vendor_SetCoverageSimulateDefaults {} {
+  variable CoverageSimulateOptions
+#  set CoverageSimulateOptions "-acdb -acdb_cov sbmec -cc_all"
+  set CoverageSimulateOptions "-acdb -acdb_cov sbm -cc_all"
 }
 
 

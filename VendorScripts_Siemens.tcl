@@ -193,11 +193,6 @@ proc vendor_SetCoverageAnalyzeDefaults {} {
   set CoverageAnalyzeOptions "+cover=sbf"
 }
 
-proc vendor_SetCoverageSimulateDefaults {} {
-  variable CoverageSimulateOptions
-  set CoverageSimulateOptions "-coverage"
-}
-
 proc vendor_SetCoverageElaborateDefaults {} {
   # Set the default code coverage options for elaboration.
   #
@@ -206,6 +201,11 @@ proc vendor_SetCoverageElaborateDefaults {} {
   # Returns: The default code coverage elaboration options.
   variable CoverageElaborateOptions
   set CoverageElaborateOptions ""
+}
+
+proc vendor_SetCoverageSimulateDefaults {} {
+  variable CoverageSimulateOptions
+  set CoverageSimulateOptions "-coverage"
 }
 
 # -------------------------------------------------
