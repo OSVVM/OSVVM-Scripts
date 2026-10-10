@@ -67,6 +67,8 @@
   setlibrarymode -rw osvvm
   setlibrarymode -rw osvvm_common
 
+  variable ExtendedMergeOptions      "-associative"
+
   if {[expr [string compare $ToolVersion "12.0"] >= 0]} {
     SetVHDLVersion 2019
     variable Supports2019Interface           "false"
@@ -402,7 +404,7 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
   set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
   set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
   if {$CovFiles ne ""} {
-    acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join $CovFiles " -i "]
+    acdb merge $::osvvm::ExtendedMergeOptions -o ${CoverageFileBaseName}.acdb -i {*}[join $CovFiles " -i "]
   }
 }
 
