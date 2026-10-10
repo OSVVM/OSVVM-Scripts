@@ -549,6 +549,13 @@ proc LocalBuild {Path_Or_File args} {
   if {$RanSimulationWithCoverage eq "true"} {
     vendor_MergeCodeCoverage  $BuildName $::osvvm::CoverageDirectory ""
     vendor_ReportCodeCoverage $BuildName $::osvvm::CoverageDirectory
+
+    # Remembered for ExportCodeCoverage after the build
+    set ::osvvm::CoverageExportBuildName $BuildName
+    set ::osvvm::CoverageExportDirectory $::osvvm::CoverageDirectory
+    if {$::osvvm::CoverageExportEnable} {
+      vendor_ExportCodeCoverage $BuildName $::osvvm::CoverageDirectory "" $::osvvm::CoverageExportOptions
+    }
   }
 
 }
@@ -1314,13 +1321,27 @@ proc simulate {LibraryUnit args} {
 }
 
 proc LocalSimulate {LibraryUnit args} {
+  # Simulate a design unit with the vendor's simulate procedure.
+  #
+  #  LibraryUnit - The design unit to simulate.
+  #  args        - Further simulate options.
+  #
+  # Sets the effective options the vendor's simulate procedure uses:
+  #
+  # * ElaborateOptions - OSVVM's elaborate options: with code coverage enabled for simulation, the code coverage
+  #   elaborate options ([SetCoverageElaborateOptions]). The user's extended elaborate options
+  #   ([SetExtendedElaborateOptions]) aren't part of them; the vendor adds them.
+  # * SimulateOptions - *args*, the extended simulate options and, with code coverage enabled for simulation, the
+  #   code coverage simulate options ([SetCoverageSimulateOptions]).
   variable VhdlWorkingLibrary
   variable vendor_simulate_started
   variable TestCaseName
   variable TestCaseFileName
+  variable CoverageElaborateOptions
   variable CoverageSimulateOptions
   variable ExtendedSimulateOptions
   variable RanSimulationWithCoverage
+  variable ElaborateOptions
   variable SimulateOptions
 
 
@@ -1348,9 +1369,11 @@ proc LocalSimulate {LibraryUnit args} {
 
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     set RanSimulationWithCoverage "true"
-    set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
+    set ElaborateOptions [concat {*}$CoverageElaborateOptions]
+    set SimulateOptions  [concat {*}$args {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
   } else {
-    set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions]
+    set ElaborateOptions ""
+    set SimulateOptions  [concat {*}$args {*}$ExtendedSimulateOptions]
   }
 
     CallbackBefore_Simulate $LibraryUnit $args
@@ -1398,6 +1421,37 @@ proc RemoveFilePathChars {PathString} {
 }
 
 # -------------------------------------------------
+proc ExportOptions {args} {
+  # Set options for the next [ExportCodeCoverage], like [generic] does for [simulate].
+  #
+  #  args - The options, in the simulator's syntax, e.g. `--relative=.` for NVC.
+  #
+  # Returns: An empty string, so it can be written as an argument: `ExportCodeCoverage [ExportOptions ...]`.
+  variable ExportOptionsList
+  append ExportOptionsList " " $args
+  return ""
+}
+
+proc ExportCodeCoverage {{FileName ""} args} {
+  # Export the code coverage of the last build into a well-known data format, e.g. Cobertura XML.
+  #
+  #  FileName - Optional, the file to write. Default: chosen by the simulator, e.g.
+  #             `<BuildName>_code_cov.cobertura.xml` in the code coverage directory for NVC.
+  #  args     - Optional, `[ExportOptions <options>]`.
+  #
+  # The simulator's part is vendor_ExportCodeCoverage. Further options come from [ExportOptions] and
+  # [SetCoverageExportOptions]. With [SetCoverageExportEnable], every build exports its code coverage this way.
+  variable ExportOptionsList
+
+  set Options [concat {*}$::osvvm::CoverageExportOptions {*}$ExportOptionsList]
+  set ExportOptionsList ""
+  if {$::osvvm::CoverageExportBuildName eq ""} {
+    error "ExportCodeCoverage: No build collected code coverage yet."
+  }
+  puts "ExportCodeCoverage $FileName"           ; # EchoOsvvmCmd
+  vendor_ExportCodeCoverage $::osvvm::CoverageExportBuildName $::osvvm::CoverageExportDirectory $FileName $Options
+}
+
 proc generic {Name Value} {
   variable GenericDict
   variable GenericNames
@@ -2057,6 +2111,7 @@ proc GetTimeString {} {
 
 namespace export analyze simulate build include library RunTest SkipTest TestSuite TestName TestCase BuildName
 namespace export generic DoWaves NoNullRangeWarning
+namespace export ExportCodeCoverage ExportOptions
 namespace export IterateFile ReadListFromFile
 namespace export StartTranscript StopTranscript
 namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries

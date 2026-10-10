@@ -121,15 +121,64 @@ proc IsVendorCommand {LineOfText} {
 # SetCoverageCoverageOptions
 #
 proc vendor_SetCoverageAnalyzeDefaults {} {
+  # Set the default code coverage options for analysis.
+  #
+  # The options for the kinds of code coverage in `CoverageKinds` (see [SetCoverageKinds]), translated by
+  # `vendor_GetCoverageKindOptions`.
+  #
+  # Returns: The default code coverage analysis options; also stored in `CoverageAnalyzeOptions`.
   variable CoverageAnalyzeOptions
-#  set CoverageAnalyzeOptions "-coverage sbmec"
-  set CoverageAnalyzeOptions "-coverage sbm"
+  variable CoverageKinds
+  set CoverageAnalyzeOptions [vendor_GetCoverageKindOptions analyze $CoverageKinds]
+}
+
+proc vendor_SetCoverageElaborateDefaults {} {
+  # Set the default code coverage options for elaboration.
+  #
+  # The options for the kinds of code coverage in `CoverageKinds` (see [SetCoverageKinds]), translated by
+  # `vendor_GetCoverageKindOptions`.
+  #
+  # Returns: The default code coverage elaboration options; also stored in `CoverageElaborateOptions`.
+  variable CoverageElaborateOptions
+  variable CoverageKinds
+  set CoverageElaborateOptions [vendor_GetCoverageKindOptions elaborate $CoverageKinds]
+}
+
+proc vendor_GetCoverageKindOptions {Step Kinds} {
+  # Translate the kinds of code coverage into Active-HDL's options for a step.
+  #
+  #  Step  - `analyze`, `elaborate` or `simulate`.
+  #  Kinds - The kinds of code coverage, see [SetCoverageKinds].
+  #
+  # Active-HDL instruments code coverage at analysis (`-coverage`) and collects it at simulation (`-acdb_cov`), both
+  # with `s` (statement), `b` (branch), `c` (condition), `e` (expression) and `m` (fsm). Toggle coverage isn't
+  # chosen by a letter; functional coverage is collected without an option.
+  #
+  # Returns: The options for the step; none for elaboration.
+  set Letters ""
+  foreach Kind $Kinds {
+    append Letters [dict get {statement s branch b condition c expression e toggle "" fsm m functional ""} $Kind]
+  }
+  if {$Letters eq ""} {
+    return ""
+  }
+  switch -exact -- $Step {
+    analyze  {return "-coverage $Letters"}
+    simulate {return "-acdb_cov $Letters"}
+  }
+  return ""
 }
 
 proc vendor_SetCoverageSimulateDefaults {} {
+  # Set the default code coverage options for simulation.
+  #
+  # The options for the kinds of code coverage in `CoverageKinds` (see [SetCoverageKinds]), translated by
+  # `vendor_GetCoverageKindOptions`. Further options: `-acdb` and `-cc_all`.
+  #
+  # Returns: The default code coverage simulation options; also stored in `CoverageSimulateOptions`.
   variable CoverageSimulateOptions
-#  set CoverageSimulateOptions "-acdb -acdb_cov sbmec -cc_all"
-  set CoverageSimulateOptions "-acdb -acdb_cov sbm -cc_all"
+  variable CoverageKinds
+  set CoverageSimulateOptions [concat "-acdb" [vendor_GetCoverageKindOptions simulate $CoverageKinds] "-cc_all"]
 }
 
 # -------------------------------------------------
@@ -371,4 +420,28 @@ proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
 proc vendor_GetCoverageFileName {TestName} {
   set CoverageFileName ${TestName}_code_cov.html
   return $CoverageFileName
+}
+
+# -------------------------------------------------
+# Export Coverage
+#
+proc vendor_ExportCodeCoverage {BuildName CodeCoverageDirectory FileName Options} {
+  # Export the code coverage of a build into Active-HDL's UCDB XML with `acdb2xml`.
+  #
+  #  BuildName             - The build.
+  #  CodeCoverageDirectory - The directory of the code coverage databases.
+  #  FileName              - The file to write; if empty, `<BuildName>_code_cov.ucdb.xml` in *CodeCoverageDirectory*.
+  #  Options               - Further options of `acdb2xml`.
+  #
+  # The build's database is `<BuildName>.acdb`. Without a database, nothing is written.
+  set CoverageFile ${CodeCoverageDirectory}/${BuildName}.acdb
+  if {$FileName eq ""} {
+    set FileName ${CodeCoverageDirectory}/${BuildName}_code_cov.ucdb.xml
+  }
+  if {![file exists $CoverageFile]} {
+    puts "ExportCodeCoverage: No code coverage database '$CoverageFile'."
+    return
+  }
+  puts "acdb2xml -i ${CoverageFile} -o ${FileName} $Options"
+  acdb2xml -i ${CoverageFile} -o ${FileName} {*}$Options
 }

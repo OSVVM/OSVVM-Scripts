@@ -179,7 +179,11 @@ proc GetExtendedRunOptions {} {
 #
 proc SetSaveWaves {{Options "true"}} {
   variable SaveWaves
-  set SaveWaves $Options
+  if {$Options} {
+    set SaveWaves "true"
+  } else {
+    set SaveWaves "false"
+  }
 }
 proc GetSaveWaves {} {
   variable SaveWaves
@@ -197,7 +201,11 @@ proc SetInteractiveMode {{Options "true"}} {
   variable SavedSimulateErrorStopCount
 
   set PreviousSimulateInteractive $SimulateInteractive
-  set SimulateInteractive $Options
+  if {$Options} {
+    set SimulateInteractive "true"
+  } else {
+    set SimulateInteractive "false"
+  }
 
   if {($SimulateInteractive) && !($PreviousSimulateInteractive)} {
     # Only save ErrorStopCounts when options change from FALSE to TRUE
@@ -214,10 +222,10 @@ proc SetInteractiveMode {{Options "true"}} {
     set SimulateErrorStopCount $SavedSimulateErrorStopCount
   }
   if {! $::osvvm::DebugIsSet} {
-    set ::osvvm::Debug $Options
+    set ::osvvm::Debug $SimulateInteractive
   }
   if {! $::osvvm::LogSignalsIsSet} {
-    set ::osvvm::LogSignals $Options
+    set ::osvvm::LogSignals $SimulateInteractive
   }
 }
 # SetInteractive is deprecated.
@@ -232,16 +240,24 @@ proc GetInteractiveMode {} {
 }
 
 proc SetDebugMode {{Options "true"}} {
+  if {$Options} {
+    set ::osvvm::Debug "true"
+  } else {
+    set ::osvvm::Debug "false"
+  }
   set ::osvvm::DebugIsSet "true"
-  set ::osvvm::Debug $Options
 }
 proc GetDebugMode {} {
   return $::osvvm::Debug
 }
 
 proc SetLogSignals {{Options "true"}} {
+  if {$Options} {
+    set ::osvvm::LogSignals "true"
+  } else {
+    set ::osvvm::LogSignals "false"
+  }
   set ::osvvm::LogSignalsIsSet "true"
-  set ::osvvm::LogSignals $Options
 }
 
 proc GetLogSignals {} {
@@ -266,7 +282,7 @@ proc GetSecondSimulationTopLevel {} {
 #
 proc SetCoverageEnable {{Enable "true"}} {
   variable CoverageEnable
-  if {[string tolower $Enable] eq "true"} {
+  if {$Enable} {
     set CoverageEnable "true"
   } else {
     set CoverageEnable "false"
@@ -276,6 +292,51 @@ proc SetCoverageEnable {{Enable "true"}} {
 proc GetCoverageEnable {} {
   variable CoverageEnable
   return $CoverageEnable
+}
+
+# -------------------------------------------------
+# SetCoverageKinds, GetCoverageKinds
+#
+proc SetCoverageKinds {{Kinds "default"}} {
+  # Set the kinds of code coverage to collect, independent of the simulator.
+  #
+  #  Kinds - A list of kinds: `statement`, `branch`, `condition`, `expression`, `toggle`, `fsm`, `functional`;
+  #          `all` stands for all of them, `default` for the kinds in `DefaultCoverageKinds`.
+  #
+  # Stores the kinds in `CoverageKinds`, then sets the code coverage options of analysis, elaboration and simulation
+  # to the vendor's defaults for these kinds (vendor_SetCoverageAnalyzeDefaults, vendor_SetCoverageElaborateDefaults,
+  # vendor_SetCoverageSimulateDefaults). This replaces options set before with [SetCoverageAnalyzeOptions],
+  # [SetCoverageElaborateOptions] and [SetCoverageSimulateOptions]; call them afterwards to change the options. A kind
+  # the simulator doesn't support is left out. An unknown kind is an error.
+  set KnownKinds {statement branch condition expression toggle fsm functional}
+  set CoverageKinds {}
+  foreach Kind [string tolower $Kinds] {
+    if {$Kind eq "all"} {
+      set Expanded $KnownKinds
+    } elseif {$Kind eq "default"} {
+      set Expanded $::osvvm::DefaultCoverageKinds
+    } elseif {[lsearch -exact $KnownKinds $Kind] >= 0} {
+      set Expanded [list $Kind]
+    } else {
+      error "SetCoverageKinds: Unknown code coverage kind '$Kind'. Known kinds: $KnownKinds, all, default"
+    }
+    foreach Item $Expanded {
+      if {[lsearch -exact $CoverageKinds $Item] < 0} {
+        lappend CoverageKinds $Item
+      }
+    }
+  }
+  set ::osvvm::CoverageKinds            $CoverageKinds
+  set ::osvvm::CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults]
+  set ::osvvm::CoverageElaborateOptions [vendor_SetCoverageElaborateDefaults]
+  set ::osvvm::CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
+  puts "SetCoverageKinds $::osvvm::CoverageKinds"
+}
+proc GetCoverageKinds {} {
+  # Get the kinds of code coverage to collect.
+  #
+  # Returns: The kinds, set by [SetCoverageKinds].
+  return $::osvvm::CoverageKinds
 }
 
 # -------------------------------------------------
@@ -290,7 +351,7 @@ proc GetCoverageAnalyzeOptions {} {
 
 proc SetCoverageAnalyzeEnable {{Enable "true"}} {
   variable CoverageAnalyzeEnable
-  if {[string tolower $Enable] eq "true"} {
+  if {$Enable} {
     set CoverageAnalyzeEnable "true"
   } else {
     set CoverageAnalyzeEnable "false"
@@ -300,6 +361,26 @@ proc SetCoverageAnalyzeEnable {{Enable "true"}} {
 
 proc GetCoverageAnalyzeEnable {} {
   return $::osvvm::CoverageAnalyzeEnable
+}
+
+# -------------------------------------------------
+# SetCoverageElaborateOptions, GetCoverageElaborateOptions
+#
+proc SetCoverageElaborateOptions {{Options ""}} {
+  # Set the code coverage options for elaboration.
+  #
+  #  Options - The options, passed to the simulator's elaboration.
+  #
+  # They are used while code coverage is enabled for simulation: [SetCoverageEnable] and
+  # [SetCoverageSimulateEnable]. The defaults come from vendor_SetCoverageElaborateDefaults; [SetCoverageKinds] sets
+  # them to the vendor's defaults for the kinds.
+  set ::osvvm::CoverageElaborateOptions $Options
+}
+proc GetCoverageElaborateOptions {} {
+  # Get the code coverage options for elaboration.
+  #
+  # Returns: The options, set by [SetCoverageElaborateOptions].
+  return $::osvvm::CoverageElaborateOptions
 }
 
 # -------------------------------------------------
@@ -314,7 +395,7 @@ proc GetCoverageSimulateOptions {} {
 
 proc SetCoverageSimulateEnable {{Enable "true"}} {
   variable CoverageSimulateEnable
-  if {[string tolower $Enable] eq "true"} {
+  if {$Enable} {
     set CoverageSimulateEnable "true" ;
   } else {
     set CoverageSimulateEnable "false" ;
@@ -323,6 +404,47 @@ proc SetCoverageSimulateEnable {{Enable "true"}} {
 }
 proc GetCoverageSimulateEnable {} {
   return $::osvvm::CoverageSimulateEnable
+}
+
+# -------------------------------------------------
+# SetCoverageExportEnable, GetCoverageExportEnable, SetCoverageExportOptions, GetCoverageExportOptions
+#
+proc SetCoverageExportEnable {{Enable "true"}} {
+  # Enable or disable exporting the code coverage of every build into a well-known data format.
+  #
+  #  Enable - A Tcl boolean: true (`true`, `yes`, `on`, `1`, any case) to export at the end of every build that
+  #           collected code coverage.
+  #
+  # Stores `true` or `false`; a value that isn't a Tcl boolean is an error. The export is the one of
+  # [ExportCodeCoverage], e.g. Cobertura XML for NVC. Default: `false`.
+  variable CoverageExportEnable
+  if {$Enable} {
+    set CoverageExportEnable "true"
+  } else {
+    set CoverageExportEnable "false"
+  }
+  puts "SetCoverageExportEnable $CoverageExportEnable"
+}
+proc GetCoverageExportEnable {} {
+  # Get whether the code coverage of every build is exported.
+  #
+  # Returns: `true` or `false`, set by [SetCoverageExportEnable].
+  return $::osvvm::CoverageExportEnable
+}
+
+proc SetCoverageExportOptions {{Options ""}} {
+  # Set the options of every code coverage export.
+  #
+  #  Options - The options, in the simulator's syntax, e.g. `--relative=.` for NVC.
+  #
+  # [ExportOptions] adds options for a single [ExportCodeCoverage].
+  set ::osvvm::CoverageExportOptions $Options
+}
+proc GetCoverageExportOptions {} {
+  # Get the options of every code coverage export.
+  #
+  # Returns: The options, set by [SetCoverageExportOptions].
+  return $::osvvm::CoverageExportOptions
 }
 
 # -------------------------------------------------
@@ -343,22 +465,38 @@ proc GetSimulatorResolution {} {
 #
 proc SetRequirementUseSumOfGoals {{Status "true"}} {
   # Current default is false - historical assumed reading Spec.
-  set ::osvvm::USE_SUM_OF_GOALS $Status
+  if {$Status} {
+    set ::osvvm::USE_SUM_OF_GOALS "true"
+  } else {
+    set ::osvvm::USE_SUM_OF_GOALS "false"
+  }
 }
 
 proc SetRequirementCsvPrintStatus {{Status "true"}} {
   # Current default is true
-  set ::osvvm::REQUIREMENT_CSV_PRINT_STATUS $Status
+  if {$Status} {
+    set ::osvvm::REQUIREMENT_CSV_PRINT_STATUS "true"
+  } else {
+    set ::osvvm::REQUIREMENT_CSV_PRINT_STATUS "false"
+  }
 }
 
 proc SetRequirementTestCaseFailsIfLessThanGoal {{Status "true"}} {
   # Current default is true
-  set ::osvvm::REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL $Status
+  if {$Status} {
+    set ::osvvm::REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL "true"
+  } else {
+    set ::osvvm::REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL "false"
+  }
 }
 
 proc SetRequirementDoesNotExceedGoal {{Status "true"}} {
   # Current default is true
-  set ::osvvm::REQUIREMENT_DOES_NOT_EXCEED_GOAL $Status
+  if {$Status} {
+    set ::osvvm::REQUIREMENT_DOES_NOT_EXCEED_GOAL "true"
+  } else {
+    set ::osvvm::REQUIREMENT_DOES_NOT_EXCEED_GOAL "false"
+  }
 }
 
 
@@ -394,10 +532,13 @@ namespace export SetExtendedOptimizeOptions GetExtendedOptimizeOptions
 namespace export SetExtendedSimulateOptions GetExtendedSimulateOptions
 namespace export SetVhdlAnalyzeOptions GetVhdlAnalyzeOptions SetVerilogAnalyzeOptions GetVerilogAnalyzeOptions
 namespace export SetCoverageEnable GetCoverageEnable
+namespace export SetCoverageKinds GetCoverageKinds
 namespace export SetCoverageAnalyzeOptions GetCoverageAnalyzeOptions
 namespace export SetCoverageAnalyzeEnable GetCoverageAnalyzeEnable
+namespace export SetCoverageElaborateOptions GetCoverageElaborateOptions
 namespace export SetCoverageSimulateOptions GetCoverageSimulateOptions
 namespace export SetCoverageSimulateEnable GetCoverageSimulateEnable
+namespace export SetCoverageExportEnable GetCoverageExportEnable SetCoverageExportOptions GetCoverageExportOptions
 namespace export SetExtendedElaborateOptions GetExtendedElaborateOptions
 namespace export SetExtendedRunOptions GetExtendedRunOptions
 namespace export SetSaveWaves GetSaveWaves

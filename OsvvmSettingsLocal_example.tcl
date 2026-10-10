@@ -178,8 +178,13 @@ namespace eval ::osvvm {
     #  variable CoverageEnable           "true"
     #  variable CoverageAnalyzeEnable    "false"
     #  variable CoverageSimulateEnable   "false"
+    #  variable DefaultCoverageKinds     "statement branch fsm"
+    #  variable CoverageKinds            $DefaultCoverageKinds      ;# kinds as list, no "all"/"default"
     #  variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults] 
+    #  variable CoverageElaborateOptions [vendor_SetCoverageElaborateDefaults]
     #  variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
+    #  variable CoverageExportEnable     "false"
+    #  variable CoverageExportOptions    ""
 
   #
   #  Simulation Controls

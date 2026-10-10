@@ -153,6 +153,11 @@ namespace eval ::osvvm {
     variable RunningCoSim              "false"
     variable RanSimulationWithCoverage "false"
 
+    # Code coverage export: options of the next ExportCodeCoverage, the last build that collected code coverage
+    variable ExportOptionsList         ""
+    variable CoverageExportBuildName   ""
+    variable CoverageExportDirectory   ""
+
     if {[catch {set OperatingSystemName [string tolower [exec uname]]} err]} {
       set OperatingSystemName windows
     }

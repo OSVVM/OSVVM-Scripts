@@ -76,6 +76,26 @@ proc vendor_SetCoverageAnalyzeDefaults {} {
 #    set defaults here
 }
 
+proc vendor_SetCoverageElaborateDefaults {} {
+  # Set the default code coverage options for elaboration.
+  #
+  # There are none for the reports.
+  #
+  # Returns: The default code coverage elaboration options.
+  variable CoverageElaborateOptions
+  set CoverageElaborateOptions ""
+}
+
+proc vendor_GetCoverageKindOptions {Step Kinds} {
+  # Translate the kinds of code coverage into the simulator's options for a step.
+  #
+  #  Step  - `analyze`, `elaborate` or `simulate`.
+  #  Kinds - The kinds of code coverage, see [SetCoverageKinds].
+  #
+  # Returns: The options for the step; none, there's no translation for this simulator yet.
+  return ""
+}
+
 proc vendor_SetCoverageSimulateDefaults {} {
   variable CoverageSimulateOptions
 #    set defaults here
@@ -128,4 +148,19 @@ proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} {
 
 proc vendor_GetCoverageFileName {TestName} { 
   return $TestName
+}
+
+# -------------------------------------------------
+# Export Coverage
+#
+proc vendor_ExportCodeCoverage {BuildName CodeCoverageDirectory FileName Options} {
+  # Export the code coverage of a build into a well-known data format.
+  #
+  #  BuildName             - The build.
+  #  CodeCoverageDirectory - The directory of the code coverage databases.
+  #  FileName              - The file to write; if empty, chosen by the simulator.
+  #  Options               - Further options of the simulator's export.
+  #
+  # There's no export for this simulator yet; it says so.
+  puts "ExportCodeCoverage: Not supported for ${::osvvm::ToolName} yet."
 }
