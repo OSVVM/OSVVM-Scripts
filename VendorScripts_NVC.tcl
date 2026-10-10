@@ -125,11 +125,12 @@ proc vendor_SetCoverageAnalyzeDefaults {} {
 proc vendor_SetCoverageElaborateDefaults {} {
   # Set the default code coverage options for elaboration.
   #
-  # NVC collects code coverage at elaboration (`nvc -e --cover=...`): statement and branch coverage.
+  # NVC collects code coverage at elaboration (`nvc -e --cover=...`). The kinds of coverage come from
+  # [SetCoverageKinds], so there are no further default options.
   #
   # Returns: The default code coverage elaboration options.
   variable CoverageElaborateOptions
-  set CoverageElaborateOptions "--cover=statement,branch"
+  set CoverageElaborateOptions ""
 }
 
 proc vendor_SetCoverageSimulateDefaults {} {
@@ -280,8 +281,12 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   #
   # The elaboration also gets OSVVM's elaborate options LocalSimulate computed (`::osvvm::ElaborateOptions`), the
   # user's extended elaborate options ([SetExtendedElaborateOptions]) and the generics. With code coverage enabled
-  # for simulation, `--cover-file` names the test case's coverage database
-  # `<CoverageDirectory>/<TestSuiteName>/<TestCaseFileName>.ncdb`, which [vendor_MergeCodeCoverage] merges.
+  # for simulation:
+  #
+  # * `--cover` names the kinds of coverage [SetCoverageKinds] set, translated into NVC's: `statement`, `branch`,
+  #   `condition` and `expression` (both `expression`), `toggle`, `fsm` (`fsm-state`).
+  # * `--cover-file` names the test case's coverage database
+  #   `<CoverageDirectory>/<TestSuiteName>/<TestCaseFileName>.ncdb`, which [vendor_MergeCodeCoverage] merges.
   variable nvc
   variable VhdlShortVersion
   variable VHDL_RESOURCE_LIBRARY_PATHS
@@ -293,7 +298,17 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   set LocalElaborateOptions [concat {*}${::osvvm::ElaborateOptions} {*}${ExtendedElaborateOptions} {*}${args}  {*}${::osvvm::GenericOptions}]
 
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
+    set NvcKinds {}
+    foreach Kind $::osvvm::CoverageKinds {
+      set NvcKind [dict get {statement statement branch branch condition expression expression expression toggle toggle fsm fsm-state} $Kind]
+      if {[lsearch -exact $NvcKinds $NvcKind] < 0} {
+        lappend NvcKinds $NvcKind
+      }
+    }
     set CoverageFile [file join ${::osvvm::CoverageDirectory} ${::osvvm::TestSuiteName} ${::osvvm::TestCaseFileName}.ncdb]
+    if {$NvcKinds ne ""} {
+      set LocalElaborateOptions [concat --cover=[join $NvcKinds ","] {*}${LocalElaborateOptions}]
+    }
     set LocalElaborateOptions [concat {*}${LocalElaborateOptions} --cover-file=${CoverageFile}]
   }
 

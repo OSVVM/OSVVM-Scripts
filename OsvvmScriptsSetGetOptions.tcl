@@ -279,6 +279,32 @@ proc GetCoverageEnable {} {
 }
 
 # -------------------------------------------------
+# SetCoverageKinds, GetCoverageKinds
+#
+proc SetCoverageKinds {{Kinds "statement branch"}} {
+  # Set the kinds of code coverage to collect, independent of the simulator.
+  #
+  #  Kinds - A list of kinds: `statement`, `branch`, `condition`, `expression`, `toggle`, `fsm`.
+  #
+  # The vendor scripts translate the kinds into the simulator's options; a simulator without such a translation
+  # ignores them. An unknown kind is an error.
+  set KnownKinds {statement branch condition expression toggle fsm}
+  foreach Kind $Kinds {
+    if {[lsearch -exact $KnownKinds [string tolower $Kind]] < 0} {
+      error "SetCoverageKinds: Unknown code coverage kind '$Kind'. Known kinds: $KnownKinds"
+    }
+  }
+  set ::osvvm::CoverageKinds [string tolower $Kinds]
+  puts "SetCoverageKinds $::osvvm::CoverageKinds"
+}
+proc GetCoverageKinds {} {
+  # Get the kinds of code coverage to collect.
+  #
+  # Returns: The kinds, set by [SetCoverageKinds].
+  return $::osvvm::CoverageKinds
+}
+
+# -------------------------------------------------
 # SetCoverageAnalyzeOptions, SetCoverageAnalyzeEnable
 #
 proc SetCoverageAnalyzeOptions {{Options ""}} {
@@ -413,6 +439,7 @@ namespace export SetExtendedOptimizeOptions GetExtendedOptimizeOptions
 namespace export SetExtendedSimulateOptions GetExtendedSimulateOptions
 namespace export SetVhdlAnalyzeOptions GetVhdlAnalyzeOptions SetVerilogAnalyzeOptions GetVerilogAnalyzeOptions
 namespace export SetCoverageEnable GetCoverageEnable
+namespace export SetCoverageKinds GetCoverageKinds
 namespace export SetCoverageAnalyzeOptions GetCoverageAnalyzeOptions
 namespace export SetCoverageAnalyzeEnable GetCoverageAnalyzeEnable
 namespace export SetCoverageElaborateOptions GetCoverageElaborateOptions
