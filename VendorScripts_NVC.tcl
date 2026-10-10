@@ -278,17 +278,19 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   #  LibraryUnit - The design unit to simulate.
   #  args        - The simulate options, passed to the elaboration.
   #
-  # The elaboration also gets the elaborate options LocalSimulate computed (`::osvvm::ElaborateOptions`) and the
-  # generics. With code coverage enabled for simulation, `--cover-file` names the test case's coverage database
+  # The elaboration also gets OSVVM's elaborate options LocalSimulate computed (`::osvvm::ElaborateOptions`), the
+  # user's extended elaborate options ([SetExtendedElaborateOptions]) and the generics. With code coverage enabled
+  # for simulation, `--cover-file` names the test case's coverage database
   # `<CoverageDirectory>/<TestSuiteName>/<TestCaseFileName>.ncdb`, which [vendor_MergeCodeCoverage] merges.
   variable nvc
   variable VhdlShortVersion
   variable VHDL_RESOURCE_LIBRARY_PATHS
   variable NVC_WORKING_LIBRARY_PATH
+  variable ExtendedElaborateOptions
   variable ExtendedRunOptions
 
   set LocalGlobalOptions    [concat --std=${VhdlShortVersion} $::osvvm::SimulatorMemory $::osvvm::ExtendedGlobalOptions --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
-  set LocalElaborateOptions [concat {*}${::osvvm::ElaborateOptions} {*}${args}  {*}${::osvvm::GenericOptions}]
+  set LocalElaborateOptions [concat {*}${::osvvm::ElaborateOptions} {*}${ExtendedElaborateOptions} {*}${args}  {*}${::osvvm::GenericOptions}]
 
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     set CoverageFile [file join ${::osvvm::CoverageDirectory} ${::osvvm::TestSuiteName} ${::osvvm::TestCaseFileName}.ncdb]
