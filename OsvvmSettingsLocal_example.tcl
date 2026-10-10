@@ -182,6 +182,8 @@ namespace eval ::osvvm {
     #  variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults] 
     #  variable CoverageElaborateOptions [vendor_SetCoverageElaborateDefaults]
     #  variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
+    #  variable CoverageExportEnable     "false"
+    #  variable CoverageExportOptions    ""
 
   #
   #  Simulation Controls

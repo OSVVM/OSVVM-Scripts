@@ -424,13 +424,12 @@ proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
   #  CodeCoverageDirectory - The directory of the code coverage databases.
   #
   # From the build's database `<TestSuiteName>.ncdb`, `nvc --cover-report` writes the HTML report
-  # `<TestSuiteName>_code_cov/index.html`, and `nvc --cover-export` the Cobertura XML file
-  # `<TestSuiteName>_code_cov.cobertura.xml`. Without a database, nothing is written.
+  # `<TestSuiteName>_code_cov/index.html`. Without a database, nothing is written. The Cobertura XML file is written by
+  # [vendor_ExportCodeCoverage].
   variable nvc
 
   set CoverageFile      ${CodeCoverageDirectory}/${TestSuiteName}.ncdb
   set CodeCovResultsDir ${CodeCoverageDirectory}/${TestSuiteName}_code_cov
-  set CoberturaFile     ${CodeCoverageDirectory}/${TestSuiteName}_code_cov.cobertura.xml
   if {![file exists $CoverageFile]} {
     return
   }
@@ -445,11 +444,36 @@ proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
   } else {
     puts $ReportMessage
   }
+}
 
-  puts "nvc --cover-export --format=cobertura --output=${CoberturaFile} ${CoverageFile}"
-  if {[catch {exec $nvc --cover-export --format=cobertura --output=${CoberturaFile} ${CoverageFile} 2>@1} ExportMessage]} {
+# -------------------------------------------------
+# Export Coverage
+#
+proc vendor_ExportCodeCoverage {BuildName CodeCoverageDirectory FileName Options} {
+  # Export the code coverage of a build into Cobertura XML with `nvc --cover-export --format=cobertura`.
+  #
+  #  BuildName             - The build.
+  #  CodeCoverageDirectory - The directory of the code coverage databases.
+  #  FileName              - The file to write; if empty, `<BuildName>_code_cov.cobertura.xml` in
+  #                          *CodeCoverageDirectory*.
+  #  Options               - Further options of `nvc --cover-export`, e.g. `--relative=.`.
+  #
+  # The build's database is `<BuildName>.ncdb`. Without a database, nothing is written.
+  variable nvc
+
+  set CoverageFile ${CodeCoverageDirectory}/${BuildName}.ncdb
+  if {$FileName eq ""} {
+    set FileName ${CodeCoverageDirectory}/${BuildName}_code_cov.cobertura.xml
+  }
+  if {![file exists $CoverageFile]} {
+    puts "ExportCodeCoverage: No code coverage database '$CoverageFile'."
+    return
+  }
+
+  puts "nvc --cover-export --format=cobertura --output=${FileName} $Options ${CoverageFile}"
+  if {[catch {exec $nvc --cover-export --format=cobertura --output=${FileName} {*}$Options ${CoverageFile} 2>@1} ExportMessage]} {
     PrintWithPrefix "Error:" $ExportMessage
-    error "Failed: export code coverage of $TestSuiteName to Cobertura"
+    error "Failed: export code coverage of $BuildName to Cobertura"
   } else {
     puts $ExportMessage
   }

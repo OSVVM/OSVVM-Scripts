@@ -549,6 +549,13 @@ proc LocalBuild {Path_Or_File args} {
   if {$RanSimulationWithCoverage eq "true"} {
     vendor_MergeCodeCoverage  $BuildName $::osvvm::CoverageDirectory ""
     vendor_ReportCodeCoverage $BuildName $::osvvm::CoverageDirectory
+
+    # Remembered for ExportCodeCoverage after the build
+    set ::osvvm::CoverageExportBuildName $BuildName
+    set ::osvvm::CoverageExportDirectory $::osvvm::CoverageDirectory
+    if {$::osvvm::CoverageExportEnable} {
+      vendor_ExportCodeCoverage $BuildName $::osvvm::CoverageDirectory "" $::osvvm::CoverageExportOptions
+    }
   }
 
 }
@@ -1415,6 +1422,37 @@ proc RemoveFilePathChars {PathString} {
 }
 
 # -------------------------------------------------
+proc ExportOptions {args} {
+  # Set options for the next [ExportCodeCoverage], like [generic] does for [simulate].
+  #
+  #  args - The options, in the simulator's syntax, e.g. `--relative=.` for NVC.
+  #
+  # Returns: An empty string, so it can be written as an argument: `ExportCodeCoverage [ExportOptions ...]`.
+  variable ExportOptions
+  append ExportOptions " " $args
+  return ""
+}
+
+proc ExportCodeCoverage {{FileName ""} args} {
+  # Export the code coverage of the last build into a well-known data format, e.g. Cobertura XML.
+  #
+  #  FileName - Optional, the file to write. Default: chosen by the simulator, e.g.
+  #             `<BuildName>_code_cov.cobertura.xml` in the code coverage directory for NVC.
+  #  args     - Optional, `[ExportOptions <options>]`.
+  #
+  # The simulator's part is vendor_ExportCodeCoverage. Further options come from [ExportOptions] and
+  # [SetCoverageExportOptions]. With [SetCoverageExportEnable], every build exports its code coverage this way.
+  variable ExportOptions
+
+  set Options [concat {*}$::osvvm::CoverageExportOptions {*}$ExportOptions]
+  set ExportOptions ""
+  if {$::osvvm::CoverageExportBuildName eq ""} {
+    error "ExportCodeCoverage: No build collected code coverage yet."
+  }
+  puts "ExportCodeCoverage $FileName"           ; # EchoOsvvmCmd
+  vendor_ExportCodeCoverage $::osvvm::CoverageExportBuildName $::osvvm::CoverageExportDirectory $FileName $Options
+}
+
 proc generic {Name Value} {
   variable GenericDict
   variable GenericNames
@@ -2074,6 +2112,7 @@ proc GetTimeString {} {
 
 namespace export analyze simulate build include library RunTest SkipTest TestSuite TestName TestCase BuildName
 namespace export generic DoWaves NoNullRangeWarning
+namespace export ExportCodeCoverage ExportOptions
 namespace export IterateFile ReadListFromFile
 namespace export StartTranscript StopTranscript
 namespace export LinkLibrary ListLibraries LinkLibraryDirectory LinkCurrentLibraries

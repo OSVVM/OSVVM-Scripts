@@ -168,3 +168,18 @@ proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
 proc vendor_GetCoverageFileName {TestName} { 
   return ""
 }
+
+# -------------------------------------------------
+# Export Coverage
+#
+proc vendor_ExportCodeCoverage {BuildName CodeCoverageDirectory FileName Options} {
+  # Export the code coverage of a build into a well-known data format.
+  #
+  #  BuildName             - The build.
+  #  CodeCoverageDirectory - The directory of the code coverage databases.
+  #  FileName              - The file to write; if empty, chosen by the simulator.
+  #  Options               - Further options of the simulator's export.
+  #
+  # There's no export for this simulator yet; it says so.
+  puts "ExportCodeCoverage: Not supported for ${::osvvm::ToolName} yet."
+}
