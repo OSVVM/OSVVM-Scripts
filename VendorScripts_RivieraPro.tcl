@@ -134,22 +134,25 @@ proc IsVendorCommand {LineOfText} {
 proc vendor_SetCoverageAnalyzeDefaults {} {
   # Set the default code coverage options for analysis.
   #
-  # The kinds of coverage come from [SetCoverageKinds] (see [vendor_GetCoverageKindOptions]), so there are no
-  # further default options.
+  # The options for the kinds of code coverage in `CoverageKinds` (see [SetCoverageKinds]), translated by
+  # `vendor_GetCoverageKindOptions`.
   #
-  # Returns: The default code coverage analysis options.
+  # Returns: The default code coverage analysis options; also stored in `CoverageAnalyzeOptions`.
   variable CoverageAnalyzeOptions
-  set CoverageAnalyzeOptions ""
+  variable CoverageKinds
+  set CoverageAnalyzeOptions [vendor_GetCoverageKindOptions analyze $CoverageKinds]
 }
 
 proc vendor_SetCoverageElaborateDefaults {} {
   # Set the default code coverage options for elaboration.
   #
-  # There are none for Riviera-PRO.
+  # The options for the kinds of code coverage in `CoverageKinds` (see [SetCoverageKinds]), translated by
+  # `vendor_GetCoverageKindOptions`.
   #
-  # Returns: The default code coverage elaboration options.
+  # Returns: The default code coverage elaboration options; also stored in `CoverageElaborateOptions`.
   variable CoverageElaborateOptions
-  set CoverageElaborateOptions ""
+  variable CoverageKinds
+  set CoverageElaborateOptions [vendor_GetCoverageKindOptions elaborate $CoverageKinds]
 }
 
 proc vendor_GetCoverageKindOptions {Step Kinds} {
@@ -180,12 +183,13 @@ proc vendor_GetCoverageKindOptions {Step Kinds} {
 proc vendor_SetCoverageSimulateDefaults {} {
   # Set the default code coverage options for simulation.
   #
-  # The kinds of coverage come from [SetCoverageKinds] (see [vendor_GetCoverageKindOptions]); the further options
-  # are `-cc_all`.
+  # The options for the kinds of code coverage in `CoverageKinds` (see [SetCoverageKinds]), translated by
+  # `vendor_GetCoverageKindOptions`. Further option: `-cc_all`.
   #
-  # Returns: The default code coverage simulation options.
+  # Returns: The default code coverage simulation options; also stored in `CoverageSimulateOptions`.
   variable CoverageSimulateOptions
-  set CoverageSimulateOptions "-cc_all"
+  variable CoverageKinds
+  set CoverageSimulateOptions [concat [vendor_GetCoverageKindOptions simulate $CoverageKinds] "-cc_all"]
 }
 
 # -------------------------------------------------

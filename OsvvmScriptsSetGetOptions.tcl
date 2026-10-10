@@ -285,17 +285,20 @@ proc SetCoverageKinds {{Kinds "default"}} {
   # Set the kinds of code coverage to collect, independent of the simulator.
   #
   #  Kinds - A list of kinds: `statement`, `branch`, `condition`, `expression`, `toggle`, `fsm`, `functional`;
-  #          `all` stands for all of them, `default` for `statement branch fsm`.
+  #          `all` stands for all of them, `default` for the kinds in `DefaultCoverageKinds`.
   #
-  # The vendor scripts translate the kinds into the simulator's options (vendor_GetCoverageKindOptions); a kind the
-  # simulator doesn't support is left out. An unknown kind is an error.
+  # Stores the kinds in `CoverageKinds`, then sets the code coverage options of analysis, elaboration and simulation
+  # to the vendor's defaults for these kinds (vendor_SetCoverageAnalyzeDefaults, vendor_SetCoverageElaborateDefaults,
+  # vendor_SetCoverageSimulateDefaults). This replaces options set before with [SetCoverageAnalyzeOptions],
+  # [SetCoverageElaborateOptions] and [SetCoverageSimulateOptions]; call them afterwards to change the options. A kind
+  # the simulator doesn't support is left out. An unknown kind is an error.
   set KnownKinds {statement branch condition expression toggle fsm functional}
   set CoverageKinds {}
   foreach Kind [string tolower $Kinds] {
     if {$Kind eq "all"} {
       set Expanded $KnownKinds
     } elseif {$Kind eq "default"} {
-      set Expanded {statement branch fsm}
+      set Expanded $::osvvm::DefaultCoverageKinds
     } elseif {[lsearch -exact $KnownKinds $Kind] >= 0} {
       set Expanded [list $Kind]
     } else {
@@ -307,7 +310,10 @@ proc SetCoverageKinds {{Kinds "default"}} {
       }
     }
   }
-  set ::osvvm::CoverageKinds $CoverageKinds
+  set ::osvvm::CoverageKinds            $CoverageKinds
+  set ::osvvm::CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults]
+  set ::osvvm::CoverageElaborateOptions [vendor_SetCoverageElaborateDefaults]
+  set ::osvvm::CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
   puts "SetCoverageKinds $::osvvm::CoverageKinds"
 }
 proc GetCoverageKinds {} {
@@ -350,7 +356,8 @@ proc SetCoverageElaborateOptions {{Options ""}} {
   #  Options - The options, passed to the simulator's elaboration.
   #
   # They are used while code coverage is enabled for simulation: [SetCoverageEnable] and
-  # [SetCoverageSimulateEnable]. The defaults come from vendor_SetCoverageElaborateDefaults.
+  # [SetCoverageSimulateEnable]. The defaults come from vendor_SetCoverageElaborateDefaults; [SetCoverageKinds] sets
+  # them to the vendor's defaults for the kinds.
   set ::osvvm::CoverageElaborateOptions $Options
 }
 proc GetCoverageElaborateOptions {} {
