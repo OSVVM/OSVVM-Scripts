@@ -150,6 +150,9 @@ namespace eval ::osvvm {
     variable GenericDict           ""
     variable GenericNames          ""
     variable GenericOptions        ""
+    variable ExportOptions         ""
+    variable CoverageExportBuildName   ""
+    variable CoverageExportDirectory   ""
     variable RunningCoSim              "false"
     variable RanSimulationWithCoverage "false"
 

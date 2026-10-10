@@ -384,6 +384,45 @@ proc GetCoverageSimulateEnable {} {
 }
 
 # -------------------------------------------------
+# SetCoverageExportEnable, GetCoverageExportEnable, SetCoverageExportOptions, GetCoverageExportOptions
+#
+proc SetCoverageExportEnable {{Enable "true"}} {
+  # Enable or disable exporting the code coverage of every build into a well-known data format.
+  #
+  #  Enable - `true` to export at the end of every build that collected code coverage.
+  #
+  # The export is the one of [ExportCodeCoverage], e.g. Cobertura XML for NVC. Default: `false`.
+  variable CoverageExportEnable
+  if {[string tolower $Enable] eq "true"} {
+    set CoverageExportEnable "true"
+  } else {
+    set CoverageExportEnable "false"
+  }
+  puts "SetCoverageExportEnable $CoverageExportEnable"
+}
+proc GetCoverageExportEnable {} {
+  # Get whether the code coverage of every build is exported.
+  #
+  # Returns: `true` or `false`, set by [SetCoverageExportEnable].
+  return $::osvvm::CoverageExportEnable
+}
+
+proc SetCoverageExportOptions {{Options ""}} {
+  # Set the options of every code coverage export.
+  #
+  #  Options - The options, in the simulator's syntax, e.g. `--relative=.` for NVC.
+  #
+  # [ExportOptions] adds options for a single [ExportCodeCoverage].
+  set ::osvvm::CoverageExportOptions $Options
+}
+proc GetCoverageExportOptions {} {
+  # Get the options of every code coverage export.
+  #
+  # Returns: The options, set by [SetCoverageExportOptions].
+  return $::osvvm::CoverageExportOptions
+}
+
+# -------------------------------------------------
 # SetSimulatorResolution, GetSimulatorResolution
 #
 proc SetSimulatorResolution {SimulatorResolution} {
@@ -458,6 +497,7 @@ namespace export SetCoverageAnalyzeEnable GetCoverageAnalyzeEnable
 namespace export SetCoverageElaborateOptions GetCoverageElaborateOptions
 namespace export SetCoverageSimulateOptions GetCoverageSimulateOptions
 namespace export SetCoverageSimulateEnable GetCoverageSimulateEnable
+namespace export SetCoverageExportEnable GetCoverageExportEnable SetCoverageExportOptions GetCoverageExportOptions
 namespace export SetExtendedElaborateOptions GetExtendedElaborateOptions
 namespace export SetExtendedRunOptions GetExtendedRunOptions
 namespace export SetSaveWaves GetSaveWaves
