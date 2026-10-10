@@ -103,6 +103,16 @@ proc vendor_SetCoverageSimulateDefaults {} {
 #    set defaults here
 }
 
+proc vendor_SetCoverageElaborateDefaults {} {
+  # Set the default code coverage options for elaboration.
+  #
+  # There are none for XSim.
+  #
+  # Returns: The default code coverage elaboration options.
+  variable CoverageElaborateOptions
+  set CoverageElaborateOptions ""
+}
+
 
 # -------------------------------------------------
 # Library

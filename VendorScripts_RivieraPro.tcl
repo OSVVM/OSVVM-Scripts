@@ -144,6 +144,16 @@ proc vendor_SetCoverageSimulateDefaults {} {
   set CoverageSimulateOptions "-acdb_cov sbm -cc_all"
 }
 
+proc vendor_SetCoverageElaborateDefaults {} {
+  # Set the default code coverage options for elaboration.
+  #
+  # There are none for Riviera-PRO.
+  #
+  # Returns: The default code coverage elaboration options.
+  variable CoverageElaborateOptions
+  set CoverageElaborateOptions ""
+}
+
 # -------------------------------------------------
 # Library
 #

@@ -303,6 +303,25 @@ proc GetCoverageAnalyzeEnable {} {
 }
 
 # -------------------------------------------------
+# SetCoverageElaborateOptions, GetCoverageElaborateOptions
+#
+proc SetCoverageElaborateOptions {{Options ""}} {
+  # Set the code coverage options for elaboration.
+  #
+  #  Options - The options, passed to the simulator's elaboration.
+  #
+  # They are used while code coverage is enabled for simulation: [SetCoverageEnable] and
+  # [SetCoverageSimulateEnable]. The defaults come from vendor_SetCoverageElaborateDefaults.
+  set ::osvvm::CoverageElaborateOptions $Options
+}
+proc GetCoverageElaborateOptions {} {
+  # Get the code coverage options for elaboration.
+  #
+  # Returns: The options, set by [SetCoverageElaborateOptions].
+  return $::osvvm::CoverageElaborateOptions
+}
+
+# -------------------------------------------------
 # SetCoverageSimulateOptions, SetCoverageSimulateEnable
 #
 proc SetCoverageSimulateOptions {{Options ""}} {
@@ -396,6 +415,7 @@ namespace export SetVhdlAnalyzeOptions GetVhdlAnalyzeOptions SetVerilogAnalyzeOp
 namespace export SetCoverageEnable GetCoverageEnable
 namespace export SetCoverageAnalyzeOptions GetCoverageAnalyzeOptions
 namespace export SetCoverageAnalyzeEnable GetCoverageAnalyzeEnable
+namespace export SetCoverageElaborateOptions GetCoverageElaborateOptions
 namespace export SetCoverageSimulateOptions GetCoverageSimulateOptions
 namespace export SetCoverageSimulateEnable GetCoverageSimulateEnable
 namespace export SetExtendedElaborateOptions GetExtendedElaborateOptions

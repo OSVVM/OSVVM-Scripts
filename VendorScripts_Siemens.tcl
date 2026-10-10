@@ -198,6 +198,16 @@ proc vendor_SetCoverageSimulateDefaults {} {
   set CoverageSimulateOptions "-coverage"
 }
 
+proc vendor_SetCoverageElaborateDefaults {} {
+  # Set the default code coverage options for elaboration.
+  #
+  # There are none for Siemens tools.
+  #
+  # Returns: The default code coverage elaboration options.
+  variable CoverageElaborateOptions
+  set CoverageElaborateOptions ""
+}
+
 # -------------------------------------------------
 # Library
 #

@@ -136,6 +136,16 @@ proc vendor_SetCoverageSimulateDefaults {} {
   # Sigasi does not handle coverage
 }
 
+proc vendor_SetCoverageElaborateDefaults {} {
+  # Set the default code coverage options for elaboration.
+  #
+  # Sigasi doesn't handle coverage, so there are none.
+  #
+  # Returns: The default code coverage elaboration options.
+  variable CoverageElaborateOptions
+  set CoverageElaborateOptions ""
+}
+
 # -------------------------------------------------
 # Coverage - Not supported in Sigasi
 #
