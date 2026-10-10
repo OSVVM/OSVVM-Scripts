@@ -1427,8 +1427,8 @@ proc ExportOptions {args} {
   #  args - The options, in the simulator's syntax, e.g. `--relative=.` for NVC.
   #
   # Returns: An empty string, so it can be written as an argument: `ExportCodeCoverage [ExportOptions ...]`.
-  variable ExportOptions
-  append ExportOptions " " $args
+  variable ExportOptionsList
+  append ExportOptionsList " " $args
   return ""
 }
 
@@ -1441,10 +1441,10 @@ proc ExportCodeCoverage {{FileName ""} args} {
   #
   # The simulator's part is vendor_ExportCodeCoverage. Further options come from [ExportOptions] and
   # [SetCoverageExportOptions]. With [SetCoverageExportEnable], every build exports its code coverage this way.
-  variable ExportOptions
+  variable ExportOptionsList
 
-  set Options [concat {*}$::osvvm::CoverageExportOptions {*}$ExportOptions]
-  set ExportOptions ""
+  set Options [concat {*}$::osvvm::CoverageExportOptions {*}$ExportOptionsList]
+  set ExportOptionsList ""
   if {$::osvvm::CoverageExportBuildName eq ""} {
     error "ExportCodeCoverage: No build collected code coverage yet."
   }
