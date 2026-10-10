@@ -99,6 +99,10 @@
   variable ExtendedGlobalOptions   "--stderr=failure --ieee-warnings=off-at-0 --ignore-time"
   variable ExtendedRunOptions      "--exit-severity=failure"
 
+  # Further options of NVC's code coverage, added to --cover=<kinds>,<options>: a space separated list, e.g.
+  # "fsm-no-default-enums count-from-undefined". Set it in OsvvmSettingsLocal_NVC.tcl.
+  variable NvcCoverageOptions      ""
+
 # -------------------------------------------------
 # StartTranscript / StopTranscript
 #
@@ -140,9 +144,13 @@ proc vendor_GetCoverageKindOptions {Step Kinds} {
   #  Kinds - The kinds of code coverage, see [SetCoverageKinds].
   #
   # NVC collects code coverage at elaboration: `--cover=...` with `statement`, `branch`, `expression` (for both
-  # `condition` and `expression`), `toggle`, `fsm-state` (for `fsm`) and `functional`.
+  # `condition` and `expression`), `toggle`, `fsm-state` (for `fsm`) and `functional`, followed by NVC's further
+  # code coverage options in `NvcCoverageOptions`, e.g. `fsm-no-default-enums`:
+  # `--cover=statement,branch,fsm-state,fsm-no-default-enums`.
   #
   # Returns: The options for the step; none for analysis and simulation.
+  variable NvcCoverageOptions
+
   if {$Step ne "elaborate"} {
     return ""
   }
@@ -153,10 +161,11 @@ proc vendor_GetCoverageKindOptions {Step Kinds} {
       lappend NvcKinds $NvcKind
     }
   }
-  if {$NvcKinds eq ""} {
+  set CoverItems [concat $NvcKinds $NvcCoverageOptions]
+  if {$CoverItems eq ""} {
     return ""
   }
-  return "--cover=[join $NvcKinds ","]"
+  return "--cover=[join $CoverItems ","]"
 }
 
 proc vendor_SetCoverageSimulateDefaults {} {
