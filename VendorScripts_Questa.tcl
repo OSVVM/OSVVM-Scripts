@@ -342,7 +342,7 @@ proc vendor_end_previous_simulation {} {
 # ------------------------------------------
 #
 # OSVVM interfaces that is used to connect VC to the test sequencer (TestCtrl) use
-# minimum as a resolution function.  Driving the default value (type'left) on a
+# maximum as a resolution function.  Driving the default value (type'left) on a
 # signal has no negative impact.  Hence, OSVVM disables this warning since it does
 # not apply.
 #

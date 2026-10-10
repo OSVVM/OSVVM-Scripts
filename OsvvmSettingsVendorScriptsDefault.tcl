@@ -75,6 +75,7 @@ namespace eval ::osvvm {
   variable VhdlAnalyzeOptions        ""
   variable VerilogAnalyzeOptions     ""
   variable ExtendedAnalyzeOptions    ""
+  variable ExtendedMergeOptions      ""
 
   #
   #  Extended Simulate Options Options
