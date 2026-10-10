@@ -109,16 +109,37 @@
 
 # -------------------------------------------------
 # SetCoverageAnalyzeOptions
+# SetCoverageElaborateOptions
 # SetCoverageCoverageOptions
 #
 proc vendor_SetCoverageAnalyzeDefaults {} {
+  # Set the default code coverage options for analysis.
+  #
+  # NVC has no code coverage options for analysis, so there are none.
+  #
+  # Returns: The default code coverage analysis options.
   variable CoverageAnalyzeOptions
-#    set defaults here
+  set CoverageAnalyzeOptions ""
+}
+
+proc vendor_SetCoverageElaborateDefaults {} {
+  # Set the default code coverage options for elaboration.
+  #
+  # NVC collects code coverage at elaboration (`nvc -e --cover=...`): statement and branch coverage.
+  #
+  # Returns: The default code coverage elaboration options.
+  variable CoverageElaborateOptions
+  set CoverageElaborateOptions "--cover=statement,branch"
 }
 
 proc vendor_SetCoverageSimulateDefaults {} {
+  # Set the default code coverage options for simulation.
+  #
+  # NVC has no code coverage options for running a simulation, so there are none.
+  #
+  # Returns: The default code coverage simulation options.
   variable CoverageSimulateOptions
-#    set defaults here
+  set CoverageSimulateOptions ""
 }
 
 # -------------------------------------------------
@@ -251,6 +272,16 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
+  # Elaborate and run a design unit in one NVC call (`nvc -e --jit --no-save ... -r ...`).
+  #
+  #  LibraryName - The library of the design unit.
+  #  LibraryUnit - The design unit to simulate.
+  #  args        - The simulate options, passed to the elaboration.
+  #
+  # The elaboration also gets OSVVM's elaborate options LocalSimulate computed (`::osvvm::ElaborateOptions`), the
+  # user's extended elaborate options ([SetExtendedElaborateOptions]) and the generics. With code coverage enabled
+  # for simulation, `--cover-file` names the test case's coverage database
+  # `<CoverageDirectory>/<TestSuiteName>/<TestCaseFileName>.ncdb`, which [vendor_MergeCodeCoverage] merges.
   variable nvc
   variable VhdlShortVersion
   variable VHDL_RESOURCE_LIBRARY_PATHS
@@ -259,7 +290,12 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ExtendedRunOptions
 
   set LocalGlobalOptions    [concat --std=${VhdlShortVersion} $::osvvm::SimulatorMemory $::osvvm::ExtendedGlobalOptions --work=${LibraryName}:${NVC_WORKING_LIBRARY_PATH}.${VhdlShortVersion} {*}${VHDL_RESOURCE_LIBRARY_PATHS}]
-  set LocalElaborateOptions [concat {*}${ExtendedElaborateOptions} {*}${args}  {*}${::osvvm::GenericOptions}]
+  set LocalElaborateOptions [concat {*}${::osvvm::ElaborateOptions} {*}${ExtendedElaborateOptions} {*}${args}  {*}${::osvvm::GenericOptions}]
+
+  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
+    set CoverageFile [file join ${::osvvm::CoverageDirectory} ${::osvvm::TestSuiteName} ${::osvvm::TestCaseFileName}.ncdb]
+    set LocalElaborateOptions [concat {*}${LocalElaborateOptions} --cover-file=${CoverageFile}]
+  }
 
   set CoSimRunOptions ""
   if {$::osvvm::RunningCoSim} {
@@ -287,11 +323,6 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
     error "Failed: simulate $LibraryUnit"
   } else {
     puts $SimulateMessage
-  }
-
-  # Save Coverage Information
-  if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
-#    acdb save -o ${LibraryUnit}.acdb -testname ${LibraryUnit}
   }
 }
 
@@ -323,18 +354,77 @@ proc vendor_generic {Name Value} {
 # Merge Coverage
 #
 proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
-#  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
-#  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
-#  if {$CovFiles ne ""} {
-#    acdb merge -o ${CoverageFileBaseName}.acdb -i {*}[join $CovFiles " -i "]
-#  }
+  # Merge code coverage databases with `nvc --cover-merge`.
+  #
+  #  TestSuiteName     - The test suite, or the build at the end of a build.
+  #  CoverageDirectory - The directory of the code coverage databases.
+  #  BuildName         - The build, or empty at the end of a build.
+  #
+  # At the end of a test suite, the test cases' databases `<TestSuiteName>/*.ncdb` are merged into
+  # `<BuildName>/<TestSuiteName>.ncdb`. At the end of a build, the test suites' databases `<TestSuiteName>/*.ncdb` -
+  # *TestSuiteName* is the build then - are merged into `<TestSuiteName>.ncdb`.
+  variable nvc
+
+  set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
+  set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.ncdb]
+  if {$CovFiles ne ""} {
+    puts "nvc --cover-merge --output=${CoverageFileBaseName}.ncdb $CovFiles"
+    if {[catch {exec $nvc --cover-merge --output=${CoverageFileBaseName}.ncdb {*}$CovFiles 2>@1} MergeMessage]} {
+      PrintWithPrefix "Error:" $MergeMessage
+      error "Failed: merge code coverage of $TestSuiteName"
+    } else {
+      puts $MergeMessage
+    }
+  }
 }
 
-proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} {
-#  acdb report -html -i ${ResultsDirectory}/${TestSuiteName}.acdb -o ${ResultsDirectory}/${TestSuiteName}_code_cov.html
+# -------------------------------------------------
+# Report Coverage
+#
+proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
+  # Write the code coverage reports of a build.
+  #
+  #  TestSuiteName         - The build.
+  #  CodeCoverageDirectory - The directory of the code coverage databases.
+  #
+  # From the build's database `<TestSuiteName>.ncdb`, `nvc --cover-report` writes the HTML report
+  # `<TestSuiteName>_code_cov/index.html`, and `nvc --cover-export` the Cobertura XML file
+  # `<TestSuiteName>_code_cov.cobertura.xml`. Without a database, nothing is written.
+  variable nvc
+
+  set CoverageFile      ${CodeCoverageDirectory}/${TestSuiteName}.ncdb
+  set CodeCovResultsDir ${CodeCoverageDirectory}/${TestSuiteName}_code_cov
+  set CoberturaFile     ${CodeCoverageDirectory}/${TestSuiteName}_code_cov.cobertura.xml
+  if {![file exists $CoverageFile]} {
+    return
+  }
+  if {[file exists $CodeCovResultsDir]} {
+    file delete -force -- $CodeCovResultsDir
+  }
+
+  puts "nvc --cover-report --output=${CodeCovResultsDir} ${CoverageFile}"
+  if {[catch {exec $nvc --cover-report --output=${CodeCovResultsDir} ${CoverageFile} 2>@1} ReportMessage]} {
+    PrintWithPrefix "Error:" $ReportMessage
+    error "Failed: report code coverage of $TestSuiteName"
+  } else {
+    puts $ReportMessage
+  }
+
+  puts "nvc --cover-export --format=cobertura --output=${CoberturaFile} ${CoverageFile}"
+  if {[catch {exec $nvc --cover-export --format=cobertura --output=${CoberturaFile} ${CoverageFile} 2>@1} ExportMessage]} {
+    PrintWithPrefix "Error:" $ExportMessage
+    error "Failed: export code coverage of $TestSuiteName to Cobertura"
+  } else {
+    puts $ExportMessage
+  }
 }
 
 proc vendor_GetCoverageFileName {TestName} {
-  set CoverageFileName ${TestName}_code_cov.html
+  # Get the file name of the HTML code coverage report the build report links.
+  #
+  #  TestName - The build.
+  #
+  # Returns: `<TestName>_code_cov/index.html`, relative to the code coverage directory.
+  set CoverageFileName ${TestName}_code_cov/index.html
   return $CoverageFileName
 }

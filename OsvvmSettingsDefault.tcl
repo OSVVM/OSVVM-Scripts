@@ -178,6 +178,7 @@ namespace eval ::osvvm {
     variable CoverageAnalyzeEnable    "false"
     variable CoverageSimulateEnable   "false"
     variable CoverageAnalyzeOptions   [vendor_SetCoverageAnalyzeDefaults]
+    variable CoverageElaborateOptions [vendor_SetCoverageElaborateDefaults]
     variable CoverageSimulateOptions  [vendor_SetCoverageSimulateDefaults]
 
   #

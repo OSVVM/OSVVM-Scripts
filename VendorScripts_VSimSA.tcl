@@ -119,6 +119,16 @@ proc vendor_SetCoverageAnalyzeDefaults {} {
   set CoverageAnalyzeOptions "-coverage sbm"
 }
 
+proc vendor_SetCoverageElaborateDefaults {} {
+  # Set the default code coverage options for elaboration.
+  #
+  # There are none for VSimSA.
+  #
+  # Returns: The default code coverage elaboration options.
+  variable CoverageElaborateOptions
+  set CoverageElaborateOptions ""
+}
+
 proc vendor_SetCoverageSimulateDefaults {} {
   variable CoverageSimulateOptions
 #  set CoverageSimulateOptions "-acdb -acdb_cov sbmec -cc_all"

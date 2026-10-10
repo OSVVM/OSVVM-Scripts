@@ -1314,13 +1314,27 @@ proc simulate {LibraryUnit args} {
 }
 
 proc LocalSimulate {LibraryUnit args} {
+  # Simulate a design unit with the vendor's simulate procedure.
+  #
+  #  LibraryUnit - The design unit to simulate.
+  #  args        - Further simulate options.
+  #
+  # Sets the effective options the vendor's simulate procedure uses:
+  #
+  # * ElaborateOptions - OSVVM's elaborate options: with code coverage enabled for simulation, the code coverage
+  #   elaborate options ([SetCoverageElaborateOptions]). The user's extended elaborate options
+  #   ([SetExtendedElaborateOptions]) aren't part of them; the vendor adds them.
+  # * SimulateOptions - *args*, the extended simulate options and, with code coverage enabled for simulation, the
+  #   code coverage simulate options.
   variable VhdlWorkingLibrary
   variable vendor_simulate_started
   variable TestCaseName
   variable TestCaseFileName
+  variable CoverageElaborateOptions
   variable CoverageSimulateOptions
   variable ExtendedSimulateOptions
   variable RanSimulationWithCoverage
+  variable ElaborateOptions
   variable SimulateOptions
 
 
@@ -1348,9 +1362,11 @@ proc LocalSimulate {LibraryUnit args} {
 
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     set RanSimulationWithCoverage "true"
-    set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
+    set ElaborateOptions $CoverageElaborateOptions
+    set SimulateOptions  [concat {*}$args {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
   } else {
-    set SimulateOptions [concat {*}$args {*}$ExtendedSimulateOptions]
+    set ElaborateOptions ""
+    set SimulateOptions  [concat {*}$args {*}$ExtendedSimulateOptions]
   }
 
     CallbackBefore_Simulate $LibraryUnit $args
