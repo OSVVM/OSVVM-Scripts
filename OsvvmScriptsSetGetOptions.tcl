@@ -279,6 +279,45 @@ proc GetCoverageEnable {} {
 }
 
 # -------------------------------------------------
+# SetCoverageKinds, GetCoverageKinds
+#
+proc SetCoverageKinds {{Kinds "default"}} {
+  # Set the kinds of code coverage to collect, independent of the simulator.
+  #
+  #  Kinds - A list of kinds: `statement`, `branch`, `condition`, `expression`, `toggle`, `fsm`, `functional`;
+  #          `all` stands for all of them, `default` for `statement branch fsm`.
+  #
+  # The vendor scripts translate the kinds into the simulator's options (vendor_GetCoverageKindOptions); a kind the
+  # simulator doesn't support is left out. An unknown kind is an error.
+  set KnownKinds {statement branch condition expression toggle fsm functional}
+  set CoverageKinds {}
+  foreach Kind [string tolower $Kinds] {
+    if {$Kind eq "all"} {
+      set Expanded $KnownKinds
+    } elseif {$Kind eq "default"} {
+      set Expanded {statement branch fsm}
+    } elseif {[lsearch -exact $KnownKinds $Kind] >= 0} {
+      set Expanded [list $Kind]
+    } else {
+      error "SetCoverageKinds: Unknown code coverage kind '$Kind'. Known kinds: $KnownKinds, all, default"
+    }
+    foreach Item $Expanded {
+      if {[lsearch -exact $CoverageKinds $Item] < 0} {
+        lappend CoverageKinds $Item
+      }
+    }
+  }
+  set ::osvvm::CoverageKinds $CoverageKinds
+  puts "SetCoverageKinds $::osvvm::CoverageKinds"
+}
+proc GetCoverageKinds {} {
+  # Get the kinds of code coverage to collect.
+  #
+  # Returns: The kinds, set by [SetCoverageKinds].
+  return $::osvvm::CoverageKinds
+}
+
+# -------------------------------------------------
 # SetCoverageAnalyzeOptions, SetCoverageAnalyzeEnable
 #
 proc SetCoverageAnalyzeOptions {{Options ""}} {
@@ -413,6 +452,7 @@ namespace export SetExtendedOptimizeOptions GetExtendedOptimizeOptions
 namespace export SetExtendedSimulateOptions GetExtendedSimulateOptions
 namespace export SetVhdlAnalyzeOptions GetVhdlAnalyzeOptions SetVerilogAnalyzeOptions GetVerilogAnalyzeOptions
 namespace export SetCoverageEnable GetCoverageEnable
+namespace export SetCoverageKinds GetCoverageKinds
 namespace export SetCoverageAnalyzeOptions GetCoverageAnalyzeOptions
 namespace export SetCoverageAnalyzeEnable GetCoverageAnalyzeEnable
 namespace export SetCoverageElaborateOptions GetCoverageElaborateOptions

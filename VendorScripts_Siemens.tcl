@@ -188,9 +188,14 @@ proc IsVendorCommand {LineOfText} {
 # SetCoverageCoverageOptions
 #
 proc vendor_SetCoverageAnalyzeDefaults {} {
+  # Set the default code coverage options for analysis.
+  #
+  # The kinds of coverage come from [SetCoverageKinds] (see [vendor_GetCoverageKindOptions]), so there are no
+  # further default options.
+  #
+  # Returns: The default code coverage analysis options.
   variable CoverageAnalyzeOptions
-#  set CoverageAnalyzeOptions "+cover=bcesft"
-  set CoverageAnalyzeOptions "+cover=sbf"
+  set CoverageAnalyzeOptions ""
 }
 
 proc vendor_SetCoverageElaborateDefaults {} {
@@ -203,7 +208,35 @@ proc vendor_SetCoverageElaborateDefaults {} {
   set CoverageElaborateOptions ""
 }
 
+proc vendor_GetCoverageKindOptions {Step Kinds} {
+  # Translate the kinds of code coverage into the Siemens simulator's options for a step.
+  #
+  #  Step  - `analyze`, `elaborate` or `simulate`.
+  #  Kinds - The kinds of code coverage, see [SetCoverageKinds].
+  #
+  # The Siemens simulator instruments code coverage at analysis: `+cover=` with `s` (statement), `b` (branch), `c` (condition),
+  # `e` (expression), `t` (toggle) and `f` (fsm). Functional coverage is collected without an option.
+  #
+  # Returns: The options for the step; none for elaboration and simulation.
+  if {$Step ne "analyze"} {
+    return ""
+  }
+  set Letters ""
+  foreach Kind $Kinds {
+    append Letters [dict get {statement s branch b condition c expression e toggle t fsm f functional ""} $Kind]
+  }
+  if {$Letters eq ""} {
+    return ""
+  }
+  return "+cover=$Letters"
+}
+
 proc vendor_SetCoverageSimulateDefaults {} {
+  # Set the default code coverage options for simulation.
+  #
+  # `-coverage` records the coverage instrumented at analysis.
+  #
+  # Returns: The default code coverage simulation options.
   variable CoverageSimulateOptions
   set CoverageSimulateOptions "-coverage"
 }

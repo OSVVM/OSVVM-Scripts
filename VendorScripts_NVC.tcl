@@ -125,11 +125,38 @@ proc vendor_SetCoverageAnalyzeDefaults {} {
 proc vendor_SetCoverageElaborateDefaults {} {
   # Set the default code coverage options for elaboration.
   #
-  # NVC collects code coverage at elaboration (`nvc -e --cover=...`): statement and branch coverage.
+  # NVC collects code coverage at elaboration (`nvc -e --cover=...`). The kinds of coverage come from
+  # [SetCoverageKinds] (see [vendor_GetCoverageKindOptions]), so there are no further default options.
   #
   # Returns: The default code coverage elaboration options.
   variable CoverageElaborateOptions
-  set CoverageElaborateOptions "--cover=statement,branch"
+  set CoverageElaborateOptions ""
+}
+
+proc vendor_GetCoverageKindOptions {Step Kinds} {
+  # Translate the kinds of code coverage into NVC's options for a step.
+  #
+  #  Step  - `analyze`, `elaborate` or `simulate`.
+  #  Kinds - The kinds of code coverage, see [SetCoverageKinds].
+  #
+  # NVC collects code coverage at elaboration: `--cover=...` with `statement`, `branch`, `expression` (for both
+  # `condition` and `expression`), `toggle`, `fsm-state` (for `fsm`) and `functional`.
+  #
+  # Returns: The options for the step; none for analysis and simulation.
+  if {$Step ne "elaborate"} {
+    return ""
+  }
+  set NvcKinds {}
+  foreach Kind $Kinds {
+    set NvcKind [dict get {statement statement branch branch condition expression expression expression toggle toggle fsm fsm-state functional functional} $Kind]
+    if {[lsearch -exact $NvcKinds $NvcKind] < 0} {
+      lappend NvcKinds $NvcKind
+    }
+  }
+  if {$NvcKinds eq ""} {
+    return ""
+  }
+  return "--cover=[join $NvcKinds ","]"
 }
 
 proc vendor_SetCoverageSimulateDefaults {} {

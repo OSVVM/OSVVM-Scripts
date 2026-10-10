@@ -1206,7 +1206,7 @@ proc LocalAnalyze {FileName args} {
 
   if {$FileExtension eq ".vhd" || $FileExtension eq ".vhdl"} {
     if {$EffectiveCoverageAnalyzeEnable} {
-      set AnalyzeOptions [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$args]
+      set AnalyzeOptions [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}[vendor_GetCoverageKindOptions analyze $::osvvm::CoverageKinds] {*}$CoverageAnalyzeOptions {*}$args]
     } else {
       set AnalyzeOptions [concat {*}$VhdlAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$args]
     }
@@ -1215,7 +1215,7 @@ proc LocalAnalyze {FileName args} {
     CallbackAfter_Analyze $FileName $args
   } elseif {$FileExtension eq ".v" || $FileExtension eq ".sv" || $FileExtension eq ".vh"} {
     if {$EffectiveCoverageAnalyzeEnable} {
-      set AnalyzeOptions [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$CoverageAnalyzeOptions {*}$args]
+      set AnalyzeOptions [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}[vendor_GetCoverageKindOptions analyze $::osvvm::CoverageKinds] {*}$CoverageAnalyzeOptions {*}$args]
     } else {
       set AnalyzeOptions [concat {*}$VerilogAnalyzeOptions {*}$ExtendedAnalyzeOptions {*}$args]
     }
@@ -1321,11 +1321,12 @@ proc LocalSimulate {LibraryUnit args} {
   #
   # Sets the effective options the vendor's simulate procedure uses:
   #
-  # * ElaborateOptions - OSVVM's elaborate options: with code coverage enabled for simulation, the code coverage
-  #   elaborate options ([SetCoverageElaborateOptions]). The user's extended elaborate options
-  #   ([SetExtendedElaborateOptions]) aren't part of them; the vendor adds them.
+  # * ElaborateOptions - OSVVM's elaborate options: with code coverage enabled for simulation, the vendor's options
+  #   for the coverage kinds ([SetCoverageKinds]) and the code coverage elaborate options
+  #   ([SetCoverageElaborateOptions]). The user's extended elaborate options ([SetExtendedElaborateOptions]) aren't
+  #   part of them; the vendor adds them.
   # * SimulateOptions - *args*, the extended simulate options and, with code coverage enabled for simulation, the
-  #   code coverage simulate options.
+  #   vendor's options for the coverage kinds and the code coverage simulate options.
   variable VhdlWorkingLibrary
   variable vendor_simulate_started
   variable TestCaseName
@@ -1362,8 +1363,8 @@ proc LocalSimulate {LibraryUnit args} {
 
   if {$::osvvm::CoverageEnable && $::osvvm::CoverageSimulateEnable} {
     set RanSimulationWithCoverage "true"
-    set ElaborateOptions $CoverageElaborateOptions
-    set SimulateOptions  [concat {*}$args {*}$ExtendedSimulateOptions {*}$CoverageSimulateOptions]
+    set ElaborateOptions [concat {*}[vendor_GetCoverageKindOptions elaborate $::osvvm::CoverageKinds] {*}$CoverageElaborateOptions]
+    set SimulateOptions  [concat {*}$args {*}$ExtendedSimulateOptions {*}[vendor_GetCoverageKindOptions simulate $::osvvm::CoverageKinds] {*}$CoverageSimulateOptions]
   } else {
     set ElaborateOptions ""
     set SimulateOptions  [concat {*}$args {*}$ExtendedSimulateOptions]
