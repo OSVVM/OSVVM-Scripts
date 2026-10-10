@@ -200,7 +200,7 @@ proc vendor_SetCoverageElaborateDefaults {} {
   set CoverageElaborateOptions ""
 }
 
-proc CoverageKindLetters {Kinds} {
+proc vendor_GetCoverageKindLetters {Kinds} {
   # Translate the kinds of code coverage into Questa's letters, used by `+cover=` and `vcover report -code`.
   #
   #  Kinds - The kinds of code coverage, see [SetCoverageKinds].
@@ -229,7 +229,7 @@ proc vendor_GetCoverageKindOptions {Step Kinds} {
   if {$Step ne "analyze"} {
     return ""
   }
-  set Letters [CoverageKindLetters $Kinds]
+  set Letters [vendor_GetCoverageKindLetters $Kinds]
   if {$Letters eq ""} {
     return ""
   }
@@ -522,9 +522,9 @@ proc vendor_ExportCodeCoverage {BuildName CodeCoverageDirectory FileName Options
   #  FileName              - The file to write; if empty, `<BuildName>_code_cov.questa.xml` in *CodeCoverageDirectory*.
   #  Options               - Further options of `vcover report`.
   #
-  # The build's database is `<BuildName>.ucdb`. `-details` writes per instance the source files, statements
-  # and branches with their counts; `-code` chooses the kinds of [SetCoverageKinds] (see [CoverageKindLetters]).
-  # Without a database, nothing is written.
+  # The build's database is `<BuildName>.ucdb`. `-details` writes per instance the source files, statements and
+  # branches with their counts; `-code` chooses the kinds of [SetCoverageKinds] (see
+  # [vendor_GetCoverageKindLetters]). Without a database, nothing is written.
   set CoverageFile ${CodeCoverageDirectory}/${BuildName}.ucdb
   if {$FileName eq ""} {
     set FileName ${CodeCoverageDirectory}/${BuildName}_code_cov.questa.xml
@@ -534,7 +534,7 @@ proc vendor_ExportCodeCoverage {BuildName CodeCoverageDirectory FileName Options
     return
   }
   set CodeOptions ""
-  set Letters [CoverageKindLetters $::osvvm::CoverageKinds]
+  set Letters [vendor_GetCoverageKindLetters $::osvvm::CoverageKinds]
   if {$Letters ne ""} {
     set CodeOptions "-code $Letters"
   }
