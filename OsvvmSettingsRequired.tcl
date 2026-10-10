@@ -150,11 +150,13 @@ namespace eval ::osvvm {
     variable GenericDict           ""
     variable GenericNames          ""
     variable GenericOptions        ""
-    variable ExportOptions         ""
-    variable CoverageExportBuildName   ""
-    variable CoverageExportDirectory   ""
     variable RunningCoSim              "false"
     variable RanSimulationWithCoverage "false"
+
+    # Code coverage export: options of the next ExportCodeCoverage, the last build that collected code coverage
+    variable ExportOptions             ""
+    variable CoverageExportBuildName   ""
+    variable CoverageExportDirectory   ""
 
     if {[catch {set OperatingSystemName [string tolower [exec uname]]} err]} {
       set OperatingSystemName windows
