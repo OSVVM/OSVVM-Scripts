@@ -179,7 +179,11 @@ proc GetExtendedRunOptions {} {
 #
 proc SetSaveWaves {{Options "true"}} {
   variable SaveWaves
-  set SaveWaves $Options
+  if {$Options} {
+    set SaveWaves "true"
+  } else {
+    set SaveWaves "false"
+  }
 }
 proc GetSaveWaves {} {
   variable SaveWaves
@@ -197,7 +201,11 @@ proc SetInteractiveMode {{Options "true"}} {
   variable SavedSimulateErrorStopCount
 
   set PreviousSimulateInteractive $SimulateInteractive
-  set SimulateInteractive $Options
+  if {$Options} {
+    set SimulateInteractive "true"
+  } else {
+    set SimulateInteractive "false"
+  }
 
   if {($SimulateInteractive) && !($PreviousSimulateInteractive)} {
     # Only save ErrorStopCounts when options change from FALSE to TRUE
@@ -214,10 +222,10 @@ proc SetInteractiveMode {{Options "true"}} {
     set SimulateErrorStopCount $SavedSimulateErrorStopCount
   }
   if {! $::osvvm::DebugIsSet} {
-    set ::osvvm::Debug $Options
+    set ::osvvm::Debug $SimulateInteractive
   }
   if {! $::osvvm::LogSignalsIsSet} {
-    set ::osvvm::LogSignals $Options
+    set ::osvvm::LogSignals $SimulateInteractive
   }
 }
 # SetInteractive is deprecated.
@@ -232,16 +240,24 @@ proc GetInteractiveMode {} {
 }
 
 proc SetDebugMode {{Options "true"}} {
+  if {$Options} {
+    set ::osvvm::Debug "true"
+  } else {
+    set ::osvvm::Debug "false"
+  }
   set ::osvvm::DebugIsSet "true"
-  set ::osvvm::Debug $Options
 }
 proc GetDebugMode {} {
   return $::osvvm::Debug
 }
 
 proc SetLogSignals {{Options "true"}} {
+  if {$Options} {
+    set ::osvvm::LogSignals "true"
+  } else {
+    set ::osvvm::LogSignals "false"
+  }
   set ::osvvm::LogSignalsIsSet "true"
-  set ::osvvm::LogSignals $Options
 }
 
 proc GetLogSignals {} {
@@ -266,7 +282,7 @@ proc GetSecondSimulationTopLevel {} {
 #
 proc SetCoverageEnable {{Enable "true"}} {
   variable CoverageEnable
-  if {[string tolower $Enable] eq "true"} {
+  if {$Enable} {
     set CoverageEnable "true"
   } else {
     set CoverageEnable "false"
@@ -290,7 +306,7 @@ proc GetCoverageAnalyzeOptions {} {
 
 proc SetCoverageAnalyzeEnable {{Enable "true"}} {
   variable CoverageAnalyzeEnable
-  if {[string tolower $Enable] eq "true"} {
+  if {$Enable} {
     set CoverageAnalyzeEnable "true"
   } else {
     set CoverageAnalyzeEnable "false"
@@ -314,7 +330,7 @@ proc GetCoverageSimulateOptions {} {
 
 proc SetCoverageSimulateEnable {{Enable "true"}} {
   variable CoverageSimulateEnable
-  if {[string tolower $Enable] eq "true"} {
+  if {$Enable} {
     set CoverageSimulateEnable "true" ;
   } else {
     set CoverageSimulateEnable "false" ;
@@ -343,22 +359,38 @@ proc GetSimulatorResolution {} {
 #
 proc SetRequirementUseSumOfGoals {{Status "true"}} {
   # Current default is false - historical assumed reading Spec.
-  set ::osvvm::USE_SUM_OF_GOALS $Status
+  if {$Status} {
+    set ::osvvm::USE_SUM_OF_GOALS "true"
+  } else {
+    set ::osvvm::USE_SUM_OF_GOALS "false"
+  }
 }
 
 proc SetRequirementCsvPrintStatus {{Status "true"}} {
   # Current default is true
-  set ::osvvm::REQUIREMENT_CSV_PRINT_STATUS $Status
+  if {$Status} {
+    set ::osvvm::REQUIREMENT_CSV_PRINT_STATUS "true"
+  } else {
+    set ::osvvm::REQUIREMENT_CSV_PRINT_STATUS "false"
+  }
 }
 
 proc SetRequirementTestCaseFailsIfLessThanGoal {{Status "true"}} {
   # Current default is true
-  set ::osvvm::REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL $Status
+  if {$Status} {
+    set ::osvvm::REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL "true"
+  } else {
+    set ::osvvm::REQUIREMENT_TEST_CASE_FAILS_IF_LESS_THAN_GOAL "false"
+  }
 }
 
 proc SetRequirementDoesNotExceedGoal {{Status "true"}} {
   # Current default is true
-  set ::osvvm::REQUIREMENT_DOES_NOT_EXCEED_GOAL $Status
+  if {$Status} {
+    set ::osvvm::REQUIREMENT_DOES_NOT_EXCEED_GOAL "true"
+  } else {
+    set ::osvvm::REQUIREMENT_DOES_NOT_EXCEED_GOAL "false"
+  }
 }
 
 
