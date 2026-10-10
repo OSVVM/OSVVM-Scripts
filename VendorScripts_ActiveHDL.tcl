@@ -422,13 +422,22 @@ proc vendor_GetCoverageFileName {TestName} {
 # Export Coverage
 #
 proc vendor_ExportCodeCoverage {BuildName CodeCoverageDirectory FileName Options} {
-  # Export the code coverage of a build into a well-known data format.
+  # Export the code coverage of a build into Active-HDL's UCDB XML with `acdb2xml`.
   #
   #  BuildName             - The build.
   #  CodeCoverageDirectory - The directory of the code coverage databases.
-  #  FileName              - The file to write; if empty, chosen by the simulator.
-  #  Options               - Further options of the simulator's export.
+  #  FileName              - The file to write; if empty, `<BuildName>_code_cov.ucdb.xml` in *CodeCoverageDirectory*.
+  #  Options               - Further options of `acdb2xml`.
   #
-  # There's no export for this simulator yet; it says so.
-  puts "ExportCodeCoverage: Not supported for ${::osvvm::ToolName} yet."
+  # The build's database is `<BuildName>.acdb`. Without a database, nothing is written.
+  set CoverageFile ${CodeCoverageDirectory}/${BuildName}.acdb
+  if {$FileName eq ""} {
+    set FileName ${CodeCoverageDirectory}/${BuildName}_code_cov.ucdb.xml
+  }
+  if {![file exists $CoverageFile]} {
+    puts "ExportCodeCoverage: No code coverage database '$CoverageFile'."
+    return
+  }
+  puts "acdb2xml -i ${CoverageFile} -o ${FileName} $Options"
+  acdb2xml -i ${CoverageFile} -o ${FileName} {*}$Options
 }

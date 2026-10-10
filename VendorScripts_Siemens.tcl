@@ -208,6 +208,22 @@ proc vendor_SetCoverageElaborateDefaults {} {
   set CoverageElaborateOptions ""
 }
 
+proc vendor_GetCoverageKindLetters {Kinds} {
+  # Translate the kinds of code coverage into the Siemens simulator's letters, used by `+cover=` and `vcover report -code`.
+  #
+  #  Kinds - The kinds of code coverage, see [SetCoverageKinds].
+  #
+  # `s` (statement), `b` (branch), `c` (condition), `e` (expression), `t` (toggle) and `f` (fsm); functional coverage
+  # has no letter.
+  #
+  # Returns: The letters, e.g. `sbf`.
+  set Letters ""
+  foreach Kind $Kinds {
+    append Letters [dict get {statement s branch b condition c expression e toggle t fsm f functional ""} $Kind]
+  }
+  return $Letters
+}
+
 proc vendor_GetCoverageKindOptions {Step Kinds} {
   # Translate the kinds of code coverage into the Siemens simulator's options for a step.
   #
@@ -221,10 +237,7 @@ proc vendor_GetCoverageKindOptions {Step Kinds} {
   if {$Step ne "analyze"} {
     return ""
   }
-  set Letters ""
-  foreach Kind $Kinds {
-    append Letters [dict get {statement s branch b condition c expression e toggle t fsm f functional ""} $Kind]
-  }
+  set Letters [vendor_GetCoverageKindLetters $Kinds]
   if {$Letters eq ""} {
     return ""
   }
@@ -490,13 +503,29 @@ proc vendor_GetCoverageFileName {TestName} {
 # Export Coverage
 #
 proc vendor_ExportCodeCoverage {BuildName CodeCoverageDirectory FileName Options} {
-  # Export the code coverage of a build into a well-known data format.
+  # Export the code coverage of a build into the Siemens simulator's coverage report XML with `vcover report -xml -details`.
   #
   #  BuildName             - The build.
   #  CodeCoverageDirectory - The directory of the code coverage databases.
-  #  FileName              - The file to write; if empty, chosen by the simulator.
-  #  Options               - Further options of the simulator's export.
+  #  FileName              - The file to write; if empty, `<BuildName>_code_cov.questa.xml` in *CodeCoverageDirectory*.
+  #  Options               - Further options of `vcover report`.
   #
-  # There's no export for this simulator yet; it says so.
-  puts "ExportCodeCoverage: Not supported for ${::osvvm::ToolName} yet."
+  # The build's database is `<BuildName>.ucdb`. `-details` writes per instance the source files, statements and
+  # branches with their counts; `-code` chooses the kinds of [SetCoverageKinds] (see
+  # [vendor_GetCoverageKindLetters]). Without a database, nothing is written.
+  set CoverageFile ${CodeCoverageDirectory}/${BuildName}.ucdb
+  if {$FileName eq ""} {
+    set FileName ${CodeCoverageDirectory}/${BuildName}_code_cov.questa.xml
+  }
+  if {![file exists $CoverageFile]} {
+    puts "ExportCodeCoverage: No code coverage database '$CoverageFile'."
+    return
+  }
+  set CodeOptions ""
+  set Letters [vendor_GetCoverageKindLetters $::osvvm::CoverageKinds]
+  if {$Letters ne ""} {
+    set CodeOptions "-code $Letters"
+  }
+  puts "vcover report -xml -details $CodeOptions -output ${FileName} $Options ${CoverageFile}"
+  eval $::osvvm::shell vcover report -xml -details {*}$CodeOptions -output ${FileName} {*}$Options ${CoverageFile}
 }
