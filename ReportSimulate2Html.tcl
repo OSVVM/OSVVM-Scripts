@@ -56,7 +56,7 @@ package require fileutil
 proc Simulate2Html {SettingsFileWithPath BaseDirectory} {
   # Create the HTML test case report from the YAML files written by a simulation.
   #  SettingsFileWithPath - Test case settings file `<TestCaseFileName>_run.yml`, including its path.
-  #  BaseDirectory        - Build output directory. The paths in the settings file are relative to it.
+  #  BaseDirectory        - Build output directory. The paths in the test case settings file are relative to it.
   #
   # Reads the test case settings (`GetTestCaseSettings`) and writes the report `<TestCaseFileName>.html` into the test
   # suite's report directory. `<TestCaseFileName>` is the test case name, followed by `_<GenericValue>` for each generic

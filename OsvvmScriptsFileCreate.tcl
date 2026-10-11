@@ -570,12 +570,12 @@ proc MakePkgBodyTemplate {PkgBodyFile TemplatePkgBodyFile} {
 # MakePkgSettings
 #
 proc MakePkgSettings {PkgBodyFile SettingsFile} {
-  # Create a settings file from a package body of deferred constants.
+  # Create a package settings file from a package body of deferred constants.
   #  PkgBodyFile  - Package body to read, relative to the current working directory, with extension.
-  #  SettingsFile - Settings file to create, relative to the current working directory, with extension.
+  #  SettingsFile - Package settings file to create, relative to the current working directory, with extension.
   #
-  # For each line declaring a constant, the settings file gets a line with the constant's name, a colon and its
-  # value. A constant
+  # For each line declaring a constant, the package settings file gets a line with the constant's name, a colon and
+  # its value. A constant
   #
   #     constant ABC : type := SomeValue ;
   #
@@ -618,8 +618,8 @@ proc MakePkgSettings {PkgBodyFile SettingsFile} {
 # ReadPkgSettings - local
 #
 proc ReadPkgSettings {SettingsFile} {
-  # Read a settings file and set its variables in the calling procedure.
-  #  SettingsFile - Settings file to read, relative to the current working directory.
+  # Read a package settings file and set its variables in the calling procedure.
+  #  SettingsFile - Package settings file to read, relative to the current working directory.
   #
   # Each line holds a variable name, a colon and the value. The values keep their quotes, which a YAML reader
   # would remove.
@@ -634,15 +634,15 @@ proc ReadPkgSettings {SettingsFile} {
 # MakePkgBody
 #
 proc MakePkgBody {OsvvmSettingsFile UserSettingsFile TemplatePkgBodyFile PkgBodyFile} {
-  # Create a package body from a template and settings files.
-  #  OsvvmSettingsFile   - OSVVM settings file with the default values of all template variables.
-  #  UserSettingsFile    - User settings file. Its values override the defaults.
+  # Create a package body from a template and package settings files.
+  #  OsvvmSettingsFile   - OSVVM package settings file with the default values of all template variables.
+  #  UserSettingsFile    - User package settings file. Its values override the defaults.
   #  TemplatePkgBodyFile - Package body template, created by [MakePkgBodyTemplate].
   #  PkgBodyFile         - Package body to create.
   #
-  # Reads both settings files (format of [MakePkgSettings]) and substitutes their values for the Tcl variables in
-  # the template. File names are relative to the current working directory. The file is only replaced if its
-  # content changed.
+  # Reads both package settings files (format of [MakePkgSettings]) and substitutes their values for the Tcl
+  # variables in the template. File names are relative to the current working directory. The file is only replaced if
+  # its content changed.
   #
   # See also: [FindSettingsPkgBody]
 
