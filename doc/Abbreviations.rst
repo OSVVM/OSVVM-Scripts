@@ -84,6 +84,16 @@ Abbreviations
       A text format for structured data (`RFC 8259 <https://www.rfc-editor.org/rfc/rfc8259>`__).
       :ref:`RUFF/osvvm/ProToJson` writes what a :term:`build script` analyzes and simulates as JSON.
 
+   MIT
+      :long: Model Independent Transactions
+
+      OSVVM's common transaction interfaces: one for address bus models (like :acs:`AXI4`), one for streaming models
+      (like :acs:`UART`). A test case written with them works with every :term:`verification component` implementing
+      the interface.
+
+      See also: :osvvmdoc:`Address bus MIT user guide <Address_Bus_Model_Independent_Transactions_user_guide>`,
+      :osvvmdoc:`Stream MIT user guide <Stream_Model_Independent_Transactions_user_guide>`
+
    OSVVM
       :long: Open Source VHDL Verification Methodology
 
@@ -125,6 +135,13 @@ Abbreviations
       :long: Very High Speed Integrated Circuit
 
       The US Department of Defense program, under which :acs:`VHDL` was developed.
+
+   VTI
+      :long: Virtual Transaction Interface
+
+      A :term:`verification component` variant, whose transaction interface a test case reaches through a VHDL external
+      name instead of a port. OSVVM's VTI test benches run in separate test suites, like ``AxiStream_VTI``
+      (:file:`RunAllTestsVti.pro`).
 
    XML
       :long: Extensible Markup Language

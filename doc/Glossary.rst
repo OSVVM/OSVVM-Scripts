@@ -83,6 +83,10 @@ Glossary
      A *generic* is a parameter of a :acs:`VHDL` design unit. :ref:`RUFF/osvvm/generic` sets a top-level generic for
      the next simulation; the generics become part of the :term:`test case file name` (see :ref:`UG/Generics`).
 
+   GTKWave
+     *GTKWave* is an open-source waveform viewer (`GTKWave <https://gtkwave.github.io/gtkwave/>`__). It displays the
+     waveform files :acs:`GHDL` and NVC write with :ref:`RUFF/osvvm/SetSaveWaves` (see :ref:`UG/Waveform/SaveWaves`).
+
    JUnit XML
      *JUnit XML* is the :acs:`XML` test report format of the Java test framework
      `JUnit <https://junit.org/>`__, which most :acs:`CI` tools read. OSVVM writes the build summary report of a
@@ -121,6 +125,11 @@ Glossary
    Simulation Directory
      The *simulation directory* is the directory, in which the simulator runs. OSVVM puts its libraries, the results
      of each :term:`build` and the build index there (see :ref:`UG/Concepts/CurrentSimulationDirectory`).
+
+   Surfer
+     *Surfer* is an open-source waveform viewer (`Surfer <https://surfer-project.org/>`__), also running in a web
+     browser. Like :term:`GTKWave`, it displays the waveform files :acs:`GHDL` and NVC write with
+     :ref:`RUFF/osvvm/SetSaveWaves` (see :ref:`UG/Waveform/SaveWaves`).
 
    Test Case
      A *test case* is one simulation of a testbench. It is named after the simulated :term:`design unit`, or with
