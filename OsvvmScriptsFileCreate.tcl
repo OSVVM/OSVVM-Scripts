@@ -47,6 +47,26 @@ namespace eval ::osvvm {
 # FindOsvvmSettingsDirectory
 #
 proc FindOsvvmSettingsDirectory {{OsvvmSubdirectory "osvvm"}} {
+  # Find the OSVVM settings directory and create it if it doesn't exist.
+  #  OsvvmSubdirectory - Directory below `OsvvmLibraries` used if no other settings directory is found.
+  #
+  # The settings directory is the first of:
+  #
+  # 1. the variable `OsvvmSettingsDirectory`, if it isn't empty,
+  # 1. the environment variable `OSVVM_SETTINGS_DIR`,
+  # 1. `OsvvmSettings` next to `OsvvmLibraries`, if that directory exists,
+  # 1. $OsvvmSubdirectory in `OsvvmLibraries`.
+  #
+  # A relative path is relative to `OsvvmLibraries` (`OsvvmHomeDirectory`). The deprecated
+  # `SettingsAreRelativeToSimulationDirectory` makes it relative to the simulation directory instead and prints a
+  # warning. `OsvvmSettingsSubdirectory` is appended to the result.
+  #
+  # StartUpShared.tcl calls it to set `OsvvmUserSettingsDirectory`, with $OsvvmSubdirectory `Scripts`.
+  #
+  # Returns the normalized path of the settings directory.
+  #
+  # See also: [CreateOsvvmScriptSettingsPkg] [FindSettingsPkgBody]
+
   # When StartUpShared.tcl calls this to determine the value of ::osvvm::OsvvmUserSettingsDirectory,
   # OsvvmSettingsLocal.tcl has not been run yet, as a result,
   #   * OsvvmSettingsSubdirectory will have its default value of "" and
@@ -88,6 +108,19 @@ proc FindOsvvmSettingsDirectory {{OsvvmSubdirectory "osvvm"}} {
 #  CreateOsvvmScriptSettingsPkg
 #
 proc CreateOsvvmScriptSettingsPkg {SettingsDirectory} {
+  # Write the package body `OsvvmScriptSettingsPkg` with the script settings.
+  #  SettingsDirectory - Directory to write `OsvvmScriptSettingsPkg_generated.vhd` to.
+  #
+  # The package body defines the deferred constants of `OsvvmScriptSettingsPkg` from the script variables: the
+  # OSVVM home, temporary output and output base directories, the build and transcript YAML files, the OSVVM
+  # version, the settings version and the YAML versions of the alert, scoreboard, coverage and requirements
+  # reports.
+  #
+  # The file is only replaced if its content changed, so it's analyzed again only after a change.
+  #
+  # Returns the path of `OsvvmScriptSettingsPkg_generated.vhd`, or an empty string if the file can't be written.
+  #
+  # See also: [FindOsvvmSettingsDirectory]
   set OsvvmScriptSettingsPkgFile  [file join ${SettingsDirectory} "OsvvmScriptSettingsPkg_generated.vhd"]
   set NewFileName                 [file join ${SettingsDirectory} "OsvvmScriptSettingsPkg_new.vhd"]
 
@@ -131,6 +164,14 @@ proc CreateOsvvmScriptSettingsPkg {SettingsDirectory} {
 #  FindOsvvmScriptSettingsPkg
 #
 proc FindOsvvmScriptSettingsPkg { } {
+  # Select the package body of `OsvvmScriptSettingsPkg` to analyze.
+  #
+  # Looks in the OSVVM settings directory ([FindOsvvmSettingsDirectory]) for the user's
+  # `OsvvmScriptSettingsPkg_local.vhd`. Without it, it generates `OsvvmScriptSettingsPkg_generated.vhd` there
+  # ([CreateOsvvmScriptSettingsPkg]). The OSVVM library's `osvvm.pro` analyzes the result.
+  #
+  # Returns the user's package body if it exists, else the generated one, else
+  # `OsvvmScriptSettingsPkg_default.vhd`.
 
   set SettingsDirectory [FindOsvvmSettingsDirectory]
 
@@ -156,6 +197,17 @@ proc FindOsvvmScriptSettingsPkg { } {
 #  CreatePathPkg
 #
 proc CreatePathPkg {BaseName {SettingsDirectory ""}} {
+  # Write and analyze a package with the path of the current script.
+  #  BaseName          - Name prefix of the package and its file.
+  #  SettingsDirectory - Directory to write the file to. Empty: the OSVVM settings directory.
+  #
+  # Writes the package `<BaseName>SettingsPkg` to `<BaseName>PathPkg_generated.vhd`. Its constant
+  # `TEST_PATH_DIR` is the current working directory relative to the simulation directory, `TEST_PATH_SET` is
+  # `TRUE`. The file is only replaced if its content changed. Then the file is analyzed into the working library.
+  #
+  # If the file can't be written, it analyzes `<BaseName>SettingsPkg_default.vhd` instead.
+  #
+  # Returns the path of the generated file, or an empty string if it can't be written.
   if {$SettingsDirectory eq ""} {set SettingsDirectory $::osvvm::OsvvmUserSettingsDirectory}
   set TestSettingsPkgFile     [file join ${SettingsDirectory} "${BaseName}PathPkg_generated.vhd"]
   set NewFileName             [file join ${SettingsDirectory} "${BaseName}PathPkg_new.vhd"]
@@ -187,6 +239,28 @@ proc CreatePathPkg {BaseName {SettingsDirectory ""}} {
 #  CreateTestCaseCommonPkg
 #
 proc CreateTestCaseCommonPkg { {PackageName "TestCaseCommonPkg"} {ValidatedResults "../ValidatedResults"} } {
+  # Write a package with the paths and names of the current test suite.
+  #  PackageName      - Name of the package and its file.
+  #  ValidatedResults - Directory of validated results, relative to the test source directory.
+  #
+  # The package's constants:
+  #
+  # `PATH_TO_TEST_SRC` - Current working directory, the directory of the test sources.
+  # `PATH_TO_VALIDATED_RESULTS` - $ValidatedResults below `PATH_TO_TEST_SRC`.
+  # `CHECK_TRANSCRIPT` - `TRUE` if `PATH_TO_TEST_SRC` isn't empty.
+  # `BUILD_NAME` - Name of the current build.
+  # `TEST_SUITE_NAME` - Name of the current test suite.
+  # `PATH_TO_RESULTS` - Results directory of the test suite in the build's output directory.
+  #
+  # With VHDL-2019 and a simulator supporting `FILE_PATH` (`Supports2019FilePath`), `PATH_TO_TEST_SRC` is
+  # derived from `FILE_PATH` and the file is `<PackageName>.vhd` in the current working directory. Otherwise the
+  # path is written as a string and the file is `deprecated/<PackageName>_c.vhd`. If `OutputBaseDirectory` isn't
+  # empty, it's appended to the file name. The file is only replaced if its content changed. It isn't analyzed.
+  #
+  # Raises an error if no test suite is set ([TestSuite]).
+  #
+  # Returns the path of the package file.
+
 #  set CurrentDir ""
   set CurrentDir [file normalize ${::osvvm::CurrentWorkingDirectory}]
   set NewFileName            [file join ${CurrentDir} "NewCreateTestCaseCommonPkg.vhd"]
@@ -249,6 +323,18 @@ proc CreateTestCaseCommonPkg { {PackageName "TestCaseCommonPkg"} {ValidatedResul
 #  CreateAndAnalyzeBuildSettingsPkg
 #
 proc CreateBuildSettingsPkg {BaseName {SettingsDirectory ""}} {
+  # Write and analyze a package with the settings of the current build.
+  #  BaseName          - Name prefix of the package and its file.
+  #  SettingsDirectory - Directory to write the file to. Empty: the OSVVM settings directory.
+  #
+  # Writes the package `<BaseName>SettingsPkg` to `<BaseName>SettingsPkg_generated.vhd`. Its constants are
+  # `LOCAL_SCRIPT_DIR` (the current working directory relative to the simulation directory), `TEST_SUITE_NAME`,
+  # `RESULTS_DIR` and `MIRROR_ENABLE` (`TRUE` in debug mode). The file is only replaced if its content changed.
+  # Then the file is analyzed into the working library.
+  #
+  # If the file can't be written, it analyzes `<BaseName>SettingsPkg_default.vhd` instead.
+  #
+  # Returns the path of the generated file, or an empty string if it can't be written.
   if {$SettingsDirectory eq ""} {set SettingsDirectory $::osvvm::OsvvmUserSettingsDirectory}
   set TestSettingsPkgFile     [file join ${SettingsDirectory} "${BaseName}SettingsPkg_generated.vhd"]
   set NewFileName             [file join ${SettingsDirectory} "${BaseName}SettingsPkg_new.vhd"]
@@ -289,6 +375,12 @@ proc CreateBuildSettingsPkg {BaseName {SettingsDirectory ""}} {
 #    Write Extracted contents to NewFileName
 #    Example call: set ErrorCode [catch {AutoGenerateFile $FileName $NewFileName "--!! Autogenerated:"} errmsg]
 proc AutoGenerateFile {FileName NewFileName AutoGenerateMarker} {
+  # Copy the beginning of a file up to and including the first line matching a marker.
+  #  FileName           - File to read.
+  #  NewFileName        - File to write.
+  #  AutoGenerateMarker - Regular expression marking the last line to copy.
+  #
+  # Copies all lines if no line matches. Does nothing if either file can't be opened.
   set ReadCode [catch {set ReadFile [open $FileName r]} ReadErrMsg]
   if {$ReadCode} { return }
   set LinesOfFile [split [read $ReadFile] \n]
@@ -310,6 +402,11 @@ proc AutoGenerateFile {FileName NewFileName AutoGenerateMarker} {
 #  FileDiff
 #
 proc FileDiff {File1 File2} {
+  # Compare two text files line by line.
+  #  File1 - First file.
+  #  File2 - Second file.
+  #
+  # Returns `true` if the files differ or one of them can't be read, else `false`.
   set ReadFile1Code [catch {set FileHandle1 [open $File1 r]} ReadErrMsg]
   if {$ReadFile1Code} {return "true"}
   set LinesOfFile1   [split [read $FileHandle1] \n]
@@ -333,17 +430,34 @@ proc FileDiff {File1 File2} {
 # -------------------------------------------------
 #  ReadFrom - Open File and read it into the stream
 #
-proc ReadFrom {filename} {set f [open $filename]; return [read $f][close $f]}
+proc ReadFrom {filename} {
+  # Read a file.
+  #  filename - File to read.
+  #
+  # Returns the content of the file.
+  set f [open $filename]; return [read $f][close $f]
+}
 
 # -------------------------------------------------
 #  PrintTo - Direct a stream of information into a file
 #
-proc PrintTo {filename str} {set f [open $filename w]; puts $f $str; close $f}
+proc PrintTo {filename str} {
+  # Write a string to a file.
+  #  filename - File to write. An existing file is overwritten.
+  #  str      - String to write, followed by a newline.
+  set f [open $filename w]; puts $f $str; close $f
+}
 
 # -------------------------------------------------
 #  MakeVti - Replace FileName with FileNameVti
 #
 proc MakeVti {FileName FilePrefix} {
+  # Create the virtual transaction interface variant of an architecture.
+  #  FileName   - Base name of the architecture file `<FileName>_a.vhd`.
+  #  FilePrefix - Directory of the architecture file.
+  #
+  # Reads `<FileName>_a.vhd`, replaces every occurrence of $FileName by `<FileName>Vti` and writes the result to
+  # `Vti/<FileName>Vti_a.vhd` in $FilePrefix.
 	PrintTo [file join $FilePrefix Vti ${FileName}Vti_a.vhd] [regsub -all ${FileName} [ReadFrom [file join $FilePrefix ${FileName}_a.vhd]] ${FileName}Vti]
 }
 
@@ -351,6 +465,13 @@ proc MakeVti {FileName FilePrefix} {
 #  Make2008 - For VHDL-2008 version remove the comment "--%%UncommentFor2008 " from the file
 #
 proc Make2008 {FileName FilePrefix} {
+  # Create the VHDL-2008 variant of an architecture.
+  #  FileName   - Base name of the architecture file `<FileName>_a.vhd`.
+  #  FilePrefix - Directory of the architecture file.
+  #
+  # Reads `<FileName>_a.vhd`, removes every `--%%UncommentFor2008` comment marker (followed by a space), which
+  # uncomments the lines marked for VHDL-2008, and writes the result to `deprecated/<FileName>_a.vhd` in
+  # $FilePrefix.
 	PrintTo [file join $FilePrefix deprecated ${FileName}_a.vhd] [regsub -all -- "--%%UncommentFor2008 " [ReadFrom [file join $FilePrefix ${FileName}_a.vhd]] ""]
 }
 
@@ -358,6 +479,10 @@ proc Make2008 {FileName FilePrefix} {
 #  MakeArch - Create Vti, 2008 and Vti/2008 architectures
 #
 proc MakeArch {FileName} {
+  # Create the virtual transaction interface and VHDL-2008 variants of an architecture.
+  #  FileName - Base name of the architecture file `<FileName>_a.vhd` in the current working directory.
+  #
+  # Calls `MakeVti` and `Make2008` for the architecture, and `Make2008` for its `Vti` variant.
   variable CurrentWorkingDirectory
   MakeVti  $FileName $CurrentWorkingDirectory
   Make2008 $FileName $CurrentWorkingDirectory
@@ -369,9 +494,10 @@ proc MakeArch {FileName} {
 #  Should be an OSVVM utility as other things do this too
 #
 proc GetNewName {FileName} {
+  # Return a file name with the suffix `_new` before its extension.
+  #  FileName - File name, optionally with directory.
   #
-  # For FileName of the form File.ext return File_new.ext
-  #
+  # Returns the file name: `File_new.ext` for `File.ext`.
   set FileExtension [file extension $FileName]
   set FileNameRoot  [file rootname  $FileName]
   return ${FileNameRoot}_new${FileExtension}
@@ -382,12 +508,9 @@ proc GetNewName {FileName} {
 #  Should be an OSVVM utility as other things do this too
 #
 proc CopyFileIfDiffOtherwiseDelete {NewFileName FileName} {
-  #
-  # If NewFileName differs from FileName, replace FileName with NewFileName, otherwise, delete NewFileName
-	#
-  #  NewFileName - New file
-  #  FileName    - File to replace if they differ
-	#
+  # Replace a file with a new one if their contents differ, otherwise delete the new one.
+  #  NewFileName - New file.
+  #  FileName    - File to replace. It's created if it doesn't exist.
   if {![file exists $FileName] || [FileDiff ${NewFileName} ${FileName}]} {
     file rename -force ${NewFileName} ${FileName}
   } else {
@@ -399,18 +522,21 @@ proc CopyFileIfDiffOtherwiseDelete {NewFileName FileName} {
 # MakePkgHeader
 #
 proc MakePkgHeader {PkgBodyFile PkgHeaderFile} {
+  # Create a package declaration from a package body of deferred constants.
+  #  PkgBodyFile   - Package body to read, relative to the current working directory, with extension.
+  #  PkgHeaderFile - Package declaration to create, relative to the current working directory.
   #
-  # For a package body of deferred constants, create a package header with constant declarations
-	#
-  #  PkgBodyFile   - package body to read.  Name includes extension: FileName.vhd or FileName.vhdl
-  #  PkgHeaderFile - package header to create
-	#
-  # For deferred constants of the form:
-  #   constant ABC : type := SomeValue ;
-  # The package header (declation part) contains a declaration for the constant ABC:
-  #   constant ABC : type ;
-  # The "package body" in PkgBodyFile is replaced with "package" in the PkgHeaderFile
-	#
+  # Replaces `package body` by `package` and removes each constant's value, so a constant
+  #
+  #     constant ABC : type := SomeValue ;
+  #
+  # becomes the declaration
+  #
+  #     constant ABC : type ;
+  #
+  # The file is only replaced if its content changed.
+  #
+  # See also: [MakeSettingsPkg]
   set PkgHeaderFilePath    [file join ${::osvvm::CurrentWorkingDirectory} ${PkgHeaderFile}]
   set NewPkgHeaderFilePath [GetNewName $PkgHeaderFilePath]
   set PkgBodyFilePath      [file join ${::osvvm::CurrentWorkingDirectory} ${PkgBodyFile}]
@@ -423,17 +549,14 @@ proc MakePkgHeader {PkgBodyFile PkgHeaderFile} {
 # MakePkgBodyTemplate
 #
 proc MakePkgBodyTemplate {PkgBodyFile TemplatePkgBodyFile} {
+  # Create a package body template from a package body of deferred constants.
+  #  PkgBodyFile         - Package body to read, relative to the current working directory, with extension.
+  #  TemplatePkgBodyFile - Template to create, relative to the current working directory.
   #
-  # For a package body of deferred constants, create a package body template file
-	#
-  # PkgBodyFile         - package body to read.  Name includes extension: FileName.vhd or FileName.vhdl
-  # TemplatePkgBodyFile - package template file to create
+  # Replaces each constant's value by a reference to the Tcl variable named like the constant, so
+  # [MakePkgBody] can substitute the values. The file is only replaced if its content changed.
   #
-  # For deferred constants of the form:
-  #   constant ABC : type := SomeValue ;
-  # The value "SomeValue" is replaced with ${ABC} in the template file, resulting in:
-  #   constant ABC : type := ${ABC} ;
-	#
+  # See also: [MakeSettingsPkg]
   set PkgBodyFilePath            [file join ${::osvvm::CurrentWorkingDirectory} ${PkgBodyFile}]
   set TemplatePkgBodyFilePath    [file join ${::osvvm::CurrentWorkingDirectory} ${TemplatePkgBodyFile}]
   set NewTemplatePkgBodyFilePath [GetNewName $TemplatePkgBodyFilePath]
@@ -447,18 +570,22 @@ proc MakePkgBodyTemplate {PkgBodyFile TemplatePkgBodyFile} {
 # MakePkgSettings
 #
 proc MakePkgSettings {PkgBodyFile SettingsFile} {
+  # Create a package settings file from a package body of deferred constants.
+  #  PkgBodyFile  - Package body to read, relative to the current working directory, with extension.
+  #  SettingsFile - Package settings file to create, relative to the current working directory, with extension.
   #
-  # For a package body of deferred constants, create a settings file
-	#
-  # PkgBodyFile   - package body to read.  Name includes extension: FileName.vhd or FileName.vhdl
-  # SettingsFile  - Output.  Name includes extension
+  # For each line declaring a constant, the package settings file gets a line with the constant's name, a colon and
+  # its value. A constant
   #
-  # For deferred constants of the form:
-  #   constant ABC : type := SomeValue ;
-  # Create a file with just the following:
-  #   ABC: SomeValue
-	# Any line that does not contain the word constant is not in the YamlFile
+  #     constant ABC : type := SomeValue ;
   #
+  # becomes
+  #
+  #     ABC: SomeValue
+  #
+  # Comment lines are skipped. The file is only replaced if its content changed.
+  #
+  # See also: [MakeSettingsPkg] [MakePkgBody]
   set SettingsFilePath    [file join ${::osvvm::CurrentWorkingDirectory} ${SettingsFile}]
   set NewSettingsFilePath [GetNewName $SettingsFilePath]
   set PkgBodyFilePath     [file join ${::osvvm::CurrentWorkingDirectory} ${PkgBodyFile}]
@@ -491,18 +618,11 @@ proc MakePkgSettings {PkgBodyFile SettingsFile} {
 # ReadPkgSettings - local
 #
 proc ReadPkgSettings {SettingsFile} {
+  # Read a package settings file and set its variables in the calling procedure.
+  #  SettingsFile - Package settings file to read, relative to the current working directory.
   #
-  # Get settings file from the SettingsFile and set the variable in the calling procedure
-	#
-  # SettingsFile  - Settings to read
-  #
-  # For settings of the form:
-  #   ABC: SomeValue
-	# Set the variable ABC with SomeValue in the *calling* procedure
-  # Note the file looks to be YAML, however, a YAML reader will
-  # remove the "" from the values and they need to be preserved
-  # So a simple reader and pattern match is used to extract the values instead
-  #
+  # Each line holds a variable name, a colon and the value. The values keep their quotes, which a YAML reader
+  # would remove.
   foreach line [ReadListFromFile [file join ${::osvvm::CurrentWorkingDirectory} ${SettingsFile}]] {
     if {[regexp {^\s*([^:]+)\s*:\s*(.*)\s*$} $line -> VariableName VariableValue]} {
       uplevel 1 [list set $VariableName $VariableValue]
@@ -514,22 +634,17 @@ proc ReadPkgSettings {SettingsFile} {
 # MakePkgBody
 #
 proc MakePkgBody {OsvvmSettingsFile UserSettingsFile TemplatePkgBodyFile PkgBodyFile} {
+  # Create a package body from a template and package settings files.
+  #  OsvvmSettingsFile   - OSVVM package settings file with the default values of all template variables.
+  #  UserSettingsFile    - User package settings file. Its values override the defaults.
+  #  TemplatePkgBodyFile - Package body template, created by [MakePkgBodyTemplate].
+  #  PkgBodyFile         - Package body to create.
   #
-  # Read OSVVM and User settings and substitute these into template file to create a new PkgBodyFile
-	#
-  # OsvvmSettingsFile   - OSVVM settings file that sets defaults for all of the variables in the template file
-  # UserSettingsFile    - User settings file that overrides the default values set by OsvvmSettingsFile
-  # TemplatePkgBodyFile - Template package body file - created by MakePkgBodyTemplate
-  # PkgBodyFile         - Package body file to create
+  # Reads both package settings files (format of [MakePkgSettings]) and substitutes their values for the Tcl
+  # variables in the template. File names are relative to the current working directory. The file is only replaced if
+  # its content changed.
   #
-  # The OSVVM and User settings files shall have the format:
-  #   TclVariableName: TclVariableValue
-  #
-  # For a PkgBodyFile named PkgBody.vhd, the template file shall be named PkgBody_template.vhd.
-  # The template file shall contain constant declarations whose value is defined by a Tcl variable
-  # and shall have the format:
-  #   constant ABC : type := ${ABC} ;
-  #
+  # See also: [FindSettingsPkgBody]
 
   # Read OSVVM and then User settings (to ensure user settings override OSVVM settings)
   ReadPkgSettings ${OsvvmSettingsFile}   ; # For OSVVM packages, in a subdirectory of OsvvmLibraries
@@ -549,17 +664,16 @@ proc MakePkgBody {OsvvmSettingsFile UserSettingsFile TemplatePkgBodyFile PkgBody
 # MakeSettingsPkg
 #
 proc MakeSettingsPkg {SettingsPkgBaseName} {
+  # Create the package declaration, template and default settings of a settings package.
+  #  SettingsPkgBaseName - Base name of the package. Its body is `<SettingsPkgBaseName>_default.vhd`.
   #
-  # For a package body of deferred constants, create the header, template, and settings (vset)
-	#
-  # SettingsPkgBaseName   - base name of the package (which is named $SettingsPkgBaseName_default.vhd)
+  # From the package body of deferred constants in the current working directory, it creates:
   #
-	# **MakeSettingPkg calls:**
-	#
-	# * [MakePkgHeader] - Create the header package ${SettingsPkgBaseName}.vhd
-	# * [MakePkgBodyTemplate] - Create the template package ${SettingsPkgBaseName}_template.vhd
-	# * [MakePkgSettings] - Create the package settings in ${SettingsPkgBaseName}_default.vset
+  # - `<SettingsPkgBaseName>.vhd`, the package declaration ([MakePkgHeader]),
+  # - `<SettingsPkgBaseName>_template.vhd`, the package body template ([MakePkgBodyTemplate]),
+  # - `<SettingsPkgBaseName>_default.vset`, the default settings ([MakePkgSettings]).
   #
+  # See also: [FindSettingsPkgBody]
   MakePkgHeader         ${SettingsPkgBaseName}_default.vhd   ${SettingsPkgBaseName}.vhd
   MakePkgBodyTemplate   ${SettingsPkgBaseName}_default.vhd   ${SettingsPkgBaseName}_template.vhd
   MakePkgSettings       ${SettingsPkgBaseName}_default.vhd   ${SettingsPkgBaseName}_default.vset
@@ -569,17 +683,19 @@ proc MakeSettingsPkg {SettingsPkgBaseName} {
 # FindSettingsPkgBody
 #
 proc FindSettingsPkgBody {SettingsPkgBaseName} {
+  # Select the package body of a settings package to analyze.
+  #  SettingsPkgBaseName - Base name of the package.
   #
-  # Choose the package body from to use for $SettingsPkgBaseName  either the settings directory or the local default, ${SettingsPkgBaseName}_default.vhd.
-  # If a settings file named ${SettingsPkgBaseName}_local.vset exists in the settings directory, Create ${SettingsPkgBaseName}_generated.vhd and return that name.
-  # Else if the file ${SettingsPkgBaseName}_local.vhd exists in the settings directory, then return that name.
-  # Otherwise return the local file name: ${SettingsPkgBaseName}_default.vhd
-	#
-	# **MakeSettingPkg calls:**
-	#
-	# * [FindOsvvmSettingsDirectory] - Locates the settings directory
-	# * [MakePkgBody] - Creates ${SettingsPkgBaseName}_generated.vhd using ${SettingsPkgBaseName}_local.vset from the settings directory
+  # Looks in the OSVVM settings directory ([FindOsvvmSettingsDirectory]):
   #
+  # 1. With `<SettingsPkgBaseName>_local.vset`, it creates `<SettingsPkgBaseName>_generated.vhd` there from the
+  # template and the default and local settings ([MakePkgBody]).
+  # 1. Else it uses `<SettingsPkgBaseName>_local.vhd`, if it exists.
+  # 1. Else it uses `<SettingsPkgBaseName>_default.vhd` of the current working directory.
+  #
+  # Returns the path of the package body to analyze.
+  #
+  # See also: [MakeSettingsPkg]
   set SettingsDirectory [FindOsvvmSettingsDirectory]
 
   if {[FileExists ${SettingsDirectory}/${SettingsPkgBaseName}_local.vset]} {

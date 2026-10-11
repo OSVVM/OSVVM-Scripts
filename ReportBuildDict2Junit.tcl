@@ -51,6 +51,13 @@ package require yaml
 # ReportBuildDict2Junit
 #
 proc ReportBuildDict2Junit {} {
+  # Create the JUnit XML build summary report.
+  #
+  # Writes `<BuildName>.xml` next to the build YAML file read by [ReportBuildYaml2Dict]: one `testsuites` element for
+  # the build with one `testsuite` per test suite and one `testcase` per test case (`LocalReportBuildDict2Junit`). On an
+  # error, the file is closed and `CallbackOnError_ReportBuildDict2Junit` is called.
+  #
+  # See also: [CreateBuildReports] [ReportBuildYaml2Dict] [ReportBuildDict2Html]
   variable ResultsFile
   variable ReportFileRoot
 
@@ -69,6 +76,11 @@ proc ReportBuildDict2Junit {} {
 # LocalReportBuildDict2Junit
 #
 proc LocalReportBuildDict2Junit {} {
+  # Write the JUnit XML build summary report.
+  #
+  # Writes the build summary (`CreateJunitSummary`), the test suites and test cases, if the build has test suites
+  # (`CreateJunitTestSuiteSummaries`), and closes the `testsuites` element. Errors are handled by
+  # [ReportBuildDict2Junit].
   variable ResultsFile
   variable BuildDict
   variable TestSuiteSummaryArrayOfDictionaries
@@ -86,6 +98,11 @@ proc LocalReportBuildDict2Junit {} {
 # CreateJunitSummary
 #
 proc CreateJunitSummary {TestDict} {
+  # Write the XML declaration and the opening `testsuites` element of the build.
+  #  TestDict - Contents of the build YAML file. Not used.
+  #
+  # Attributes: build name, start time, elapsed time and the number of test cases, failures and skipped test cases;
+  # `errors` is always 0. Properties: OSVVM version, simulator and simulator version.
   variable ResultsFile
   variable ReportBuildName
 
@@ -126,6 +143,14 @@ proc CreateJunitSummary {TestDict} {
 # CreateJunitTestSuiteSummaries
 #
 proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
+  # Write one `testsuite` element per test suite, with one `testcase` element per test case.
+  #  TestDict         - Contents of the build YAML file.
+  #  TestSuiteSummary - Test suite summaries of the build, in the order of the test suites.
+  #
+  # A `testcase` has the test case name, with the generic values if any, the test suite as class name, the number of
+  # checks as assertions and the elapsed time. Generics are written as properties. A failed test case gets a `failure`,
+  # a skipped one a `skipped` element with the reason. Expected results, analyze failures and a mismatch of test name
+  # and VHDL name decide the status like in the HTML report.
   variable ResultsFile
   variable TestSuiteName
 
@@ -228,6 +253,10 @@ proc CreateJunitTestSuiteSummaries {TestDict TestSuiteSummary } {
 # CreateJunitTestCaseSummary
 #
 proc CreateJunitTestCaseSummary { TestSuiteSummaryDict } {
+  # Write the opening `testsuite` element of a test suite.
+  #  TestSuiteSummaryDict - Summary of the test suite: name, passed, failed and skipped counts, elapsed time.
+  #
+  # Sets `TestSuiteName`, used as class name of the test cases. `errors` is always 0.
   variable ResultsFile
   variable TestSuiteName
 
@@ -252,6 +281,13 @@ proc CreateJunitTestCaseSummary { TestSuiteSummaryDict } {
 # Report2Junit - provided for backward compatibility
 #
 proc Report2Junit {BuildYamlFile} {
+  # Create the JUnit XML build summary report from a build YAML file.
+  #  BuildYamlFile - Build YAML file `<BuildName>.yml`.
+  #
+  # Calls [ReportBuildYaml2Dict] and [ReportBuildDict2Junit]. Kept for backward compatibility; [CreateBuildReports]
+  # creates the HTML and the JUnit XML report.
+  #
+  # See also: [CreateBuildReports] [Report2Html]
   ReportBuildYaml2Dict ${BuildYamlFile}
   ReportBuildDict2Junit
 }

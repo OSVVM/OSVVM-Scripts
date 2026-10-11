@@ -50,6 +50,15 @@ namespace eval ::osvvm {
 #   Creates a script file that includes files that are found here 
 #
 proc SimulateCreateDoFile {LibraryUnit} {
+  # Write the commands sourcing a simulation's user scripts into the simulator's start-up script.
+  #  LibraryUnit - Design unit being simulated.
+  #
+  # Used by the `vendor_simulate` of simulators that start a simulation with a script file (`-do`). Calls
+  # `SimulateCreateSubScripts` for the current working directory, then for the current simulation directory and for
+  # OSVVM's script directory, each only if it differs from the directories before. The commands are written to the open
+  # channel `ScriptFile`.
+  #
+  # See also: [simulate]
   variable  OsvvmScriptDirectory
   variable  CurrentSimulationDirectory
   variable  CurrentWorkingDirectory
@@ -68,6 +77,18 @@ proc SimulateCreateDoFile {LibraryUnit} {
 }
 
 proc SimulateCreateSubScripts {LibraryUnit Directory} {
+  # Write the commands sourcing a simulation's user scripts found in one directory.
+  #  LibraryUnit - Design unit being simulated.
+  #  Directory   - Directory to search for the scripts.
+  #
+  # Writes a `source` command into `ScriptFile` for each of these files that exists in $Directory, in this order:
+  #
+  # - `<ToolVendor>.tcl`
+  # - `<ToolName>.tcl`
+  # - `wave.do`, unless the simulator runs without GUI (`NoGui`)
+  # - `<LibraryUnit>.tcl`
+  # - `<LibraryUnit>_<ToolName>.tcl`
+  # - `<TestCaseName>.tcl` and `<TestCaseName>_<ToolName>.tcl`, if the test case name differs from $LibraryUnit
   variable TestCaseName 
   variable ToolVendor 
   variable ToolName 
@@ -87,6 +108,12 @@ proc SimulateCreateSubScripts {LibraryUnit Directory} {
 }
 
 proc ScriptCreateIfWaveDoExists {ScriptToRun LibraryUnit} {
+  # Write the command sourcing a waveform script into the simulator's start-up script, if the file exists.
+  #  ScriptToRun - Path of the waveform script, usually `wave.do`.
+  #  LibraryUnit - Design unit being simulated.
+  #
+  # The written command catches an error of the waveform script and calls `CallbackOnError_WaveDo`, so a broken
+  # waveform script doesn't stop the simulation.
   variable ScriptFile
   
   if {[file exists $ScriptToRun]} {
@@ -97,6 +124,10 @@ proc ScriptCreateIfWaveDoExists {ScriptToRun LibraryUnit} {
 }
 
 proc ScriptCreateIfFileExists {ScriptToRun} {
+  # Write the command sourcing a script into the simulator's start-up script, if the file exists.
+  #  ScriptToRun - Path of the script.
+  #
+  # Writes `source <ScriptToRun>` into the open channel `ScriptFile`.
   variable ScriptFile
 
   if {[file exists $ScriptToRun]} {
@@ -111,6 +142,14 @@ proc ScriptCreateIfFileExists {ScriptToRun} {
 #   Runs the script files that are found here as simulate is running
 #
 proc SimulateRunScripts {LibraryUnit} {
+  # Source a simulation's user scripts.
+  #  LibraryUnit - Design unit being simulated.
+  #
+  # Used by the `vendor_simulate` of simulators that run the simulation from the OSVVM script environment. Calls
+  # `SimulateRunSubScripts` for the current working directory, then for the current simulation directory and for OSVVM's
+  # script directory, each only if it differs from the directories before.
+  #
+  # See also: [simulate]
   variable  OsvvmScriptDirectory
   variable  CurrentSimulationDirectory
   variable  CurrentWorkingDirectory
@@ -129,6 +168,17 @@ proc SimulateRunScripts {LibraryUnit} {
 }
 
 proc SimulateRunSubScripts {LibraryUnit Directory} {
+  # Source a simulation's user scripts found in one directory.
+  #  LibraryUnit - Design unit being simulated.
+  #  Directory   - Directory to search for the scripts.
+  #
+  # Sources each of these files that exists in $Directory, in this order:
+  #
+  # - `<ToolVendor>.tcl`
+  # - `<ToolName>.tcl`
+  # - `wave.do`, unless the simulator runs without GUI (`NoGui`); an error calls `CallbackOnError_WaveDo`
+  # - `<LibraryUnit>.tcl` and `<LibraryUnit>_<ToolName>.tcl`
+  # - `<TestCaseName>.tcl` and `<TestCaseName>_<ToolName>.tcl`, if the test case name differs from $LibraryUnit
   variable TestCaseName 
   variable ToolVendor 
   variable ToolName 
@@ -148,6 +198,11 @@ proc SimulateRunSubScripts {LibraryUnit Directory} {
 }
 
 proc SimulateRunDesignScripts {TestName Directory} {
+  # Source the user scripts of a design unit or test case found in one directory.
+  #  TestName  - Name of the design unit or test case.
+  #  Directory - Directory to search for the scripts.
+  #
+  # Sources `<TestName>.tcl`, then `<TestName>_<ToolName>.tcl`, each if it exists in $Directory.
   variable ToolName
   
   RunIfFileExists [file join ${Directory} ${TestName}.tcl]
@@ -155,6 +210,8 @@ proc SimulateRunDesignScripts {TestName Directory} {
 }
 
 proc RunIfFileExists {ScriptToRun} {
+  # Source a script, if the file exists.
+  #  ScriptToRun - Path of the script.
   if {[file exists $ScriptToRun]} {
     source ${ScriptToRun}
   }

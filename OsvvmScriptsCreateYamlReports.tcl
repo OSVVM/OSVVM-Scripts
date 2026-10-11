@@ -54,6 +54,10 @@ package require fileutil
 
 # -------------------------------------------------
 proc  ElapsedTimeMs {StartTimeMs} {
+  # Compute the time elapsed since a start time.
+  #  StartTimeMs - Start time in milliseconds, from `clock milliseconds`.
+  #
+  # Returns the elapsed time in seconds with three decimals.
   set   FinishTimeMs  [clock milliseconds]
   set   Elapsed [expr ($FinishTimeMs - $StartTimeMs)]
   return [format %.3f [expr ${Elapsed}/1000.0]]
@@ -61,11 +65,18 @@ proc  ElapsedTimeMs {StartTimeMs} {
 
 # -------------------------------------------------
 proc  ElapsedTimeHms {StartTimeSec} {
+  # Do nothing: placeholder for an elapsed time in hours, minutes and seconds.
+  #  StartTimeSec - Start time in seconds.
+
 #!! TODO Refactor from FinishBuildYaml
 }
 
 # -------------------------------------------------
 proc GetIsoTime {TimeSeconds} {
+  # Format a time as ISO 8601 date and time with the local time zone offset.
+  #  TimeSeconds - Time in seconds, from `clock seconds`.
+  #
+  # Returns the time, formatted like `2026-10-10T16:20:00+02:00`.
   set  IsoTime [format "%s%s" [clock format $TimeSeconds -format {%Y-%m-%dT%H:%M:%S}] $::osvvm::IsoZone]
   return $IsoTime
 }
@@ -74,11 +85,20 @@ proc GetIsoTime {TimeSeconds} {
 # SecondsToOsvvmTime
 #
 proc SecondsToOsvvmTime {TimeInSec} {
+  # Format a time as date, time and time zone name.
+  #  TimeInSec - Time in seconds, from `clock seconds`.
+  #
+  # Returns the time as `%Y-%m-%d`, a dash, `%H:%M:%S` and the time zone name in parentheses.
   return [clock format $TimeInSec -format {%Y-%m-%d - %H:%M:%S (%Z)}]
 }
 
 # -------------------------------------------------
 proc StartBuildYaml {} {
+  # Start the build's YAML file.
+  #
+  # Stores the build's start time in `BuildStartTime` and `BuildStartTimeMs`, prints it and writes the YAML
+  # version and start date to the temporary build YAML file (`OsvvmTempYamlFile`), replacing an existing one.
+  # Called by [build] when a build starts.
   variable BuildStartTime
   variable BuildStartTimeMs
 
@@ -94,6 +114,14 @@ proc StartBuildYaml {} {
 }
 # -------------------------------------------------
 proc WriteBuildInfoYaml {RunFile BuildName {NamePrefix ""} {InfoPrefix ""} } {
+  # Write the build's name and information to a YAML file.
+  #  RunFile    - Channel of the open YAML file.
+  #  BuildName  - Name of the build.
+  #  NamePrefix - Text written before the `Name` key.
+  #  InfoPrefix - Text written before each key of the `BuildInfo` mapping.
+  #
+  # `BuildInfo` holds start and finish time, elapsed time, simulator name and version, OSVVM version, the build
+  # error code and the analyze and simulate error counts.
   variable BuildStartTime
 #  variable BuildStartTimeMs
   variable BuildErrorCode
@@ -123,6 +151,12 @@ proc WriteBuildInfoYaml {RunFile BuildName {NamePrefix ""} {InfoPrefix ""} } {
 
 # -------------------------------------------------
 proc FinishBuildYaml {BuildName} {
+  # Finish the build's YAML file.
+  #  BuildName - Name of the build.
+  #
+  # Stores the finish and elapsed time, appends the build information (`WriteBuildInfoYaml`) and the report
+  # settings (`WriteOsvvmSettingsYaml`) to the temporary build YAML file, and prints the start, finish and elapsed
+  # time. Called by [build] when the build ends.
   variable BuildStartTimeMs
   variable BuildStartTime
   variable BuildFinishTime
@@ -148,6 +182,12 @@ proc FinishBuildYaml {BuildName} {
 
 # -------------------------------------------------
 proc WriteIndexYaml {BuildName} {
+  # Add the build to the YAML index of all builds.
+  #  BuildName - Name of the build.
+  #
+  # Appends the build's entry to `OsvvmIndexYamlFile`, creating the file if it doesn't exist. The entry holds
+  # directory, status, the passed, failed and skipped test case counts, error counts, times, tool and OSVVM
+  # version. Called by [build] at its end; [Index2Html] creates the HTML index from the file.
   variable BuildStartTime
   variable BuildFinishTime
   variable BuildElapsedTime
@@ -200,6 +240,13 @@ proc WriteIndexYaml {BuildName} {
 
 # -------------------------------------------------
 proc WriteDictOfDict2Yaml {YamlFile DictName {DictValues ""} {Prefix ""} } {
+  # Write a key with a mapping of name value pairs to a YAML file.
+  #  YamlFile   - Channel of the open YAML file.
+  #  DictName   - Key to write.
+  #  DictValues - Name value pairs. Empty: the key's value is `null`.
+  #  Prefix     - Indentation written before each line.
+  #
+  # Values are written as quoted strings.
   if {$DictValues eq ""} {
     puts $YamlFile "${Prefix}${DictName}:           null"
   } else {
@@ -212,6 +259,11 @@ proc WriteDictOfDict2Yaml {YamlFile DictName {DictValues ""} {Prefix ""} } {
 
 # -------------------------------------------------
 proc WriteDictOfList2Yaml {YamlFile DictName {ListValues ""} {Prefix ""} } {
+  # Write a key with a sequence of strings to a YAML file.
+  #  YamlFile   - Channel of the open YAML file.
+  #  DictName   - Key to write.
+  #  ListValues - Strings to write. Empty: the key's value is an empty string.
+  #  Prefix     - Indentation written before each line.
   if {$ListValues eq ""} {
     puts $YamlFile "${Prefix}${DictName}:            \"\""
   } else {
@@ -224,6 +276,12 @@ proc WriteDictOfList2Yaml {YamlFile DictName {ListValues ""} {Prefix ""} } {
 
 # -------------------------------------------------
 proc WriteDict2IndexYaml {YamlFile ListOfDictName {Indent "  "} } {
+  # Write a list of mappings as a YAML sequence.
+  #  YamlFile       - Channel of the open YAML file.
+  #  ListOfDictName - List of mappings, each a list of name value pairs.
+  #  Indent         - Indentation of the sequence.
+  #
+  # Values of keys ending in `Version` are written as quoted strings, other values as they are.
   set NominalPrefix [string cat $Indent "  " ]
   foreach DictName $ListOfDictName {
     set Prefix [string cat $Indent "- "]
@@ -241,11 +299,22 @@ proc WriteDict2IndexYaml {YamlFile ListOfDictName {Indent "  "} } {
 
 # -------------------------------------------------
 proc WriteDictOfString2Yaml {YamlFile DictKey {StringValue ""} {Prefix ""} } {
+  # Write a key with a quoted string value to a YAML file.
+  #  YamlFile    - Channel of the open YAML file.
+  #  DictKey     - Key to write.
+  #  StringValue - Value to write.
+  #  Prefix      - Indentation written before the line.
   puts $YamlFile "${Prefix}${DictKey}: \"$StringValue\""
 }
 
 # -------------------------------------------------
 proc WriteDictOfRelativePath2Yaml {YamlFile DictKey RelativePath {PathValue ""} {Prefix ""} } {
+  # Write a key with a relative path to a YAML file.
+  #  YamlFile     - Channel of the open YAML file.
+  #  DictKey      - Key to write.
+  #  RelativePath - Directory the path is made relative to.
+  #  PathValue    - Path to write. Empty: the value is an empty string.
+  #  Prefix       - Indentation written before the line.
   if {$PathValue ne ""} {
     puts $YamlFile "${Prefix}${DictKey}:  \"[::fileutil::relative $RelativePath $PathValue]\""
   } else {
@@ -255,6 +324,12 @@ proc WriteDictOfRelativePath2Yaml {YamlFile DictKey RelativePath {PathValue ""} 
 
 # -------------------------------------------------
 proc WriteOsvvmSettingsYaml {ReportFile} {
+  # Write the report settings to a YAML file.
+  #  ReportFile - Channel of the open YAML file.
+  #
+  # Writes the mapping `OsvvmSettingsInfo`: the reports subdirectory, the build's log and HTML log files (if
+  # `TranscriptExtension` creates them), the requirements subdirectory (if the build has a requirements file),
+  # the code coverage file (if a simulation ran with code coverage), the report CSS files and the logo file.
 
   puts  $ReportFile "OsvvmSettingsInfo:"
 #  puts  $ReportFile "  BaseDirectory:        \"$::osvvm::OsvvmBuildOutputDirectory\""  ;# no absolute paths
@@ -294,6 +369,13 @@ proc WriteOsvvmSettingsYaml {ReportFile} {
 
 # -------------------------------------------------
 proc WriteTestCaseSettingsYaml {FileName} {
+  # Write the settings YAML file of the current test case.
+  #  FileName - YAML file to write.
+  #
+  # Holds the test case, test suite and build names, the test case's source file, generics, the paths of its
+  # report files (relative to the build directory), its scoreboards, transcript files and the report settings
+  # (`WriteOsvvmSettingsYaml`). Called after each [simulate]; [Simulate2Html] reads it.
+
   # Make paths relative to build directory
   set LocalOutDir [file join [pwd] $::osvvm::OutputBaseDirectory $::osvvm::BuildName]
 
@@ -328,6 +410,12 @@ proc WriteTestCaseSettingsYaml {FileName} {
 
 # -------------------------------------------------
 proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
+  # Start a test suite in the build's YAML file.
+  #  SuiteName - Name of the test suite.
+  #  FirstRun  - `1` for the build's first test suite: the `TestSuites` key is written first.
+  #
+  # Appends the test suite's entry to the temporary build YAML file and stores its start time in
+  # `TestSuiteStartTimeMs`. Called by [TestSuite].
   variable TestSuiteStartTimeMs
 
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
@@ -347,6 +435,10 @@ proc StartTestSuiteBuildYaml {SuiteName FirstRun} {
 
 # -------------------------------------------------
 proc FinishTestSuiteBuildYaml {} {
+  # Finish the current test suite in the build's YAML file.
+  #
+  # Appends the test suite's elapsed time to the temporary build YAML file. Called by [TestSuite] before the next
+  # test suite starts, and by [build] at its end.
   variable TestSuiteStartTimeMs
 
   set   RunFile  [open ${::osvvm::OsvvmTempYamlFile} a]
@@ -357,6 +449,11 @@ proc FinishTestSuiteBuildYaml {} {
 
 # -------------------------------------------------
 proc StartSimulateBuildYaml {TestName} {
+  # Start a test case in the build's YAML file.
+  #  TestName - Name of the test case.
+  #
+  # Stores the simulation's start time, prints it and appends the test case's entry to the temporary build YAML
+  # file. Called by [simulate].
   variable SimulateStartTime
   variable SimulateStartTimeMs
 
@@ -372,6 +469,10 @@ proc StartSimulateBuildYaml {TestName} {
 
 # -------------------------------------------------
 proc FinishSimulateBuildYaml {} {
+  # Finish the current test case in the build's YAML file.
+  #
+  # Prints the simulation's finish and elapsed time and appends the test case's file name, generics and elapsed
+  # time to the temporary build YAML file. Called after each [simulate].
   variable TestCaseFileName
   variable SimulateStartTime
   variable SimulateStartTimeMs
@@ -397,6 +498,11 @@ proc FinishSimulateBuildYaml {} {
 # SkipTest
 #
 proc SkipTestBuildYaml {SimName Reason} {
+  # Add a skipped test case to the build's YAML file.
+  #  SimName - Name of the test case.
+  #  Reason  - Reason for skipping it.
+  #
+  # The test case's status is `SKIPPED`. Called by [SkipTest].
 
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "      - TestCaseName: $SimName"
@@ -412,6 +518,11 @@ proc SkipTestBuildYaml {SimName Reason} {
 # AnalyzeFailed
 #
 proc AnalyzeFailedBuildYaml {LibraryUnit Reason} {
+  # Add a test case, whose analyze failed, to the build's YAML file.
+  #  LibraryUnit - Name of the test case.
+  #  Reason      - Reason for the failure.
+  #
+  # The test case's status is `ANALYZE_FAILED`. Called by [simulate] if the previous [analyze] failed.
 
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "      - TestCaseName: $LibraryUnit"
@@ -427,6 +538,18 @@ proc AnalyzeFailedBuildYaml {LibraryUnit Reason} {
 # ExpectedStatus
 #
 proc ExpectedStatus {Status Failure Error Warning {Reason ""}} {
+  # Set the expected result of the current test case.
+  #  Status  - Expected status: `PASSED`, `FAILED`, `SKIPPED`, `NOREPORTS` or `ANALYZE_FAILED`.
+  #  Failure - Expected number of failure alerts.
+  #  Error   - Expected number of error alerts.
+  #  Warning - Expected number of warning alerts.
+  #  Reason  - Reason for the expected result.
+  #
+  # Call it after the test case's [simulate] or [SkipTest]. It appends the expected results to the test case's
+  # entry in the build's YAML file. The build reports count the test case as passed if its status and alert
+  # counts match the expected ones, else as failed. This way, a test case expected to fail passes.
+  #
+  # See also: [KnownStatus]
 
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "        ExpectedResults:"
@@ -444,6 +567,15 @@ proc ExpectedStatus {Status Failure Error Warning {Reason ""}} {
 # KnownStatus
 #
 proc KnownStatus {Status Reason} {
+  # Record the known status of the current test case.
+  #  Status - Known status: `PASSED`, `FAILED`, `SKIPPED`, `NOREPORTS` or `ANALYZE_FAILED`.
+  #  Reason - Reason for the status.
+  #
+  # Call it after the test case's [simulate] or [SkipTest]. It appends the known status to the test case's entry
+  # in the build's YAML file. The build reports show it, and count a test case whose status differs from the
+  # known one as a status change.
+  #
+  # See also: [ExpectedStatus]
 
   set RunFile [open ${::osvvm::OsvvmTempYamlFile} a]
   puts  $RunFile "        KnownStatus: \"$Status\""

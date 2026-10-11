@@ -4,6 +4,7 @@
 RUFF_TITLE="OSVVM Scripts"
 RUFF_NAMESPACES="::osvvm"
 RUFF_DIR="osvvm-scripts"
+RUFF_SPHINX_PREFIX="RUFF"
 
 # Sphinx settings
 SPHINX_BUILD_DIR="_build"
@@ -175,7 +176,7 @@ if [[ ${RUFF} -eq 1 ]]; then
 	mkdir -p ${SPHINX_BUILD_DIR}
 	tclsh - << EOF | tee ${SPHINX_BUILD_DIR}/ruff.log | sed 's/^/  /'
 puts "${TCL_CYAN}\[EXPORT SCRIPT\] Load Ruff! ...${TCL_NOCOLOR}"
-puts "Ruff version: [package require ruff]"
+puts "Ruff version: [package require ruff 3]"
 
 puts "${TCL_CYAN}\[EXPORT SCRIPT\] Source ${RUFF_DIR} ...${TCL_NOCOLOR}"
 source ../StartUp.tcl
@@ -220,15 +221,22 @@ EOF
 			sed -i -E 's/^========//g' ${rstFile}
 
 		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Correct index entry${ANSI_NOCOLOR}\n"
-			sed -i -E 's/   single: ::osvvm::/   single: ::osvvm; /g' ${rstFile}
+			sed -i -E 's/^   single: (\w+) namespace;/   single: ::\1; /g' ${rstFile}
 
-		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove links from headings${ANSI_NOCOLOR}\n"
-			sed -i -E 's/^``(\w+)``.*$/\1/g' ${rstFile}
-			#sed -i -E 's/-----------------------------------------------$//g' ${rstFile}    # for pagesplit
-			sed -i -E 's/-----------------------------------------$//g' ${rstFile}           # for single page
+		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Add readable labels${ANSI_NOCOLOR}\n"
+			sed -i -E "s|^\.\. _r-3a3a(\w+)3a3a(\w+):|&\n.. _${RUFF_SPHINX_PREFIX}/\1/\2:|" ${rstFile}
+
+		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove inline code markers from headings${ANSI_NOCOLOR}\n"
+			sed -i -E '/^``\w+``$/{N; s/^``(\w+)``\n----/\1\n/}' ${rstFile}
 
 		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove inline code markers from parameter names${ANSI_NOCOLOR}\n"
 			sed -i -E 's/^:``(\w+)``:/:\1:/g' ${rstFile}
+
+		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Link glossary terms and abbreviations${ANSI_NOCOLOR}\n"
+			if ! python LinkTerms.py --glossary Glossary.rst --abbreviations Abbreviations.rst "${rstFile}"; then
+				PrintError "    " "Linking glossary terms and abbreviations in '${rstFile}' failed."
+				exit 1
+			fi
 	done
 fi
 

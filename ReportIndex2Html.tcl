@@ -48,6 +48,13 @@ package require yaml
 # Index2Html
 #
 proc Index2Html {} {
+  # Create the HTML index of all builds from the build index file.
+  #
+  # Reads the `Builds` of `OsvvmIndexYamlFile` - `index.yml` in the output base directory - and writes
+  # `OsvvmIndexHtmlFile` - `index.html` - with one row per build, newest first (`LocalIndex2Html`). On an error, the
+  # file is closed and `CallbackOnError_Index2Html` is called.
+  #
+  # Called at the end of a [build].
   variable ResultsFile
   variable IndexDict
 
@@ -72,6 +79,11 @@ proc Index2Html {} {
 # LocalIndex2Html
 #
 proc LocalIndex2Html {} {
+  # Write the HTML index of all builds.
+  #
+  # Writes the header with the title `Index of Builds` and the OSVVM logo, the table (`CreateBuildIndexHeader`,
+  # `CreateBuildIndexSummary`) and the footer. CSS and logo files are taken from the directory of the first build of the
+  # index.
   variable ResultsFile
   variable IndexDict
   variable FirstBuildName
@@ -92,6 +104,10 @@ proc LocalIndex2Html {} {
 # CreateBuildIndexHeader
 #
 proc CreateBuildIndexHeader {} {
+  # Write the start and the column headings of the build index table.
+  #
+  # Columns: build, status, test cases (passed, failed, skipped), elapsed time, analyze errors, simulate errors,
+  # simulator, OSVVM version and date.
   variable ResultsFile
 
   puts $ResultsFile "    <div class=\"RequirementsResults\">"
@@ -121,6 +137,11 @@ proc CreateBuildIndexHeader {} {
 # CreateBuildIndexSummary
 #
 proc CreateBuildIndexSummary  {} {
+  # Write one row per build of the index, newest first, and the end of the table.
+  #
+  # Missing entries of a build get default values, the status `FAILED`. The build name links to
+  # `<Directory>/<Name>.html` if the build has a directory. The elapsed time is shown as `h:mm:ss`, the date is the
+  # build's finish time.
   variable ResultsFile
   variable IndexDict
   variable FirstBuildName

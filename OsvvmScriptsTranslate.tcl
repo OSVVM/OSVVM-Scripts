@@ -53,20 +53,20 @@ namespace eval ::osvvm {
 # CreateDryRunDict
 #
 proc CreateDryRunDict {ProFileToBuild} {
-  # CreateDryRunDict runs a build script in DryRunMode and 
-  # creates dictionaries and lists of Analyze and Simulate information.
-  # The Analyze dictionary, ::osvvm::AnalyzeDict, has a dictionary
-  # for each library used.  For each library there is an list of 
-  # dictionaries that contain the file analyzed as well as language version used.
-  # The list, ::osvvm::AnalyzeOrderList, has a list of dictionaries 
-  # that contain the file name, library, and vhdl version.
-  # The Simulation dictionary, ::osvvm::SimulateDict, has a dictionary
-  # for each library used.  For each library there is an list of 
-  # dictionaries that contain information passed to simulate.
-	#
-  #  ProFileToBuild - Path to the pro file that build the entire design.
-  #  WhereToCreate  - Directory into which to create vhdl_ls.toml.  Default = .
-	#
+  # Run a build script in dry-run mode and record what it analyzes and simulates.
+  #  ProFileToBuild - Path to the build script (`*.pro`) of the design.
+  #
+  # Replaces the vendor procedures with the recording ones of `VendorScripts_DryRunDict.tcl`, runs [build] on
+  # $ProFileToBuild with the build name `CreateDryRunDict` and OSVVM's reports disabled, then sources the active
+  # simulator's vendor script again and restores the report setting. Nothing is analyzed or simulated.
+  #
+  # The recording is stored in three variables of the `::osvvm` namespace:
+  #
+  # `AnalyzeDict` - Per library, a list of dictionaries with the analyzed file and its language version.
+  # `AnalyzeOrderList` - A list of dictionaries with file name, library and VHDL version, in analyze order.
+  # `SimulateDict` - Per library, a list of dictionaries with the arguments passed to [simulate].
+  #
+  # See also: [CreateVhdlLsToml] [CreateAnalyzeOrderCsv] [ProToYaml] [ProToJson]
   
   variable GenerateOsvvmReports
   set SavedGenerateOsvvmReports $GenerateOsvvmReports
@@ -93,12 +93,14 @@ proc CreateDryRunDict {ProFileToBuild} {
 # CreateVhdlLsToml for VHDL LS
 #
 proc CreateVhdlLsToml {ProFileToBuild {FileNameAndPath "./vhdl_ls.toml"}} {
-  # CreateVhdlLsToml runs a build script in DryRunMode and 
-  # creates a vhdl_ls.toml file.
-	#
-  #  ProFileToBuild - Path to the pro file that build the entire design.
-  #  FileNameAndPath  - Name of file to create.  Default:  ./vhdl_ls.toml
-	#
+  # Create a VHDL-LS configuration file for a build script.
+  #  ProFileToBuild  - Path to the build script (`*.pro`) of the design.
+  #  FileNameAndPath - Path of the configuration file to write.
+  #
+  # Runs [CreateDryRunDict] on $ProFileToBuild and writes a `vhdl_ls.toml` file for the VHDL language server VHDL-LS:
+  # a `[libraries]` table listing the analyzed files of each library.
+  #
+  # See also: [CreateDryRunDict]
   variable AnalyzeDict
 
   # Create AnalyzeDict for the ProFileToBuild script
@@ -123,12 +125,14 @@ proc CreateVhdlLsToml {ProFileToBuild {FileNameAndPath "./vhdl_ls.toml"}} {
 }
 
 proc CreateAnalyzeOrderCsv {ProFileToBuild {FileNameAndPath "./AnalyzeOrder.csv"}} {
-  # CreateAnalyzeOrderCsv runs a build script in DryRunMode and 
-  # creates a AnalyzeOrder.csv file.
-	#
-  #  ProFileToBuild  - Path to the pro file that build the entire design.
-  #  FileNameAndPath - Name of file to create.  Default:  ./AnalyzeOrder.csv  
-	#
+  # Create a CSV file listing the files of a build script in analyze order.
+  #  ProFileToBuild  - Path to the build script (`*.pro`) of the design.
+  #  FileNameAndPath - Path of the CSV file to write.
+  #
+  # Runs [CreateDryRunDict] on $ProFileToBuild and writes the analyzed files in analyze order, one per line, separated
+  # by commas.
+  #
+  # See also: [CreateDryRunDict]
   variable AnalyzeOrderList
 
   # Create AnalyzeDict for the ProFileToBuild script
@@ -148,12 +152,14 @@ proc CreateAnalyzeOrderCsv {ProFileToBuild {FileNameAndPath "./AnalyzeOrder.csv"
 }
 
 proc ProToYaml {ProFileToBuild {FilePath "."}} {
-  # ProToYaml runs a build script in DryRunMode and 
-  # creates a Analyze.yaml and Simulate.yaml file.
-	#
-  #  ProFileToBuild  - Path to the pro file that build the entire design.
-  #  FilePath        - Path to Analyze.yaml and Simulate.yaml
-	#
+  # Translate a build script into YAML files listing what it analyzes and simulates.
+  #  ProFileToBuild - Path to the build script (`*.pro`) of the design.
+  #  FilePath       - Directory to write the YAML files to.
+  #
+  # Runs [CreateDryRunDict] on $ProFileToBuild and writes `AnalyzeDict` to `<name>_Analyze.yml` and `SimulateDict` to
+  # `<name>_Simulate.yml`, where `<name>` is the build script's file name without extension.
+  #
+  # See also: [CreateDryRunDict] [ProToJson]
 
   # Create AnalyzeDict and SimulateDict for the ProFileToBuild script
   variable AnalyzeDict
@@ -178,12 +184,14 @@ proc ProToYaml {ProFileToBuild {FilePath "."}} {
 }
 
 proc ProToJson {ProFileToBuild {FilePath "."}} {
-  # ProToJson runs a build script in DryRunMode and 
-  # creates a Analyze.json and Simulate.json file.
-	#
-  #  ProFileToBuild  - Path to the pro file that build the entire design.
-  #  FilePath        - Path to Analyze.json and Simulate.json
-	#
+  # Translate a build script into JSON files listing what it analyzes and simulates.
+  #  ProFileToBuild - Path to the build script (`*.pro`) of the design.
+  #  FilePath       - Directory to write the JSON files to.
+  #
+  # Runs [CreateDryRunDict] on $ProFileToBuild and writes `AnalyzeDict` to `<name>_Analyze.json` and `SimulateDict` to
+  # `<name>_Simulate.json`, where `<name>` is the build script's file name without extension.
+  #
+  # See also: [CreateDryRunDict] [ProToYaml]
 
   # Create AnalyzeDict and SimulateDict for the ProFileToBuild script
   variable AnalyzeDict

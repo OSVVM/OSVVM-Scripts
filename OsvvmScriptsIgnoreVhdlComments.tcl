@@ -40,6 +40,11 @@ namespace eval ::osvvm {
 
 # -------------------------------------------------
 proc -- {args} {
+  # Ignore a line starting with a VHDL comment and print a warning.
+  #  args - The rest of the line.
+  #
+  # Defines `--` as a command, so a VHDL comment accidentally used in a Tcl script doesn't raise an error. Prints a
+  # request to use Tcl comments and the offending line.
   puts "Please stop using VHDL comments in Tcl.  Line in issue is:"
   puts "$args"
 }

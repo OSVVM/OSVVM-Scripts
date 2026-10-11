@@ -43,14 +43,40 @@
 package require yaml
 
 proc Requirements2Html {RequirementsYamlFile {AdditionalPath ""} } {
+  # Create the HTML requirements report from a requirements YAML file.
+  #  RequirementsYamlFile - Requirements file `<Name>_req.yml`.
+  #  AdditionalPath       - Path put before the HTML theme directory, for a report one directory deeper: `../`.
+  #
+  # Writes `<Name>_req.html` next to the YAML file, titled `<Name> Requirement Results`. Does nothing if the file
+  # doesn't exist.
+  #
+  # Called for each test suite and at the end of a [build], after [MergeRequirements].
+  #
+  # See also: [Requirements2Csv] [MergeRequirements] [SetRequirementTestCaseFailsIfLessThanGoal]
   RequirementsTo "html" $RequirementsYamlFile $AdditionalPath
 }
 
 proc Requirements2Csv {RequirementsYamlFile {AdditionalPath ""} } {
+  # Create the CSV requirements report from a requirements YAML file.
+  #  RequirementsYamlFile - Requirements file `<Name>_req.yml`.
+  #  AdditionalPath       - Not used for CSV.
+  #
+  # Writes `<Name>_req.csv` next to the YAML file, one line per requirement: requirement, status (if
+  # [SetRequirementCsvPrintStatus] is set), goal, passed, errors, failures, errors and warnings - each including the
+  # disabled ones -, checks and passed checks. Does nothing if the file doesn't exist.
+  #
+  # See also: [Requirements2Html] [SetRequirementCsvPrintStatus]
   RequirementsTo "csv" $RequirementsYamlFile $AdditionalPath
 }
 
 proc RequirementsTo {Extension RequirementsYamlFile {AdditionalPath ""} } {
+  # Create the HTML or CSV requirements report from a requirements YAML file.
+  #  Extension            - `html` or `csv`: the format and the file extension of the report.
+  #  RequirementsYamlFile - Requirements file `<Name>_req.yml`.
+  #  AdditionalPath       - Path put before the HTML theme directory.
+  #
+  # Does nothing if the file doesn't exist. Writes `<Name>_req.<Extension>` next to it (`LocalRequirementsTo`). On an
+  # error, the file is closed and `CallbackOnError_AnyReport` is called.
   variable ResultsFile
 
   if {[file exists $RequirementsYamlFile]} {
@@ -73,6 +99,16 @@ proc RequirementsTo {Extension RequirementsYamlFile {AdditionalPath ""} } {
 
 
 proc LocalRequirementsTo { IsHtml RequirementsYamlFile ReportName AdditionalPath } {
+  # Write the requirements report.
+  #  IsHtml               - If true, write HTML, else CSV.
+  #  RequirementsYamlFile - Requirements file.
+  #  ReportName           - Name of the report, the file name without `_req`.
+  #  AdditionalPath       - Path put before the HTML theme directory.
+  #
+  # Writes one line per requirement, sorted by requirement. A requirement with several test cases gets their merged
+  # results (`MergeTestCaseResults`); the HTML report adds one line per test case, first the ones from the
+  # specification, then the others. A requirement fails if it passed less often than its goal; a test case line only if
+  # [SetRequirementTestCaseFailsIfLessThanGoal] is set, a specification line never.
   variable ResultsFile
 
   if {$IsHtml} {
@@ -116,6 +152,12 @@ proc LocalRequirementsTo { IsHtml RequirementsYamlFile ReportName AdditionalPath
 }
 
 proc RequirementsTableHeader { ReportName AdditionalPath } {
+  # Write the HTML header and the column headings of the requirements report.
+  #  ReportName     - Name of the report, used in the title.
+  #  AdditionalPath - Path put before the HTML theme directory with the CSS files and the logo.
+  #
+  # Columns: requirement, test name, status, requirements (goal, passed), checks (total, passed, failed), alert counts
+  # and disabled alert counts (failures, errors, warnings each).
   variable ResultsFile
 
   puts $ResultsFile "<!DOCTYPE html>"
@@ -167,6 +209,14 @@ proc RequirementsTableHeader { ReportName AdditionalPath } {
 }
 
 proc WriteOneRequirement {FailIfLessThanGoal IsHtml TestCase {Requirement ""}} {
+  # Write the line of a requirement or of one of its test cases.
+  #  FailIfLessThanGoal - If true, the line fails if the requirement passed less often than its goal.
+  #  IsHtml             - If true, write an HTML table row, else a CSV line.
+  #  TestCase           - Results of the test case, or the merged results of the requirement.
+  #  Requirement        - Name of the requirement. Empty for a test case line.
+  #
+  # The CSV line adds the disabled alert counts to the alert counts and has the status only if
+  # [SetRequirementCsvPrintStatus] is set.
   variable ResultsFile
 
   set TestName             [dict get $TestCase  TestName]
@@ -249,6 +299,15 @@ proc WriteOneRequirement {FailIfLessThanGoal IsHtml TestCase {Requirement ""}} {
 }
 
 proc MergeTestCaseResults { TestCases } {
+  # Merge the results of the test cases of one requirement.
+  #  TestCases - Results of the test cases of the requirement.
+  #
+  # Counts, checks and alert counts are summed. The goal is the sum of the goals if [SetRequirementUseSumOfGoals] is
+  # set, else the highest goal. Each test case contributes at most its goal to the passed count if
+  # [SetRequirementDoesNotExceedGoal] is set. The status is `FAILED` if a test case failed, or passed less often than
+  # its goal while [SetRequirementTestCaseFailsIfLessThanGoal] is set.
+  #
+  # Returns the merged results with the test name `Merged`, in the form of a test case's results.
 
   set TestName             Merged
   set Status               PASSED
@@ -321,6 +380,9 @@ proc MergeTestCaseResults { TestCases } {
 }
 
 proc RequirementsTableFooter {} {
+  # Write the end of the requirements table and of the HTML document.
+  #
+  # The footer holds the OSVVM version and the date.
   variable ResultsFile
 
   puts $ResultsFile "      </tbody>"

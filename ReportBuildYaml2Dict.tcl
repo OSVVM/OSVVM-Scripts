@@ -63,6 +63,15 @@ package require yaml
 # CreateBuildReports
 #
 proc CreateBuildReports {ReportFile} {
+  # Create the HTML and JUnit XML build summary reports from a build YAML file.
+  #  ReportFile - Build YAML file `<BuildName>.yml`.
+  #
+  # Reads the file ([ReportBuildYaml2Dict]) and writes `<BuildName>.html` ([ReportBuildDict2Html]) and `<BuildName>.xml`
+  # ([ReportBuildDict2Junit]) into its directory. Afterwards `BuildDict` is cleared, unless `TclDebug` is set.
+  #
+  # Called at the end of a [build].
+  #
+  # See also: [ReportBuildYaml2Dict] [ReportBuildDict2Html] [ReportBuildDict2Junit]
   ReportBuildYaml2Dict ${ReportFile}
   ReportBuildDict2Html
   ReportBuildDict2Junit
@@ -75,6 +84,15 @@ proc CreateBuildReports {ReportFile} {
 # ReportBuildYaml2Dict
 #
 proc ReportBuildYaml2Dict {ReportFile} {
+  # Read a build YAML file and compute the results of the build.
+  #  ReportFile - Build YAML file `<BuildName>.yml`.
+  #
+  # Sets `Report2BaseDirectory` to the file's directory, `ReportFileRoot` to its path without extension,
+  # `ReportBuildName` to its name without extension and `BuildDict` to its contents. Then computes the path settings,
+  # the test suite summaries and the build status (`LocalReportBuildYaml2Dict`), used by [ReportBuildDict2Html],
+  # [ReportBuildDict2Junit] and `ReportBuildStatus`. On an error, `CallbackOnError_ReportBuildYaml2Dict` is called.
+  #
+  # See also: [CreateBuildReports]
   variable ReportFileRoot
   variable ReportBuildName
   variable BuildDict
@@ -102,6 +120,11 @@ proc ReportBuildYaml2Dict {ReportFile} {
 # LocalReportBuildYaml2Dict
 #
 proc LocalReportBuildYaml2Dict {BuildDict} {
+  # Compute the path settings, the test suite summaries and the status of a build.
+  #  BuildDict - Contents of the build YAML file.
+  #
+  # Calls `GetOsvvmPathSettings`, `ElaborateTestSuites` and `GetBuildStatus`. Errors are handled by
+  # [ReportBuildYaml2Dict].
   variable ReportBuildName
 
   GetOsvvmPathSettings $BuildDict
@@ -116,6 +139,11 @@ proc LocalReportBuildYaml2Dict {BuildDict} {
 # ReportBuildStatus
 #
 proc ReportBuildStatus {} {
+  # Print the summary line of the build.
+  #
+  # Prints `Build: <BuildName> PASSED`, followed by the number of passed, failed and skipped test cases and of analyze
+  # and simulate errors. For a failed build, the line starts with `BuildError:` and ends with the build error code. Uses
+  # the results of [ReportBuildYaml2Dict].
   variable ReportBuildName
   variable ReportBuildErrorCode
   variable ReportAnalyzeErrorCount
@@ -136,6 +164,16 @@ proc ReportBuildStatus {} {
 # MatchExpectedResults
 #
 proc MatchExpectedResults {TestStatus TestCase} {
+  # Check whether a test case has its expected results.
+  #  TestStatus - Status of the test case.
+  #  TestCase   - Results of the test case from the build YAML file, with its `ExpectedResults`.
+  #
+  # For the status `NOREPORTS`, `SKIPPED` or `ANALYZE_FAILED`, only the status is compared. Otherwise the status, the
+  # total error count and the failure, error and warning alert counts must equal the expected ones.
+  #
+  # Returns 1 if the test case has its expected results, else 0.
+  #
+  # See also: [ExpectedStatus]
   set ExpectedResults      [dict get $TestCase ExpectedResults]
   set ExpectedAlertCount   [dict get $ExpectedResults AlertCount]
   set ExpectedStatus       [dict get $ExpectedResults Status]
@@ -168,6 +206,23 @@ proc MatchExpectedResults {TestStatus TestCase} {
 # ElaborateTestSuites
 #
 proc ElaborateTestSuites {TestDict} {
+  # Count the results of the test cases per test suite and for the build.
+  #  TestDict - Contents of the build YAML file.
+  #
+  # Sets `HaveTestSuites`, the counts `TestCasesPassed`, `TestCasesFailed`, `TestCasesSkipped`, `TrackedTestCasesFailed`
+  # and `TrackedTestCasesStatusChange`, and `BuildStatus`. Fills `TestSuiteSummaryArrayOfDictionaries` with one entry
+  # per test suite: name, status, passed, failed and skipped test cases, requirements passed and goal, disabled alerts
+  # and elapsed time.
+  #
+  # - A test case with expected results passes if it has them (`MatchExpectedResults`).
+  # - Otherwise it fails if its test name doesn't match its VHDL name and `FailOnVhdlNameNotMatchTestName` is set. It
+  #   passes with the status `PASSED`, or `NOCHECKS` while `FailOnNoChecks` isn't set, and fails with any other
+  #   status. A test case without results has the status `NOREPORTS`.
+  # - A failed test case with a known status ([KnownStatus]) counts as tracked failure if its status equals the known
+  #   status. A test case whose status differs from its known status counts as status change.
+  # - A test suite is `FAILED` with a failed test case, else `PASSED` with a passed one, else `SKIPPED` with a skipped
+  #   one, else `EMPTY`. A failed test suite fails the build, an empty one if `FailOnEmptyTestSuite` is set.
+
   # Summary dictionaries
   variable TestSuiteSummaryArrayOfDictionaries ""
   variable HaveTestSuites
@@ -306,6 +361,13 @@ proc ElaborateTestSuites {TestDict} {
 # GetBuildStatus
 #
 proc GetBuildStatus {TestDict} {
+  # Read the build information of a build and complete its status.
+  #  TestDict - Contents of the build YAML file.
+  #
+  # Sets from `BuildInfo`: the build error code, the analyze and simulate error counts, start and finish time, elapsed
+  # time (seconds, rounded seconds and `h:mm:ss`), simulator, simulator version and OSVVM version. Missing entries get
+  # defaults; a missing `BuildInfo` counts as build error. Sets `BuildStatus` to `FAILED` on a build, analyze or
+  # simulate error, and `RequirementsRelativeHtml` to the build's requirements report if the build uses requirements.
   variable ReportBuildName
 
   variable ReportBuildErrorCode
@@ -402,6 +464,10 @@ proc GetBuildStatus {TestDict} {
 # IsoToOsvvmTime
 #
 proc IsoToOsvvmTime {IsoTime} {
+  # Convert an ISO 8601 time stamp to the time format of OSVVM's reports.
+  #  IsoTime - Time stamp `YYYY-MM-DDThh:mm:ss+hhmm`.
+  #
+  # Returns the time as `YYYY-MM-DD - hh:mm:ss (<time zone>)`, in the local time zone.
   set TimeInSec [clock scan $IsoTime -format {%Y-%m-%dT%H:%M:%S%z} ]
   return [clock format $TimeInSec -format {%Y-%m-%d - %H:%M:%S (%Z)}]
 }

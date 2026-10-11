@@ -68,6 +68,13 @@ package require fileutil
 # ReportBuildDict2Html
 #
 proc ReportBuildDict2Html {} {
+  # Create the HTML build summary report.
+  #
+  # Writes `<BuildName>.html` next to the build YAML file read by [ReportBuildYaml2Dict]: the build summary, the test
+  # suite summary and one test case summary per test suite (`LocalReportBuildDict2Html`). On an error, the file is
+  # closed and `CallbackOnError_ReportBuildDict2Html` is called.
+  #
+  # See also: [CreateBuildReports] [ReportBuildYaml2Dict] [ReportBuildDict2Junit]
   variable ResultsFile
   variable ReportFileRoot
 
@@ -89,6 +96,11 @@ proc ReportBuildDict2Html {} {
 # LocalReportBuildDict2Html
 #
 proc LocalReportBuildDict2Html {} {
+  # Write the HTML build summary report.
+  #
+  # Writes the header with the title `<BuildName> Build Report`, the build summary (`CreateHtmlSummary`), the test suite
+  # summary (`CreateTestSuiteSummary`), the test case summaries (`CreateTestCaseSummaries`) and the footer. Errors are
+  # handled by [ReportBuildDict2Html].
   variable ResultsFile
   variable ReportBuildName
   variable BuildDict
@@ -109,6 +121,13 @@ proc LocalReportBuildDict2Html {} {
 # CreateHtmlSummary
 #
 proc CreateHtmlSummary {TestDict} {
+  # Write the build summary table of the HTML build report.
+  #  TestDict - Contents of the build YAML file. Not used.
+  #
+  # Rows: status, passed and failed test cases, untracked failures - failed test cases without a known status -, changes
+  # of tracked test cases, skipped test cases, analyze and simulate failures, start and finish time, elapsed time,
+  # simulator and OSVVM version, and links to the simulator transcript, its HTML version, the requirements summary, the
+  # code coverage results and the build index `index.html`. Followed by the OSVVM logo.
   variable ResultsFile
   variable ReportBuildName
 
@@ -230,6 +249,11 @@ proc CreateHtmlSummary {TestDict} {
 # CreateTestSuiteSummary
 #
 proc CreateTestSuiteSummary  {} {
+  # Write the test suite summary table of the HTML build report.
+  #
+  # Only if the build has test suites. One row per test suite of `TestSuiteSummaryArrayOfDictionaries`: name, linked to
+  # its test case summary, status, passed, failed and skipped test cases, requirements passed and goal, linked to the
+  # test suite's requirements report if it exists, disabled alerts and elapsed time.
   variable HaveTestSuites
   variable TestSuiteSummaryArrayOfDictionaries
   variable ResultsFile
@@ -305,6 +329,15 @@ proc CreateTestSuiteSummary  {} {
 # CreateTestCaseSummaries
 #
 proc CreateTestCaseSummaries {TestDict} {
+  # Write one test case summary table per test suite of the HTML build report.
+  #  TestDict - Contents of the build YAML file.
+  #
+  # One row per test case: name, with the generic values, linked to its test case report, status, checks (total, passed,
+  # failed), requirements (goal, passed), functional coverage, disabled alerts and elapsed time. A test case without
+  # report - skipped, failed to analyze, or not completed - shows its reason instead. A test case with expected results
+  # gets the status `PASSED` or `FAILED` from them and an extra row with the expected status, a test case with a known
+  # status an extra row with it. A mismatch of test name and VHDL name shows `NAME_MISMATCH` if
+  # `FailOnVhdlNameNotMatchTestName` is set.
   variable ResultsFile
 
   if { [dict exists $TestDict TestSuites] } {
@@ -495,6 +528,10 @@ proc CreateTestCaseSummaries {TestDict} {
 # SumAlertCount
 #
 proc SumAlertCount {AlertCountDict} {
+  # Sum the failure, error and warning counts of an alert count.
+  #  AlertCountDict - Alert counts with `Failure`, `Error` and `Warning`.
+  #
+  # Returns the sum of the absolute values of the three counts.
   return [expr {abs([dict get $AlertCountDict Failure]) + abs([dict get $AlertCountDict Error]) + abs([dict get $AlertCountDict Warning])}]
 }
 
@@ -503,6 +540,13 @@ proc SumAlertCount {AlertCountDict} {
 # Report2Html - provided for backward compatibility
 #
 proc Report2Html {BuildYamlFile} {
+  # Create the HTML build summary report from a build YAML file.
+  #  BuildYamlFile - Build YAML file `<BuildName>.yml`.
+  #
+  # Calls [ReportBuildYaml2Dict] and [ReportBuildDict2Html]. Kept for backward compatibility; [CreateBuildReports]
+  # creates the HTML and the JUnit XML report.
+  #
+  # See also: [CreateBuildReports] [Report2Junit]
   ReportBuildYaml2Dict ${BuildYamlFile}
   ReportBuildDict2Html
 }

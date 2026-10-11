@@ -28,34 +28,77 @@ namespace eval tee {
 }
 
 proc tee::default {command subcommand args} {
+    # Map an unknown subcommand of `tee` to `tee replace`.
+    #  command    - The ensemble command, `tee`.
+    #  subcommand - The unknown subcommand: the channel to duplicate.
+    #  args       - The remaining arguments: the file.
+    #
+    # Makes `tee <channel> <file>` a short form of `tee replace <channel> <file>`.
+    #
+    # Returns the command prefix to call instead.
     return [list $command replace $subcommand]
 }
 
 proc tee::channel {chan fd} {
+    # Duplicate the output written to a channel into another channel.
+    #  chan - Channel to duplicate, for example `stdout`.
+    #  fd   - Open channel receiving a copy of the output.
+    #
+    # Pushes the channel transformation `transchan` onto $chan.
+    #
+    # Returns $fd.
     chan push $chan [list [namespace which transchan] $fd]
     return $fd
 }
 
 proc tee::replace {chan file} {
+    # Duplicate the output written to a channel into a file, replacing the file.
+    #  chan - Channel to duplicate, for example `stdout`.
+    #  file - Path of the file; overwritten.
+    #
+    # Returns the channel of the opened file.
     return [channel $chan [open $file w]]
 }
 
 proc tee::append {chan file} {
+    # Duplicate the output written to a channel into a file, appending to the file.
+    #  chan - Channel to duplicate, for example `stdout`.
+    #  file - Path of the file; appended to.
+    #
+    # Returns the channel of the opened file.
     return [channel $chan [open $file a]]
 }
 
 proc tee::initialize {fd handle mode} {
+    # Initialize the channel transformation.
+    #  fd     - Channel receiving the copy.
+    #  handle - Handle of the transformed channel.
+    #  mode   - Access mode of the transformed channel.
+    #
+    # Returns the subcommands the transformation implements.
     variable methods
     return $methods
 }
 
 proc tee::finalize {fd handle} {
+    # Close the channel receiving the copy when the transformation is removed.
+    #  fd     - Channel receiving the copy.
+    #  handle - Handle of the transformed channel.
     if {$fd in [chan names]} {
         close $fd
     }
 }
 
 proc tee::write {fd handle buffer} {
+    # Copy written data into the receiving channel.
+    #  fd     - Channel receiving the copy.
+    #  handle - Handle of the transformed channel.
+    #  buffer - Data written to the transformed channel.
+    #
+    # The copy has NUL characters removed and carriage-return line-feed pairs replaced by line feeds.
+    #
+    # Returns $buffer unchanged, so the transformed channel receives the original data.
+
 #    puts -nonewline $fd $buffer
     # Remove Null and change crcrlf to crlf
     puts -nonewline $fd [regsub -all \r\n [regsub -all \x00 $buffer ""] \n]

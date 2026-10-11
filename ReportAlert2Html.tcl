@@ -45,6 +45,18 @@
 package require yaml
 
 proc Alert2Html {TestCaseName TestSuiteName AlertYamlFile} {
+  # Append the alert report of a test case to its HTML test case report.
+  #  TestCaseName  - Name of the test case.
+  #  TestSuiteName - Name of the test suite, used in error messages.
+  #  AlertYamlFile - Alert results file `<TestCaseName>_alerts.yml`, written by `AlertLogPkg`.
+  #
+  # Opens the HTML test case report `Report2TestCaseHtml` for appending and writes the alert settings and the alert
+  # results of `AlertYamlFile` to it (`LocalAlert2Html`). On an error, the report is closed and
+  # `CallbackOnError_Alert2Html` is called.
+  #
+  # Called by [Simulate2Html] if the alert results file exists.
+  #
+  # See also: [Simulate2Html] [Cov2Html] [Scoreboard2Html]
   variable ResultsFile
 
   set FilePath [file dirname $AlertYamlFile]
@@ -60,6 +72,14 @@ proc Alert2Html {TestCaseName TestSuiteName AlertYamlFile} {
 }
 
 proc LocalAlert2Html {TestCaseName TestSuiteName AlertYamlFile} {
+  # Write the alert section of an HTML test case report.
+  #  TestCaseName  - Name of the test case.
+  #  TestSuiteName - Name of the test suite. Not used.
+  #  AlertYamlFile - Alert results file `<TestCaseName>_alerts.yml`.
+  #
+  # Reads `AlertYamlFile` and writes the settings table (`AlertSettings`), the head of the results table
+  # (`CreateAlertResultsHeader`), one row per alert log ID (`AlertWrite`) and the end of the section
+  # (`CreateAlertResultsFooter`) to `ResultsFile`. Errors are handled by [Alert2Html].
   variable ResultsFile
 
   set Alert2HtmlDict [::yaml::yaml2dict -file ${AlertYamlFile}]
@@ -74,6 +94,12 @@ proc LocalAlert2Html {TestCaseName TestSuiteName AlertYamlFile} {
 }
 
 proc AlertSettings {AlertDict} {
+  # Write the heading and the alert settings table of an alert report.
+  #  AlertDict - Alert results of the top-level alert log ID, read from the alert results file.
+  #
+  # Writes the heading `<Name> Alert Report` and a table to `ResultsFile` with the settings `FailOnWarning`,
+  # `FailOnDisabledErrors` and `FailOnRequirementErrors`, the external alert counts, which are added to the alert
+  # counts, and the expected alert counts, which are subtracted from them.
   variable ResultsFile
 
   set Name     [dict get $AlertDict Name]
@@ -152,6 +178,11 @@ proc AlertSettings {AlertDict} {
 }
 
 proc CreateAlertResultsHeader {TestCaseName} {
+  # Write the start and the column headings of the alert results table.
+  #  TestCaseName - Name of the test case, shown in the caption.
+  #
+  # Columns: name, status, checks (total, passed, failed), requirements (goal, passed), alert counts and disabled alert
+  # counts (failures, errors, warnings each). Leaves the table body open for the rows written by `AlertWrite`.
   variable ResultsFile
 
   puts $ResultsFile "    <div class=\"AlertResults\">"
@@ -184,6 +215,15 @@ proc CreateAlertResultsHeader {TestCaseName} {
 }
 
 proc AlertWrite {AlertDict {Prefix ""}} {
+  # Write one alert results row per alert log ID, recursively for its children.
+  #  AlertDict - Alert results of one alert log ID, with its `Children`.
+  #  Prefix    - HTML text written before the name. Each level of children adds an indentation.
+  #
+  # Does nothing if `AlertDict` has no `Name`. If the status isn't `PASSED`, non-zero counts are marked as failed;
+  # otherwise non-zero counts - expected or disabled alerts - are marked as warning.
+  #
+  # Sets `TestCaseStatus` to the status of the alert log ID. After the recursion, it holds the status of the top-level
+  # alert log ID.
   variable ResultsFile
 
   if {[dict exists $AlertDict Name]} {
@@ -296,6 +336,7 @@ proc AlertWrite {AlertDict {Prefix ""}} {
 }
 
 proc CreateAlertResultsFooter {} {
+  # Write the end of the alert results table and of the alert section.
   variable ResultsFile
 
   puts $ResultsFile "          <tbody>"

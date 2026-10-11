@@ -54,22 +54,26 @@ package require fileutil
 
 #--------------------------------------------------------------
 proc Simulate2Html {SettingsFileWithPath BaseDirectory} {
-  # Convert simulation yml files to test case html report
-	#
-  #  SettingsFileWithPath - Settings File for Simulation, named TestCaseName_run.yml, including the path to it.
-	#
-	# **Generates TestCaseName.html that integrates**
-  # Note if test case includes generics then TestCaseName will include _GenericValue for each generic
-  # TestCaseName_run.yml    - test case settings
-  # TestCaseName_alerts.yml - alert statistics from osvvm.AlertLogPkg
-  # TestCaseName_cov.yml    - coverage statistics from osvvm.CoveragePkg
-  # TestCasename_sb_*.yml   - scoreboard statistics from instances of osvvm.ScoreboardGenericPkg
+  # Create the HTML test case report from the YAML files written by a simulation.
+  #  SettingsFileWithPath - Test case settings file `<TestCaseFileName>_run.yml`, including its path.
+  #  BaseDirectory        - Build output directory. The paths in the test case settings file are relative to it.
   #
-  # **Provides links to the following**
-  # TestCaseVhdlFileName.vhd - TestCase File Name for this test case (last file analyzed before simulate)
-  # TestCaseResultsFile.log  - Test case transcript that was opened with OSVVM's TranscriptOpen
-  # BuildName.log - Link to Simulation Results in simulator transcript file (marked with html tag)
+  # Reads the test case settings (`GetTestCaseSettings`) and writes the report `<TestCaseFileName>.html` into the test
+  # suite's report directory. `<TestCaseFileName>` is the test case name, followed by `_<GenericValue>` for each generic
+  # of the simulation. The report integrates:
   #
+  # `<TestCaseFileName>_run.yml`   - test case settings: a summary table with the generics and links
+  # `<TestCaseName>_alerts.yml`    - alert results of `AlertLogPkg` ([Alert2Html])
+  # `<TestCaseName>_cov.yml`       - functional coverage of `CoveragePkg` ([Cov2Html])
+  # `<TestCaseName>_sb_<Name>.yml` - results of each `ScoreboardGenericPkg` instance ([Scoreboard2Html])
+  #
+  # The summary table links to the test case's VHDL file - the last file analyzed before `simulate` -, to the transcript
+  # files opened with `TranscriptOpen`, to the test case's results in the HTML simulator transcript, and to the build
+  # summary report.
+  #
+  # Called after each simulation.
+  #
+  # See also: [Alert2Html] [Cov2Html] [Scoreboard2Html]
   variable ResultsFile
 
   variable Report2AlertYamlFile
@@ -115,6 +119,9 @@ proc Simulate2Html {SettingsFileWithPath BaseDirectory} {
 
 #--------------------------------------------------------------
 proc OpenSimulationReportFile {FileName {initialize 0}} {
+  # Open the HTML test case report as `ResultsFile`.
+  #  FileName   - Path of the report.
+  #  initialize - If true, create or truncate the file. Otherwise append to it.
   variable ResultsFile
 
   if { $initialize } {
@@ -126,6 +133,14 @@ proc OpenSimulationReportFile {FileName {initialize 0}} {
 
 #--------------------------------------------------------------
 proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDict} {
+  # Create the HTML test case report with its header and summary table.
+  #  TestCaseName  - Name of the test case.
+  #  TestSuiteName - Name of the test suite.
+  #  BuildName     - Name of the build, linked to its build summary report. Empty: no link.
+  #  GenericDict   - Generics of the simulation, as a list of names and values.
+  #
+  # Creates `Report2TestCaseHtml`, overwriting an existing file, and writes it with `LocalCreateTestCaseSummaryTable`.
+  # On an error, the report is closed and `CallbackOnError_Simulate2HtmlHeader` is called.
   variable ResultsFile
 
   OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml] 1
@@ -141,6 +156,17 @@ proc CreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDic
 
 #--------------------------------------------------------------
 proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName GenericDict} {
+  # Write the HTML header and the summary table of a test case report.
+  #  TestCaseName  - Name of the test case.
+  #  TestSuiteName - Name of the test suite.
+  #  BuildName     - Name of the build. Empty: no link to the build summary report.
+  #  GenericDict   - Generics of the simulation, as a list of names and values.
+  #
+  # Writes the header with the title `<TestCaseName> Test Case Report` and a table of the available reports: one line
+  # per generic, links to the alert, functional coverage and scoreboard sections that exist, to the test case's results
+  # in the HTML simulator transcript, to the test case's VHDL file (prefixed with `VhdlFileViewerPrefix`), to the HTML
+  # version of each transcript file and to the build summary report, followed by the OSVVM logo. Links are relative to
+  # the report's directory.
   variable ResultsFile
 
 
@@ -221,6 +247,7 @@ proc LocalCreateTestCaseSummaryTable {TestCaseName TestSuiteName BuildName Gener
 }
 
 proc FinalizeSimulationReportFile {} {
+  # Append the footer to the HTML test case report and close it.
   variable ResultsFile
 
   OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml]
