@@ -139,15 +139,6 @@ Coverage Options
 
       .. tab-set::
 
-         .. tab-item:: Riviera-PRO
-            :sync: RivieraPRO
-
-            .. code-block:: tcl
-
-               # Defaults (default kinds)
-               SetCoverageAnalyzeOptions  "-coverage sbm"
-               SetCoverageSimulateOptions "-acdb_cov sbm -cc_all"
-
          .. tab-item:: Active-HDL
             :sync: ActiveHDL
 
@@ -156,6 +147,17 @@ Coverage Options
                # Defaults (default kinds)
                SetCoverageAnalyzeOptions  "-coverage sbm"
                SetCoverageSimulateOptions "-acdb -acdb_cov sbm -cc_all"
+
+         .. tab-item:: NVC
+            :sync: NVC
+
+            .. code-block:: tcl
+
+               # Defaults (default kinds)
+               SetCoverageElaborateOptions "--cover=statement,branch,fsm-state"
+
+               # Own options instead of the kinds
+               SetCoverageElaborateOptions "--cover=statement"
 
          .. tab-item:: QuestaSim
             :sync: QuestaSim
@@ -169,16 +171,14 @@ Coverage Options
                # Own options instead of the kinds
                SetCoverageAnalyzeOptions  "+cover=bcst"
 
-         .. tab-item:: NVC
-            :sync: NVC
+         .. tab-item:: Riviera-PRO
+            :sync: RivieraPRO
 
             .. code-block:: tcl
 
                # Defaults (default kinds)
-               SetCoverageElaborateOptions "--cover=statement,branch,fsm-state"
-
-               # Own options instead of the kinds
-               SetCoverageElaborateOptions "--cover=statement"
+               SetCoverageAnalyzeOptions  "-coverage sbm"
+               SetCoverageSimulateOptions "-acdb_cov sbm -cc_all"
 
 .. _UG/CodeCoverage/NVC:
 
@@ -231,24 +231,6 @@ Merging and Reports
 
       .. tab-set::
 
-         .. tab-item:: QuestaSim
-            :sync: QuestaSim
-
-            .. tree::
-               :root-icon: 📁
-               :node-icon: 📁
-               :leaf-icon: 📄
-               :icons:     > 📁
-
-               - :file:`<BuildName>`
-                 - :file:`CodeCoverage`
-                   - :file:`<TestSuite>`
-                     - :file:`<TestCaseFileName>.ucdb` | per test case
-                   - :file:`<BuildName>`
-                     - :file:`<TestSuite>.ucdb` | merged per test suite
-                   - :file:`<BuildName>.ucdb` | merged for the build
-                   > :file:`<BuildName>_code_cov` | HTML report
-
          .. tab-item:: NVC
             :sync: NVC
 
@@ -267,6 +249,24 @@ Merging and Reports
                    - :file:`<BuildName>.ncdb` | merged for the build
                    - :file:`<BuildName>_code_cov`
                      - :file:`index.html` | HTML report
+
+         .. tab-item:: QuestaSim
+            :sync: QuestaSim
+
+            .. tree::
+               :root-icon: 📁
+               :node-icon: 📁
+               :leaf-icon: 📄
+               :icons:     > 📁
+
+               - :file:`<BuildName>`
+                 - :file:`CodeCoverage`
+                   - :file:`<TestSuite>`
+                     - :file:`<TestCaseFileName>.ucdb` | per test case
+                   - :file:`<BuildName>`
+                     - :file:`<TestSuite>.ucdb` | merged per test suite
+                   - :file:`<BuildName>.ucdb` | merged for the build
+                   > :file:`<BuildName>_code_cov` | HTML report
 
 .. _UG/CodeCoverage/Export:
 
