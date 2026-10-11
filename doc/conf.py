@@ -173,6 +173,7 @@ extensions = [
 # Other extensions
  	"sphinx_design",
  	"sphinx_copybutton",
+ 	"pyTooling.Sphinx",
 # User defined extensions
 ]
 
@@ -253,3 +254,39 @@ todo_link_only = True
 # Sphinx_Design
 # ==============================================================================
 # sd_fontawesome_latex = True
+
+
+# ==============================================================================
+# Pygments: highlight OSVVM's commands in Tcl code
+# ==============================================================================
+from re                import compile as re_compile
+from pygments.lexers   import TclLexer
+from pygments.token    import Name
+
+def _readOsvvmCommands() -> frozenset[str]:
+	"""Read the names of OSVVM's commands from the 'namespace export' lines of the Tcl sources."""
+	exportPattern = re_compile(r"^\s*namespace\s+export\s+([^;#]+)")
+	commands = set()
+	for tclFile in ROOT.parent.glob("*.tcl"):
+		for line in tclFile.read_text(encoding="utf-8", errors="replace").splitlines():
+			if (match := exportPattern.match(line)) is not None:
+				commands.update(match.group(1).split())
+
+	return frozenset(commands)
+
+
+class OsvvmTclLexer(TclLexer):
+	"""Tcl lexer, which highlights OSVVM's commands as functions instead of as unknown names."""
+
+	name = "Tcl (OSVVM)"
+	osvvmCommands = _readOsvvmCommands()
+
+	def get_tokens_unprocessed(self, text, stack=("root", )):
+		for index, token, value in super().get_tokens_unprocessed(text, stack):
+			if token is Name.Variable and value in self.osvvmCommands:
+				token = Name.Function
+			yield index, token, value
+
+
+def setup(app):
+	app.add_lexer("tcl", OsvvmTclLexer)
