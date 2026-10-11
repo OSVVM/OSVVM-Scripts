@@ -1,7 +1,8 @@
 The OSVVM Simulator Script Library
 ##################################
 
-The *OSVVM Simulator Script Library* provides a simple way to compile designs, run simulations, and use libraries.
+The *OSVVM Simulator Script Library* provides a simple way to compile designs, run simulations, and use
+:term:`libraries <library>`.
 
 This scripting approach provides:
 
@@ -31,8 +32,9 @@ License
 
 .. only:: html
 
-   The ``::osvvm`` TCL namespace (source code) is licensed under `Apache License 2.0 <Code-License.html>`__. |br|
-   The accompanying documentation is licensed under `Creative Commons - Attribution 4.0 (CC-BY 4.0) <Doc-License.html>`__.
+   The ``::osvvm`` :acs:`TCL <Tcl>` namespace (source code) is licensed under
+   `Apache License 2.0 <Code-License.html>`__. |br| The accompanying documentation is licensed under
+   `Creative Commons - Attribution 4.0 (CC-BY 4.0) <Doc-License.html>`__.
 
 .. only:: latex
 
@@ -79,6 +81,7 @@ License
 
    License
    Doc-License
+   Abbreviations
    Glossary
    genindex
    TODO

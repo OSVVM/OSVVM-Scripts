@@ -8,12 +8,13 @@ ScoreBoard
    .. grid-item::
       :columns: 6
 
-      A test case writes the statistics of its scoreboards into one file per scoreboard package:
-      :file:`<TestCaseFileName>_sb_<Name>.yml`. ``<Name>`` names the package instance of ``ScoreboardGenericPkg``,
-      like ``slv`` for ``ScoreboardPkg_slv`` or ``Uart`` for the UART's ``ScoreboardPkg_Uart``.
+      A :term:`test case` writes the statistics of its :term:`scoreboards <scoreboard>` into one file per scoreboard
+      package: :file:`<TestCaseFileName>_sb_<Name>.yml`. ``<Name>`` names the package instance of
+      ``ScoreboardGenericPkg``, like ``slv`` for ``ScoreboardPkg_slv`` or ``Uart`` for the :acs:`UART`'s
+      ``ScoreboardPkg_Uart``.
 
-      * **Written by:** ``WriteScoreboardYaml`` of each scoreboard package, called by ``EndOfTestReports`` (VHDL,
-        ``ReportPkg``) for OSVVM's packages, or by the testbench for other packages.
+      * **Written by:** ``WriteScoreboardYaml`` of each scoreboard package, called by ``EndOfTestReports`` (:acs:`VHDL`,
+        ``ReportPkg``) for :acs:`OSVVM`'s packages, or by the :term:`testbench` for other packages.
       * **Location:** :file:`<BuildName>/reports/<TestSuite>/<TestCaseFileName>_sb_<Name>.yml`. The paths are
         recorded in the test case's :file:`_run.yml` as ``ScoreboardDict``, keyed by ``<Name>``.
       * **Read by:** :ref:`RUFF/osvvm/Scoreboard2Html`, called by :ref:`RUFF/osvvm/Simulate2Html`, for the scoreboard
@@ -52,16 +53,17 @@ Writing the Files
       ``EndOfTestReports`` writes a file for each of OSVVM's scoreboard packages, which has scoreboards
       (``GotScoreboards``): ``slv``, ``unsigned``, ``signed``, ``int`` and ``IntV``.
 
-      A scoreboard package of a verification component or a testbench, created from ``ScoreboardGenericPkg``, writes
-      its file only when the testbench calls its ``WriteScoreboardYaml``, before ``EndOfTestReports``.
+      A scoreboard package of a :term:`verification component` or a testbench, created from ``ScoreboardGenericPkg``,
+      writes its file only when the testbench calls its ``WriteScoreboardYaml``, before ``EndOfTestReports``.
 
       ``FileName`` is a base name: the file is :file:`<TestName>_sb_<FileName>.yml` in OSVVM's temporary directory
       (``OSVVM_TEMP_OUTPUT_DIRECTORY``). This holds while the setting ``SCOREBOARD_YAML_IS_BASE_FILE_NAME`` is ``TRUE``,
       the default since settings revision 2024; with ``FALSE``, ``FileName`` is used as given. Without ``FileName``,
       the file is :file:`<TestName>_sb.yml`.
 
-      When the simulation is done, the scripts move every :file:`<TestName>_sb_*.yml` into the test suite's reports
-      directory, named after the test case file name, which includes the generics (see :ref:`UG/Generics`).
+      When the simulation is done, the scripts move every :file:`<TestName>_sb_*.yml` into the :term:`test suite`'s
+      reports directory, named after the :term:`test case file name`, which includes the :term:`generics <generic>` (see
+      :ref:`UG/Generics`).
 
    .. grid-item::
       :columns: 6

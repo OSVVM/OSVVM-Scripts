@@ -13,13 +13,14 @@ Settings Files
    .. grid-item::
       :columns: 6
 
-      OSVVM's default settings are in :file:`Scripts/OsvvmSettingsDefault.tcl`. Don't change that file; it's replaced
-      with every OSVVM release. Put your settings into your own files instead, which OSVVM loads after the defaults:
+      :acs:`OSVVM`'s default settings are in :file:`Scripts/OsvvmSettingsDefault.tcl`. Don't change that file; it's
+      replaced with every OSVVM release. Put your settings into your own files instead, which OSVVM loads after the
+      defaults:
 
       #. :file:`OsvvmSettingsLocal.tcl`: settings for all simulators.
       #. :file:`OsvvmSettingsLocal_<ScriptBaseName>.tcl`: settings for one simulator. ``<ScriptBaseName>`` is the name
-         of the vendor script, :file:`VendorScripts_<ScriptBaseName>.tcl`, for example ``NVC``, ``GHDL``, ``Siemens``,
-         ``Questa`` or ``RivieraPro``.
+         of the :term:`vendor script`, :file:`VendorScripts_<ScriptBaseName>.tcl`, for example ``NVC``, ``GHDL``,
+         ``Siemens``, ``Questa`` or ``RivieraPro``.
 
       :file:`Scripts/OsvvmSettingsLocal_example.tcl` lists all settings with their defaults; copy it to start.
 
@@ -56,7 +57,7 @@ Settings Directory
    .. grid-item::
       :columns: 6
 
-      OSVVM looks for the settings files in the first of these directories:
+      OSVVM looks for the :term:`settings files <settings file>` in the first of these directories:
 
       #. the directory named by the environment variable ``OSVVM_SETTINGS_DIR``;
       #. :file:`OsvvmSettings` next to :file:`OsvvmLibraries`, if it exists;
@@ -134,16 +135,16 @@ Scripts that Run with Each Simulation
       #. :file:`wave.do` (not in batch mode, for example ``vsim -c``)
       #. :file:`<LibraryUnit>.tcl`
       #. :file:`<LibraryUnit>_<ToolName>.tcl`
-      #. :file:`<TestCaseName>.tcl`, if the test case name differs from the design unit
+      #. :file:`<TestCaseName>.tcl`, if the :term:`test case` name differs from the :term:`design unit`
       #. :file:`<TestCaseName>_<ToolName>.tcl`, ditto
 
       ``<LibraryUnit>`` is the design unit given to :ref:`RUFF/osvvm/simulate`, ``<TestCaseName>`` the name set by
       :ref:`RUFF/osvvm/TestName`; for ``<ToolVendor>`` and ``<ToolName>`` see :ref:`UG/Variables`.
 
-      OSVVM looks for them in the working directory, then in the simulation directory, then in
+      OSVVM looks for them in the :term:`working directory`, then in the :term:`simulation directory`, then in
       :file:`OsvvmLibraries/Scripts`.
 
-      Only the simulators with a Tcl console run them: the Aldec and Siemens simulators.
+      Only the simulators with a :acs:`Tcl` console run them: the Aldec and Siemens simulators.
 
    .. grid-item::
       :columns: 6
@@ -187,7 +188,7 @@ Tool Variables
       ``ToolType``
         ``simulator``, or ``synthesis`` for Vivado.
       ``ToolNameVersion``
-        ``<ToolName>-<Version>``, for example ``NVC-1.23.0``; also the name of the library subdirectory.
+        ``<ToolName>-<Version>``, for example ``NVC-1.23.0``; also the name of the :term:`library` subdirectory.
 
       The variable ``simulator`` is the former name of ``ToolName``; it's deprecated.
 

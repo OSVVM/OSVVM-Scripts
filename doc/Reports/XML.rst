@@ -8,15 +8,15 @@ JUnit XML Report
    .. grid-item::
       :columns: 6
 
-      The JUnit XML build summary report is for continuous integration (CI/CD). CI/CD tools read it to decide whether
-      the tests passed, and many of them can display it. The :ref:`HTML build summary report <RPT/HTML/BuildSummary>`
-      shows a superset of its information.
+      The :term:`JUnit XML` build summary report is for continuous integration (:acs:`CI`/:acs:`CD`). CI/CD tools read
+      it to decide whether the tests passed, and many of them can display it. The
+      :ref:`HTML build summary report <RPT/HTML/BuildSummary>` shows a superset of its information.
 
-      The report is :file:`<BuildName>/<BuildName>.xml`, written next to the HTML build summary report by
+      The report is :file:`<BuildName>/<BuildName>.xml`, written next to the :acs:`HTML` build summary report by
       :ref:`RUFF/osvvm/CreateBuildReports` at the end of a :ref:`RUFF/osvvm/build`.
-      :ref:`RUFF/osvvm/Report2Junit` creates it alone from the build's YAML file.
+      :ref:`RUFF/osvvm/Report2Junit` creates it alone from the :term:`build`'s :acs:`YAML` file.
 
-      OSVVM runs its own regressions on GitHub and collects these files there.
+      :acs:`OSVVM` runs its own regressions on GitHub and collects these files there.
 
    .. grid-item::
       :columns: 6
@@ -43,15 +43,16 @@ Structure
       :columns: 6
 
       ``<testsuites>``
-         The build: its name, start time, duration and the counts of test cases, failures, errors and skipped test
-         cases. Its ``<properties>`` name the OSVVM version, the simulator and the simulator's version.
+         The build: its name, start time, duration and the counts of :term:`test cases <test case>`, failures, errors
+         and skipped test cases. Its ``<properties>`` name the OSVVM version, the simulator and the simulator's version.
 
       ``<testsuite>``
-         A test suite (:ref:`RUFF/osvvm/TestSuite`), with its counts.
+         A :term:`test suite` (:ref:`RUFF/osvvm/TestSuite`), with its counts.
 
       ``<testcase>``
          A test case: its name, its test suite as ``classname``, the number of checks as ``assertions``, and its
-         duration. Generics set with :ref:`RUFF/osvvm/generic` are ``<property name="generic">`` entries.
+         duration. :term:`Generics <generic>` set with :ref:`RUFF/osvvm/generic` are ``<property name="generic">``
+         entries.
 
       ``<failure>``, ``<skipped>``
          A failed test case, with the reason; a test case skipped with :ref:`RUFF/osvvm/SkipTest`.

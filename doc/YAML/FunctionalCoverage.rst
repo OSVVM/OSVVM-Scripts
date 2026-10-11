@@ -8,12 +8,12 @@ Functional Coverage
    .. grid-item::
       :columns: 6
 
-      A test case, which collected functional coverage, writes the coverage models of OSVVM's ``CoveragePkg`` into
-      :file:`<TestCaseFileName>_cov.yml`: per model its settings, the structure of its bins and every bin with its
-      count and goal.
+      A :term:`test case`, which collected :term:`functional coverage`, writes the coverage models of :acs:`OSVVM`'s
+      ``CoveragePkg`` into :file:`<TestCaseFileName>_cov.yml`: per model its settings, the structure of its bins and
+      every bin with its count and goal.
 
-      * **Written by:** ``CoveragePkg.WriteCovYaml``, called by ``EndOfTestReports`` (VHDL, ``ReportPkg``) at the end
-        of a test case, if the test case created coverage models.
+      * **Written by:** ``CoveragePkg.WriteCovYaml``, called by ``EndOfTestReports`` (:acs:`VHDL`, ``ReportPkg``) at the
+        end of a test case, if the test case created coverage models.
       * **Location:** :file:`<BuildName>/reports/<TestSuite>/<TestCaseFileName>_cov.yml`. Its path is recorded in the
         test case's :file:`_run.yml` as ``CovYamlFile``.
       * **Read by:** :ref:`RUFF/osvvm/Cov2Html`, called by :ref:`RUFF/osvvm/Simulate2Html`, for the functional
@@ -77,8 +77,8 @@ Writing the File
       (``GotCoverage``). ``WriteCovYaml`` writes into OSVVM's temporary directory (``OSVVM_TEMP_OUTPUT_DIRECTORY``,
       like :file:`OsvvmTemp_NVC/`) as :file:`<TestName>_cov.yml`.
 
-      When the simulation is done, the scripts move the file into the test suite's reports directory and name it after
-      the test case file name, which includes the generics (see :ref:`UG/Generics`).
+      When the simulation is done, the scripts move the file into the :term:`test suite`'s reports directory and name it
+      after the :term:`test case file name`, which includes the :term:`generics <generic>` (see :ref:`UG/Generics`).
 
       * Models with bins and ``CovWeight`` ≥ 1 come first, models with ``CovWeight`` = 0 last.
       * Models without bins are left out.

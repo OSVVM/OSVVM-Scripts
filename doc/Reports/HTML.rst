@@ -3,8 +3,8 @@
 HTML Reports
 ############
 
-The HTML reports are for humans. They are linked to each other: the build summary report links each test case's
-detailed report, and each detailed report links its transcripts.
+The :acs:`HTML` reports are for humans. They are linked to each other: the build summary report links each
+:term:`test case`'s detailed report, and each detailed report links its :term:`transcripts <transcript>`.
 
 Wherever a triangle precedes a text in a report, a click on it hides or reveals further information.
 
@@ -19,15 +19,15 @@ Build Summary Report
    .. grid-item::
       :columns: 6
 
-      The build summary report shows at a glance whether a build passed, and which test cases did not pass. It has
-      three parts:
+      The build summary report shows at a glance whether a :term:`build` passed, and which test cases did not pass. It
+      has three parts:
 
       * :ref:`RPT/HTML/BuildSummary/Status`
       * :ref:`RPT/HTML/BuildSummary/TestSuites`
       * :ref:`RPT/HTML/BuildSummary/TestCases`
 
-      Test suites and test cases show further information, such as functional coverage and the count of disabled
-      alerts.
+      :term:`Test suites <test suite>` and test cases show further information, such as :term:`functional coverage` and
+      the count of disabled :term:`alerts <alert>`.
 
       The report is :file:`<BuildName>/<BuildName>.html`, created by :ref:`RUFF/osvvm/CreateBuildReports` at the end of
       a :ref:`RUFF/osvvm/build`. :ref:`RUFF/osvvm/OpenBuildHtml` opens it.
@@ -55,9 +55,10 @@ Build Status
 ============
 
 The build status is the table at the top of the build summary report: the build's result, the counts of passed,
-failed and skipped test cases, the analyze and simulate failures, the elapsed time and date, the simulator and its
-version, and links to the plain text and the :ref:`HTML simulator transcript <RPT/HTML/SimTranscript>`. If code coverage
-was collected, its last row links the :ref:`code coverage report <RPT/HTML/CodeCoverage>`.
+failed and skipped test cases, the :term:`analyze <analysis>` and simulate failures, the elapsed time and date, the
+simulator and its version, and links to the plain text and the
+:ref:`HTML simulator transcript <RPT/HTML/SimTranscript>`. If :term:`code coverage` was collected, its last row links
+the :ref:`code coverage report <RPT/HTML/CodeCoverage>`.
 
 .. figure:: ../../images/DemoBuildStatus.png
    :name: RPT/HTML/BuildStatusFig
@@ -140,9 +141,9 @@ Test Case Detailed Report
         :ref:`HTML simulator transcript <RPT/HTML/SimTranscript>`
 
       The report is :file:`<BuildName>/reports/<TestSuite>/<TestCaseFileName>.html`, created by
-      :ref:`RUFF/osvvm/Simulate2Html` after the simulation, from the YAML files the test case wrote with
+      :ref:`RUFF/osvvm/Simulate2Html` after the simulation, from the :acs:`YAML` files the test case wrote with
       ``EndOfTestReports``. ``<TestCaseFileName>`` is the test case name, followed by ``_<Generic>_<Value>`` for each
-      generic set with :ref:`RUFF/osvvm/generic`, so each generic variant of a test case has its own report.
+      :term:`generic` set with :ref:`RUFF/osvvm/generic`, so each generic variant of a test case has its own report.
 
    .. grid-item::
       :columns: 6
@@ -172,8 +173,8 @@ Test Information Link Table
 ===========================
 
 The table at the top of the detailed report links to the alert report, the functional coverage reports and the
-scoreboard reports in the same file, to the test case's results in the HTML simulator transcript, and to the transcript
-files the test case opened with ``TranscriptOpen``. It also lists the generics of the simulation.
+:term:`scoreboard` reports in the same file, to the test case's results in the HTML simulator transcript, and to the
+transcript files the test case opened with ``TranscriptOpen``. It also lists the generics of the simulation.
 
 .. figure:: ../../images/DemoTestCaseLinks.png
    :name: RPT/HTML/TestInfoFig
@@ -223,7 +224,7 @@ Scoreboard Reports
 ==================
 
 The scoreboard report has one row for each scoreboard of ``ScoreboardGenericPkg`` used in the test case: its item count,
-the items checked, popped and dropped, the items still in its FIFO, and the errors found.
+the items checked, popped and dropped, the items still in its :acs:`FIFO`, and the errors found.
 :ref:`RUFF/osvvm/Scoreboard2Html` writes this part.
 
 .. figure:: ../../images/DemoScoreboardReport.png
@@ -244,8 +245,8 @@ Test Case Transcript
    .. grid-item::
       :columns: 6
 
-      OSVVM's transcript utility collects the output of a test case - its own messages and those of
-      OSVVM's utility library - into one file. ``TranscriptOpen`` opens it; without a file name, it is
+      :acs:`OSVVM`'s transcript utility collects the output of a test case - its own messages and those of
+      OSVVM's :term:`utility library` - into one file. ``TranscriptOpen`` opens it; without a file name, it is
       :file:`<TestName>.log`.
 
       After the simulation, the scripts move the file into :file:`<BuildName>/results/<TestSuite>/` and create an HTML
@@ -325,7 +326,7 @@ Code Coverage Report
       The simulator then writes its own HTML code coverage report, which the
       :ref:`build status <RPT/HTML/BuildSummary/Status>` links.
 
-      Code coverage is enabled for analyze and for simulate separately, so the testbench can be left out:
+      Code coverage is enabled for analyze and for simulate separately, so the :term:`testbench` can be left out:
       :ref:`RUFF/osvvm/SetCoverageAnalyzeEnable`, :ref:`RUFF/osvvm/SetCoverageSimulateEnable`. By default, statement,
       branch and state machine coverage is collected; :ref:`RUFF/osvvm/SetCoverageKinds` selects other kinds (see
       :ref:`UG/CodeCoverage`).
@@ -333,10 +334,10 @@ Code Coverage Report
       The databases and the report are in :file:`<BuildName>/CodeCoverage/`. Their format depends on the simulator;
       NVC writes :file:`<BuildName>_code_cov/index.html`.
 
-      Besides the HTML report, the code coverage can be exported into a well-known data format for CI tools:
-      Cobertura XML for NVC, the simulator's XML for the Siemens and Aldec tools. :ref:`RUFF/osvvm/ExportCodeCoverage`
-      exports the last build; :ref:`RUFF/osvvm/SetCoverageExportEnable` exports at the end of every build (see
-      :ref:`UG/CodeCoverage/Export`).
+      Besides the HTML report, the code coverage can be exported into a well-known data format for :acs:`CI` tools:
+      :term:`Cobertura XML` for NVC, the simulator's :acs:`XML` for the Siemens and Aldec tools.
+      :ref:`RUFF/osvvm/ExportCodeCoverage` exports the last build; :ref:`RUFF/osvvm/SetCoverageExportEnable` exports at
+      the end of every build (see :ref:`UG/CodeCoverage/Export`).
 
    .. grid-item::
       :columns: 6

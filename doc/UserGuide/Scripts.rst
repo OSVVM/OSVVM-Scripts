@@ -3,8 +3,8 @@
 Writing Scripts
 ###############
 
-OSVVM scripts are Tcl files named :file:`<script-name>.pro`, augmented by the OSVVM commands. The examples below come
-from the scripts of OSVVM's own verification components.
+:acs:`OSVVM` scripts are :acs:`Tcl` files named :file:`<script-name>.pro`, augmented by the OSVVM commands. The examples
+below come from the scripts of OSVVM's own :term:`verification components <verification component>`.
 
 .. _UG/Scripts/SimpleTest:
 
@@ -16,13 +16,14 @@ Running a Simple Test
    .. grid-item::
       :columns: 6
 
-      Running a simulation means: select the library, analyze the files, start the simulation.
+      Running a simulation means: select the :term:`library`, :term:`analyze <analysis>` the files, start the
+      simulation.
 
-      * :ref:`RUFF/osvvm/library` activates a library, like VHDL's working library. Every following
+      * :ref:`RUFF/osvvm/library` activates a library, like :acs:`VHDL`'s working library. Every following
         :ref:`RUFF/osvvm/analyze` and :ref:`RUFF/osvvm/simulate` uses it.
       * :ref:`RUFF/osvvm/analyze` compiles a file. The extension selects the language: :file:`*.vhd` and
         :file:`*.vhdl` are VHDL; :file:`*.v`, :file:`*.sv` and :file:`*.vh` are Verilog / SystemVerilog.
-      * :ref:`RUFF/osvvm/TestName` names the test case; :ref:`RUFF/osvvm/simulate` runs it.
+      * :ref:`RUFF/osvvm/TestName` names the :term:`test case`; :ref:`RUFF/osvvm/simulate` runs it.
 
       The files have no paths: relative paths are relative to the directory of the script
       (:ref:`UG/Concepts/CurrentWorkingDirectory`).
@@ -54,7 +55,7 @@ RunTest
    .. grid-item::
       :columns: 6
 
-      When a test case's file, design unit and test name are the same, :ref:`RUFF/osvvm/RunTest` does
+      When a test case's file, :term:`design unit` and test name are the same, :ref:`RUFF/osvvm/RunTest` does
       :ref:`RUFF/osvvm/analyze`, :ref:`RUFF/osvvm/TestName` and :ref:`RUFF/osvvm/simulate` in one command.
 
       An optional second argument names the design unit to simulate, if it differs from the file name; the test case
@@ -186,10 +187,10 @@ Building the OSVVM Libraries
    .. grid-item::
       :columns: 6
 
-      :file:`OsvvmLibraries.pro` analyzes OSVVM's utility library and all verification components that are present.
-      Run it with :ref:`RUFF/osvvm/build` from the simulation directory.
+      :file:`OsvvmLibraries.pro` analyzes OSVVM's :term:`utility library` and all verification components that are
+      present. Run it with :ref:`RUFF/osvvm/build` from the :term:`simulation directory`.
 
-      The log of the build is in :file:`<BuildName>/logs/` of the simulation directory (see
+      The log of the :term:`build` is in :file:`<BuildName>/logs/` of the simulation directory (see
       :ref:`UG/Concepts/BuildName`).
 
    .. grid-item::
@@ -209,8 +210,8 @@ Running OSVVM's Test Cases
    .. grid-item::
       :columns: 6
 
-      Every OSVVM verification component (VC) comes with its regression tests. :file:`RunAllTests.pro` runs all tests
-      of a VC, and since scripts are hierarchical, the one of a directory runs all tests below it.
+      Every OSVVM verification component (:acs:`VC`) comes with its regression tests. :file:`RunAllTests.pro` runs all
+      tests of a VC, and since scripts are hierarchical, the one of a directory runs all tests below it.
 
       Most VCs and :file:`OsvvmLibraries` also have :file:`RunDemoTests.pro`, which runs a small selection.
 

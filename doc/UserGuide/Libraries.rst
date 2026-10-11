@@ -13,12 +13,13 @@ Library Directory
    .. grid-item::
       :columns: 6
 
-      OSVVM creates libraries in a library directory: :file:`<LibraryDirectory>/VHDL_LIBS/<ToolName>-<Version>/`. The
-      tool and version part keeps the libraries of different simulators and versions apart.
+      :acs:`OSVVM` creates :term:`libraries <library>` in a :term:`library directory`:
+      :file:`<LibraryDirectory>/VHDL_LIBS/<ToolName>-<Version>/`. The tool and version part keeps the libraries of
+      different simulators and versions apart.
 
-      By default, ``<LibraryDirectory>`` is the simulation directory. :ref:`RUFF/osvvm/SetLibraryDirectory` selects
-      another one; a relative path is resolved against the simulation directory. :ref:`RUFF/osvvm/GetLibraryDirectory`
-      returns it.
+      By default, ``<LibraryDirectory>`` is the :term:`simulation directory`. :ref:`RUFF/osvvm/SetLibraryDirectory`
+      selects another one; a relative path is resolved against the simulation directory.
+      :ref:`RUFF/osvvm/GetLibraryDirectory` returns it.
 
    .. grid-item::
       :columns: 6
@@ -55,7 +56,7 @@ Active Library
       :ref:`RUFF/osvvm/simulate` use. If it doesn't exist, it's created in the library directory. An optional second
       argument names another directory for it.
 
-      Library names are case insensitive, as in VHDL. :ref:`RUFF/osvvm/ListLibraries` prints the libraries OSVVM
+      Library names are case insensitive, as in :acs:`VHDL`. :ref:`RUFF/osvvm/ListLibraries` prints the libraries OSVVM
       knows.
 
    .. grid-item::
@@ -78,7 +79,8 @@ Using Existing Libraries
    .. grid-item::
       :columns: 6
 
-      Libraries analyzed before, by another build or in another directory, can be used without analyzing them again:
+      Libraries :term:`analyzed <analysis>` before, by another :term:`build` or in another directory, can be used
+      without analyzing them again:
 
       * :ref:`RUFF/osvvm/LinkLibrary` maps one library.
       * :ref:`RUFF/osvvm/LinkLibraryDirectory` maps every library of a library directory. The path may name the

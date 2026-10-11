@@ -231,6 +231,12 @@ EOF
 
 		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove inline code markers from parameter names${ANSI_NOCOLOR}\n"
 			sed -i -E 's/^:``(\w+)``:/:\1:/g' ${rstFile}
+
+		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Link glossary terms and abbreviations${ANSI_NOCOLOR}\n"
+			if ! python LinkTerms.py --glossary Glossary.rst --abbreviations Abbreviations.rst "${rstFile}"; then
+				PrintError "    " "Linking glossary terms and abbreviations in '${rstFile}' failed."
+				exit 1
+			fi
 	done
 fi
 

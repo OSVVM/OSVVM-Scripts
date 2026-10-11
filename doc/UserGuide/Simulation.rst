@@ -13,14 +13,14 @@ Simulating with Generics
    .. grid-item::
       :columns: 6
 
-      :ref:`RUFF/osvvm/generic` sets a top-level generic for the next :ref:`RUFF/osvvm/simulate` or
-      :ref:`RUFF/osvvm/RunTest`. It takes the generic's name and value. OSVVM passes the generics the way each simulator
-      needs them.
+      :ref:`RUFF/osvvm/generic` sets a top-level :term:`generic` for the next :ref:`RUFF/osvvm/simulate` or
+      :ref:`RUFF/osvvm/RunTest`. It takes the generic's name and value. :acs:`OSVVM` passes the generics the way each
+      simulator needs them.
 
-      The square brackets are required: Tcl calls :ref:`RUFF/osvvm/generic` and passes its result as argument.
+      The square brackets are required: :acs:`Tcl` calls :ref:`RUFF/osvvm/generic` and passes its result as argument.
 
-      The generics become part of the test case's file names, so runs with different values keep separate reports:
-      :file:`<TestCaseName>_<Generic>_<Value>.html`.
+      The generics become part of the :term:`test case`'s file names, so runs with different values keep separate
+      reports: :file:`<TestCaseName>_<Generic>_<Value>.html`.
 
    .. grid-item::
       :columns: 6
@@ -51,9 +51,10 @@ Second Top Level
    .. grid-item::
       :columns: 6
 
-      Some testbenches need a second design unit at the top level of the simulation, for example a configuration of
-      timing checks or a Verilog ``glbl`` module. :ref:`RUFF/osvvm/SetSecondSimulationTopLevel` names it as
-      ``<Library>.<DesignUnit>`` before :ref:`RUFF/osvvm/simulate`; an empty value removes it.
+      Some :term:`testbenches <testbench>` need a second :term:`design unit` at the top level of the simulation, for
+      example a configuration of timing checks or a Verilog ``glbl`` module.
+      :ref:`RUFF/osvvm/SetSecondSimulationTopLevel` names it as ``<Library>.<DesignUnit>`` before
+      :ref:`RUFF/osvvm/simulate`; an empty value removes it.
 
       Supported by the Aldec and Siemens simulators, DSim and XSIM.
 
@@ -82,7 +83,8 @@ Wave Files
       :columns: 6
 
       :ref:`RUFF/osvvm/DoWaves` adds wave files to a simulation; like :ref:`RUFF/osvvm/generic`, it's called in square
-      brackets in the call of :ref:`RUFF/osvvm/simulate`. A wave file not in the simulation directory needs its path.
+      brackets in the call of :ref:`RUFF/osvvm/simulate`. A wave file not in the :term:`simulation directory` needs its
+      path.
 
       The Aldec and Siemens simulators run them when the simulation starts. A file named :file:`wave.do` doesn't need
       :ref:`RUFF/osvvm/DoWaves`: it runs automatically (see :ref:`UG/Config/HookFiles`).
@@ -106,7 +108,7 @@ Saving Waveforms with GHDL and NVC
    .. grid-item::
       :columns: 6
 
-      GHDL and NVC run in batch mode, but can save waveforms for a separate viewer like GTKWave or Surfer.
+      :acs:`GHDL` and NVC run in batch mode, but can save waveforms for a separate viewer like GTKWave or Surfer.
       :ref:`RUFF/osvvm/SetSaveWaves` turns it on; without an argument, it means ``true``. The default is ``false``.
 
       The waveform file is written next to the test case's report: :file:`<BuildName>/reports/<TestSuite>/`.

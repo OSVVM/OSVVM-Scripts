@@ -3,9 +3,11 @@
 User Guide
 ##########
 
-OSVVM-Scripts is an API layer on top of Tcl. It runs the same project scripts on many simulators: it compiles
-(analyzes) VHDL and Verilog files into libraries, runs simulations, collects the results of test suites and test cases,
-and creates reports. For most projects, no Tcl beyond the OSVVM commands is needed; Tcl is there if more is needed.
+OSVVM-Scripts is an :acs:`API` layer on top of :acs:`Tcl`. It runs the same :term:`project scripts <build script>` on
+many simulators: it compiles (:term:`analyzes <analysis>`) :acs:`VHDL` and Verilog files into
+:term:`libraries <library>`, runs simulations, collects the results of :term:`test suites <test suite>` and
+:term:`test cases <test case>`, and creates reports. For most projects, no Tcl beyond the :acs:`OSVVM` commands is
+needed; Tcl is there if more is needed.
 
 This guide explains how to write and run OSVVM scripts. Each command used here links to its description in the
 :doc:`TCL Command Reference </osvvm-scripts/osvvm>`. To install OSVVM and run the first demo, see :ref:`QSG`; the
@@ -19,11 +21,12 @@ reports OSVVM creates are described in :ref:`RPT`.
       **A first script**
 
       Scripts are named :file:`<script-name>.pro`. A script activates a library, analyzes the design and the
-      testbench into it, and simulates the testbench:
+      :term:`testbench` into it, and simulates the testbench:
 
       * :ref:`RUFF/osvvm/library` makes a library the active library and creates it, if it doesn't exist.
       * :ref:`RUFF/osvvm/analyze` compiles a file into the active library.
-      * :ref:`RUFF/osvvm/simulate` elaborates and runs a design unit of the active library.
+      * :ref:`RUFF/osvvm/simulate` :term:`elaborates <elaboration>` and runs a :term:`design unit` of the active
+        library.
       * :ref:`RUFF/osvvm/include` runs another script from a script.
       * :ref:`RUFF/osvvm/build` runs a script from the simulator's console and records everything in a log file and
         reports.
