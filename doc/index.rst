@@ -48,6 +48,7 @@ License
 
    Installation
    QuickStartGuide
+   Support
 
 .. raw:: latex
 
