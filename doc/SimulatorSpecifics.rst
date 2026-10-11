@@ -14,41 +14,41 @@ OSVVM in each simulator is shown in the :ref:`Quick Start Guide <QSG/Start>`.
    .. grid-item-card:: Aldec
       :columns: 2
 
-      * :ref:`SIM/Aldec/ActiveHDL`
-      * :ref:`SIM/Aldec/RivieraPRO`
+      * Active-HDL
+      * Riviera-PRO
 
    .. grid-item-card:: AMD (Xilinx)
       :columns: 2
 
-      * :ref:`SIM/AMD/XSIM`
+      * XSIM
 
    .. grid-item-card:: Cadence
       :columns: 2
 
-      * :ref:`SIM/Cadence/Xcelium`
+      * Xcelium
 
    .. grid-item-card:: Metrics
       :columns: 2
 
-      * :ref:`SIM/Metrics/DSim`
+      * DSim
 
    .. grid-item-card:: Open-Source
       :columns: 2
 
-      * :ref:`SIM/OpenSource/GHDL`
-      * :ref:`SIM/OpenSource/NVC`
+      * GHDL
+      * NVC
 
    .. grid-item-card:: Siemens EDA
       :columns: 2
 
-      * :ref:`SIM/Siemens/ModelSim`
-      * :ref:`SIM/Siemens/Questa`
-      * :ref:`SIM/Siemens/Visualizer`
+      * ModelSim
+      * Questa
+      * Visualizer
 
    .. grid-item-card:: Synopsys
       :columns: 2
 
-      * :ref:`SIM/Synopsys/VCS`
+      * VCS
 
 
 .. _SIM/Overview:
@@ -61,7 +61,7 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
 
 .. list-table::
    :header-rows: 1
-   :widths: 16 18 14 14 14 12 12
+   :widths: 11 13 11 13 9 9 9 25
 
    * - Simulator
      - Start-up script
@@ -70,6 +70,7 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
      - Wave files (:ref:`RUFF/osvvm/DoWaves`)
      - Save waves (:ref:`RUFF/osvvm/SetSaveWaves`)
      - Elaborate and run options
+     - Notes
    * - Active-HDL
      - :file:`StartUp.tcl`
      - ``ActiveHDL``
@@ -77,6 +78,7 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
      - yes
      - -
      - -
+     - also VSimSA (:file:`StartActiveVSimSA.tcl`)
    * - DSim
      - :file:`StartDSim.tcl`
      - ``DSim``
@@ -84,6 +86,7 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
      - -
      - -
      - -
+     - analysis fails in the vendor script
    * - GHDL
      - :file:`StartGHDL.tcl`
      - ``GHDL``
@@ -91,6 +94,7 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
      - -
      - yes
      - yes
+     - Windows: in an MSYS2 shell
    * - ModelSim
      - :file:`StartUp.tcl`
      - ``Siemens``
@@ -98,6 +102,7 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
      - yes
      - -
      - -
+     -
    * - NVC
      - :file:`StartNVC.tcl`
      - ``NVC``
@@ -105,6 +110,7 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
      - -
      - yes
      - yes
+     - run options default to ``--exit-severity=failure``
    * - Questa
      - :file:`StartUp.tcl`
      - ``Questa`` or ``Siemens``
@@ -112,6 +118,8 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
      - yes
      - -
      - -
+     - :file:`StartUp.tcl` takes ``Questa``, if ``qsim`` exists; separate optimize step
+       (:ref:`RUFF/osvvm/SetExtendedOptimizeOptions`)
    * - Riviera-PRO
      - :file:`StartUp.tcl`
      - ``RivieraPro``
@@ -119,6 +127,7 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
      - yes
      - -
      - -
+     -
    * - VCS
      - :file:`StartVCS.tcl`
      - ``VCS``
@@ -126,6 +135,7 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
      - -
      - -
      - yes
+     -
    * - Visualizer
      - :file:`StartUp.tcl`
      - ``Questa``
@@ -133,6 +143,7 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
      - yes
      - -
      - -
+     -
    * - Xcelium
      - :file:`StartXcelium.tcl`
      - ``Xcelium``
@@ -140,6 +151,7 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
      - -
      - -
      - yes
+     -
    * - XSIM
      - :file:`StartXSIM.tcl`
      - ``Xsim``
@@ -147,6 +159,7 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
      - -
      - -
      - -
+     - under development: OSVVM's own test cases don't pass yet
 
 * Code coverage: :ref:`UG/CodeCoverage`; the export: :ref:`UG/CodeCoverage/Export`.
 * Wave files and saving waves: :ref:`UG/Waveform`.
@@ -154,154 +167,4 @@ The vendor script's name, :file:`VendorScripts_<ScriptBaseName>.tcl`, also names
   only simulators, which elaborate and run in separate steps, use them (see :ref:`UG/Options`).
 * A second top-level design unit (:ref:`UG/Simulation/SecondTopLevel`) is supported by the Aldec and Siemens simulators,
   DSim and XSIM.
-
-
-.. _SIM/Aldec:
-
-Aldec
-*****
-
-.. _SIM/Aldec/ActiveHDL:
-
-Active-HDL
-==========
-
-* Vendor script :file:`VendorScripts_ActiveHDL.tcl`; Active-HDL's console runs macros by default, switch it to Tcl
-  first (see :ref:`QSG/Start`).
-* VSimSA, Active-HDL's command line simulator, uses :file:`StartActiveVSimSA.tcl` and
-  :file:`VendorScripts_VSimSA.tcl`. :file:`VendorScripts_ASim.tcl` runs Active-HDL from a Tcl shell; it's selected with
-  the environment variable ``OSVVM_TOOL`` only.
-* Code coverage is collected at analysis and at simulation; it's exported as UCDB XML (``acdb2xml``).
-
-.. _SIM/Aldec/RivieraPRO:
-
-Riviera-PRO
-===========
-
-* Vendor script :file:`VendorScripts_RivieraPro.tcl`.
-* Code coverage is collected at analysis and at simulation; it's exported as UCDB XML (``acdb2xml``).
-
-
-.. _SIM/AMD:
-
-AMD (Xilinx)
-************
-
-.. _SIM/AMD/XSIM:
-
-XSIM
-====
-
-* Vendor script :file:`VendorScripts_Xsim.tcl`, started in Vivado's Tcl console.
-* Support is under development: OSVVM's utility library analyzes, but OSVVM's own test cases don't pass yet.
-* :file:`VendorScripts_Vivado.tcl` uses Vivado's synthesis: it analyzes only.
-
-
-.. _SIM/Cadence:
-
-Cadence
-*******
-
-.. _SIM/Cadence/Xcelium:
-
-Xcelium
-=======
-
-* Vendor script :file:`VendorScripts_Xcelium.tcl`, run in :program:`tclsh`.
-* Elaborates and runs in separate steps: :ref:`RUFF/osvvm/SetExtendedElaborateOptions` and
-  :ref:`RUFF/osvvm/SetExtendedRunOptions` apply.
-
-
-.. _SIM/Metrics:
-
-Metrics
-*******
-
-.. _SIM/Metrics/DSim:
-
-DSim
-====
-
-* Vendor script :file:`VendorScripts_DSim.tcl`.
-* Analysis fails in the current vendor script; the Quick Start Guide shows only how to start OSVVM.
-
-
-.. _SIM/OpenSource:
-
-Open-Source
-***********
-
-.. _SIM/OpenSource/GHDL:
-
-GHDL
-====
-
-* Vendor script :file:`VendorScripts_GHDL.tcl`, run in :program:`tclsh`; on Windows in an MSYS2 shell.
-* Elaborates and runs in separate steps: :ref:`RUFF/osvvm/SetExtendedElaborateOptions` and
-  :ref:`RUFF/osvvm/SetExtendedRunOptions` apply.
-* Runs in batch mode; :ref:`RUFF/osvvm/SetSaveWaves` writes a waveform file for a viewer like :term:`GTKWave` or
-  :term:`Surfer`.
-* No code coverage yet.
-
-.. _SIM/OpenSource/NVC:
-
-NVC
-===
-
-* Vendor script :file:`VendorScripts_NVC.tcl`, run in NVC's own Tcl shell or in :program:`tclsh`.
-* Elaborates and runs in separate steps: :ref:`RUFF/osvvm/SetExtendedElaborateOptions` and
-  :ref:`RUFF/osvvm/SetExtendedRunOptions` apply. The run options default to ``--exit-severity=failure``.
-* Runs in batch mode; :ref:`RUFF/osvvm/SetSaveWaves` writes a waveform file for a viewer like :term:`GTKWave` or
-  :term:`Surfer`.
-* Code coverage is instrumented at elaboration (:ref:`RUFF/osvvm/SetCoverageElaborateOptions`); further NVC options
-  via ``NvcExtendedCoverageOptions`` (see :ref:`UG/CodeCoverage/NVC`). It's exported as :term:`Cobertura XML`.
-
-
-.. _SIM/Siemens:
-
-Siemens EDA
-***********
-
-.. _SIM/Siemens/ModelSim:
-
-ModelSim
-========
-
-* Vendor script :file:`VendorScripts_Siemens.tcl`.
-* Code coverage is collected at analysis and at simulation; it's exported as coverage report XML
-  (``vcover report -xml``).
-
-.. _SIM/Siemens/Questa:
-
-Questa
-======
-
-* :file:`StartUp.tcl` selects :file:`VendorScripts_Questa.tcl`, if the command ``qsim`` exists, else
-  :file:`VendorScripts_Siemens.tcl`; :file:`StartQuesta.tcl` always selects :file:`VendorScripts_Siemens.tcl`.
-* Code coverage is collected at analysis and at simulation; it's exported as coverage report XML
-  (``vcover report -xml``).
-* :ref:`RUFF/osvvm/SetExtendedOptimizeOptions` applies to Questa's separate optimization step.
-
-.. _SIM/Siemens/Visualizer:
-
-Visualizer
-==========
-
-* :file:`StartVisualizer.tcl` selects :file:`VendorScripts_Questa.tcl`; :file:`VendorScripts_Visualizer.tcl` is
-  selected with the environment variable ``OSVVM_TOOL`` only.
-* Code coverage as with Questa.
-
-
-.. _SIM/Synopsys:
-
-Synopsys
-********
-
-.. _SIM/Synopsys/VCS:
-
-VCS
-===
-
-* Vendor script :file:`VendorScripts_VCS.tcl`, run in :program:`tclsh`.
-* Elaborates and runs in separate steps: :ref:`RUFF/osvvm/SetExtendedElaborateOptions` and
-  :ref:`RUFF/osvvm/SetExtendedRunOptions` apply.
+* Start-up per simulator: :ref:`QSG/Start`.
