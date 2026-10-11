@@ -3,13 +3,15 @@
 Installation/Updates
 ####################
 
-.. image:: https://img.shields.io/badge/OSVVM-OSVVM--Scripts-EDB74E.svg?longCache=true&logo=GitHub&labelColor=333333
-   :alt: Sourcecode on GitHub
-   :height: 22
-   :target: https://github.com/OSVVM/OSVVM-Scripts
-.. image:: https://img.shields.io/github/v/tag/OSVVM/OsvvmLibraries
-   :target: https://github.com/OSVVM/OsvvmLibraries/releases/latest
-   :alt: GitHub Release
+.. shields::
+   :github: OSVVM/OSVVM-Scripts
+
+   github
+
+.. shields::
+   :github: OSVVM/OsvvmLibraries
+
+   tag, date
 
 :acs:`OSVVM` is hosted and developed at https://github.com/OSVVM. Its components are split into multiple Git repositories,
 which can be used individually or as a group. The all-in-one repository is
@@ -169,9 +171,10 @@ Updating OSVVM or OSVVM Components
 Download OSVVM Libraries
 ************************
 
-.. image:: https://img.shields.io/github/v/release/OSVVM/OsvvmLibraries
-   :target: https://github.com/OSVVM/OsvvmLibraries/releases/latest
-   :alt: GitHub Release
+.. shields::
+   :github: OSVVM/OsvvmLibraries
+
+   tag, date
 
 .. grid:: 2
 
