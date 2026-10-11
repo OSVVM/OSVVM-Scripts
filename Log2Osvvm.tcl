@@ -44,6 +44,18 @@ namespace eval ::osvvm {
   package require fileutil
 
   proc Log2Osvvm {LogFile} {
+    # Convert the build's simulator transcript to its HTML version and further outputs.
+    #  LogFile - Transcript of the build, `<BuildName>.log`.
+    #
+    # Writes, next to `LogFile`, from the line starting with `build` on (`LocalLog2Osvvm`):
+    #
+    # `<BuildName>_log.html`  - HTML transcript, if `TranscriptExtension` is `html` ([SetTranscriptType])
+    # `<BuildName>_sim.tcl`   - the simulator commands, if `CreateSimScripts` is set
+    # `<BuildName>_osvvm.log` - OSVVM's output lines, if `CreateOsvvmOutput` is set
+    #
+    # On an error, the files are closed and `CallbackOnError_Log2Osvvm` is called. Called at the end of a [build].
+    #
+    # See also: [Transcript2Html] [SetTranscriptType]
     variable LogFileHandle
     variable HtmlFileHandle
     variable SimFileHandle
@@ -105,6 +117,9 @@ namespace eval ::osvvm {
   }
 
   proc CreateHeaderLog2Html {} {
+    # Write the start of an HTML transcript.
+    #
+    # Writes the styles for the sticky, collapsible sections and opens the preformatted body.
     variable HtmlFileHandle
     puts $HtmlFileHandle "<html>"
     puts $HtmlFileHandle "<style>"
@@ -126,6 +141,14 @@ namespace eval ::osvvm {
   }
 
   proc LocalLog2Osvvm {LogFile LocalLogType LocalCreateSimScripts LocalCreateOsvvmOutput} {
+    # Convert the transcript line by line.
+    #  LogFile                - Transcript of the build. Not used; the open channel `LogFileHandle` is read.
+    #  LocalLogType           - `html`: write the HTML transcript (`Log2Html`).
+    #  LocalCreateSimScripts  - If true, write the simulator commands (`Log2Sim`).
+    #  LocalCreateOsvvmOutput - If true, write OSVVM's output lines (`Log2OsvvmOutput`).
+    #
+    # Removes the prefixes `# KERNEL: ` and `# ` that simulators put before the lines. Lines before the first line
+    # starting with `build` are skipped (`FindBuildInLog`). Errors are handled by [Log2Osvvm].
     variable LogFileHandle
     variable LineOfLogFile
     variable InRunTest 0
@@ -174,6 +197,9 @@ namespace eval ::osvvm {
 
 
   proc FindBuildInLog {} {
+    # Check whether the current transcript line starts a build.
+    #
+    # Returns 1 if `LineOfLogFile` starts with `build`, else 0.
     variable HtmlFileHandle
     variable LineOfLogFile
     variable FirstLine
@@ -310,6 +336,13 @@ namespace eval ::osvvm {
 #!!    }
 #!!  }
   proc Log2Html {} {
+    # Write the current transcript line to the HTML transcript.
+    #
+    # Encodes HTML special characters. Colors passed checks and test cases green, errors and failures red and warnings
+    # orange; lines starting with `%%:` keep the previous color. A line with `%%x` embeds the HTML test case report.
+    # Each `build`, `include`, `library`, `TestSuite`, `RunTest`, `analyze` and `simulate` line opens a collapsible
+    # section, closed by the next one. `simulate` lines get an anchor `<TestSuite>_<TestCase><GenericNames>`, the target
+    # of the test case report's link.
     variable HtmlFileHandle
     variable LineOfLogFile
     variable InRunTest
@@ -447,6 +480,9 @@ namespace eval ::osvvm {
   }
 
   proc Log2Sim {} {
+    # Write the current transcript line to the simulator script, if it's a simulator command.
+    #
+    # Uses the vendor script's `IsVendorCommand`. Removes Tcl's argument expansion from the line.
     variable SimFileHandle
     variable LineOfLogFile
 
@@ -457,6 +493,9 @@ namespace eval ::osvvm {
   }
 
   proc Log2OsvvmOutput {} {
+    # Write the current transcript line to the OSVVM output, if it's an OSVVM line.
+    #
+    # OSVVM lines start with `%%`, `simulate ` or `TestCase `.
     variable OsvvmFileHandle
     variable LineOfLogFile
 
@@ -474,6 +513,15 @@ namespace eval ::osvvm {
   }
 
   proc Transcript2Html {TranscriptFile} {
+    # Convert a test case transcript to HTML.
+    #  TranscriptFile - Transcript file, opened in VHDL with `TranscriptOpen`.
+    #
+    # Writes `<Name>.html` next to the transcript (`LocalTranscript2Html`). On an error, the files are closed and
+    # `CallbackOnError_Transcript2Html` is called.
+    #
+    # Called when the transcript files of a test case are moved into the results directory.
+    #
+    # See also: [Log2Osvvm]
     variable HtmlFileHandle
     variable TranscriptFileHandle
 
@@ -580,6 +628,10 @@ namespace eval ::osvvm {
 #Rev1:  }
 
   proc LocalTranscript2Html {} {
+    # Write the lines of a test case transcript to its HTML version.
+    #
+    # Colors errors, failures and failed test cases red, warnings orange and passed checks and test cases green; lines
+    # starting with `%%:` keep the previous color. Errors are handled by [Transcript2Html].
     variable TranscriptFileHandle
     variable HtmlFileHandle
     variable Log2HtmlTextColor

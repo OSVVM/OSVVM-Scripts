@@ -90,12 +90,28 @@
 # StartTranscript / StopTranscript
 #
 proc vendor_StartTranscript {FileName} {
+  # Start writing the simulator's transcript to a file.
+  #  FileName - Path of the temporary transcript file.
+  #
+  # Optional. Called by [StartTranscript] at the start of a [build]; if a vendor file doesn't define it,
+  # `DefaultVendor_StartTranscript` copies stdout and stderr into the file. [StopTranscript] later moves the file into
+  # the build's log directory.
+  #
+  # Active-HDL: turns the transcript off and writes it to $FileName with `transcript to`.
   transcript off
   echo transcript to $FileName
   transcript to $FileName
 }
 
 proc vendor_StopTranscript {FileName} {
+  # Stop writing the simulator's transcript to a file.
+  #  FileName - Path of the temporary transcript file.
+  #
+  # Optional. Called by [StopTranscript] at the end of a [build], before the file is copied into the build's log
+  # directory. If a vendor file doesn't define it, `DefaultVendor_StopTranscript` ends the copying of stdout and
+  # stderr.
+  #
+  # Active-HDL: stops the transcript file with `transcript to -off`.
   transcript to -off
 }
 
@@ -103,6 +119,12 @@ proc vendor_StopTranscript {FileName} {
 # Exit Code
 #
 proc ExitCode {Code {Message ""}} {
+  # Print a message and exit the simulator with an exit code.
+  #  Code    - Exit code.
+  #  Message - Message printed before exiting.
+  #
+  # Replaces `ExitCode` of `OsvvmScriptsCore.tcl`; exits with the simulator's `exit -code`. Used by [build] at the
+  # end of a build, if `ExitOnBuildDone` is set and neither interactive nor debug mode is on.
   puts $Message
   exit -code $Code
 }
@@ -111,6 +133,15 @@ proc ExitCode {Code {Message ""}} {
 # IsVendorCommand
 #
 proc IsVendorCommand {LineOfText} {
+   # Return whether a transcript line is a command of this simulator.
+   #  LineOfText - A line of the transcript.
+   #
+   # Used by `Log2Osvvm.tcl` to recognize the simulator commands in a log file. Active-HDL: a line starting with one of
+   # the commands `alib`, `amap`, `acom`, `alog`, `asim`, `vlib`, `vmap`, `vcom`, `vlog`, `vsim`, `run` or `acdb`,
+   # followed by a space.
+   #
+   # Returns `1` if the line is a simulator command, else `0`.
+
 #!!    set cmd [lindex $LineOfText 0]
 #!!    return [expr {$cmd in {alib amap acom alog asim vlib vmap vcom vlog vsim run acdb}}]
    return [regexp {^alib |^amap |^acom |^alog |^asim |^vlib |^vmap |^vcom |^vlog |^vsim |^run |^acdb } $LineOfText]
@@ -121,40 +152,53 @@ proc IsVendorCommand {LineOfText} {
 # SetCoverageCoverageOptions
 #
 proc vendor_SetCoverageAnalyzeDefaults {} {
-  # Set the default code coverage options for analysis.
+  # Return the simulator's default code coverage options for analyze.
   #
-  # The options for the kinds of code coverage in `CoverageKinds` (see [SetCoverageKinds]), translated by
-  # `vendor_GetCoverageKindOptions`.
+  # Called at start-up by `OsvvmSettingsDefault.tcl`, which stores the result in `CoverageAnalyzeOptions`, and by
+  # [SetCoverageKinds]. The value is used by [analyze] while code coverage is enabled for analyze, see
+  # [SetCoverageAnalyzeEnable]. A user setting from [SetCoverageAnalyzeOptions] or `OsvvmSettingsLocal.tcl` replaces it.
   #
-  # Returns: The default code coverage analysis options; also stored in `CoverageAnalyzeOptions`.
+  # Sets `CoverageAnalyzeOptions` to the options for the kinds in `CoverageKinds`, translated by
+  # `vendor_GetCoverageKindOptions`, and returns it: `-coverage sbm` for the default kinds (statement,
+  # branch, FSM).
+  #
+  # Returns the default options, or an empty string if the simulator has none.
   variable CoverageAnalyzeOptions
   variable CoverageKinds
   set CoverageAnalyzeOptions [vendor_GetCoverageKindOptions analyze $CoverageKinds]
 }
 
 proc vendor_SetCoverageElaborateDefaults {} {
-  # Set the default code coverage options for elaboration.
+  # Return the simulator's default code coverage options for elaboration.
   #
-  # The options for the kinds of code coverage in `CoverageKinds` (see [SetCoverageKinds]), translated by
-  # `vendor_GetCoverageKindOptions`.
+  # Called at start-up by `OsvvmSettingsDefault.tcl`, which stores the result in `CoverageElaborateOptions`, and by
+  # [SetCoverageKinds]. The value is passed to the elaboration by [simulate] (`ElaborateOptions`) while code coverage is
+  # enabled for simulate, see [SetCoverageSimulateEnable]. A user setting from [SetCoverageElaborateOptions] or
+  # `OsvvmSettingsLocal.tcl` replaces it.
   #
-  # Returns: The default code coverage elaboration options; also stored in `CoverageElaborateOptions`.
+  # Active-HDL: sets `CoverageElaborateOptions` to the options for the kinds in `CoverageKinds`, translated by
+  # `vendor_GetCoverageKindOptions`, and returns it: empty, the kinds add no elaborate options for this simulator.
+  #
+  # Returns the default options, or an empty string if the simulator has none.
   variable CoverageElaborateOptions
   variable CoverageKinds
   set CoverageElaborateOptions [vendor_GetCoverageKindOptions elaborate $CoverageKinds]
 }
 
 proc vendor_GetCoverageKindOptions {Step Kinds} {
-  # Translate the kinds of code coverage into Active-HDL's options for a step.
-  #
+  # Translate the kinds of code coverage into the simulator's options for one step.
   #  Step  - `analyze`, `elaborate` or `simulate`.
   #  Kinds - The kinds of code coverage, see [SetCoverageKinds].
   #
-  # Active-HDL instruments code coverage at analysis (`-coverage`) and collects it at simulation (`-acdb_cov`), both
-  # with `s` (statement), `b` (branch), `c` (condition), `e` (expression) and `m` (fsm). Toggle coverage isn't
-  # chosen by a letter; functional coverage is collected without an option.
+  # Called by `vendor_SetCoverageAnalyzeDefaults`, `vendor_SetCoverageElaborateDefaults` and
+  # `vendor_SetCoverageSimulateDefaults` with the kinds in `CoverageKinds`. A kind the simulator doesn't support is left
+  # out.
   #
-  # Returns: The options for the step; none for elaboration.
+  # Active-HDL instruments code coverage at analysis (`-coverage`) and collects it at simulation (`-acdb_cov`), both
+  # with `s` (statement), `b` (branch), `c` (condition), `e` (expression) and `m` (fsm). Toggle coverage isn't chosen by
+  # a letter; functional coverage is collected without an option.
+  #
+  # Returns the options for the step, or an empty string.
   set Letters ""
   foreach Kind $Kinds {
     append Letters [dict get {statement s branch b condition c expression e toggle "" fsm m functional ""} $Kind]
@@ -170,12 +214,17 @@ proc vendor_GetCoverageKindOptions {Step Kinds} {
 }
 
 proc vendor_SetCoverageSimulateDefaults {} {
-  # Set the default code coverage options for simulation.
+  # Return the simulator's default code coverage options for simulate.
   #
-  # The options for the kinds of code coverage in `CoverageKinds` (see [SetCoverageKinds]), translated by
-  # `vendor_GetCoverageKindOptions`. Further options: `-acdb` and `-cc_all`.
+  # Called at start-up by `OsvvmSettingsDefault.tcl`, which stores the result in `CoverageSimulateOptions`, and by
+  # [SetCoverageKinds]. The value is added to the simulator options by [simulate] while code coverage is enabled for
+  # simulate, see [SetCoverageSimulateEnable]. A user setting from [SetCoverageSimulateOptions] or
+  # `OsvvmSettingsLocal.tcl` replaces it.
   #
-  # Returns: The default code coverage simulation options; also stored in `CoverageSimulateOptions`.
+  # Sets `CoverageSimulateOptions` to `-acdb`, the options for the kinds (`-acdb_cov <letters>`) and `-cc_all`, and
+  # returns it: `-acdb -acdb_cov sbm -cc_all` for the default kinds.
+  #
+  # Returns the default options, or an empty string if the simulator has none.
   variable CoverageSimulateOptions
   variable CoverageKinds
   set CoverageSimulateOptions [concat "-acdb" [vendor_GetCoverageKindOptions simulate $CoverageKinds] "-cc_all"]
@@ -185,6 +234,17 @@ proc vendor_SetCoverageSimulateDefaults {} {
 # Library
 #
 proc vendor_library {LibraryName RelativePathToLib} {
+  # Create a library if it doesn't exist, and make it the working library.
+  #  LibraryName       - Name of the library, in lower case.
+  #  RelativePathToLib - Directory containing the library. The path is normalized.
+  #
+  # Called by [library] after it resolved the directory and created it. An error is caught by [library] and reported
+  # via `CallbackOnError_Library`.
+  #
+  # Active-HDL: ends a simulation started by [simulate] with `endsim`. If `<RelativePathToLib>/<LibraryName>`
+  # doesn't exist, creates it as a design with `design create -a`; then opens it with `design open -a` and activates
+  # it with `design activate`. Sets the Active-HDL variable `sim_working_folder` to the current simulation directory,
+  # and changes back to that directory, as Active-HDL changes it.
   variable vendor_simulate_started
   global sim_working_folder
 
@@ -225,6 +285,16 @@ proc vendor_library {LibraryName RelativePathToLib} {
 }
 
 proc vendor_LinkLibrary {LibraryName RelativePathToLib} {
+  # Make an existing library visible to the simulator, without making it the working library.
+  #  LibraryName       - Name of the library, in lower case.
+  #  RelativePathToLib - Directory containing the library. The path is normalized.
+  #
+  # Called by [LinkLibrary], [LinkLibraryDirectory] and [LinkCurrentLibraries] for each library. An error is caught
+  # and reported via `CallbackOnError_LinkLibrary`.
+  #
+  # Active-HDL: ends a simulation started by [simulate] with `endsim`. A library created by Active-HDL, a directory
+  # `<RelativePathToLib>/<LibraryName>`, is opened with `vendor_library`, so it also becomes the working library.
+  # Otherwise the library is mapped with `vmap` to the directory. Changes back to the current simulation directory.
   variable vendor_simulate_started
   global sim_working_folder
 
@@ -249,6 +319,15 @@ proc vendor_LinkLibrary {LibraryName RelativePathToLib} {
 }
 
 proc vendor_UnlinkLibrary {LibraryName PathToLib} {
+  # Remove a library's mapping from the simulator.
+  #  LibraryName - Name of the library, in lower case.
+  #  PathToLib   - Directory containing the library.
+  #
+  # Called by [RemoveLibrary], [RemoveLibraryDirectory] and [RemoveAllLibraries] before the library directory is
+  # deleted. An error is caught and printed as `LibraryError`.
+  #
+  # Active-HDL: deletes the library's contents with `vdel -lib <LibraryName> -all`.
+
 # Does the design also need to be closed?
 # The intent is to delete the library so it can be recreated
 # so it should be ok not closing the design
@@ -266,6 +345,20 @@ proc vendor_UnlinkLibrary {LibraryName PathToLib} {
 # analyze
 #
 proc vendor_analyze_vhdl {LibraryName RelativePathToFile args} {
+  # Analyze (compile) a VHDL file into a library.
+  #  LibraryName        - Name of the working library.
+  #  RelativePathToFile - Path of the VHDL file, relative to the current directory. The path is normalized.
+  #  args               - The analyze options as one list element.
+  #
+  # Called by [analyze] for files with extension `.vhd` or `.vhdl`. The options are the VHDL analyze options, the
+  # extended analyze options, the code coverage analyze options if enabled, and the options given to [analyze]. An
+  # error marks the analyze as failed.
+  #
+  # Active-HDL: adds the file to the design with `addfile` and `filevhdloptions -<VHDL version>`, unless the file
+  # `<library>/src/<file base name>.vcom` shows it was added already. Then runs `vcom -<VHDL version> -relax -work
+  # <LibraryName>` with the options and the file, and writes this command into the `.vcom` file. Adds `-dbg` in the GUI
+  # if [SetDebugMode] is on and code coverage is off for analyze and simulate. Changes back to the current simulation
+  # directory.
   variable VhdlVersion
   variable VhdlLibraryFullPath
   global sim_working_folder
@@ -302,6 +395,17 @@ proc vendor_analyze_vhdl {LibraryName RelativePathToFile args} {
 }
 
 proc vendor_analyze_verilog {LibraryName File_Relative_Path args} {
+  # Analyze (compile) a Verilog or SystemVerilog file into a library.
+  #  LibraryName        - Name of the working library.
+  #  File_Relative_Path - Path of the Verilog file, relative to the current directory. The path is normalized.
+  #  args               - The analyze options as one list element.
+  #
+  # Called by [analyze] for files with extension `.v`, `.sv` or `.vh`. The options are the Verilog analyze options,
+  # the extended analyze options, the code coverage analyze options if enabled, and the options given to [analyze].
+  # An error marks the analyze as failed.
+  #
+  # Active-HDL: runs `vlog -work <LibraryName>` with `-l <library>` for each library in the library list, the
+  # options and the file, and prints the command. Changes back to the current simulation directory.
   global sim_working_folder
 
   set sim_working_folder $::osvvm::CurrentSimulationDirectory
@@ -317,6 +421,12 @@ proc vendor_analyze_verilog {LibraryName File_Relative_Path args} {
 
 # -------------------------------------------------
 proc NoNullRangeWarning  {} {
+  # Return the analyze option that suppresses the warning about null ranges.
+  #
+  # Replaces [NoNullRangeWarning] of `OsvvmScriptsCore.tcl`, which returns an empty string. Used as
+  # `analyze <file> [NoNullRangeWarning]`.
+  #
+  # Returns `-nowarn COMP96_0119`.
   return "-nowarn COMP96_0119"
 }
 
@@ -325,6 +435,12 @@ proc NoNullRangeWarning  {} {
 # End Previous Simulation
 #
 proc vendor_end_previous_simulation {} {
+  # End the running simulation and release its files.
+  #
+  # Called by [EndSimulation]: at the start of a [build] and before a [simulate] if a simulation was started, after a
+  # [simulate] that failed outside interactive mode, and before exiting on report errors.
+  #
+  # Active-HDL: ends the simulation with `endsim`.
   endsim
 }
 
@@ -332,6 +448,24 @@ proc vendor_end_previous_simulation {} {
 # Simulate
 #
 proc vendor_simulate {LibraryName LibraryUnit args} {
+  # Elaborate and run a simulation.
+  #  LibraryName - Name of the working library.
+  #  LibraryUnit - Top-level design unit: an entity or a configuration.
+  #  args        - Simulator options.
+  #
+  # Called by [simulate] between `CallbackBefore_Simulate` and `CallbackAfter_Simulate`. The options are the options
+  # given to [simulate], the extended simulate options and, if code coverage is enabled for simulate, the code
+  # coverage simulate options. Generics set with [generic] are in `GenericOptions` (as returned by
+  # `vendor_generic`) and `GenericDict`. An error marks the simulation as failed.
+  #
+  # Active-HDL: loads the design with `asim`: $args, the generics, `-interceptcoutput -t <SimulateTimeUnits> -lib
+  # <LibraryName> <LibraryUnit>` and the second top-level unit of [SetSecondSimulationTopLevel]. Then runs the user
+  # scripts (`SimulateRunScripts`), logs all signals if [SetLogSignals] is on, runs the wave files collected by
+  # [DoWaves], and runs the simulation with `run -all`. Changes back to the current simulation directory after each
+  # step, as Active-HDL changes it.
+  #
+  # With code coverage enabled for simulate, `acdb save` writes the coverage database to
+  # `<CoverageDirectory>/<TestSuiteName>/<TestCaseFileName>.acdb`, with the test case file name as test name.
   variable OsvvmScriptDirectory
   variable SimulateTimeUnits
   variable ToolVendor
@@ -379,6 +513,13 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
 
 # -------------------------------------------------
 proc vendor_DoWaves {args} {
+  # Collect wave files to run in the next simulation.
+  #  args - Wave files, as one list element.
+  #
+  # Optional. Called by [DoWaves], which returns this procedure's result instead of `-do` options. The files are
+  # stored in `WaveFiles`; `vendor_simulate` runs them with `do` before the simulation runs and clears the list.
+  #
+  # Returns an empty string, so nothing is added to the [simulate] options.
   variable WaveFiles
 
   if {$args ne ""} {
@@ -391,6 +532,15 @@ proc vendor_DoWaves {args} {
 
 # -------------------------------------------------
 proc vendor_generic {Name Value} {
+  # Return the simulator option that sets a generic.
+  #  Name  - Name of the generic.
+  #  Value - Value of the generic.
+  #
+  # Called by [generic], which appends the result to `GenericOptions`; `vendor_simulate` adds these options.
+  #
+  # Active-HDL: `-g<Name>=<Value>`.
+  #
+  # Returns the option, or an empty string if the simulator gets its generics another way.
 
   return "-g${Name}=${Value}"
 }
@@ -399,6 +549,19 @@ proc vendor_generic {Name Value} {
 # Merge Coverage
 #
 proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
+  # Merge the code coverage databases of a test suite or a build.
+  #  TestSuiteName     - Name of the test suite, or of the build at the end of a build.
+  #  CoverageDirectory - The build's code coverage directory.
+  #  BuildName         - Name of the build; empty at the end of a build.
+  #
+  # Called at the end of a test suite, which ran with code coverage, with the test suite's name and the build name:
+  # the databases in `<CoverageDirectory>/<TestSuiteName>` are merged into
+  # `<CoverageDirectory>/<BuildName>/<TestSuiteName>`. Called at the end of the build with the build name and an empty
+  # `BuildName`: the test suite databases are merged into `<CoverageDirectory>/<BuildName>`. [MergeCoverage] calls it
+  # with a test suite name and a merge name.
+  #
+  # Active-HDL: if `<CoverageDirectory>/<TestSuiteName>` holds `*.acdb` databases, merges them with `acdb merge` into
+  # `<CoverageDirectory>/<BuildName>/<TestSuiteName>.acdb`.
   set CoverageFileBaseName [file join ${CoverageDirectory} ${BuildName} ${TestSuiteName}]
   set CovFiles [glob -nocomplain ${CoverageDirectory}/${TestSuiteName}/*.acdb]
   if {$CovFiles ne ""} {
@@ -407,6 +570,17 @@ proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
 }
 
 proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
+  # Write the HTML code coverage report of a build.
+  #  TestSuiteName         - Name of the build, whose merged database is reported.
+  #  CodeCoverageDirectory - The build's code coverage directory.
+  #
+  # Called at the end of a build that ran a simulation with code coverage, after `vendor_MergeCodeCoverage`. The report
+  # is read from the merged database `<CodeCoverageDirectory>/<TestSuiteName>` and written next to it; the build report
+  # links to it via `vendor_GetCoverageFileName`.
+  #
+  # Active-HDL: deletes an old report, then writes the report with `acdb report -html` into
+  # `<CodeCoverageDirectory>/<TestSuiteName>_code_cov.html` and the directory `<TestSuiteName>_code_cov_files` from
+  # the database `<CodeCoverageDirectory>/<TestSuiteName>.acdb`.
   set CodeCovResultsDir ${CodeCoverageDirectory}/${TestSuiteName}_code_cov
   if {[file exists ${CodeCovResultsDir}.html]} {
     file delete -force -- ${CodeCovResultsDir}.html
@@ -418,6 +592,15 @@ proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
 }
 
 proc vendor_GetCoverageFileName {TestName} {
+  # Return the file name of a build's HTML code coverage report.
+  #  TestName - Name of the build.
+  #
+  # Called while writing the build's YAML report, if the build ran a simulation with code coverage. The build report
+  # links to `<CoverageSubdirectory>/<result>`.
+  #
+  # Active-HDL: `<TestName>_code_cov.html`, written by `vendor_ReportCodeCoverage`.
+  #
+  # Returns the report's path relative to the build's code coverage directory.
   set CoverageFileName ${TestName}_code_cov.html
   return $CoverageFileName
 }
@@ -426,14 +609,17 @@ proc vendor_GetCoverageFileName {TestName} {
 # Export Coverage
 #
 proc vendor_ExportCodeCoverage {BuildName CodeCoverageDirectory FileName Options} {
-  # Export the code coverage of a build into Active-HDL's UCDB XML with `acdb2xml`.
+  # Export the code coverage of a build into a well-known data format.
+  #  BuildName             - Name of the build.
+  #  CodeCoverageDirectory - The build's code coverage directory.
+  #  FileName              - The file to write; empty: the simulator's default name in *CodeCoverageDirectory*.
+  #  Options               - Further options of the simulator's export command.
   #
-  #  BuildName             - The build.
-  #  CodeCoverageDirectory - The directory of the code coverage databases.
-  #  FileName              - The file to write; if empty, `<BuildName>_code_cov.ucdb.xml` in *CodeCoverageDirectory*.
-  #  Options               - Further options of `acdb2xml`.
+  # Called by [ExportCodeCoverage], and at the end of a build that collected code coverage if [SetCoverageExportEnable]
+  # is on.
   #
-  # The build's database is `<BuildName>.acdb`. Without a database, nothing is written.
+  # Active-HDL: `acdb2xml` writes UCDB XML from `<BuildName>.acdb`; the default file is `<BuildName>_code_cov.ucdb.xml`.
+  # The options are passed as given. Without a database, prints a message and writes nothing.
   set CoverageFile ${CodeCoverageDirectory}/${BuildName}.acdb
   if {$FileName eq ""} {
     set FileName ${CodeCoverageDirectory}/${BuildName}_code_cov.ucdb.xml

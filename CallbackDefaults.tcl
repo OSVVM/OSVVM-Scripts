@@ -59,35 +59,150 @@ namespace eval ::osvvm {
 # CallbackBefore_Xxx, CallbackAfter_Xxx
 #
   proc CallbackBefore_Build {Path_Or_File args} {
+    # Run user actions before a build includes its script.
+    #  Path_Or_File - Script file or directory given to [build].
+    #  args         - Not used: OSVVM passes no further arguments.
+    #
+    # Called by [build] after the build's YAML file is started and before the script is included.
+    # The default does nothing.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
+
 #   puts "Build Before ${Path_Or_File}"
   }
   proc CallbackAfter_Build {Path_Or_File args} {
+    # Run user actions after a build included its script.
+    #  Path_Or_File - Script file or directory given to [build].
+    #  args         - Not used: OSVVM passes no further arguments.
+    #
+    # Called by [build] after the script was included without error and before the reports are created.
+    # The default does nothing.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
+
 #    puts "Build After ${Path_Or_File}"
   }
   proc CallbackBefore_Include {Path_Or_File args} {
+    # Run user actions before a script is included.
+    #  Path_Or_File - Script file or directory given to [include].
+    #  args         - Not used: OSVVM passes no further arguments.
+    #
+    # Called by [include] before it looks for the script.
+    # The default does nothing.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
+
 #    puts "Include Before ${Path_Or_File}"
   }
   proc CallbackAfter_Include {Path_Or_File args} {
+    # Run user actions after a script was included.
+    #  Path_Or_File - Script file or directory given to [include].
+    #  args         - Not used: OSVVM passes no further arguments.
+    #
+    # Called by [include] after the script was sourced without error.
+    # The default does nothing.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
+
 #    puts "Include After ${Path_Or_File}"
   }
   proc CallbackBefore_Library {LibraryName PathToLib} {
+    # Run user actions before a library is created or made the working library.
+    #  LibraryName - Library name given to [library].
+    #  PathToLib   - Library directory given to [library]; empty if none was given.
+    #
+    # Called by [library] before the simulator creates or maps the library (`vendor_library`).
+    # The default does nothing.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
+
 #    puts "Library Before ${PathToLib} ${LibraryName}"
   }
   proc CallbackAfter_Library {LibraryName PathToLib} {
+    # Run user actions after a library was created or made the working library.
+    #  LibraryName - Library name given to [library].
+    #  PathToLib   - Library directory given to [library]; empty if none was given.
+    #
+    # Called by [library] after `vendor_library` succeeded. If it failed, [library] calls
+    # `CallbackOnError_Library` instead.
+    # The default does nothing.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
+
 #    puts "Library Before ${PathToLib} ${LibraryName}"
   }
   proc CallbackBefore_Analyze {FileName args} {
+    # Run user actions before a source file is analyzed.
+    #  FileName - Source file given to [analyze].
+    #  args     - One element: the list of options given to [analyze] after the file name.
+    #
+    # Called by [analyze] for VHDL and Verilog files, after the analyze options are put together in the variable
+    # `::osvvm::AnalyzeOptions` and before the simulator analyzes the file (`vendor_analyze_vhdl` or
+    # `vendor_analyze_verilog`).
+    # The default does nothing.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
+
 #    variable AnalyzeOptions
 #    puts "Analyze Before ${FileName} ${args}"
   }
   proc CallbackAfter_Analyze {FileName args} {
+    # Run user actions after a source file was analyzed.
+    #  FileName - Source file given to [analyze].
+    #  args     - One element: the list of options given to [analyze] after the file name.
+    #
+    # Called by [analyze] for VHDL and Verilog files after the simulator analyzed the file without error.
+    # The default does nothing.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
+
 #    puts "Analyze After ${FileName} ${args}"
   }
   proc CallbackBefore_Simulate {LibraryUnit args} {
+    # Run user actions before a simulation starts.
+    #  LibraryUnit - Design unit given to [simulate].
+    #  args        - One element: the list of options given to [simulate] after the design unit.
+    #
+    # Called by [simulate] after the simulate options are put together in the variable `::osvvm::SimulateOptions`
+    # and before the simulator starts (`vendor_simulate`).
+    # The default does nothing.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
+
 #    variable SimulateOptions
 #    puts "Simulate Before ${LibraryUnit} ${args}"
   }
   proc CallbackAfter_Simulate {LibraryUnit args} {
+    # Run user actions after a simulation ended.
+    #  LibraryUnit - Design unit given to [simulate].
+    #  args        - One element: the list of options given to [simulate] after the design unit.
+    #
+    # Called by [simulate] after `vendor_simulate` returned without error and before the test case reports are
+    # created.
+    # The default does nothing.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
+
 #    puts "Simulate After ${LibraryUnit} ${args}"
   }
 
@@ -104,6 +219,21 @@ namespace eval ::osvvm {
 #  }
 
   proc CallbackOnError_Build {Path_Or_File BuildErrorMessage LocalBuildErrorInfo} {
+    # Handle a failed build.
+    #  Path_Or_File        - Script file or directory given to [build].
+    #  BuildErrorMessage   - Error message of the build script, or the number of analyze and simulate errors.
+    #  LocalBuildErrorInfo - Tcl `errorInfo` of the build script's error.
+    #
+    # Called by [build] after all reports are created, if an analyze or simulate error occurred or the build
+    # script raised an error.
+    #
+    # Prints an error message and stores $LocalBuildErrorInfo in `::osvvm::BuildErrorInfo`. For the first build
+    # error, it prints the `errorInfo` too, if `TclDebug` or `Debug` is set. If `FailOnBuildErrors` is set, it raises
+    # an error with $BuildErrorMessage, otherwise it prints $BuildErrorMessage.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     if {$::osvvm::BuildErrorInfo eq ""} {
       set NewBuildError TRUE
     } else {
@@ -125,11 +255,34 @@ namespace eval ::osvvm {
   }
 
   proc CallbackOnError_FindIncludeFile {Path_Or_File CommandName} {
+    # Handle a script file or directory that doesn't exist.
+    #  Path_Or_File - Script file or directory given to the command.
+    #  CommandName  - Name of the calling command: `include` or `Build`.
+    #
+    # Called by [include] and [build] if they can't find a script for $Path_Or_File. Prints an error message and
+    # raises an error with the normalized path.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     puts "Error: $CommandName ${Path_Or_File} is not a file or path"
     error "$CommandName [file normalize ${Path_Or_File}] is not a file or path"
   }
 
   proc CallbackOnError_Library {ErrMsg LibraryName PathToLib ErrInProc} {
+    # Handle a failure to create a library or make it the working library.
+    #  ErrMsg      - Error message of the failed procedure.
+    #  LibraryName - Library name given to [library].
+    #  PathToLib   - Library directory the library was looked for in.
+    #  ErrInProc   - Name of the failed procedure: `vendor_library`.
+    #
+    # Called by [library] if `vendor_library` fails. Stores the Tcl `errorInfo` in `::osvvm::LibraryErrorInfo`,
+    # prints error messages and, if `TclDebug` or `Debug` is set, the `errorInfo`. Then raises an error with
+    # $ErrMsg.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     set ::osvvm::LibraryErrorInfo $::errorInfo
     puts "LibraryError: $ErrMsg"
     puts "LibraryError: library $LibraryName $PathToLib failed in $ErrInProc  See messages above"
@@ -143,6 +296,16 @@ namespace eval ::osvvm {
   }
 
   proc CallbackOnError_LinkLibrary {Message} {
+    # Handle a failure to link a library.
+    #  Message - Description of the failure: library name, directory and cause.
+    #
+    # Called by [LinkLibrary] if the library directory doesn't exist or `vendor_LinkLibrary` fails. Stores the Tcl
+    # `errorInfo` in `::osvvm::LibraryErrorInfo`, prints error messages and, if `TclDebug` or `Debug` is set, the
+    # `errorInfo`. Then raises an error with $Message.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     set ::osvvm::LibraryErrorInfo $::errorInfo
     puts "LibraryError: LinkLibrary $Message   See messages above"
     if {$::osvvm::TclDebug || $::osvvm::Debug} {
@@ -155,6 +318,16 @@ namespace eval ::osvvm {
   }
 
   proc CallbackOnError_RemoveLibraryDirectory {Message} {
+    # Handle a failure to remove a library directory.
+    #  Message - Description of the failure: directory and cause.
+    #
+    # Called by [RemoveLibraryDirectory] if the directory isn't a library directory known to OSVVM. Stores the Tcl
+    # `errorInfo` in `::osvvm::LibraryErrorInfo`, prints error messages and, if `TclDebug` or `Debug` is set, the
+    # `errorInfo`. Then raises an error with $Message.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     set ::osvvm::LibraryErrorInfo $::errorInfo
     puts "LibraryError: RemoveLibraryDirectory $Message   See messages above"
     if {$::osvvm::TclDebug || $::osvvm::Debug} {
@@ -167,6 +340,19 @@ namespace eval ::osvvm {
   }
 
   proc CallbackOnError_Analyze {ErrMsg args} {
+    # Handle a failed analyze.
+    #  ErrMsg - Error message of the analyze.
+    #  args   - One element: the list of the file name and the options given to [analyze].
+    #
+    # Called by [analyze] if the analysis of a file fails. Stores the Tcl `errorInfo` in
+    # `::osvvm::AnalyzeErrorInfo`, increments `AnalyzeErrorCount` and prints an error message.
+    #
+    # If `AnalyzeErrorStopCount` isn't 0 and `AnalyzeErrorCount` reached it, it raises an error, which stops the
+    # build. Otherwise the build continues; the next [simulate] is skipped.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     variable AnalyzeErrorCount
     variable AnalyzeErrorStopCount
 #    variable ConsecutiveAnalyzeErrors
@@ -192,6 +378,21 @@ namespace eval ::osvvm {
   }
 
   proc CallbackOnError_Simulate {ErrMsg LocalSimulateErrorInfo args} {
+    # Handle a failed simulation.
+    #  ErrMsg                 - Error message of the simulation.
+    #  LocalSimulateErrorInfo - Tcl `errorInfo` of the simulation's error.
+    #  args                   - One element: the list of the design unit and the options given to [simulate].
+    #
+    # Called by [simulate] if the simulation fails, or if it's skipped because the previous analyze failed. Stores
+    # $LocalSimulateErrorInfo in `::osvvm::SimulateErrorInfo`, increments `SimulateErrorCount` and prints an
+    # error message.
+    #
+    # If `SimulateErrorStopCount` isn't 0 and `SimulateErrorCount` reached it, it raises an error, which stops the
+    # build. Otherwise the build continues.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     variable SimulateErrorCount
     variable SimulateErrorStopCount
 #    variable ConsecutiveSimulateErrors
@@ -215,6 +416,19 @@ namespace eval ::osvvm {
   }
 
   proc CallbackOnError_WaveDo {ErrMsg LocalErrorInfo Directory LibraryUnit} {
+    # Handle an error in a `wave.do` script.
+    #  ErrMsg         - Error message of the script.
+    #  LocalErrorInfo - Tcl `errorInfo` of the script's error.
+    #  Directory      - Directory of the `wave.do` script.
+    #  LibraryUnit    - Design unit being simulated.
+    #
+    # Called during [simulate] if sourcing a `wave.do` script fails. Increments `ScriptErrorCount`, stores
+    # $LocalErrorInfo in `::osvvm::WaveErrorInfo` and prints an error message and, if `TclDebug` or `Debug` is set,
+    # the `errorInfo`. Raises no error: the simulation continues.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
 
     set ::osvvm::WaveErrorInfo    $LocalErrorInfo
@@ -234,6 +448,16 @@ namespace eval ::osvvm {
   #  Handling errors in generating Build Reports
   #
   proc CallbackOnError_AfterBuildReports {LocalReportErrorInfo} {
+    # Handle errors while creating the build reports.
+    #  LocalReportErrorInfo - Tcl `errorInfo` of the report error.
+    #
+    # Called by [build] at its end if creating the build reports failed or `ScriptErrorCount` isn't 0. Stores
+    # $LocalReportErrorInfo in `::osvvm::BuildReportErrorInfo` and prints error messages and, if `TclDebug` or
+    # `Debug` is set, the `errorInfo`. Raises no error.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     set ::osvvm::BuildReportErrorInfo $LocalReportErrorInfo
 
 # Todo: Is this extra?  Already printing info below
@@ -252,6 +476,13 @@ namespace eval ::osvvm {
   }
 
   proc LocalOnError_BuildReports {ProcName FileName errmsg} {
+    # Report an error of a build report procedure and raise it.
+    #  ProcName - Name of the failed report procedure.
+    #  FileName - File the procedure read or wrote.
+    #  errmsg   - Error message of the procedure.
+    #
+    # Shared by the `CallbackOnError_*` procedures of the build reports. Increments `ScriptErrorCount`, prints an
+    # error message and the Tcl `errorInfo`, and raises an error with $ProcName, $FileName and $errmsg.
     set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
 
     puts "ReportError: during $ProcName 'File Name: $FileName ' failed: $errmsg"
@@ -268,31 +499,91 @@ namespace eval ::osvvm {
   }
 
   proc CallbackOnError_ReportBuildYaml2Dict {FileName errmsg} {
+    # Handle an error while reading the build's YAML file.
+    #  FileName - Build YAML file.
+    #  errmsg   - Error message of [ReportBuildYaml2Dict].
+    #
+    # Called by [ReportBuildYaml2Dict] if it fails. Stores the Tcl `errorInfo` in `::osvvm::Report2HtmlErrorInfo`
+    # and calls `LocalOnError_BuildReports`, which raises an error.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     set ::osvvm::Report2HtmlErrorInfo $::errorInfo
     LocalOnError_BuildReports ReportBuildYaml2Dict $FileName $errmsg
   }
 
   proc CallbackOnError_Index2Html {FileName errmsg} {
+    # Handle an error while writing the HTML index of all builds.
+    #  FileName - HTML index file.
+    #  errmsg   - Error message of [Index2Html].
+    #
+    # Called by [Index2Html] if it fails. Stores the Tcl `errorInfo` in `::osvvm::Report2HtmlErrorInfo` and calls
+    # `LocalOnError_BuildReports`, which raises an error.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     set ::osvvm::Report2HtmlErrorInfo $::errorInfo
     LocalOnError_BuildReports Index2Html $FileName $errmsg
   }
 
   proc CallbackOnError_ReportBuildDict2Html {FileName errmsg} {
+    # Handle an error while writing the HTML build summary report.
+    #  FileName - HTML build summary report file.
+    #  errmsg   - Error message of [ReportBuildDict2Html].
+    #
+    # Called by [ReportBuildDict2Html] if it fails. Stores the Tcl `errorInfo` in `::osvvm::Report2HtmlErrorInfo`
+    # and calls `LocalOnError_BuildReports`, which raises an error.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     set ::osvvm::Report2HtmlErrorInfo $::errorInfo
     LocalOnError_BuildReports ReportBuildDict2Html $FileName $errmsg
   }
 
   proc CallbackOnError_ReportBuildDict2Junit {FileName errmsg} {
+    # Handle an error while writing the JUnit XML build report.
+    #  FileName - JUnit XML report file.
+    #  errmsg   - Error message of [ReportBuildDict2Junit].
+    #
+    # Called by [ReportBuildDict2Junit] if it fails. Stores the Tcl `errorInfo` in `::osvvm::Report2JunitErrorInfo`
+    # and calls `LocalOnError_BuildReports`, which raises an error.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     set ::osvvm::Report2JunitErrorInfo $::errorInfo
     LocalOnError_BuildReports ReportBuildDict2Junit $FileName $errmsg
   }
 
   proc CallbackOnError_Log2Osvvm {FileName errmsg} {
+    # Handle an error while converting the build's transcript.
+    #  FileName - Transcript log file.
+    #  errmsg   - Error message of [Log2Osvvm].
+    #
+    # Called by [Log2Osvvm] if it fails. Stores the Tcl `errorInfo` in `::osvvm::Log2OsvvmErrorInfo` and calls
+    # `LocalOnError_BuildReports`, which raises an error.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     set ::osvvm::Log2OsvvmErrorInfo $::errorInfo
     LocalOnError_BuildReports Log2Osvvm $FileName $errmsg
   }
 
   proc CallbackOnError_Transcript2Html {FileName errmsg} {
+    # Handle an error while converting a transcript to HTML.
+    #  FileName - Transcript file.
+    #  errmsg   - Error message of [Transcript2Html].
+    #
+    # Called by [Transcript2Html] if it fails. Stores the Tcl `errorInfo` in `::osvvm::ReportErrorInfo` and
+    # `::osvvm::Transcript2HtmlErrorInfo` and calls `LocalOnError_BuildReports`, which raises an error.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     set ::osvvm::ReportErrorInfo $::errorInfo
     set ::osvvm::Transcript2HtmlErrorInfo $::errorInfo
     LocalOnError_BuildReports Transcript2Html $FileName $errmsg
@@ -303,6 +594,17 @@ namespace eval ::osvvm {
   #  Handling errors in generating Simulate Reports
   #
   proc CallbackOnError_AfterSimulateReports {ErrMsg LocalReportErrorInfo} {
+    # Handle errors while creating the test case reports.
+    #  ErrMsg               - Error message of the report procedure. Not used.
+    #  LocalReportErrorInfo - Tcl `errorInfo` of the report error.
+    #
+    # Called by [simulate] if creating the reports of the test case failed. Stores $LocalReportErrorInfo in
+    # `::osvvm::SimulateReportErrorInfo` and prints an error message and, if `TclDebug` or `Debug` is set, the
+    # `errorInfo`. Raises no error: the build continues.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     set ::osvvm::SimulateReportErrorInfo $LocalReportErrorInfo
     # Continue current build
     puts "ReportError: Simulate2Html failed.  See previous messages for details"
@@ -315,6 +617,15 @@ namespace eval ::osvvm {
   }
 
   proc LocalOnError_SimulateReports {ProcName TestSuiteName TestCaseName errmsg} {
+    # Report an error of a test case report procedure and raise it.
+    #  ProcName      - Name of the failed report procedure.
+    #  TestSuiteName - Name of the test suite.
+    #  TestCaseName  - Name of the test case.
+    #  errmsg        - Error message of the procedure.
+    #
+    # Shared by the `CallbackOnError_*` procedures of the test case reports. Stores the Tcl `errorInfo` in
+    # `::osvvm::Simulate2HtmlErrorInfo`, increments `ScriptErrorCount`, prints an error message and the
+    # `errorInfo`, and raises an error with $ProcName, the test suite and test case names and $errmsg.
     set ::osvvm::Simulate2HtmlErrorInfo $::errorInfo
     set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]
 
@@ -332,20 +643,74 @@ namespace eval ::osvvm {
   }
 
   proc CallbackOnError_Simulate2HtmlHeader {TestSuiteName TestCaseName errmsg} {
+    # Handle an error while writing the summary table of a test case report.
+    #  TestSuiteName - Name of the test suite.
+    #  TestCaseName  - Name of the test case.
+    #  errmsg        - Error message.
+    #
+    # Called during [Simulate2Html] if writing the test case summary table fails. Calls
+    # `LocalOnError_SimulateReports`, which raises an error.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     LocalOnError_SimulateReports Simulate2HtmlHeader $TestSuiteName $TestCaseName $errmsg
   }
   proc CallbackOnError_Alert2Html {TestSuiteName TestCaseName errmsg} {
+    # Handle an error while writing the alert report of a test case.
+    #  TestSuiteName - Name of the test suite.
+    #  TestCaseName  - Name of the test case.
+    #  errmsg        - Error message of [Alert2Html].
+    #
+    # Called by [Alert2Html] if it fails. Calls `LocalOnError_SimulateReports`, which raises an error.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     LocalOnError_SimulateReports Alert2Html $TestSuiteName $TestCaseName $errmsg
   }
 
   proc CallbackOnError_Cov2Html {TestSuiteName TestCaseName errmsg} {
+    # Handle an error while writing the functional coverage report of a test case.
+    #  TestSuiteName - Name of the test suite.
+    #  TestCaseName  - Name of the test case.
+    #  errmsg        - Error message of [Cov2Html].
+    #
+    # Called by [Cov2Html] if it fails. Calls `LocalOnError_SimulateReports`, which raises an error.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     LocalOnError_SimulateReports Cov2Html $TestSuiteName $TestCaseName $errmsg
   }
   proc CallbackOnError_Scoreboard2Html {TestSuiteName TestCaseName errmsg} {
+    # Handle an error while writing the scoreboard report of a test case.
+    #  TestSuiteName - Name of the test suite.
+    #  TestCaseName  - Name of the test case.
+    #  errmsg        - Error message of [Scoreboard2Html].
+    #
+    # Called by [Scoreboard2Html] if it fails. Calls `LocalOnError_SimulateReports`, which raises an error.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
     LocalOnError_SimulateReports Scoreboard2Html $TestSuiteName $TestCaseName $errmsg
   }
 
   proc CallbackOnError_AnyReport {ProcName Message errmsg} {
+    # Handle an error of a requirements report procedure.
+    #  ProcName - Name of the failed procedure.
+    #  Message  - Description of the procedure's input and output files.
+    #  errmsg   - Error message of the procedure.
+    #
+    # Called by [MergeRequirements], [Requirements2Html], [Requirements2Csv] and [RequirementsCsv2Yaml] if they
+    # fail. Stores the Tcl `errorInfo` in `::osvvm::ReportErrorInfo`, increments `ScriptErrorCount` and prints an
+    # error message. If `ReportDebug` is set, it prints the `errorInfo` too. Then raises an error.
+    #
+    # To change it, define a procedure with the same name and parameters in `LocalCallbacks.tcl` (all tools) or
+    # `LocalCallbacks_<tool>.tcl` (one tool) in the OSVVM settings directory. OSVVM sources these files after this
+    # one, so the user's procedure replaces the default.
+
 #    set ::osvvm::${ProcName}ErrorInfo $::errorInfo
     set ::osvvm::ReportErrorInfo $::errorInfo
     set ::osvvm::ScriptErrorCount    [expr $::osvvm::ScriptErrorCount+1]

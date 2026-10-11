@@ -41,6 +41,16 @@
 package require csv
 
 proc RequirementsCsv2Yaml {RequirementsCsvFileName TargetYamlFileName {HeaderList {}}} {
+  # Convert a CSV requirements specification to a requirements YAML file.
+  #  RequirementsCsvFileName - CSV file with one requirement per line.
+  #  TargetYamlFileName      - Requirements YAML file to write.
+  #  HeaderList              - Column names. Empty: the first line of the CSV file holds them.
+  #
+  # Columns are `Requirement`, `Description`, `Status`, `Goal`, `Passed`, `Errors` and `Checked`; missing ones get
+  # defaults. Each requirement gets one test case named after the CSV file and marked as from the specification, so the
+  # requirement shows up in the reports even without a test case. On an error, `CallbackOnError_AnyReport` is called.
+  #
+  # See also: [MergeRequirements] [Requirements2Html]
   variable RequirementsFile
   variable TargetYamlFile
   variable FileName [file tail $RequirementsCsvFileName]
@@ -56,6 +66,11 @@ proc RequirementsCsv2Yaml {RequirementsCsvFileName TargetYamlFileName {HeaderLis
 }
 
 proc LocalRequirementsCsv2Yaml {{HeaderList {}}} {
+  # Read the CSV requirements specification and write one YAML entry per requirement.
+  #  HeaderList - Column names. Empty: read them from the first line.
+  #
+  # Defaults: requirement `NotValid`, empty description, status `PASSED`, goal 1, and 0 passed, errors and checks.
+  # Errors are handled by [RequirementsCsv2Yaml].
   variable RequirementsFile
   variable TargetYamlFile
 
@@ -85,6 +100,10 @@ proc LocalRequirementsCsv2Yaml {{HeaderList {}}} {
 }
 
 proc RequirementsWriteOneDict2Yaml {ReqDict} {
+  # Write one requirement of the specification as a YAML entry.
+  #  ReqDict - Requirement with `Requirement`, `Description`, `Status`, `Goal`, `Passed`, `Errors` and `Checked`.
+  #
+  # The entry has one test case, named after the CSV file and marked `FromSpecification`, with zero alert counts.
   variable TargetYamlFile
   variable FileName
 

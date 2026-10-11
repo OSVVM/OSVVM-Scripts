@@ -50,71 +50,141 @@ namespace eval ::osvvm {
   variable YamlErrorSignaled 0
 
   proc CreateBuildReports {args} {
+    # Print that generating Build Report HTML and JUnit files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `CreateBuildReports`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Build Report HTML and JUnit files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc ReportBuildYaml2Dict {args} {
+    # Print that generating Build Report HTML files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `ReportBuildYaml2Dict`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Build Report HTML files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc ReportBuildDict2Html {args} {
+    # Print that generating Build Report HTML files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `ReportBuildDict2Html`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Build Report HTML files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc ReportBuildDict2Junit {args} {
+    # Print that generating Build Report JUnit XML CI Results files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `ReportBuildDict2Junit`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Build Report JUnit XML CI Results files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc Report2Html {args} {
+    # Print that generating Build Report HTML files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `Report2Html`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Build Report HTML files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc Report2Junit {args} {
+    # Print that generating Build Report JUnit XML CI Results files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `Report2Junit`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Build Report JUnit XML CI Results files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc Simulate2Html {args} {
+    # Print that generating Test Case HTML files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `Simulate2Html`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Test Case HTML files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc Cov2Html {args} {
+    # Print that generating Test Case Coverage HTML files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `Cov2Html`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Test Case Coverage HTML files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc Alert2Html {args} {
+    # Print that generating Test Case Alert HTML files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `Alert2Html`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Test Case Alert HTML files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc MergeRequirements {args} {
+    # Print that generating Requirements HTML files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `MergeRequirements`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Requirements HTML files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc Requirements2Html {args} {
+    # Print that generating Requirements HTML files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `Requirements2Html`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Requirements HTML files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc Requirements2Csv {args} {
+    # Print that generating Requirements CSV files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `Requirements2Csv`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Requirements CSV files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc RequirementsCsv2Yaml {args} {
+    # Print that generating Requirements Yaml files from CSV files needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `RequirementsCsv2Yaml`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Requirements Yaml files from CSV files, please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }
 
   proc ReportBuildStatus {args} {
+    # Print that generating Build Status Mini-Report Text Report (in simulator console) needs Tcllib's `yaml` package.
+    #  args - Ignored.
+    #
+    # Stand-in for the report command `ReportBuildStatus`, defined if Tcllib's `yaml` package can't be loaded.
+    # Prints where to get Tcllib.
     puts "To generate OSVVM Build Status Mini-Report Text Report (in simulator console), please install TCL yaml package from Tcllib"
     puts "See https://core.tcl-lang.org/tcllib/doc/trunk/embedded/md/tcllib/files/devdoc/tcllib_sources.md"
   }

@@ -48,6 +48,18 @@
 package require yaml
 
 proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
+  # Append the functional coverage report to the HTML test case report.
+  #  TestCaseName  - Name of the test case.
+  #  TestSuiteName - Name of the test suite, used in error messages.
+  #  CovYamlFile   - Functional coverage file `<TestCaseName>_cov.yml`, written by `CoveragePkg`.
+  #
+  # Opens the HTML test case report `Report2TestCaseHtml` for appending and writes the coverage of all coverage models
+  # of `CovYamlFile` to it (`LocalCov2Html`). On an error, the report is closed and `CallbackOnError_Cov2Html` is
+  # called.
+  #
+  # Called by [Simulate2Html] if the functional coverage file exists.
+  #
+  # See also: [Simulate2Html] [Alert2Html]
   variable ResultsFile
     
   OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml]
@@ -62,6 +74,15 @@ proc Cov2Html {TestCaseName TestSuiteName CovYamlFile} {
 }
 
 proc LocalCov2Html {TestCaseName TestSuiteName CovYamlFile} {
+  # Write the functional coverage section of an HTML test case report.
+  #  TestCaseName  - Name of the test case.
+  #  TestSuiteName - Name of the test suite. Not used.
+  #  CovYamlFile   - Functional coverage file.
+  #
+  # Writes the total coverage and, per coverage model, its coverage, its settings (`OsvvmCovInfo2Html`) and its bins
+  # (`OsvvmCovBins2Html`). From the first model with a `CovWeight` below 1 on, the models are put in a collapsed
+  # section: they don't count for `GetCov` and are used by `DelayCoveragePkg`. The bin tables have a status column if
+  # the model is a requirement or `WritePassFail` is set.
   variable ResultsFile
 
   puts $ResultsFile "  <hr />"
@@ -104,6 +125,9 @@ proc LocalCov2Html {TestCaseName TestSuiteName CovYamlFile} {
 }
 
 proc OsvvmCovInfo2Html {ModelName CovModelSettings} {
+  # Write the settings table of a coverage model.
+  #  ModelName        - Name of the coverage model.
+  #  CovModelSettings - Settings of the coverage model. `Seeds` holds two values.
   variable ResultsFile
   
   puts $ResultsFile "      <div class=\"CoverageSettings\">"
@@ -132,6 +156,16 @@ proc OsvvmCovInfo2Html {ModelName CovModelSettings} {
 }
 
 proc OsvvmCovBins2Html {ModelName ModelDict WritePassFail CovWeight} {
+  # Write the bin table of a coverage model.
+  #  ModelName     - Name of the coverage model.
+  #  ModelDict     - Results of the coverage model, with its `BinInfo`, `Bins` and `Coverage`.
+  #  WritePassFail - If true, add a status column.
+  #  CovWeight     - Weight of the coverage model. With weight 0, the status is `-`.
+  #
+  # Writes one row per bin: name, type, one cell per range - a value, `<Min> to <Max>`, or `ALL` for the full integer
+  # range -, count, `AtLeast`, percent coverage and status. A `COUNT` bin passes if its count reaches `AtLeast`, an
+  # `ILLEGAL` bin if its count is 0; an `IGNORE` bin is shown as `IGNORED`. The last row holds the model's total
+  # coverage.
   variable ResultsFile
   
   set BinInfoDict      [dict get $ModelDict BinInfo] 

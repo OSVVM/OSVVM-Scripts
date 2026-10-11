@@ -44,6 +44,19 @@
 package require yaml
 
 proc Scoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
+  # Append a scoreboard report to the HTML test case report.
+  #  TestCaseName  - Name of the test case.
+  #  TestSuiteName - Name of the test suite, used in error messages.
+  #  SbYamlFile    - Scoreboard results file, written by an instance of `ScoreboardGenericPkg`.
+  #  SbName        - ID and name of the report section, `Scoreboard_<Name>`.
+  #
+  # Opens the HTML test case report `Report2TestCaseHtml` for appending and writes a table with one row per scoreboard
+  # of `SbYamlFile` (`LocalScoreboard2Html`). On an error, the report is closed and `CallbackOnError_Scoreboard2Html` is
+  # called.
+  #
+  # Called by [Simulate2Html] for each scoreboard results file of the test case.
+  #
+  # See also: [Simulate2Html]
   variable ResultsFile
   
   OpenSimulationReportFile [file join $::osvvm::Report2TestCaseHtml]
@@ -58,6 +71,14 @@ proc Scoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
 }
 
 proc LocalScoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
+  # Write a scoreboard section of an HTML test case report.
+  #  TestCaseName  - Name of the test case.
+  #  TestSuiteName - Name of the test suite. Not used.
+  #  SbYamlFile    - Scoreboard results file.
+  #  SbName        - ID and name of the report section.
+  #
+  # Writes the heading `<TestCaseName> Scoreboard Report for <SbName>` and a table of the `Scoreboards` of `SbYamlFile`
+  # (`ScoreboardHeader2Html`, `ScoreboardBody2Html`). Errors are handled by [Scoreboard2Html].
   variable ResultsFile
   
   puts $ResultsFile "  <hr />"
@@ -79,6 +100,8 @@ proc LocalScoreboard2Html {TestCaseName TestSuiteName SbYamlFile SbName} {
 }
 
 proc ScoreboardHeader2Html {ScoreboardDictArray} {
+  # Write the column headings of a scoreboard table.
+  #  ScoreboardDictArray - List of scoreboard results. The keys of the first one are the headings.
   variable ResultsFile
   
   set FirstScoreboardDict [lindex $ScoreboardDictArray 0]
@@ -92,6 +115,8 @@ proc ScoreboardHeader2Html {ScoreboardDictArray} {
 }
 
 proc ScoreboardBody2Html {ScoreboardDictArray} {
+  # Write one row per scoreboard, with its values in key order.
+  #  ScoreboardDictArray - List of scoreboard results.
   variable ResultsFile
     
   puts $ResultsFile "          <tbody>"

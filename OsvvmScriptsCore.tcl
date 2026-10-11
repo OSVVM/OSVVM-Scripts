@@ -86,6 +86,10 @@
 #   re-run the startup scripts, this program included
 #
 proc StartUp {} {
+  # Run the OSVVM start-up script `StartUpShared.tcl` again.
+  #
+  # Sources `StartUpShared.tcl` from `$::osvvm::OsvvmScriptDirectory` in the global namespace. This reloads all OSVVM
+  # scripts and settings.
   puts "source $::osvvm::OsvvmScriptDirectory/StartUpShared.tcl"
   eval "source $::osvvm::OsvvmScriptDirectory/StartUpShared.tcl"
 }
@@ -94,6 +98,10 @@ proc StartUp {} {
 namespace eval ::osvvm {
 
 proc LoadVendorScripts {ScriptFile} {
+  # Source a script file from the OSVVM script directory.
+  #  ScriptFile - Name of the script file, relative to `$::osvvm::OsvvmScriptDirectory`.
+  #
+  # Prints the `source` command before running it.
   puts "source $::osvvm::OsvvmScriptDirectory/${ScriptFile}"
   source $::osvvm::OsvvmScriptDirectory/${ScriptFile}
 }
@@ -104,6 +112,12 @@ proc LoadVendorScripts {ScriptFile} {
 #   do an operation on a list of items
 #
 proc ReadListFromFile {RawFileWithNames} {
+  # Read a file and return its lines.
+  #  RawFileWithNames - Path to the file, relative to the current working directory.
+  #
+  # Returns the list of lines of the file, including empty lines.
+  #
+  # See also: [IterateFile]
   set FileWithNames [file join $::osvvm::CurrentWorkingDirectory $RawFileWithNames]
   set FileHandle [open $FileWithNames]
   set ListOfNames [split [read $FileHandle] \n]
@@ -114,6 +128,17 @@ proc ReadListFromFile {RawFileWithNames} {
 
 
 proc IterateFile {RawActionForName RawFileWithNames} {
+  # Run a command for each line of a file.
+  #  RawActionForName - Command to run for each line, e.g. `analyze` or `include`.
+  #  RawFileWithNames - Path to the file with one name per line, relative to the current working directory.
+  #
+  # Each non-empty line is appended to $RawActionForName and evaluated, so a line may contain further arguments. A line
+  # starting with `#` is a comment. A comment line whose second word is `library` calls [library] with its third word.
+  #
+  # If $RawFileWithNames doesn't exist, the two arguments are tried in reversed order (deprecated form).
+  #
+  # `include` uses it for `*.dirs` and `*.files` files.
+
 #  puts "$FileWithNames"
   set FileWithNames [file join $::osvvm::CurrentWorkingDirectory $RawFileWithNames]
   set ActionForName $RawActionForName
@@ -148,6 +173,13 @@ proc IterateFile {RawActionForName RawFileWithNames} {
 }
 
 proc PrintWithPrefix {Prefix RawMessageList} {
+  # Print a message line by line with a prefix.
+  #  Prefix         - Text put in front of each line, e.g. `Error:`.
+  #  RawMessageList - Message; several lines are separated by newlines.
+  #
+  # A line matching $Prefix as a whole (glob pattern, case-insensitive) is printed unchanged.
+  #
+  # The vendor scripts use it to print error messages of a tool.
   foreach Message [split $RawMessageList \n] {
 #!!    if {[regexp -nocase "$Prefix" $Message]} { }
     if {[string match -nocase "$Prefix" $Message]} {
@@ -164,6 +196,19 @@ proc PrintWithPrefix {Prefix RawMessageList} {
 #   finds an include file using directory, file base name, or file with extension to locate the file
 #
 proc FindIncludeFile {Path_Or_File} {
+  # Find the script file for a name given to [include] or [build].
+  #  Path_Or_File - File, directory, or file name without extension, relative to the current working directory.
+  #
+  # `.` and `..` in the path are resolved. If $Path_Or_File is a file, it's returned. Otherwise the first existing file
+  # of the following list is returned:
+  #
+  # 1. `<Path_Or_File>.pro`; for a directory `<Directory>/<DirectoryName>.pro`
+  # 1. `<Directory>/build.pro`
+  # 1. the same base name with extension `.tcl`, `.do`, `.dirs`, `.files` and `.vhd`
+  #
+  # An error with $Path_Or_File as message is raised if no file is found.
+  #
+  # Returns the path of the script file.
 
   set JoinName [file join ${::osvvm::CurrentWorkingDirectory} ${Path_Or_File}]
   set NormName [ReducePath $JoinName]
@@ -223,6 +268,18 @@ proc FindIncludeFile {Path_Or_File} {
 #   finds and sources a project file
 #
 proc include {Path_Or_File args} {
+  # Include a project script.
+  #  Path_Or_File - Script file, directory, or file name without extension, relative to the current working directory.
+  #  args         - Arguments passed to the script in `argv`.
+  #
+  # [FindIncludeFile] locates the file. A `*.pro` or `*.tcl` file is sourced, a `*.do` file is run with the simulator's
+  # `do` command, a `*.vhd` or `*.vhdl` file is run with [RunTest], a `*.dirs` file includes each listed name, any other
+  # file analyzes each listed name. While the script runs, the current working directory is the script's directory;
+  # afterwards it is restored.
+  #
+  # Calls `CallbackBefore_Include` and `CallbackAfter_Include`; if no file is found, `CallbackOnError_FindIncludeFile`.
+  #
+  # See also: [build]
   variable CurrentWorkingDirectory
 
   CallbackBefore_Include $Path_Or_File
@@ -238,6 +295,13 @@ proc include {Path_Or_File args} {
 }
 
 proc LocalInclude {PathAndFile args} {
+  # Run a script file with its own working directory and arguments.
+  #  PathAndFile - Path of the script file, as found by [FindIncludeFile].
+  #  args        - Arguments passed to the script.
+  #
+  # Creates the default library if no library is active. Saves the current working directory, `argv0`, `argv`, `argc`,
+  # `ARGC` and `ARGV`, sets them for the script, runs `LocalRunInclude` and restores them. An error of the script is
+  # raised again after restoring.
   variable CurrentWorkingDirectory
 
 # probably remove.  Redundant with analyze and simulate
@@ -284,6 +348,17 @@ proc LocalInclude {PathAndFile args} {
 }
 
 proc LocalRunInclude {PathAndFile args} {
+  # Run a script file depending on its extension.
+  #  PathAndFile - Path of the script file.
+  #  args        - Arguments of the script; already set in `argv` by `LocalInclude`.
+  #
+  # Sets the current working directory to the directory of $PathAndFile, then:
+  #
+  # `.pro`, `.tcl` - `source` the file.
+  # `.do` - run the file with the simulator's `do` command.
+  # `.vhd`, `.vhdl` - [RunTest] the file.
+  # `.dirs` - [include] each name listed in the file.
+  # any other - [analyze] each name listed in the file.
   variable CurrentWorkingDirectory
 
   # Use the RootDir of PathAndFile as the CurrentWorkingDirectory
@@ -321,6 +396,11 @@ proc LocalRunInclude {PathAndFile args} {
 # BeforeBuildCleanUp
 #
 proc BeforeBuildCleanUp {} {
+  # Reset the state of a previous build before a new build starts.
+  #
+  # Resets the analyze, simulate and script error counters and `RanSimulationWithCoverage`, unsets the test case and
+  # test suite names, ends a simulation that is still running, deletes a left-over temporary transcript YAML file and
+  # clears the current working directory.
   variable RanSimulationWithCoverage "false"
   variable vendor_simulate_started
   variable TestCaseName
@@ -360,11 +440,25 @@ proc BeforeBuildCleanUp {} {
 # -------------------------------------------------
 # First time BuildName called sets the BuildName - later calls are ignored
 proc BuildName {ParamBuildName} {
+  # Set the name of the current build.
+  #  ParamBuildName - Name of the build.
+  #
+  # Overrides the default build name, which is derived from the script name. The name is used for the build's output
+  # directory, log file and reports. Only the first call in a build counts; a call after the first simulation started is
+  # ignored with a message.
+  #
+  # Returns an empty string, so it can be used as an argument, e.g. `build Script.pro [BuildName Nightly]`.
   LocalSetBuildName $ParamBuildName
   set ::osvvm::BuildNameCalled "true"
 }
 
 proc LocalSetBuildName {ParamBuildName} {
+  # Set the build name and the build output directory, unless they're already fixed.
+  #  ParamBuildName - Name of the build.
+  #
+  # Sets `BuildName`, `LastBuildName` and `OsvvmBuildOutputDirectory` to
+  # `<CurrentSimulationDirectory>/<OutputBaseDirectory>/<ParamBuildName>`, if the build output directory wasn't created
+  # yet and [BuildName] wasn't called. After the output directory was created, a message says the name is ignored.
   if {$::osvvm::HaveNotCreatedBuildOutputDirectory && !$::osvvm::BuildNameCalled} {
     variable BuildName      $ParamBuildName
     variable LastBuildName  $ParamBuildName
@@ -377,6 +471,12 @@ proc LocalSetBuildName {ParamBuildName} {
 
 # -------------------------------------------------
 proc CreateDefaultBuildName {Path_Or_File} {
+  # Derive the default build name from a script path.
+  #  Path_Or_File - Path of the build script.
+  #
+  # Returns the script's base name, if the script's directory has the same name, else
+  # `<DirectoryName>_<ScriptBaseName>`.
+
   # Create the Log File Name
   # Normalize to elaborate names, especiallyStartUp when Path_Or_File is "."
   set NormPathOrFile [file normalize ${Path_Or_File}]
@@ -401,6 +501,25 @@ proc CreateDefaultBuildName {Path_Or_File} {
 # build
 #
 proc build {{Path_Or_File "."} args} {
+  # Run a project script as a build: include it with a new log file and reports.
+  #  Path_Or_File - Script file, directory, or file name without extension, relative to the current working directory.
+  #  args         - Arguments passed to the script in `argv`.
+  #
+  # If a build is already running, it does the same as [include]. Otherwise it:
+  #
+  # - locates the script with [FindIncludeFile],
+  # - resets the state of the previous build and derives the build name from the script, unless [BuildName] set it,
+  # - starts the transcript, includes the script and finishes the last test suite,
+  # - merges requirements and, if a simulation ran with code coverage, merges and reports the code coverage,
+  # - writes the build's YAML file, the HTML, JUnit XML and index reports and the log file, if `GenerateOsvvmReports` is
+  #   true.
+  #
+  # Errors are reported through `CallbackOnError_Build` and `CallbackOnError_AfterBuildReports` after the reports were
+  # written. If `ExitOnBuildDone` is true and the session is neither interactive nor in debug mode, the tool is exited:
+  # with exit code 1 if the build failed and `FailOnTestCaseErrors` is true, or if report errors occurred and
+  # `FailOnReportErrors` is true; otherwise with exit code 0.
+  #
+  # See also: [include] [BuildName] [TestSuite]
   variable AnalyzeErrorCount
   variable SimulateErrorCount
   variable ScriptErrorCount
@@ -507,11 +626,23 @@ proc build {{Path_Or_File "."} args} {
 }
 
 proc ExitCode {Code {Message ""}} {
+  # Print a message and exit the tool.
+  #  Code    - Exit code.
+  #  Message - Message printed before exiting.
   puts $Message
   exit $Code
 }
 
 proc LocalBuild {Path_Or_File args} {
+  # Run the body of a build.
+  #  Path_Or_File - Path of the build script, as found by [FindIncludeFile].
+  #  args         - Arguments passed to the script.
+  #
+  # Starts the build YAML file (if `GenerateOsvvmReports` is true), includes the script between `CallbackBefore_Build`
+  # and `CallbackAfter_Build`, creates the build's output directories and finishes the last test suite. Then merges the
+  # requirements of the build into `<ReportsDirectory>/<BuildName>_req.yml` and writes their HTML and CSV reports. If a
+  # simulation ran with code coverage, the code coverage of the build is merged (`vendor_MergeCodeCoverage`) and
+  # reported (`vendor_ReportCodeCoverage`).
   variable TestSuiteStartTimeMs
   variable RanSimulationWithCoverage
   variable TestSuiteName
@@ -561,6 +692,12 @@ proc LocalBuild {Path_Or_File args} {
 }
 
 proc AfterBuildReports {ParamBuildName} {
+  # Create the reports of a finished build.
+  #  ParamBuildName - Name of the build.
+  #
+  # Copies the temporary build YAML file to `<OsvvmBuildOutputDirectory>/<ParamBuildName>.yml`, deletes the temporary
+  # file and creates the HTML and JUnit XML build reports with [CreateBuildReports]. In interactive mode with
+  # `OpenBuildHtmlFile` true, the build report is opened. Finally the build status is printed.
 
   # short sleep to allow the file to close
   after 1000
@@ -577,10 +714,20 @@ proc AfterBuildReports {ParamBuildName} {
 }
 
 proc OpenIndex {} {
+  # Open the index of all builds (`index.html`) in a browser.
+  #
+  # See also: [OpenBuildHtml]
   LocalOpenHtml $::osvvm::OsvvmIndexHtmlFile
 }
 
 proc OpenBuildHtml {{ParamBuildName ""}} {
+  # Open the HTML report of a build in a browser.
+  #  ParamBuildName - Name of the build. Empty: the last build.
+  #
+  # Opens `<OutputBaseDirectory>/<ParamBuildName>/<ParamBuildName>.html`. The vendor procedure `vendor_OpenBuildHtml`
+  # opens it, if the tool defines one, else the default (Windows only).
+  #
+  # See also: [OpenIndex]
   if {$ParamBuildName eq ""} {
       set ParamBuildName $::osvvm::LastBuildName
   }
@@ -590,6 +737,11 @@ proc OpenBuildHtml {{ParamBuildName ""}} {
 }
 
 proc LocalOpenHtml {HtmlFile {ParamBuildName ""}} {
+  # Open an HTML file with the tool's or the default viewer.
+  #  HtmlFile       - Path of the HTML file.
+  #  ParamBuildName - Name of the build, passed to `vendor_OpenBuildHtml`.
+  #
+  # Calls `vendor_OpenBuildHtml`, if the tool defines it, else `DefaultVendor_OpenBuildHtml`.
   if {[llength [info procs vendor_OpenBuildHtml]] > 0} {
     vendor_OpenBuildHtml $HtmlFile $ParamBuildName
   } else {
@@ -598,6 +750,10 @@ proc LocalOpenHtml {HtmlFile {ParamBuildName ""}} {
 }
 
 proc DefaultVendor_OpenBuildHtml {BuildHtmlFile} {
+  # Open an HTML file with the operating system's default program.
+  #  BuildHtmlFile - Path of the HTML file.
+  #
+  # Works on Windows only (`start`); on other operating systems nothing happens.
   if {[info exists ::env(OS)]} {
     if {[regexp {[Ww]indows} $::env(OS)]} {
       exec {*}[auto_execok start] "$BuildHtmlFile"
@@ -609,6 +765,10 @@ proc DefaultVendor_OpenBuildHtml {BuildHtmlFile} {
 # CreateDirectory - Create directory if does not exist
 #
 proc CreateDirectory {Directory} {
+  # Create a directory, if it doesn't exist.
+  #  Directory - Path of the directory.
+  #
+  # Prints a message when the directory is created. Missing parent directories are created as well.
   if {![file isdirectory $Directory]} {
     puts "creating directory $Directory"
     file mkdir $Directory
@@ -620,6 +780,14 @@ proc CreateDirectory {Directory} {
 #   Used by library, analyze, and simulate
 #
 proc CheckWorkingDir {} {
+  # Track a change of the simulator's current directory.
+  #
+  # If the current directory (`pwd`) differs from `CurrentSimulationDirectory`, the simulation directory is updated. If
+  # libraries were created in the old simulation directory, the library directory moves to the new directory and the
+  # active library and the library lists are forgotten. Creates the temporary output directory in the simulation
+  # directory.
+  #
+  # Used by [library], [analyze], [simulate] and [build].
   variable CurrentSimulationDirectory
   variable VhdlLibraryParentDirectory
   variable VhdlWorkingLibrary
@@ -651,6 +819,10 @@ proc CheckWorkingDir {} {
 #   Used by library
 #
 proc CheckLibraryInit {} {
+  # Initialize the library directory, if it wasn't set.
+  #
+  # If the library parent directory is still the invalid default, it is set to the current directory. Sets
+  # `VhdlLibraryFullPath` to `<VhdlLibraryParentDirectory>/<VhdlLibraryDirectory>/<VhdlLibrarySubdirectory>`.
   variable VhdlLibraryParentDirectory
   variable VhdlLibraryFullPath
 
@@ -673,6 +845,10 @@ proc CheckLibraryInit {} {
 #   Used by analyze, and simulate
 #
 proc CheckLibraryExists {} {
+  # Make sure a library is active.
+  #
+  # If no library is active, the default library (`DefaultLibraryName`, `DefaultLib`) is created and activated with
+  # [library].
   variable VhdlWorkingLibrary
 
   if {![info exists VhdlWorkingLibrary]} {
@@ -684,6 +860,11 @@ proc CheckLibraryExists {} {
 # SetAndCreateBuildOutputDirectory
 #
 proc SetAndCreateBuildOutputDirectory {} {
+  # Set and create the output directory of the current build.
+  #
+  # During a build, the directory is `<CurrentSimulationDirectory>/<OutputBaseDirectory>/<BuildName>`. It's created once
+  # per build; an existing directory of the same name is deleted first. Outside a build, the temporary output directory
+  # is used. In both cases the HTML theme files are copied into it.
 variable HaveNotCreatedBuildOutputDirectory
 variable OsvvmBuildOutputDirectory
 variable BuildName
@@ -715,6 +896,15 @@ variable BuildName
 #   Used by simulate
 #
 proc CheckSimulationDirs {} {
+  # Create the output directories of a simulation.
+  #
+  # Creates the temporary output directory and the build output directory, and sets and creates:
+  #
+  # `ReportsDirectory` - `<OsvvmBuildOutputDirectory>/<ReportsSubdirectory>`, with a subdirectory per test suite
+  #   (`ReportsTestSuiteDirectory`) and per build.
+  # `ResultsDirectory` - `<OsvvmBuildOutputDirectory>/<ResultsSubdirectory>`, with a subdirectory per test suite.
+  # `CoverageDirectory` - `<OsvvmBuildOutputDirectory>/<CoverageSubdirectory>`; its test suite subdirectory only if code
+  #   coverage is enabled for simulation.
   variable OsvvmBuildOutputDirectory
   variable CurrentSimulationDirectory
   variable BuildName
@@ -755,6 +945,12 @@ proc CheckSimulationDirs {} {
 #   Remove "." and ".." from path
 #
 proc ReducePath {PathIn} {
+  # Remove `.` and resolvable `..` elements from a path.
+  #  PathIn - Path to reduce.
+  #
+  # The path is reduced as text; the file system isn't accessed. A leading `..` that can't be resolved is kept.
+  #
+  # Returns the reduced path, or `.` if nothing remains.
 
   set CharCount 0
   set NewPath {}
@@ -785,6 +981,12 @@ proc ReducePath {PathIn} {
 #   Used by build
 #
 proc StartTranscript {} {
+  # Start writing the transcript (log) of a build.
+  #
+  # The transcript is written to a temporary file in the simulation directory, as the build name may still change. Calls
+  # `vendor_StartTranscript`, if the tool defines it, else `DefaultVendor_StartTranscript`. [build] calls it.
+  #
+  # See also: [StopTranscript]
 
   set TempTranscriptName [file join ${::osvvm::CurrentSimulationDirectory} ${::osvvm::OsvvmTempLogFile}]
 
@@ -797,6 +999,11 @@ proc StartTranscript {} {
 }
 
 proc DefaultVendor_StartTranscript {FileName} {
+  # Start a transcript file for tools without their own transcript command.
+  #  FileName - Path of the transcript file.
+  #
+  # If the `tee` package is available (`GotTee`), stdout and stderr are copied into the file. Otherwise the file only
+  # gets a note that log files don't work in this tool.
 
   if {$::osvvm::GotTee} {
     set LogFile  [open ${FileName} w]
@@ -814,6 +1021,14 @@ proc DefaultVendor_StartTranscript {FileName} {
 #   Used by build
 #
 proc StopTranscript {{FileBaseName ""}} {
+  # Stop writing the transcript (log) and move it into the build's log directory.
+  #  FileBaseName - Base name of the log file, usually the build name.
+  #
+  # Creates the build output directory and its log directory `<OsvvmBuildOutputDirectory>/<LogSubdirectory>`, stops the
+  # transcript (`vendor_StopTranscript`, if the tool defines it, else `DefaultVendor_StopTranscript`) and moves the
+  # temporary transcript to `<LogDirectory>/<FileBaseName>.log`. Sets `TranscriptFileName`. [build] calls it.
+  #
+  # See also: [StartTranscript]
   variable TranscriptFileName
   variable OsvvmBuildOutputDirectory
   variable LogDirectory
@@ -848,6 +1063,10 @@ proc StopTranscript {{FileBaseName ""}} {
 
 
 proc DefaultVendor_StopTranscript {{FileBaseName ""}} {
+  # Stop a transcript started by `DefaultVendor_StartTranscript`.
+  #  FileBaseName - Not used.
+  #
+  # If the `tee` package is available (`GotTee`), the copying of stdout and stderr ends.
 
   if {$::osvvm::GotTee} {
     # Restore stdout
@@ -861,6 +1080,9 @@ proc DefaultVendor_StopTranscript {{FileBaseName ""}} {
 #   Used by build
 #
 proc CloseAllFiles {} {
+  # Close all open file channels.
+  #
+  # Closes every channel whose name starts with `file`. Used by vendor scripts when a simulation ends.
   foreach channel [file channels "file*"] {
       close $channel
   }
@@ -871,6 +1093,9 @@ proc CloseAllFiles {} {
 #   Used by build
 #
 proc EndSimulation {} {
+  # End the running simulation.
+  #
+  # Calls `vendor_end_previous_simulation`, which quits the simulation in the tool and closes its files.
 
   vendor_end_previous_simulation
 }
@@ -882,8 +1107,13 @@ proc EndSimulation {} {
 
 # -------------------------------------------------
 proc OsvvmLibraryPath {PathToLib} {
-  # Make sure $PathToLib ends with VhdlLibraryDirectory/VhdlLibrarySubdirectory
-  # If it does not, fix it so it does.
+  # Extend a path with the library directory and subdirectory.
+  #  PathToLib - Path to a library parent directory.
+  #
+  # Appends `<VhdlLibraryDirectory>/<VhdlLibrarySubdirectory>` (by default `VHDL_LIBS/<tool version>`) to $PathToLib,
+  # leaving out the parts it already ends with.
+  #
+  # Returns the normalized path.
   set AddPathSuffix ""
   set TailPathToLib [file tail $PathToLib]
   if {$TailPathToLib ne $::osvvm::VhdlLibrarySubdirectory} {
@@ -899,6 +1129,10 @@ proc OsvvmLibraryPath {PathToLib} {
 }
 
 proc CreateLibraryPath {PathToLib} {
+  # Resolve the directory in which a library is created.
+  #  PathToLib - Library directory. Empty: the current library directory.
+  #
+  # Returns `VhdlLibraryFullPath` for an empty $PathToLib, else the normalized $PathToLib.
   variable VhdlLibraryFullPath
 
   set ResolvedPathToLib ""
@@ -915,6 +1149,18 @@ proc CreateLibraryPath {PathToLib} {
 }
 
 proc FindLibraryPath {PathToLib} {
+  # Resolve the directory of existing libraries.
+  #  PathToLib - Library directory or one of its parents. Empty: the current library directory.
+  #
+  # For a non-empty $PathToLib, the first existing directory of the following list is used:
+  #
+  # 1. `<PathToLib>/<VhdlLibraryDirectory>/<VhdlLibrarySubdirectory>`
+  # 1. `<PathToLib>/<VhdlLibrarySubdirectory>`
+  # 1. `<PathToLib>`
+  #
+  # If none exists, the first is used.
+  #
+  # Returns the normalized library directory; `VhdlLibraryFullPath` for an empty $PathToLib.
   variable VhdlLibraryFullPath
 
   set ResolvedPathToLib ""
@@ -938,6 +1184,14 @@ proc FindLibraryPath {PathToLib} {
 }
 
 proc FindExistingLibraryPath {PathToLib} {
+  # Find a library directory known to OSVVM.
+  #  PathToLib - Library directory or a part of its path. Empty: the current library directory.
+  #
+  # Searches the known library directories (`LibraryDirectoryList`), shortest first, for one matching the normalized
+  # $PathToLib as regular expression.
+  #
+  # Returns the matching library directory, `VhdlLibraryFullPath` for an empty $PathToLib, or an empty string if none
+  # matches.
   variable VhdlLibraryFullPath
   variable LibraryDirectoryList
 
@@ -958,6 +1212,10 @@ proc FindExistingLibraryPath {PathToLib} {
 }
 
 proc FindLibraryPathByName {LibraryName} {
+  # Find the directory of a library known to OSVVM.
+  #  LibraryName - Name of the library; case-insensitive.
+  #
+  # Returns the library's directory, or an empty string if OSVVM doesn't know the library.
   variable LibraryList
 
   set PathToLib ""
@@ -977,6 +1235,12 @@ proc FindLibraryPathByName {LibraryName} {
 
 # -------------------------------------------------
 proc IsLibraryInList {LibraryName} {
+  # Look up a library in the list of libraries known to OSVVM.
+  #  LibraryName - Name of the library, in lower case.
+  #
+  # Creates empty library lists, if they don't exist.
+  #
+  # Returns the library's index in `LibraryList`, or `-1` if it isn't in the list.
   variable LibraryList
   variable LibraryDirectoryList
 
@@ -991,6 +1255,13 @@ proc IsLibraryInList {LibraryName} {
 }
 
 proc AddLibraryToList {LibraryName PathToLib} {
+  # Add a library to the list of libraries known to OSVVM.
+  #  LibraryName - Name of the library, in lower case.
+  #  PathToLib   - Directory of the library.
+  #
+  # Adds `<LibraryName> <PathToLib>` to `LibraryList` and $PathToLib to `LibraryDirectoryList`, unless already present.
+  #
+  # Returns the library's previous index in `LibraryList`, or `-1` if it was added.
   variable LibraryList
   variable LibraryDirectoryList
 
@@ -1012,6 +1283,9 @@ proc AddLibraryToList {LibraryName PathToLib} {
 
 # -------------------------------------------------
 proc ListLibraries {} {
+  # Print the libraries known to OSVVM.
+  #
+  # Prints one line per library: its name (lower case) and its directory.
   variable LibraryList
 
   if {[info exists LibraryList]} {
@@ -1025,6 +1299,16 @@ proc ListLibraries {} {
 # Library
 #
 proc library {LibraryName {PathToLib ""}} {
+  # Make a library the active (working) library; create it, if it doesn't exist.
+  #  LibraryName - Name of the library.
+  #  PathToLib   - Directory in which the library is created. Empty: the directory set by [SetLibraryDirectory].
+  #
+  # If OSVVM already knows the library, its known directory is used. The tool's library is created or mapped by
+  # `vendor_library` with the name in lower case. [analyze] and [simulate] use the active library.
+  #
+  # Calls `CallbackBefore_Library` and `CallbackAfter_Library`; on an error, `CallbackOnError_Library`.
+  #
+  # See also: [LinkLibrary] [SetLibraryDirectory] [ListLibraries] [RemoveLibrary]
   variable VhdlWorkingLibrary
   variable LibraryList
   variable VhdlLibraryFullPath
@@ -1067,6 +1351,13 @@ proc library {LibraryName {PathToLib ""}} {
 # LinkLibrary - aka map in some vendor tools
 #
 proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
+  # Map an existing library into the tool.
+  #  LibraryName - Name of the library.
+  #  PathToLib   - Library directory or one of its parents, see [FindLibraryPath]. Empty: the current library directory.
+  #
+  # If OSVVM already knows the library, its known directory is used. Calls `vendor_LinkLibrary` with the name in lower
+  # case and adds the library to the known libraries. Calls `CallbackOnError_LinkLibrary`, if the directory doesn't
+  # exist or `vendor_LinkLibrary` fails. The active library doesn't change.
   variable VhdlWorkingLibrary
   variable VhdlLibraryFullPath
   variable LibraryList
@@ -1100,6 +1391,13 @@ proc LocalLinkLibrary {LibraryName {PathToLib ""}} {
 }
 
 proc LinkLibrary {LibraryName {PathToLib ""}} {
+  # Map an existing library into the tool, without making it the active library.
+  #  LibraryName - Name of the library.
+  #  PathToLib   - Library directory or one of its parents. Empty: the directory set by [SetLibraryDirectory].
+  #
+  # Use it for libraries created elsewhere, e.g. by another project.
+  #
+  # See also: [LinkLibraryDirectory] [library]
 
   puts "LinkLibrary $LibraryName $PathToLib"      ; # EchoOsvvmCmd
   LocalLinkLibrary $LibraryName $PathToLib
@@ -1109,6 +1407,13 @@ proc LinkLibrary {LibraryName {PathToLib ""}} {
 #  LinkLibraryDirectory
 #
 proc LinkLibraryDirectory {{LibraryDirectory ""}} {
+  # Map all libraries in a library directory into the tool.
+  #  LibraryDirectory - Library directory or one of its parents. Empty: the directory set by [SetLibraryDirectory].
+  #
+  # Each subdirectory of the resolved library directory is linked as a library named after the subdirectory. If the
+  # directory doesn't exist, a message is printed once OSVVM is initialized.
+  #
+  # See also: [LinkLibrary]
   variable CurrentSimulationDirectory
   variable ToolNameVersion
 
@@ -1137,6 +1442,12 @@ proc LinkLibraryDirectory {{LibraryDirectory ""}} {
 #   LinkCurrentLibraries reestablishes the library information
 #
 proc LinkCurrentLibraries {} {
+  # Map all libraries known to OSVVM again, after the current directory changed.
+  #
+  # Tools keep library mappings per directory. After `cd`, call it to update the simulation directory and link all known
+  # libraries again.
+  #
+  # See also: [LinkLibrary]
   variable LibraryList
   set OldLibraryList $LibraryList
 
@@ -1154,26 +1465,24 @@ proc LinkCurrentLibraries {} {
 # analyze
 #
 proc analyze {FileName args} {
-  # Analyze an HDL source file.
-	#
-  #  FileName - Path to the HDL source file.
-  #  args     - Further options.
-	#
-	# This procedure executes a tool-specific analyze command depending on what tool was detected. Some of the used
-	# analyze option depend on the current context. For example the use VHDL library this source file and its design units
-	# are compiled into, depend on the last [library] call.
-	#
-	# **Procedures influencing the context for the `analyze` command:**
-	#
-	# * [library] - set the VHDl working library
-	# * [SetVHDLVersion] - tbd
-	# * [SetExtendedAnalyzeOptions] - tbd
-	# * [SetVhdlAnalyzeOptions] - tbd
-	#
-  # **Supported HDL sourcefile languages:**
-	# * VHDL `*.vhd`/`*.vhdl`
-	# * Verilog `*.v`
-	# * SystemVerilog `*.sv`
+  # Analyze (compile) an HDL source file into the active library.
+  #  FileName - Path of the source file, relative to the current working directory.
+  #  args     - Further analyze options for this file.
+  #
+  # The language follows from the file extension:
+  #
+  # `.vhd`, `.vhdl` - VHDL, analyzed by `vendor_analyze_vhdl`.
+  # `.v`, `.sv`, `.vh` - Verilog or SystemVerilog, analyzed by `vendor_analyze_verilog`.
+  # `.lib` - deprecated: activates the library named like the file.
+  #
+  # The options are the VHDL or Verilog analyze options ([SetVhdlAnalyzeOptions], [SetVerilogAnalyzeOptions]), the
+  # extended analyze options ([SetExtendedAnalyzeOptions]), the code coverage analyze options (only if
+  # [SetCoverageEnable] and [SetCoverageAnalyzeEnable] are true) and $args. If no library is active, the default library
+  # is created.
+  #
+  # An error is reported through `CallbackOnError_Analyze`; the following [simulate] is then skipped.
+  #
+  # See also: [library] [SetVHDLVersion] [RunTest]
   variable AnalyzeErrorCount
   variable AnalyzeErrorStopCount
   variable ConsecutiveAnalyzeErrors
@@ -1188,6 +1497,13 @@ proc analyze {FileName args} {
 }
 
 proc LocalAnalyze {FileName args} {
+  # Analyze a source file; [analyze] without the error handling.
+  #  FileName - Path of the source file, relative to the current working directory.
+  #  args     - Further analyze options for this file.
+  #
+  # Computes the analyze options (stored in `AnalyzeOptions`), records the file in `LastAnalyzedFile` and calls
+  # `vendor_analyze_vhdl` or `vendor_analyze_verilog` between `CallbackBefore_Analyze` and `CallbackAfter_Analyze`. The
+  # file is passed relative to the current directory. An unknown extension raises an error.
   variable VhdlWorkingLibrary
   variable CurrentWorkingDirectory
   variable VhdlAnalyzeOptions
@@ -1240,6 +1556,11 @@ proc LocalAnalyze {FileName args} {
 
 # -------------------------------------------------
 proc NoNullRangeWarning  {} {
+  # Return the option that suppresses null range warnings.
+  #
+  # The Aldec vendor scripts redefine it to return their `-nowarn` option; for other tools it returns nothing.
+  #
+  # Returns an empty string.
   return ""
   # -- -nowarn COMP96_0119
 }
@@ -1249,6 +1570,26 @@ proc NoNullRangeWarning  {} {
 # Simulate
 #
 proc simulate {LibraryUnit args} {
+  # Simulate (elaborate and run) a design unit of the active library.
+  #  LibraryUnit - Name of the top-level entity or configuration.
+  #  args        - Further simulate options; `[generic Name Value]`, `[DoWaves File]` and `[CoSim]` can be used here.
+  #
+  # The test case name is $LibraryUnit, unless [TestName] set it before; generics set with [generic] are appended to the
+  # name of its result files. The options are $args, the extended simulate options ([SetExtendedSimulateOptions]) and
+  # the code coverage simulate options. The elaboration additionally gets the code coverage elaborate options
+  # ([SetCoverageElaborateOptions]); each simulator passes the options to the step that needs them. Code coverage
+  # options are used only if [SetCoverageEnable] and [SetCoverageSimulateEnable] are true. A simulation still running is
+  # ended first. `vendor_simulate` runs the simulation.
+  #
+  # After the simulation, the test case's reports are created (if `GenerateOsvvmReports` is true), and the test case
+  # name, generics and co-simulation setting are reset.
+  #
+  # If the last [analyze] failed, the simulation is skipped and recorded as failed. Called outside a build, the
+  # simulation runs as a build of its own in interactive mode.
+  #
+  # Errors are reported through `CallbackOnError_Simulate` and `CallbackOnError_AfterSimulateReports`.
+  #
+  # See also: [RunTest] [TestName] [generic]
   variable vendor_simulate_started
   variable TestCaseName
   variable TestCaseStatus  "FAILED"
@@ -1321,18 +1662,21 @@ proc simulate {LibraryUnit args} {
 }
 
 proc LocalSimulate {LibraryUnit args} {
-  # Simulate a design unit with the vendor's simulate procedure.
-  #
-  #  LibraryUnit - The design unit to simulate.
+  # Start a simulation; [simulate] without the error handling and reports.
+  #  LibraryUnit - Name of the top-level entity or configuration.
   #  args        - Further simulate options.
   #
-  # Sets the effective options the vendor's simulate procedure uses:
+  # Sets the test case name, if not set, creates the output directories, ends a running simulation, starts the test
+  # case's entry in the build YAML file and calls `vendor_simulate` between `CallbackBefore_Simulate` and
+  # `CallbackAfter_Simulate`. It sets the effective options `vendor_simulate` uses:
   #
-  # * ElaborateOptions - OSVVM's elaborate options: with code coverage enabled for simulation, the code coverage
-  #   elaborate options ([SetCoverageElaborateOptions]). The user's extended elaborate options
-  #   ([SetExtendedElaborateOptions]) aren't part of them; the vendor adds them.
-  # * SimulateOptions - *args*, the extended simulate options and, with code coverage enabled for simulation, the
+  # - `ElaborateOptions`: with code coverage enabled for simulation, the code coverage elaborate options
+  #   ([SetCoverageElaborateOptions]). The user's extended elaborate options ([SetExtendedElaborateOptions]) aren't
+  #   part of them; the vendor adds them.
+  # - `SimulateOptions`: *args*, the extended simulate options and, with code coverage enabled for simulation, the
   #   code coverage simulate options ([SetCoverageSimulateOptions]).
+  #
+  # With code coverage enabled for simulation, `RanSimulationWithCoverage` is set.
   variable VhdlWorkingLibrary
   variable vendor_simulate_started
   variable TestCaseName
@@ -1382,6 +1726,11 @@ proc LocalSimulate {LibraryUnit args} {
 }
 
 proc AfterSimulateReports {} {
+  # Create the reports of a finished test case.
+  #
+  # Moves the test case's YAML and transcript files into the build's reports and results directories, writes
+  # `<TestCaseFileName>_run.yml` with the test case settings, creates the test case's HTML report and finishes its entry
+  # in the build YAML file.
 
   SimulateDoneMoveTestCaseFiles
   set TestCaseSettingsFile [file join ${::osvvm::ReportsTestSuiteDirectory} ${::osvvm::TestCaseFileName}_run.yml]
@@ -1395,6 +1744,11 @@ proc AfterSimulateReports {} {
 
 
 proc FindProjectFile { ProjectFile } {
+  # Find a file in the simulation directory or the OSVVM script directory.
+  #  ProjectFile - Name of the file.
+  #
+  # Returns the path in `CurrentSimulationDirectory` if the file exists there, else in `OsvvmScriptDirectory`, else an
+  # empty string.
   variable  OsvvmScriptDirectory
   variable  CurrentSimulationDirectory
 
@@ -1410,6 +1764,11 @@ proc FindProjectFile { ProjectFile } {
 
 # -------------------------------------------------
 proc CoSim {} {
+  # Mark the next simulation as a co-simulation.
+  #
+  # Use it in the options of [simulate]: `simulate Tb [CoSim]`. Sets `RunningCoSim` until the simulation ends.
+  #
+  # Returns an empty string.
 
   set ::osvvm::RunningCoSim "true"
   return ""
@@ -1417,30 +1776,49 @@ proc CoSim {} {
 
 #--------------------------------------------------------------
 proc RemoveFilePathChars {PathString} {
+  # Make a value usable in a file name.
+  #  PathString - Value, e.g. a generic's value.
+  #
+  # Returns $PathString with each `/` replaced by `_` and the first `:` removed.
   return [regsub {:} [regsub -all {\/} ${PathString} "_"] ""]
 }
 
 # -------------------------------------------------
 proc ExportOptions {args} {
-  # Set options for the next [ExportCodeCoverage], like [generic] does for [simulate].
+  # Add options for the next [ExportCodeCoverage].
+  #  args - Options of the simulator's export command, `--relative=.` for NVC.
   #
-  #  args - The options, in the simulator's syntax, e.g. `--relative=.` for NVC.
+  # Appends the options to `ExportOptionsList`, which the next [ExportCodeCoverage] uses and clears. Written as an
+  # argument of [ExportCodeCoverage], like [generic] for [simulate].
   #
-  # Returns: An empty string, so it can be written as an argument: `ExportCodeCoverage [ExportOptions ...]`.
+  # Returns an empty string, so it can be written as an argument: `ExportCodeCoverage [ExportOptions ...]`.
+  #
+  # See also: [SetCoverageExportOptions]
   variable ExportOptionsList
   append ExportOptionsList " " $args
   return ""
 }
 
 proc ExportCodeCoverage {{FileName ""} args} {
-  # Export the code coverage of the last build into a well-known data format, e.g. Cobertura XML.
+  # Export the code coverage of the last build that collected code coverage into a well-known data format.
+  #  FileName - The file to write. Empty: the simulator's default name in the code coverage directory, for NVC
+  #             `<BuildName>_code_cov.cobertura.xml`.
+  #  args     - `[ExportOptions ...]`.
   #
-  #  FileName - Optional, the file to write. Default: chosen by the simulator, e.g.
-  #             `<BuildName>_code_cov.cobertura.xml` in the code coverage directory for NVC.
-  #  args     - Optional, `[ExportOptions <options>]`.
+  # The options are those of [SetCoverageExportOptions] followed by those of [ExportOptions], which are cleared
+  # afterwards. `vendor_ExportCodeCoverage` writes the file:
   #
-  # The simulator's part is vendor_ExportCodeCoverage. Further options come from [ExportOptions] and
-  # [SetCoverageExportOptions]. With [SetCoverageExportEnable], every build exports its code coverage this way.
+  # |Simulator|Format|Default file|
+  # |---|---|---|
+  # |NVC|Cobertura XML (`nvc --cover-export`)|`<BuildName>_code_cov.cobertura.xml`|
+  # |Siemens tools|coverage report XML (`vcover report -xml`)|`<BuildName>_code_cov.questa.xml`|
+  # |Aldec tools|UCDB XML (`acdb2xml`)|`<BuildName>_code_cov.ucdb.xml`|
+  #
+  # Siemens tools: Questa, Siemens, VSim, Visualizer. Aldec tools: Riviera-PRO, Active-HDL, ASim, VSimSA. Other
+  # simulators print that the export isn't supported yet. Without a build that collected code coverage, it's an
+  # error. With [SetCoverageExportEnable], every build that collected code coverage exports it this way at its end.
+  #
+  # See also: [SetCoverageExportEnable]
   variable ExportOptionsList
 
   set Options [concat {*}$::osvvm::CoverageExportOptions {*}$ExportOptionsList]
@@ -1453,6 +1831,15 @@ proc ExportCodeCoverage {{FileName ""} args} {
 }
 
 proc generic {Name Value} {
+  # Set a generic of the top-level design unit for the next simulation.
+  #  Name  - Name of the generic.
+  #  Value - Value of the generic.
+  #
+  # Use it in the options of [simulate] or [RunTest]: `simulate Tb [generic Width 8]`. The generic is recorded in
+  # `GenericDict`, appended as `_<Name>_<Value>` to the names of the test case's result files, and translated into the
+  # tool's option by `vendor_generic`. The settings are cleared after the simulation.
+  #
+  # Returns an empty string.
   variable GenericDict
   variable GenericNames
   variable GenericOptions
@@ -1466,6 +1853,7 @@ proc generic {Name Value} {
 
 # -------------------------------------------------
 proc ClearGenericSettings {} {
+  # Forget all generics set with [generic].
   set ::osvvm::GenericDict ""
   set ::osvvm::GenericNames ""
   set ::osvvm::GenericOptions ""
@@ -1473,6 +1861,10 @@ proc ClearGenericSettings {} {
 
 #--------------------------------------------------------------
 proc ToGenericCommand {GenericDict} {
+  # Convert generics into [generic] commands.
+  #  GenericDict - Generic names and values.
+  #
+  # Returns `[generic Name Value]` per generic, separated by spaces; used to echo a [simulate] or [RunTest] call.
 
   set Commands ""
   if {${GenericDict} ne ""} {
@@ -1490,6 +1882,10 @@ proc ToGenericCommand {GenericDict} {
 
 #--------------------------------------------------------------
 proc ToGenericNames {GenericDict} {
+  # Convert generics into a file name suffix.
+  #  GenericDict - Generic names and values.
+  #
+  # Returns `_<Name>_<Value>` per generic, concatenated.
 
   set Names ""
   if {${GenericDict} ne ""} {
@@ -1502,6 +1898,13 @@ proc ToGenericNames {GenericDict} {
 
 # -------------------------------------------------
 proc DoWaves {args} {
+  # Add wave scripts to a simulation.
+  #  args - Wave script files, relative to the simulation directory.
+  #
+  # Use it in the options of [simulate]: `simulate Tb [DoWaves wave.do]`. Calls `vendor_DoWaves`, if the tool defines
+  # it.
+  #
+  # Returns the tool's options; without `vendor_DoWaves`, `-do <File>` per file.
   if {[llength [info procs vendor_DoWaves]] > 0} {
     return [vendor_DoWaves {*}$args]
   } else {
@@ -1517,6 +1920,10 @@ proc DoWaves {args} {
 
 # -------------------------------------------------
 proc CreateVerilogLibraryParams {prefix} {
+  # Create the library options of a Verilog analyze command.
+  #  prefix - Option for one library, e.g. `-L `.
+  #
+  # Returns $prefix followed by the library name, for each library known to OSVVM.
   variable LibraryList
 
   foreach item $LibraryList {
@@ -1528,6 +1935,11 @@ proc CreateVerilogLibraryParams {prefix} {
 
 # -------------------------------------------------
 proc MergeCoverage {SuiteName MergeName} {
+  # Merge code coverage databases.
+  #  SuiteName - Name of the test suite whose code coverage is merged.
+  #  MergeName - Name of the merged result.
+  #
+  # Creates `<CoverageDirectory>/<MergeName>` and calls `vendor_MergeCodeCoverage`.
   CreateDirectory [file join $::osvvm::CurrentSimulationDirectory $::osvvm::CoverageDirectory $MergeName]
   vendor_MergeCodeCoverage $SuiteName ${::osvvm::CoverageDirectory} ${MergeName}
 }
@@ -1535,6 +1947,11 @@ proc MergeCoverage {SuiteName MergeName} {
 
 # -------------------------------------------------
 proc FinalizeTestSuite {SuiteName} {
+  # Finish a test suite: merge its requirements and code coverage.
+  #  SuiteName - Name of the test suite.
+  #
+  # Merges the requirements of the test suite's test cases into `<ReportsDirectory>/<BuildName>/<SuiteName>_req.yml` and
+  # writes its HTML report. If a simulation ran with code coverage, the test suite's code coverage is merged.
 
   # Merge Requirements for each test case into TestSuite Requirements
   set RequirementsSourceDir   [file join ${::osvvm::ReportsDirectory} ${SuiteName}]
@@ -1552,6 +1969,13 @@ proc FinalizeTestSuite {SuiteName} {
 
 # -------------------------------------------------
 proc TestSuite {SuiteName} {
+  # Start a test suite.
+  #  SuiteName - Name of the test suite.
+  #
+  # Finishes the previous test suite, if any. A repeated call with the active name is ignored with a warning. Test cases
+  # simulated without a test suite go into a test suite named after the active library.
+  #
+  # See also: [TestName] [build]
   variable TestSuiteName
 
   puts "TestSuite $SuiteName"                     ; # EchoOsvvmCmd
@@ -1579,6 +2003,10 @@ proc TestSuite {SuiteName} {
 
 # -------------------------------------------------
 proc SetTestName {Name} {
+  # Set the name of the next test case.
+  #  Name - Name of the test case.
+  #
+  # Starts a test suite named after the active library (or the default library), if none is active.
   variable TestCaseName
   variable TestSuiteName
 
@@ -1596,6 +2024,13 @@ proc SetTestName {Name} {
 }
 
 proc TestName {Name} {
+  # Set the name of the next test case.
+  #  Name - Name of the test case; must match the name the testbench sets with `SetTestName`.
+  #
+  # Call it before [simulate], if the test case name differs from the simulated design unit. Generics aren't appended to
+  # the name of the result files, unlike for names set by [simulate] or [RunTest].
+  #
+  # See also: [TestSuite]
   SetTestName $Name
   # if called directly, then do not use generics in the name
   # if set by RunTest or Simulate incorporate generics in TestCaseFileName
@@ -1605,7 +2040,8 @@ proc TestName {Name} {
 
 # Maintain backward compatibility
 proc TestCase {Name} {
-  # Do same as TestName
+  # Set the name of the next test case; deprecated, use [TestName].
+  #  Name - Name of the test case.
   TestName $Name
 }
 
@@ -1614,6 +2050,15 @@ proc TestCase {Name} {
 # RunTest
 #
 proc RunTest {FileName {SimName ""} args} {
+  # Analyze a file and simulate the design unit named like it.
+  #  FileName - Path of the source file, relative to the current working directory.
+  #  SimName  - Design unit to simulate. Empty: the file's base name.
+  #  args     - Further words; not used. A `[generic Name Value]` here only records the generic.
+  #
+  # Combines [TestName], [analyze] and [simulate]. The test case name is the simulated design unit, or
+  # `<SimName>(<FileBaseName>)` if $SimName is given; [TestName] called before takes precedence.
+  #
+  # See also: [RunAllTests]
   variable CompoundCommand
   variable TestCaseName
   variable TestCaseFileName
@@ -1654,6 +2099,11 @@ proc RunTest {FileName {SimName ""} args} {
 # RunAllTests
 #
 proc RunAllTests {{TestFilePrefix ""} args} {
+  # Run all VHDL files of the current working directory as tests (experimental).
+  #  TestFilePrefix - Only files whose names start with it.
+  #  args           - Not used.
+  #
+  # Calls [RunTest] for each `<TestFilePrefix>*.vhd` and `<TestFilePrefix>*.vhdl` file.
   foreach Test [glob [file join $::osvvm::CurrentWorkingDirectory ${TestFilePrefix}*.vhd]] {
     RunTest $Test
   }
@@ -1666,6 +2116,11 @@ proc RunAllTests {{TestFilePrefix ""} args} {
 # SkipTest
 #
 proc SkipTest { {FileName "NotProvided.vhd"} {Reason "Not Provided"} } {
+  # Record a test case as skipped in the build reports.
+  #  FileName - File or name of the test case; its base name is the test case name.
+  #  Reason   - Reason, shown in the reports.
+  #
+  # See also: [RunTest]
 
   set SimName [file rootname [file tail $FileName]]
 
@@ -1679,6 +2134,9 @@ proc SkipTest { {FileName "NotProvided.vhd"} {Reason "Not Provided"} } {
 # AnalyzeFailed
 #
 proc AnalyzeFailed { {LibraryUnit "NotProvided"} {Reason "Not Provided"} } {
+  # Record a test case as failed, because its analyze failed.
+  #  LibraryUnit - Name of the test case.
+  #  Reason      - Reason, shown in the reports.
 
   puts "SimulateError: simulate $LibraryUnit $Reason"
 
@@ -1690,6 +2148,12 @@ proc AnalyzeFailed { {LibraryUnit "NotProvided"} {Reason "Not Provided"} } {
 #   Find name in LibraryList, remove corresponding directory and library mapping
 #
 proc UnlinkAndDeleteLibrary {LowerLibraryName ResolvedPathToLib} {
+  # Remove a library from the tool and delete its directory.
+  #  LowerLibraryName  - Name of the library, in lower case.
+  #  ResolvedPathToLib - Directory containing the library.
+  #
+  # Calls `vendor_UnlinkLibrary`. If `RemoveLibraryDirectoryDeletesDirectory` is true, deletes
+  # `<ResolvedPathToLib>/<LowerLibraryName>`. Failures are printed, not raised.
 
   # Unlink Library from Vendor mapping
   if {[catch {vendor_UnlinkLibrary $LowerLibraryName $ResolvedPathToLib} UnlinkErrMsg]} {
@@ -1706,6 +2170,12 @@ proc UnlinkAndDeleteLibrary {LowerLibraryName ResolvedPathToLib} {
 }
 
 proc LocalRemoveLibrary {LowerLibraryName ResolvedPathToLib} {
+  # Remove a library from OSVVM's list, the tool and the file system.
+  #  LowerLibraryName  - Name of the library, in lower case.
+  #  ResolvedPathToLib - Directory containing the library; overridden by the directory OSVVM knows.
+  #
+  # Removes the library from `LibraryList` and deactivates it if it's the active library. The library is unlinked and
+  # deleted, if OSVVM knew it or `RemoveUnmappedLibraries` is true.
   variable VhdlWorkingLibrary
   variable LibraryList
   variable LibraryDirectoryList
@@ -1740,6 +2210,14 @@ proc LocalRemoveLibrary {LowerLibraryName ResolvedPathToLib} {
 }
 
 proc RemoveLibrary {LibraryName {PathToLib ""}} {
+  # Remove a library.
+  #  LibraryName - Name of the library.
+  #  PathToLib   - Library directory or one of its parents; only used for libraries OSVVM doesn't know. Empty: the
+  #    current library directory.
+  #
+  # The library is removed from OSVVM's list and from the tool, and its directory is deleted (tool dependent).
+  #
+  # See also: [RemoveLibraryDirectory] [RemoveAllLibraries]
   variable VhdlWorkingLibrary
   variable LibraryList
   variable LibraryDirectoryList
@@ -1759,6 +2237,12 @@ proc RemoveLibrary {LibraryName {PathToLib ""}} {
 # RemoveLibraryDirectory
 #
 proc LocalRemoveLibraryDirectory {ResolvedPathToLib} {
+  # Remove all libraries in a library directory and the directory.
+  #  ResolvedPathToLib - Library directory known to OSVVM.
+  #
+  # Removes each known library in the directory and the directory from `LibraryDirectoryList`. If
+  # `RemoveLibraryDirectoryDeletesDirectory` is true, the directory is deleted when it's empty. Problems are printed as
+  # warnings.
   variable VhdlLibraryParentDirectory
   variable LibraryList
   variable LibraryDirectoryList
@@ -1801,6 +2285,12 @@ proc LocalRemoveLibraryDirectory {ResolvedPathToLib} {
 }
 
 proc RemoveLibraryDirectory {{PathToLib ""}} {
+  # Remove a library directory and all libraries in it.
+  #  PathToLib - Library directory or a part of its path. Empty: the directory set by [SetLibraryDirectory].
+  #
+  # Calls `CallbackOnError_RemoveLibraryDirectory`, if OSVVM doesn't know the directory.
+  #
+  # See also: [RemoveAllLibraries] [RemoveLibrary]
   CheckWorkingDir
   CheckLibraryInit
 
@@ -1815,6 +2305,7 @@ proc RemoveLibraryDirectory {{PathToLib ""}} {
 
 # RemoveLocalLibraries deprecated and replaced by RemoveLibraryDirectory
 proc RemoveLocalLibraries {} {
+  # Remove the current library directory; deprecated, use [RemoveLibraryDirectory].
   RemoveLibraryDirectory
 }
 
@@ -1822,6 +2313,11 @@ proc RemoveLocalLibraries {} {
 # RemoveAllLibraries
 #
 proc RemoveAllLibraries {} {
+  # Remove all library directories known to OSVVM and their libraries.
+  #
+  # Nested directories are removed first. Afterwards no library is active and OSVVM knows no libraries.
+  #
+  # See also: [RemoveLibraryDirectory]
   variable LibraryDirectoryList
   variable LibraryList
   variable VhdlWorkingLibrary
@@ -1849,6 +2345,7 @@ proc RemoveAllLibraries {} {
 # UnsetLibraryVars
 #
 proc UnsetLibraryVars {} {
+  # Forget the active library and all known libraries, without removing them.
   variable VhdlWorkingLibrary
   variable LibraryList
   variable LibraryDirectoryList
@@ -1869,6 +2366,12 @@ proc UnsetLibraryVars {} {
 # InstallProject
 #
 proc InstallProject { {ProjectDir $OsvvmLibraries} {ProjectBuildScript $ProjectDir/OsvvmLibraries.pro} } {
+  # Build a project in its own directory, with its libraries there.
+  #  ProjectDir         - Directory of the project.
+  #  ProjectBuildScript - Build script of the project.
+  #
+  # Changes into $ProjectDir, sets the library directory to it, creates and changes into `sim/<ToolNameVersion>` and
+  # runs [build] with the log files in `logs`. Restores the directory, library directory and log settings afterwards.
 
   # Record current SimulationDirectory and LibraryDirectory
   set StartingDirectory             [pwd]
@@ -1908,6 +2411,17 @@ proc InstallProject { {ProjectDir $OsvvmLibraries} {ProjectBuildScript $ProjectD
 # SimulateDoneMoveTestCaseFiles
 #
 proc SimulateDoneMoveTestCaseFiles {} {
+  # Move the result files of a finished test case into the build's directories.
+  #
+  # Moves the requirements (`_req.yml`), alert (`_alerts.yml`), functional coverage (`_cov.yml`) and scoreboard
+  # (`_sb_<Name>.yml`) files of the test case from the temporary output directory into the test suite's reports
+  # directory, named after `TestCaseFileName`. Sets `RequirementsYamlFile`, `AlertYamlFile` and `CovYamlFile` (empty if
+  # absent) and `ScoreboardDict`.
+  #
+  # The transcripts the test case opened (listed in the temporary transcript YAML file) are moved into the test suite's
+  # results directory, with the generics appended to their names, and converted to HTML; sets `TranscriptFiles`. A
+  # transcript that's still open ends the simulation, unless in interactive mode.
+
   # Inputs
   variable TestCaseName
   variable TestCaseFileName
@@ -2006,6 +2520,13 @@ proc SimulateDoneMoveTestCaseFiles {} {
 # CopyHtmlThemeFiles
 #
 proc CopyHtmlThemeFiles {HtmlThemeSourceDirectory BaseDirectory HtmlThemeTargetSubdirectory} {
+  # Copy the CSS and logo files of the HTML reports.
+  #  HtmlThemeSourceDirectory    - Directory with the `*.css` files and one `*.png` file.
+  #  BaseDirectory               - Directory of the HTML reports.
+  #  HtmlThemeTargetSubdirectory - Subdirectory of $BaseDirectory to copy the files into.
+  #
+  # Sets `Report2CssFiles` and `Report2PngFile` to the copied files, relative to $BaseDirectory. Of several `*.png`
+  # files, the last one is copied.
   variable Report2CssFiles
   variable Report2PngFile
 
@@ -2040,6 +2561,12 @@ proc CopyHtmlThemeFiles {HtmlThemeSourceDirectory BaseDirectory HtmlThemeTargetS
 # -------------------------------------------------
 # DirectoryExists - use OSVVM
 proc DirectoryExists {DirInQuestion} {
+  # Check whether a directory exists.
+  #  DirInQuestion - Path, relative to the current working directory.
+  #
+  # Returns `1` if $DirInQuestion exists (directory or file), else `0`.
+  #
+  # See also: [FileExists]
   variable CurrentWorkingDirectory
 
   if {[info exists CurrentWorkingDirectory]} {
@@ -2052,6 +2579,12 @@ proc DirectoryExists {DirInQuestion} {
 
 # -------------------------------------------------
 proc FileExists {FileName} {
+  # Check whether a file exists.
+  #  FileName - Path, relative to the current working directory.
+  #
+  # Returns `1` if $FileName exists (file or directory), else `0`.
+  #
+  # See also: [DirectoryExists] [FileModified]
   variable CurrentWorkingDirectory
 
   if {[info exists CurrentWorkingDirectory]} {
@@ -2064,6 +2597,12 @@ proc FileExists {FileName} {
 
 # -------------------------------------------------
 proc FileModified {FileName} {
+  # Return the modification time of a file.
+  #  FileName - Path, relative to the current working directory.
+  #
+  # Returns the modification time in seconds since the epoch.
+  #
+  # See also: [FileExists]
   variable CurrentWorkingDirectory
 
   if {[info exists CurrentWorkingDirectory]} {
@@ -2077,18 +2616,35 @@ proc FileModified {FileName} {
 
 # -------------------------------------------------
 proc JoinWorkingDirectory {RelativePath} {
+  # Join a path to the current working directory.
+  #  RelativePath - Path relative to the current working directory.
+  #
+  # Returns the joined path.
+  #
+  # See also: [ChangeWorkingDirectory]
   variable CurrentWorkingDirectory
   return [file join $CurrentWorkingDirectory $RelativePath]
 }
 
 # -------------------------------------------------
 proc ChangeWorkingDirectory {RelativePath} {
+  # Change the current working directory of the running script.
+  #  RelativePath - Path relative to the current working directory.
+  #
+  # Paths of later commands of the script, e.g. [analyze], are relative to the new directory. The simulator's directory
+  # doesn't change.
+  #
+  # See also: [JoinWorkingDirectory]
   variable CurrentWorkingDirectory
   set CurrentWorkingDirectory [file join $CurrentWorkingDirectory $RelativePath]
 }
 
 # -------------------------------------------------
 proc TimeIt {args} {
+  # Run a command and print how long it took.
+  #  args - Command and its arguments.
+  #
+  # See also: [GetTimeString]
   set StartTimeMs [clock milliseconds]
   eval $args
   puts  "Time:  [ElapsedTimeMs $StartTimeMs]"
@@ -2096,6 +2652,7 @@ proc TimeIt {args} {
 
 # -------------------------------------------------
 proc SetArgv {} {
+  # Set `argv0`, `argv` and `argc` to `0`.
   set ::argv0   0
   set ::argv    0
   set ::argc    0
@@ -2103,6 +2660,9 @@ proc SetArgv {} {
 
 # -------------------------------------------------
 proc GetTimeString {} {
+  # Return the current time as ISO 8601 string.
+  #
+  # Returns the time as `YYYY-MM-DDThh:mm:ss` followed by the time zone offset.
   return [GetIsoTime [clock seconds]]
 }
 
