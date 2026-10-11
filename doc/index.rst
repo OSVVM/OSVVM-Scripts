@@ -48,6 +48,7 @@ License
 
    Installation
    QuickStartGuide
+   SimulatorSpecifics
    Support
 
 .. raw:: latex
