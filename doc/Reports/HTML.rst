@@ -43,7 +43,7 @@ Build Summary Report
 
 .. figure:: ../../images/DemoBuildSummaryReport.png
    :name: RPT/HTML/BuildSummaryFig
-   :scale: 25 %
+   :scale: 100 %
    :align: center
 
    Build Summary Report
@@ -62,7 +62,7 @@ the :ref:`code coverage report <RPT/HTML/CodeCoverage>`.
 
 .. figure:: ../../images/DemoBuildStatus.png
    :name: RPT/HTML/BuildStatusFig
-   :scale: 50 %
+   :scale: 100 %
    :align: center
 
    Build Status
@@ -98,7 +98,7 @@ Test Suite Summary
 
 .. figure:: ../../images/DemoTestSuiteSummary.png
    :name: RPT/HTML/TestSuiteSummaryFig
-   :scale: 50 %
+   :scale: 100 %
    :align: center
 
    Test Suite Summary
@@ -115,7 +115,7 @@ skipped with :ref:`RUFF/osvvm/SkipTest` are listed with their reason.
 
 .. figure:: ../../images/DemoTestCaseSummaries.png
    :name: RPT/HTML/TestCaseSummaryFig
-   :scale: 50 %
+   :scale: 100 %
    :align: center
 
    Test Case Summary
@@ -161,7 +161,7 @@ Test Case Detailed Report
 
 .. figure:: ../../images/DemoTestCaseDetailedReport.png
    :name: RPT/HTML/TestCaseDetailedFig
-   :scale: 50 %
+   :scale: 100 %
    :align: center
 
    Test Case Detailed Report
@@ -178,7 +178,7 @@ transcript files the test case opened with ``TranscriptOpen``. It also lists the
 
 .. figure:: ../../images/DemoTestCaseLinks.png
    :name: RPT/HTML/TestInfoFig
-   :scale: 50 %
+   :scale: 100 %
    :align: center
 
    Test Information Link Table
@@ -195,7 +195,7 @@ and warnings. Expected errors still show as ``FAILED`` in the alert report; the 
 
 .. figure:: ../../images/DemoAlertReport.png
    :name: RPT/HTML/AlertFig
-   :scale: 50 %
+   :scale: 100 %
    :align: center
 
    Alert Report
@@ -212,7 +212,7 @@ figure is not from the demo.
 
 .. figure:: ../../images/CoverageReport.png
    :name: RPT/HTML/FunctionalCoverageFig
-   :scale: 50 %
+   :scale: 100 %
    :align: center
 
    Functional Coverage Report
@@ -229,7 +229,7 @@ the items checked, popped and dropped, the items still in its :acs:`FIFO`, and t
 
 .. figure:: ../../images/DemoScoreboardReport.png
    :name: RPT/HTML/ScoreboardFig
-   :scale: 50 %
+   :scale: 100 %
    :align: center
 
    Scoreboard Report
@@ -269,7 +269,7 @@ Test Case Transcript
 
 .. figure:: ../../images/DemoVHDLTranscript.png
    :name: RPT/HTML/TestCaseTranscriptFig
-   :scale: 50 %
+   :scale: 100 %
    :align: center
 
    Test Case Transcript
@@ -305,7 +305,7 @@ HTML Simulator Transcript
 
 .. figure:: ../../images/DemoSimTranscript.png
    :name: RPT/HTML/SimTranscriptFig
-   :scale: 50 %
+   :scale: 100 %
    :align: center
 
    HTML Simulator Transcript
@@ -359,7 +359,7 @@ Code Coverage Report
 
 .. figure:: ../../images/BuildReportWithCov.png
    :name: RPT/HTML/BuildReportWithCovFig
-   :scale: 25 %
+   :scale: 100 %
    :align: center
 
    Build Summary Report with a link to the code coverage report
