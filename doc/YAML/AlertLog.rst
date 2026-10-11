@@ -8,17 +8,17 @@ AlertLog Report
    .. grid-item::
       :columns: 6
 
-      At the end of a test case, OSVVM's AlertLogPkg writes the test case's alert hierarchy with all its counts into
-      :file:`<TestCaseFileName>_alerts.yml`: the test case's result, the settings that decide it, and one entry per
-      AlertLog ID with its alerts, checks and requirements.
+      At the end of a :term:`test case`, :acs:`OSVVM`'s AlertLogPkg writes the test case's :term:`alert` hierarchy with
+      all its counts into :file:`<TestCaseFileName>_alerts.yml`: the test case's result, the settings that decide it,
+      and one entry per AlertLog :acs:`ID` with its alerts, checks and :term:`requirements <requirement>`.
 
       The simulation writes the file into OSVVM's temporary directory, named after the test case. After the
-      simulation, the scripts move it into the test suite's reports directory and rename it after the test case file,
-      which includes the generics.
+      simulation, the scripts move it into the :term:`test suite`'s reports directory and rename it after the test case
+      file, which includes the :term:`generics <generic>`.
 
       :ref:`RUFF/osvvm/Simulate2Html` reads it with :ref:`RUFF/osvvm/Alert2Html` into the alert section of the test
-      case report (:ref:`RPT/HTML/TestCase/Alerts`). The test case's summary goes into the build's YAML file separately
-      (:ref:`YAML/TestReport`).
+      case report (:ref:`RPT/HTML/TestCase/Alerts`). The test case's summary goes into the :term:`build`'s :acs:`YAML`
+      file separately (:ref:`YAML/TestReport`).
 
    .. grid-item::
       :columns: 6
@@ -55,7 +55,7 @@ Writing the File
       When an alert reaches its stop count, AlertLogPkg writes the file itself before it stops the simulation; the
       test case's status is then ``STOPLIMIT``.
 
-      A testbench can call ``WriteAlertYaml`` directly. ``PrintSettings`` controls whether ``Version`` and
+      A :term:`testbench` can call ``WriteAlertYaml`` directly. ``PrintSettings`` controls whether ``Version`` and
       ``Settings`` are written, ``PrintChildren`` whether the hierarchy is written.
 
    .. grid-item::
@@ -153,7 +153,7 @@ Counts
          * one per requirement below the entry that didn't reach its goal, if ``FailOnRequirementErrors`` is
            ``true``.
 
-         At the top level also the external errors, and the VHDL assertion errors, if AlertLogPkg counts them
+         At the top level also the external errors, and the :acs:`VHDL` assertion errors, if AlertLogPkg counts them
          (``FailOnVhdlAssertErrors``).
 
       ``AlertCount``
@@ -258,7 +258,7 @@ Hierarchy
       with the IDs below it:
 
       ``VHDL Asserts``
-         VHDL's own ``assert`` and ``report`` statements, if the simulator supports VHDL-2019's assert API and
+         VHDL's own ``assert`` and ``report`` statements, if the simulator supports VHDL-2019's assert :acs:`API` and
          AlertLogPkg prints them (``PrintVhdlAssertErrors``). It has no checks and no children.
 
       ``Default``, ``OSVVM``

@@ -8,9 +8,9 @@ Good reports simplify debug and help find problems quickly. This is important, a
 
 .. _2020 Wilson Research Group Functional Verification Study: https://blogs.sw.siemens.com/verificationhorizons/2020/12/02/part-4-the-2020-wilson-research-group-functional-verification-study/
 
-OSVVM creates its reports automatically, while a build runs. The VHDL side - OSVVM's utility library - writes the
-results of each test case as YAML files; the Tcl side - OSVVM-Scripts - adds what it knows about the build and converts
-everything into reports:
+:acs:`OSVVM` creates its reports automatically, while a :term:`build` runs. The :acs:`VHDL` side - OSVVM's
+:term:`utility library` - writes the results of each :term:`test case` as :acs:`YAML` files; the :acs:`Tcl` side -
+OSVVM-Scripts - adds what it knows about the build and converts everything into reports:
 
 .. grid:: 2
 
@@ -19,14 +19,15 @@ everything into reports:
 
       * :ref:`HTML Build Summary Report <RPT/HTML/BuildSummary>` - for humans: did the build pass, which test cases
         failed?
-      * :ref:`JUnit XML Build Summary Report <RPT/XML>` - for continuous integration (CI/CD) tools.
-      * :ref:`HTML Test Case Detailed Report <RPT/HTML/TestCase>` - per test case: alerts, functional coverage,
-        scoreboards.
+      * :ref:`JUnit XML Build Summary Report <RPT/XML>` - for continuous integration (:acs:`CI`/:acs:`CD`) tools.
+      * :ref:`HTML Test Case Detailed Report <RPT/HTML/TestCase>` - per test case: :term:`alerts <alert>`,
+        :term:`functional coverage`, :term:`scoreboards <scoreboard>`.
       * :ref:`HTML simulator transcript <RPT/HTML/SimTranscript>` - the simulator output of the whole build.
       * :ref:`Test case transcript <RPT/HTML/TestCaseTranscript>` - what a test case wrote with ``TranscriptOpen``.
-      * :ref:`Requirements reports <RPT/REQ>` - HTML and CSV, if test cases track requirements.
-      * :ref:`Code coverage report <RPT/HTML/CodeCoverage>` - from the simulator, if code coverage is enabled.
-      * :ref:`Build index <RPT/HTML/Index>` - all builds of a simulation directory.
+      * :ref:`Requirements reports <RPT/REQ>` - :acs:`HTML` and :acs:`CSV`, if test cases track
+        :term:`requirements <requirement>`.
+      * :ref:`Code coverage report <RPT/HTML/CodeCoverage>` - from the simulator, if :term:`code coverage` is enabled.
+      * :ref:`Build index <RPT/HTML/Index>` - all builds of a :term:`simulation directory`.
 
    .. grid-item::
       :columns: 6
@@ -58,7 +59,7 @@ VHDL Side
    .. grid-item::
       :columns: 6
 
-      To generate reports, the VHDL testbench needs:
+      To generate reports, the VHDL :term:`testbench` needs:
 
       * A test case name, set with ``SetTestName("TestName")``. It must match the test case name the script uses (see
         :ref:`below <RPT/Generate/Tcl>`); otherwise the build summary reports a ``NAME_MISMATCH`` failure.
@@ -107,18 +108,19 @@ Tcl Side
    .. grid-item::
       :columns: 6
 
-      A build script ``*.pro`` started with :ref:`RUFF/osvvm/build` creates all reports; there is nothing to call.
+      A :term:`build script` ``*.pro`` started with :ref:`RUFF/osvvm/build` creates all reports; there is nothing to
+      call.
 
-      * :ref:`RUFF/osvvm/simulate` names the test case after the design unit it simulates, unless
+      * :ref:`RUFF/osvvm/simulate` names the test case after the :term:`design unit` it simulates, unless
         :ref:`RUFF/osvvm/TestName` set the name before.
-      * :ref:`RUFF/osvvm/TestSuite` groups the following test cases into a test suite; without it, the test suite is
-        named ``Default``.
+      * :ref:`RUFF/osvvm/TestSuite` groups the following test cases into a :term:`test suite`; without it, the test
+        suite is named ``Default``.
       * :ref:`RUFF/osvvm/RunTest` combines :ref:`RUFF/osvvm/analyze`, :ref:`RUFF/osvvm/TestName` and
         :ref:`RUFF/osvvm/simulate` for a test case in its own file, typically with a configuration of the same name.
 
       Every test case named with :ref:`RUFF/osvvm/TestName` is recorded in the build's YAML file before it runs. If its
-      simulation doesn't run at all - it crashed, or its file didn't analyze -, the build summary still lists it, as
-      failed.
+      simulation doesn't run at all - it crashed, or its file didn't :term:`analyze <analysis>` -, the build summary
+      still lists it, as failed.
 
       If a test case's file fails to analyze, the previously analyzed test case may run instead. Its
       ``SetTestName`` name then differs from the script's name, and the build summary reports a ``NAME_MISMATCH``.
@@ -181,7 +183,7 @@ When Reports Are Created
       :columns: 6
 
       **After each simulation**, :ref:`RUFF/osvvm/Simulate2Html` creates the test case's detailed report, and the
-      transcript files the test case opened are converted with :ref:`RUFF/osvvm/Transcript2Html`.
+      :term:`transcript` files the test case opened are converted with :ref:`RUFF/osvvm/Transcript2Html`.
 
       **At the end of a test suite**, the requirements of its test cases are merged
       (:ref:`RUFF/osvvm/MergeRequirements`, :ref:`RUFF/osvvm/Requirements2Html`) and, with code coverage, the test
@@ -192,8 +194,8 @@ When Reports Are Created
       #. the requirements of all test suites are merged and reported (:ref:`RUFF/osvvm/Requirements2Html`,
          :ref:`RUFF/osvvm/Requirements2Csv`);
       #. with code coverage, the coverage is merged and its report is created;
-      #. :ref:`RUFF/osvvm/CreateBuildReports` writes the HTML and JUnit XML build summary reports from the build's
-         YAML file;
+      #. :ref:`RUFF/osvvm/CreateBuildReports` writes the HTML and :term:`JUnit XML` build summary reports from the
+         build's YAML file;
       #. :ref:`RUFF/osvvm/Log2Osvvm` converts the simulator transcript into HTML;
       #. :ref:`RUFF/osvvm/Index2Html` updates the build index.
 
@@ -227,8 +229,8 @@ Where the Files Go
    .. grid-item::
       :columns: 6
 
-      Each build gets a directory named after the build, in the directory where the simulator runs. The build name is
-      the script's name, prefixed with its directory's name, if they differ:
+      Each build gets a directory named after the build, in the directory where the simulator runs. The
+      :term:`build name` is the script's name, prefixed with its directory's name, if they differ:
       ``build ../OsvvmLibraries/RunAllTests.pro`` creates ``OsvvmLibraries_RunAllTests``.
       :ref:`RUFF/osvvm/BuildName` sets another name: :file:`RunDemoTests.pro` names its build ``OsvvmRunDemoTests``.
 
@@ -329,9 +331,9 @@ Reports After a Simulation or Build Ended in Error
 
       * :ref:`RUFF/osvvm/Simulate2Html` creates a test case's detailed report from its :file:`_run.yml` file. The
         second argument is the build directory. ``<TestCaseFileName>`` is the test case name, followed by
-        ``_<Generic>_<Value>`` for each generic set with :ref:`RUFF/osvvm/generic`.
-      * :ref:`RUFF/osvvm/CreateBuildReports` creates the HTML and JUnit XML build summary reports from the build's YAML
-        file. :ref:`RUFF/osvvm/Report2Html` and :ref:`RUFF/osvvm/Report2Junit` create only one of them.
+        ``_<Generic>_<Value>`` for each :term:`generic` set with :ref:`RUFF/osvvm/generic`.
+      * :ref:`RUFF/osvvm/CreateBuildReports` creates the HTML and JUnit :acs:`XML` build summary reports from the
+        build's YAML file. :ref:`RUFF/osvvm/Report2Html` and :ref:`RUFF/osvvm/Report2Junit` create only one of them.
       * :ref:`RUFF/osvvm/Log2Osvvm` creates the HTML simulator transcript from the build's log file.
 
    .. grid-item::

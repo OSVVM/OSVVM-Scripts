@@ -3,9 +3,10 @@
 Code Coverage
 #############
 
-Code coverage tells which parts of a design were exercised by the tests. OSVVM collects it per test case, merges it
-per test suite and per build, links the simulator's HTML coverage report from the build report (see :ref:`RPT`), and
-can export it into a well-known data format, like Cobertura XML.
+:term:`Code coverage` tells which parts of a design were exercised by the tests. :acs:`OSVVM` collects it per
+:term:`test case`, merges it per :term:`test suite` and per :term:`build`, links the simulator's :acs:`HTML` coverage
+report from the build report (see :ref:`RPT`), and can export it into a well-known data format, like
+:term:`Cobertura XML`.
 
 Code coverage is supported for the Aldec simulators (Active-HDL, Riviera-PRO, VSimSA), the Siemens simulators
 (ModelSim, QuestaSim, Visualizer) and NVC.
@@ -20,18 +21,18 @@ Turning on Code Coverage
    .. grid-item::
       :columns: 6
 
-      Coverage is enabled separately for analysis and simulation:
+      Coverage is enabled separately for :term:`analysis` and simulation:
 
       * :ref:`RUFF/osvvm/SetCoverageAnalyzeEnable` instruments the files analyzed while it's ``true``. Turn it off
-        before analyzing the testbench, so the testbench isn't part of the coverage.
+        before analyzing the :term:`testbench`, so the testbench isn't part of the coverage.
       * :ref:`RUFF/osvvm/SetCoverageSimulateEnable` collects coverage in the simulations started while it's ``true``.
 
       Both are ``false`` by default, so simulations run fast. :ref:`RUFF/osvvm/SetCoverageEnable` (default ``true``)
-      switches both off at once without changing them. All three accept any Tcl boolean (``true``, ``yes``, ``on``,
-      ``1``, ...).
+      switches both off at once without changing them. All three accept any :acs:`Tcl` boolean (``true``, ``yes``,
+      ``on``, ``1``, ...).
 
-      NVC instruments a design at elaboration, not at analysis. With NVC, :ref:`RUFF/osvvm/SetCoverageAnalyzeEnable`
-      has no effect: the whole design, including the testbench, is covered.
+      NVC instruments a design at :term:`elaboration`, not at analysis. With NVC,
+      :ref:`RUFF/osvvm/SetCoverageAnalyzeEnable` has no effect: the whole design, including the testbench, is covered.
 
    .. grid-item::
       :columns: 6
@@ -127,9 +128,9 @@ Coverage Options
       * :ref:`RUFF/osvvm/SetCoverageElaborateOptions` - used by the elaboration in :ref:`RUFF/osvvm/simulate`;
       * :ref:`RUFF/osvvm/SetCoverageSimulateOptions` - used by :ref:`RUFF/osvvm/simulate`.
 
-      Their defaults come from the vendor script, built from the kinds. :ref:`RUFF/osvvm/SetCoverageKinds` sets all
-      three to the vendor's defaults for the new kinds, replacing options set before. Options set afterwards are passed
-      to the simulator as given, so a simulator option without a kind is still possible. The ``Get`` commands
+      Their defaults come from the :term:`vendor script`, built from the kinds. :ref:`RUFF/osvvm/SetCoverageKinds` sets
+      all three to the vendor's defaults for the new kinds, replacing options set before. Options set afterwards are
+      passed to the simulator as given, so a simulator option without a kind is still possible. The ``Get`` commands
       (:ref:`RUFF/osvvm/GetCoverageAnalyzeOptions`, :ref:`RUFF/osvvm/GetCoverageElaborateOptions`,
       :ref:`RUFF/osvvm/GetCoverageSimulateOptions`) return the current options.
 
@@ -223,7 +224,7 @@ Merging and Reports
       its test cases are merged; when the build completes, the databases of all test suites are merged and the
       simulator writes its HTML coverage report, which the build report links.
 
-      All of it is in :file:`<BuildName>/CodeCoverage/` of the simulation directory.
+      All of it is in :file:`<BuildName>/CodeCoverage/` of the :term:`simulation directory`.
 
    .. grid-item::
       :columns: 6
@@ -278,8 +279,8 @@ Exporting Code Coverage
       :columns: 6
 
       :ref:`RUFF/osvvm/ExportCodeCoverage` exports the code coverage of the last build that collected code coverage
-      into a well-known data format, for CI tools and coverage services. The file name is optional; options for this
-      export are added with :ref:`RUFF/osvvm/ExportOptions`, written as an argument like :ref:`RUFF/osvvm/generic`.
+      into a well-known data format, for :acs:`CI` tools and coverage services. The file name is optional; options for
+      this export are added with :ref:`RUFF/osvvm/ExportOptions`, written as an argument like :ref:`RUFF/osvvm/generic`.
 
       :ref:`RUFF/osvvm/SetCoverageExportEnable` exports at the end of every build that collected code coverage (off
       by default). :ref:`RUFF/osvvm/SetCoverageExportOptions` sets the options of every export.
@@ -291,13 +292,13 @@ Exporting Code Coverage
            - Format
            - Default file in :file:`CodeCoverage/`
          * - NVC
-           - Cobertura XML
+           - Cobertura :acs:`XML`
            - :file:`<BuildName>_code_cov.cobertura.xml`
          * - Siemens
            - coverage report XML
            - :file:`<BuildName>_code_cov.questa.xml`
          * - Aldec
-           - UCDB XML
+           - :acs:`UCDB` XML
            - :file:`<BuildName>_code_cov.ucdb.xml`
 
       Other simulators print that the export isn't supported yet.

@@ -18,12 +18,12 @@ Simulation Directory
    .. grid-item::
       :columns: 6
 
-      The simulation directory is the directory in which the simulator runs. OSVVM keeps its absolute path in the
-      variable ``::osvvm::CurrentSimulationDirectory``.
+      The :term:`simulation directory` is the directory in which the simulator runs. :acs:`OSVVM` keeps its absolute
+      path in the variable ``::osvvm::CurrentSimulationDirectory``.
 
-      Simulators write library mappings and other files into this directory, and OSVVM puts its output there: the
-      libraries (:file:`VHDL_LIBS`), the build results and reports, and :file:`index.html` with an overview of all
-      builds.
+      Simulators write :term:`library` mappings and other files into this directory, and OSVVM puts its output there:
+      the libraries (:file:`VHDL_LIBS`), the :term:`build` results and reports, and :file:`index.html` with an overview
+      of all builds.
 
       Create a separate directory for simulations, for example :file:`sim` or :file:`temp` next to
       :file:`OsvvmLibraries`. Cleaning up is then just deleting and recreating it.
@@ -55,8 +55,8 @@ Working Directory
    .. grid-item::
       :columns: 6
 
-      The working directory is the directory of the script that is currently running. OSVVM keeps it in the variable
-      ``::osvvm::CurrentWorkingDirectory``.
+      The :term:`working directory` is the directory of the script that is currently running. OSVVM keeps it in the
+      variable ``::osvvm::CurrentWorkingDirectory``.
 
       All OSVVM commands that take a path resolve a relative path against the working directory. So a script names its
       files relative to its own location, no matter from where it is called.
@@ -86,7 +86,7 @@ Don't use Tcl's ``cd``
 
       .. caution::
 
-         Don't use Tcl's ``cd``.
+         Don't use :acs:`Tcl`'s ``cd``.
 
       ``cd`` changes the simulation directory and loses the library mappings and other information the simulator keeps
       there. To work relative to another directory inside a script, change the working directory with
@@ -153,7 +153,7 @@ Builds and Includes
       console (or a start-up script) to run a script and:
 
       * starts a new log file for everything the script and the simulator print,
-      * collects the results of all test suites and test cases the script runs,
+      * collects the results of all :term:`test suites <test suite>` and :term:`test cases <test case>` the script runs,
       * creates the build reports when the script finishes (see :ref:`RPT`).
 
       A :ref:`RUFF/osvvm/build` inside a running build acts like :ref:`RUFF/osvvm/include`.
@@ -182,13 +182,14 @@ Build Name and Output
    .. grid-item::
       :columns: 6
 
-      The build name is derived from the script: ``<directory>_<script>``, where ``<directory>`` is the name of the
-      directory containing the script. If both names are equal, the build name is just the script name. A script can
+      The :term:`build name` is derived from the script: ``<directory>_<script>``, where ``<directory>`` is the name of
+      the directory containing the script. If both names are equal, the build name is just the script name. A script can
       set another name with :ref:`RUFF/osvvm/BuildName`.
 
       All results of a build go into a directory of that name in the simulation directory:
 
-      * :file:`<BuildName>.html`, :file:`.xml`, :file:`.yml`: the build summary report (HTML), as JUnit XML and as YAML;
+      * :file:`<BuildName>.html`, :file:`.xml`, :file:`.yml`: the build summary report (:acs:`HTML`), as
+        :term:`JUnit XML` and as :acs:`YAML`;
       * :file:`logs/`: the log file of the build, as text and as HTML;
       * :file:`reports/<TestSuite>/`: one report per test case;
       * :file:`results/<TestSuite>/`: files the test cases write.
@@ -237,9 +238,9 @@ Test Suites and Test Cases
 
       * :ref:`RUFF/osvvm/TestSuite` starts a test suite. Test cases outside a test suite belong to the test suite
         ``Default``.
-      * A test case is one simulation. Its name is the name of the simulated design unit, or the name set with
+      * A test case is one simulation. Its name is the name of the simulated :term:`design unit`, or the name set with
         :ref:`RUFF/osvvm/TestName` before :ref:`RUFF/osvvm/simulate`.
-      * The test case name must match the name the testbench sets with ``SetTestName`` (OSVVM's
+      * The test case name must match the name the :term:`testbench` sets with ``SetTestName`` (OSVVM's
         ``SetAlertLogName``). Otherwise, the test case fails, unless the setting ``FailOnVhdlNameNotMatchTestName`` is
         ``false``.
       * :ref:`RUFF/osvvm/RunTest` combines :ref:`RUFF/osvvm/analyze`, :ref:`RUFF/osvvm/TestName` and

@@ -3,8 +3,8 @@
 Debugging
 #########
 
-By default, OSVVM scripts are set up to run regressions fast. Debugging information, logged signals and waveforms
-slow simulations down, so they are off. And if a simulation fails, the build goes on with the next one.
+By default, :acs:`OSVVM` scripts are set up to run regressions fast. Debugging information, logged signals and waveforms
+slow simulations down, so they are off. And if a simulation fails, the :term:`build` goes on with the next one.
 
 All settings below are booleans: ``true`` or ``false``. Called without an argument, a ``Set*`` command means ``true``.
 
@@ -18,8 +18,9 @@ Debug Mode
    .. grid-item::
       :columns: 6
 
-      :ref:`RUFF/osvvm/SetDebugMode` adds the simulator's debugging options to analyze and simulate, so signals and
-      variables can be inspected. The default is ``false``. :ref:`RUFF/osvvm/GetDebugMode` returns the setting.
+      :ref:`RUFF/osvvm/SetDebugMode` adds the simulator's debugging options to :term:`analyze <analysis>` and simulate,
+      so signals and variables can be inspected. The default is ``false``. :ref:`RUFF/osvvm/GetDebugMode` returns the
+      setting.
 
    .. grid-item::
       :columns: 6
@@ -42,7 +43,7 @@ Logging Signal Values
       simulator's waveform viewer after it finished. The default is ``false``. :ref:`RUFF/osvvm/GetLogSignals` returns
       the setting.
 
-      For GHDL and NVC, which have no waveform viewer, see :ref:`UG/Waveform/SaveWaves`.
+      For :acs:`GHDL` and NVC, which have no waveform viewer, see :ref:`UG/Waveform/SaveWaves`.
 
    .. grid-item::
       :columns: 6
@@ -107,6 +108,6 @@ Interactive Mode
 .. seealso::
 
    :ref:`UG/Config/Override`
-     To change OSVVM's defaults for all builds, set them in the settings files.
+     To change OSVVM's defaults for all builds, set them in the :term:`settings files <settings file>`.
    :ref:`UG/Config/HookFiles`
      Scripts that run automatically with every simulation, for example to display waveforms.

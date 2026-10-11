@@ -11,7 +11,7 @@ Installation/Updates
    :target: https://github.com/OSVVM/OsvvmLibraries/releases/latest
    :alt: GitHub Release
 
-OSVVM is hosted and developed at https://github.com/OSVVM. Its components are split into multiple Git repositories,
+:acs:`OSVVM` is hosted and developed at https://github.com/OSVVM. Its components are split into multiple Git repositories,
 which can be used individually or as a group. The all-in-one repository is
 `OsvvmLibraries <https://github.com/OSVVM/OsvvmLibraries>`__; it registers the components as Git submodules.
 **OSVVM-Scripts** is one of them, in the directory :file:`Scripts`.
@@ -64,8 +64,9 @@ Register OsvvmLibraries as Git Submodule
    .. grid-item::
       :columns: 6
 
-      Usually, OSVVM is part of a bigger HDL project, also maintained in Git. Then, add OsvvmLibraries as a submodule
-      of that project. The commands on the right add it as :file:`lib/OsvvmLibraries` and fetch its own submodules.
+      Usually, OSVVM is part of a bigger :acs:`HDL` project, also maintained in Git. Then, add OsvvmLibraries as a
+      submodule of that project. The commands on the right add it as :file:`lib/OsvvmLibraries` and fetch its own
+      submodules.
 
       Pin the project to a release by checking out its tag in the submodule; the project's next commit records it.
 
@@ -97,19 +98,20 @@ Register Individual Components as Git Submodules
    .. grid-item::
       :columns: 6
 
-      A project that needs only some verification components can add the components individually. OSVVM's scripts
-      expect the directory layout of OsvvmLibraries: the components next to :file:`Scripts`, under the directory names
-      OsvvmLibraries uses. The scripts find the other components relative to :file:`Scripts`.
+      A project that needs only some :term:`verification components <verification component>` can add the components
+      individually. OSVVM's scripts expect the directory layout of OsvvmLibraries: the components next to
+      :file:`Scripts`, under the directory names OsvvmLibraries uses. The scripts find the other components relative to
+      :file:`Scripts`.
 
       Always needed:
 
-      * :file:`osvvm` - repository `OSVVM <https://github.com/OSVVM/OSVVM>`__, the OSVVM utility library;
+      * :file:`osvvm` - repository `OSVVM <https://github.com/OSVVM/OSVVM>`__, the OSVVM :term:`utility library`;
       * :file:`Common` - repository `OSVVM-Common <https://github.com/OSVVM/OSVVM-Common>`__;
       * :file:`Scripts` - repository `OSVVM-Scripts <https://github.com/OSVVM/OSVVM-Scripts>`__.
 
       Each verification component has a repository of its directory's name, like ``AXI4``, ``UART`` or ``Ethernet``.
       :file:`OsvvmLibraries.pro` belongs to OsvvmLibraries; a project with individual components writes its own
-      build script, which includes :file:`osvvm` and :file:`Common` first.
+      :term:`build script`, which includes :file:`osvvm` and :file:`Common` first.
 
    .. grid-item::
       :columns: 6
@@ -144,8 +146,8 @@ Updating OSVVM or OSVVM Components
       commits the parent records. To change to another release, check out its tag and update the submodules the same
       way.
 
-      After an update, analyze the OSVVM libraries again, as for the first run: ``build ../OsvvmLibraries`` (see
-      :ref:`QSG/Demos`).
+      After an update, :term:`analyze <analysis>` the OSVVM :term:`libraries <library>` again, as for the first run:
+      ``build ../OsvvmLibraries`` (see :ref:`QSG/Demos`).
 
    .. grid-item::
       :columns: 6
@@ -185,7 +187,7 @@ Download OSVVM Libraries
       .. attention::
 
          GitHub's *Source code* archives of a release don't contain the submodules' code. Use the archives
-         :file:`OsvvmLibraries-<version>.*`, which OSVVM's CI packages with all submodules.
+         :file:`OsvvmLibraries-<version>.*`, which OSVVM's :acs:`CI` packages with all submodules.
 
    .. grid-item::
       :columns: 6

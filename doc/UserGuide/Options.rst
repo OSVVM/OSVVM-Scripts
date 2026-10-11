@@ -18,9 +18,9 @@ Language and Time
    .. grid-item::
       :columns: 6
 
-      * :ref:`RUFF/osvvm/SetVHDLVersion` sets the VHDL version for :ref:`RUFF/osvvm/analyze`: ``2008`` (default),
-        ``2019``, ``2002`` or ``1993`` (also as ``08``, ``19``, ``02``, ``93``). OSVVM's libraries require 2008 or
-        newer. :ref:`RUFF/osvvm/GetVHDLVersion` returns it.
+      * :ref:`RUFF/osvvm/SetVHDLVersion` sets the :acs:`VHDL` version for :ref:`RUFF/osvvm/analyze`: ``2008`` (default),
+        ``2019``, ``2002`` or ``1993`` (also as ``08``, ``19``, ``02``, ``93``). :acs:`OSVVM`'s
+        :term:`libraries <library>` require 2008 or newer. :ref:`RUFF/osvvm/GetVHDLVersion` returns it.
       * :ref:`RUFF/osvvm/SetSimulatorResolution` sets the simulator's time resolution, in the simulator's format
         (default ``ps``). :ref:`RUFF/osvvm/GetSimulatorResolution` returns it.
 
@@ -44,7 +44,7 @@ Analyze Options
    .. grid-item::
       :columns: 6
 
-      Options passed to the simulator when it analyzes a file:
+      Options passed to the simulator when it :term:`analyzes <analysis>` a file:
 
       * :ref:`RUFF/osvvm/SetVhdlAnalyzeOptions` for VHDL files only, :ref:`RUFF/osvvm/SetVerilogAnalyzeOptions` for
         Verilog files only.
@@ -80,8 +80,8 @@ Simulate Options
       Simulators with separate steps have options per step:
 
       * :ref:`RUFF/osvvm/SetExtendedOptimizeOptions`: the optimization step of Questa.
-      * :ref:`RUFF/osvvm/SetExtendedElaborateOptions` and :ref:`RUFF/osvvm/SetExtendedRunOptions`: the elaboration and
-        run steps of GHDL, NVC, VCS and Xcelium.
+      * :ref:`RUFF/osvvm/SetExtendedElaborateOptions` and :ref:`RUFF/osvvm/SetExtendedRunOptions`: the
+        :term:`elaboration` and run steps of :acs:`GHDL`, NVC, VCS and Xcelium.
 
    .. grid-item::
       :columns: 6
@@ -109,7 +109,7 @@ Simulate Options
                SetExtendedElaborateOptions "-O1"
                SetExtendedRunOptions       "--exit-severity=error"
 
-            NVC's vendor script presets the run options to ``--exit-severity=failure``; a new value replaces it.
+            NVC's :term:`vendor script` presets the run options to ``--exit-severity=failure``; a new value replaces it.
 
 .. _UG/Options/Transcript:
 
@@ -121,8 +121,8 @@ Transcript
    .. grid-item::
       :columns: 6
 
-      A build always writes a text log file. :ref:`RUFF/osvvm/SetTranscriptType` selects whether an HTML version is
-      created too: ``html`` (default) or ``log``. :ref:`RUFF/osvvm/GetTranscriptType` returns the setting.
+      A :term:`build` always writes a text log file. :ref:`RUFF/osvvm/SetTranscriptType` selects whether an :acs:`HTML`
+      version is created too: ``html`` (default) or ``log``. :ref:`RUFF/osvvm/GetTranscriptType` returns the setting.
 
    .. grid-item::
       :columns: 6

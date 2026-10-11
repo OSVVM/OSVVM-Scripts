@@ -3,9 +3,9 @@
 Quick Start Guide
 #################
 
-Three steps get OSVVM running in your simulator: get OSVVM, start OSVVM's script environment in the simulator, and run
-the demos. Each simulator starts the script environment a little differently - choose yours in the tabs below. The
-choice is kept for all tabs on this page.
+Three steps get :acs:`OSVVM` running in your simulator: get OSVVM, start OSVVM's script environment in the simulator,
+and run the demos. Each simulator starts the script environment a little differently - choose yours in the tabs below.
+The choice is kept for all tabs on this page.
 
 
 .. _QSG/Download:
@@ -19,8 +19,9 @@ Get OSVVM
       :columns: 6
 
       OSVVM is distributed as the repository `OsvvmLibraries <https://github.com/OSVVM/OsvvmLibraries>`__. Each
-      library - the utility library ``osvvm``, the verification components, the scripts - is a git submodule of it.
-      Clone it with ``--recursive``, so all submodules are checked out too.
+      :term:`library` - the :term:`utility library` ``osvvm``, the
+      :term:`verification components <verification component>`, the scripts - is a git submodule of it. Clone it with
+      ``--recursive``, so all submodules are checked out too.
 
       A clone without ``--recursive`` has empty submodule directories; ``git submodule update --init --recursive``
       fills them.
@@ -54,7 +55,7 @@ Create a Simulation Directory
       :columns: 6
 
       Run simulations in a directory of their own. OSVVM and the simulator write everything there: the compiled
-      libraries (:file:`VHDL_LIBS`), one directory per build with its reports, and the index of all builds
+      libraries (:file:`VHDL_LIBS`), one directory per :term:`build` with its reports, and the index of all builds
       (:file:`index.html`). Cleaning up means deleting this directory.
 
       Create it next to :file:`OsvvmLibraries` and name it :file:`sim` - or :file:`sim_<tool>`, if you use several
@@ -94,17 +95,17 @@ Create a Simulation Directory
 Start the Script Environment
 ****************************
 
-OSVVM's commands, like :ref:`RUFF/osvvm/build` or :ref:`RUFF/osvvm/simulate`, are Tcl procedures. A start-up script
-from :file:`OsvvmLibraries/Scripts` loads them into the Tcl shell of your simulator - once per session, before any other
-OSVVM command.
+OSVVM's commands, like :ref:`RUFF/osvvm/build` or :ref:`RUFF/osvvm/simulate`, are :acs:`Tcl` procedures. A start-up
+script from :file:`OsvvmLibraries/Scripts` loads them into the Tcl shell of your simulator - once per session, before
+any other OSVVM command.
 
 * Simulators with a Tcl console of their own (Riviera-PRO, Active-HDL, Questa, ModelSim, Visualizer, Vivado) use
   :file:`StartUp.tcl`. It detects the simulator it runs in.
-* Simulators started from the command line (GHDL, NVC, VCS, Xcelium, DSim) run OSVVM in :program:`tclsh`, with a
+* Simulators started from the command line (:acs:`GHDL`, NVC, VCS, Xcelium, DSim) run OSVVM in :program:`tclsh`, with a
   start-up script named after the simulator, like :file:`StartNVC.tcl`. In :program:`tclsh`, :file:`StartUp.tcl` can't
   detect the simulator and selects GHDL.
-* The environment variable ``OSVVM_TOOL`` overrides the detection: it names the vendor script to load, like ``NVC``
-  for :file:`VendorScripts_NVC.tcl`.
+* The environment variable ``OSVVM_TOOL`` overrides the detection: it names the :term:`vendor script` to load, like
+  ``NVC`` for :file:`VendorScripts_NVC.tcl`.
 
 .. tab-set::
 
@@ -116,7 +117,7 @@ OSVVM command.
          .. grid-item::
             :columns: 6
 
-            In Riviera-PRO's console, change to the simulation directory and source :file:`StartUp.tcl`.
+            In Riviera-PRO's console, change to the :term:`simulation directory` and source :file:`StartUp.tcl`.
 
             To load OSVVM automatically at every start, set the environment variable ``ALDEC_STARTUPTCL`` to the full
             path of :file:`StartUp.tcl`.
@@ -350,8 +351,8 @@ OSVVM command.
 
             .. note::
 
-               XSIM support is under development: it analyzes the OSVVM utility library, but OSVVM's own test cases
-               don't pass yet.
+               XSIM support is under development: it :term:`analyzes <analysis>` the OSVVM utility library, but OSVVM's
+               own :term:`test cases <test case>` don't pass yet.
 
          .. grid-item::
             :columns: 6
@@ -407,7 +408,8 @@ Run the Demos
       #. :file:`OsvvmLibraries.pro` analyzes the OSVVM utility library and all verification components into
          :file:`VHDL_LIBS/<tool>-<version>`. A directory name - here :file:`../OsvvmLibraries` - runs the script of
          the same name in it.
-      #. :file:`RunDemoTests.pro` analyzes and runs 11 demo test cases: AXI4, AXI4 Stream, UART and Ethernet.
+      #. :file:`RunDemoTests.pro` analyzes and runs 11 demo test cases: :acs:`AXI4`, AXI4 Stream, :acs:`UART` and
+         Ethernet.
 
       Each :ref:`RUFF/osvvm/build` prints a summary line at its end. With NVC or GHDL, both builds take less than a
       minute.
@@ -482,9 +484,9 @@ Look at the Reports
 
       Every build creates a directory named after the build, with:
 
-      * the HTML build summary report :file:`<BuildName>.html` - the starting point;
-      * the JUnit XML report :file:`<BuildName>.xml`, for continuous integration;
-      * the YAML file :file:`<BuildName>.yml`, the data of both reports;
+      * the :acs:`HTML` build summary report :file:`<BuildName>.html` - the starting point;
+      * the :term:`JUnit XML` report :file:`<BuildName>.xml`, for continuous integration;
+      * the :acs:`YAML` file :file:`<BuildName>.yml`, the data of both reports;
       * :file:`reports/` with a detailed report per test case, :file:`results/` and :file:`logs/`.
 
       :file:`index.html` in :file:`sim` lists all builds. Open the reports in a web browser;
@@ -529,7 +531,7 @@ Next Steps
       Scripts of your own use the same few commands:
 
       * :ref:`RUFF/osvvm/library` selects (and creates) the working library,
-      * :ref:`RUFF/osvvm/analyze` compiles a VHDL or Verilog file into it,
+      * :ref:`RUFF/osvvm/analyze` compiles a :acs:`VHDL` or Verilog file into it,
       * :ref:`RUFF/osvvm/simulate` runs a test case,
       * :ref:`RUFF/osvvm/RunTest` does all three for a test case named like its file,
       * :ref:`RUFF/osvvm/include` runs another script, :ref:`RUFF/osvvm/build` runs one as a build with reports.

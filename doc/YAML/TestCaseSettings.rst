@@ -8,12 +8,12 @@ Test Case Settings
    .. grid-item::
       :columns: 6
 
-      Each :ref:`RUFF/osvvm/simulate` writes a test case settings file
+      Each :ref:`RUFF/osvvm/simulate` writes a :term:`test case` settings file
       :file:`reports/<TestSuite>/<TestCaseFileName>_run.yml`. It tells the test case report which test case it
-      describes and where the test case's other YAML files and transcripts are.
+      describes and where the test case's other :acs:`YAML` files and :term:`transcripts <transcript>` are.
 
       OSVVM-Scripts writes it after the simulation (``WriteTestCaseSettingsYaml`` in ``AfterSimulateReports``), once
-      the test case's files have been moved from the temporary output directory into the build. Right after,
+      the test case's files have been moved from the temporary output directory into the :term:`build`. Right after,
       :ref:`RUFF/osvvm/Simulate2Html` reads it and writes the test case report
       :file:`reports/<TestSuite>/<TestCaseFileName>.html` (see :ref:`RPT/HTML/TestCase`).
 
@@ -48,8 +48,8 @@ Structure
    .. grid-item::
       :columns: 6
 
-      Paths are relative to the build directory, except ``TestCaseFile``, which is relative to the test suite's
-      reports directory, where the HTML report links it.
+      Paths are relative to the build directory, except ``TestCaseFile``, which is relative to the :term:`test suite`'s
+      reports directory, where the :acs:`HTML` report links it.
 
       .. tree::
 
@@ -99,7 +99,7 @@ Structure
              - "reports/CssOsvvmStyle.css"
            Report2PngFile:  "reports/OsvvmLogo.png"
 
-      With generics (:file:`Tb_xMii1_MII_INTERFACE_MII_MII_BPS_BPS_10M_run.yml`):
+      With :term:`generics <generic>` (:file:`Tb_xMii1_MII_INTERFACE_MII_MII_BPS_BPS_10M_run.yml`):
 
       .. code-block:: yaml
 
@@ -120,9 +120,9 @@ The Test Case's Files
    .. grid-item::
       :columns: 6
 
-      During the simulation, OSVVM's utility library writes the test case's YAML files into the temporary output
-      directory, named after ``TestCaseName``. After the simulation, OSVVM-Scripts moves each file that exists into
-      the test suite's reports directory, renamed after ``TestCaseFileName`` - so a test case simulated with
+      During the simulation, :acs:`OSVVM`'s :term:`utility library` writes the test case's YAML files into the temporary
+      output directory, named after ``TestCaseName``. After the simulation, OSVVM-Scripts moves each file that exists
+      into the test suite's reports directory, renamed after ``TestCaseFileName`` - so a test case simulated with
       different generics gets files of its own. The settings file names the moved files; a file the test case didn't
       write is ``""``.
 

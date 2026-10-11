@@ -8,13 +8,14 @@ Build Index
    .. grid-item::
       :columns: 6
 
-      The build index :file:`index.yml` lists every build run in a directory: one entry per build, in the order they
-      ran. It lies next to the build directories, in the directory where the simulator runs (``OutputBaseDirectory``).
+      The build index :file:`index.yml` lists every :term:`build` run in a directory: one entry per build, in the order
+      they ran. It lies next to the build directories, in the directory where the simulator runs
+      (``OutputBaseDirectory``).
 
       OSVVM-Scripts appends an entry at the end of each :ref:`RUFF/osvvm/build`, after the build summary reports and
-      the HTML transcript are created (``WriteIndexYaml``), if ``GenerateOsvvmReports`` is ``true``; the first build
-      creates the file. :ref:`RUFF/osvvm/Index2Html` then writes :file:`index.html` from it - newest build first,
-      linked to each build summary report (see :ref:`RPT/HTML/Index`). :ref:`RUFF/osvvm/OpenIndex` opens it.
+      the :acs:`HTML` :term:`transcript` are created (``WriteIndexYaml``), if ``GenerateOsvvmReports`` is ``true``; the
+      first build creates the file. :ref:`RUFF/osvvm/Index2Html` then writes :file:`index.html` from it - newest build
+      first, linked to each build summary report (see :ref:`RPT/HTML/Index`). :ref:`RUFF/osvvm/OpenIndex` opens it.
 
       Deleting :file:`index.yml` starts a new index.
 
@@ -45,7 +46,7 @@ Structure
       :columns: 6
 
       The values come from the build summary: the counts and the status are computed while the build summary report
-      is created from the :ref:`build report <YAML/TestReport>`, not by VHDL.
+      is created from the :ref:`build report <YAML/TestReport>`, not by :acs:`VHDL`.
 
       .. tree::
 

@@ -8,13 +8,14 @@ Requirements
    .. grid-item::
       :columns: 6
 
-      Requirements are tracked in YAML files of one format, written at three levels:
+      :term:`Requirements <requirement>` are tracked in :acs:`YAML` files of one format, written at three levels:
 
-      * per test case, by AlertLogPkg: :file:`<TestCaseFileName>_req.yml`;
-      * per test suite, merged by the scripts: :file:`<BuildName>/<TestSuite>_req.yml`;
-      * per build, merged by the scripts: :file:`<BuildName>_req.yml`.
+      * per :term:`test case`, by AlertLogPkg: :file:`<TestCaseFileName>_req.yml`;
+      * per :term:`test suite`, merged by the scripts: :file:`<BuildName>/<TestSuite>_req.yml`;
+      * per :term:`build`, merged by the scripts: :file:`<BuildName>_req.yml`.
 
-      A fourth source is a requirements specification, converted from CSV (:ref:`YAML/Requirements/Specification`).
+      A fourth source is a requirements specification, converted from :acs:`CSV`
+      (:ref:`YAML/Requirements/Specification`).
 
       The merged files are the input of the requirements reports: :ref:`RUFF/osvvm/Requirements2Html` and
       :ref:`RUFF/osvvm/Requirements2Csv` (see :ref:`RPT/REQ`). Without requirements in a test case, no file is
@@ -91,18 +92,18 @@ Per Test Case
       :columns: 6
 
       ``EndOfTestReports`` (ReportPkg) calls ``WriteRequirementsYaml`` (AlertLogPkg), if the test case has
-      requirements. It writes :file:`<TestName>_req.yml` into OSVVM's temporary directory; after the simulation, the
-      scripts move it into the test suite's reports directory as :file:`<TestCaseFileName>_req.yml`, like the
+      requirements. It writes :file:`<TestName>_req.yml` into :acs:`OSVVM`'s temporary directory; after the simulation,
+      the scripts move it into the test suite's reports directory as :file:`<TestCaseFileName>_req.yml`, like the
       :ref:`alerts file <YAML/AlertLog>`.
 
-      Every AlertLog ID with a goal is a requirement - created with ``GetReqID(..., PassedGoal => <n>)`` or given a
-      goal with ``SetPassedGoal`` - wherever it is in the hierarchy. A check by name, ``AffirmIf("UART_REQ_3", ...)``,
+      Every AlertLog :acs:`ID` with a goal is a requirement - created with ``GetReqID(..., PassedGoal => <n>)`` or given
+      a goal with ``SetPassedGoal`` - wherever it is in the hierarchy. A check by name, ``AffirmIf("UART_REQ_3", ...)``,
       creates an ID below ``Requirements`` without a goal: it shows in the :ref:`alerts file <YAML/AlertLog>`, but not
       here. A test case with only such IDs writes an empty file.
 
       ``Status`` is ``PASSED`` if ``Errors`` is 0 and ``Passed`` reached ``Goal``, else ``FAILED``. ``Errors`` counts
-      all alerts of the requirement, enabled and disabled, including warnings, whatever the ``FailOn...`` settings
-      are.
+      all :term:`alerts <alert>` of the requirement, enabled and disabled, including warnings, whatever the
+      ``FailOn...`` settings are.
 
    .. grid-item::
       :columns: 6
@@ -144,7 +145,7 @@ Merged Files
       twice:
 
       * at the end of each test suite: :file:`reports/<TestSuite>/*_req.yml` into
-        :file:`reports/<BuildName>/<TestSuite>_req.yml`, followed by its HTML report;
+        :file:`reports/<BuildName>/<TestSuite>_req.yml`, followed by its :acs:`HTML` report;
       * at the end of the build: :file:`reports/<BuildName>/*_req.yml` - the test suites' files - into
         :file:`reports/<BuildName>_req.yml`, followed by its HTML and CSV reports.
 

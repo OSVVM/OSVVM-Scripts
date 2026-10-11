@@ -8,14 +8,14 @@ Requirements Reports
    .. grid-item::
       :columns: 6
 
-      When a test case tracks requirements, ``EndOfTestReports`` writes them into :file:`<TestCase>_req.yml`. The
-      scripts merge and report them automatically:
+      When a :term:`test case` tracks :term:`requirements <requirement>`, ``EndOfTestReports`` writes them into
+      :file:`<TestCase>_req.yml`. The scripts merge and report them automatically:
 
-      * At the end of each test suite, the requirements of its test cases are merged
+      * At the end of each :term:`test suite`, the requirements of its test cases are merged
         (:ref:`RUFF/osvvm/MergeRequirements`) into :file:`reports/<BuildName>/<TestSuite>_req.yml`, and
-        :ref:`RUFF/osvvm/Requirements2Html` writes the HTML report next to it.
-      * At the end of the build, the requirements of all test suites are merged into
-        :file:`reports/<BuildName>_req.yml`, with an HTML (:ref:`RUFF/osvvm/Requirements2Html`) and a CSV
+        :ref:`RUFF/osvvm/Requirements2Html` writes the :acs:`HTML` report next to it.
+      * At the end of the :term:`build`, the requirements of all test suites are merged into
+        :file:`reports/<BuildName>_req.yml`, with an HTML (:ref:`RUFF/osvvm/Requirements2Html`) and a :acs:`CSV`
         (:ref:`RUFF/osvvm/Requirements2Csv`) report.
 
       Without requirements in a build, no requirements report is created.
@@ -89,12 +89,12 @@ Requirements Specification
       :columns: 6
 
       A requirements specification lists the requirements and their goals, including those no test case checks yet.
-      :ref:`RUFF/osvvm/RequirementsCsv2Yaml` converts a specification in CSV into a requirements YAML file: each
+      :ref:`RUFF/osvvm/RequirementsCsv2Yaml` converts a specification in CSV into a requirements :acs:`YAML` file: each
       requirement gets an entry marked as coming from the specification, so it shows up in the reports even without a
       test case. The columns are ``Requirement``, ``Description``, ``Status``, ``Goal``, ``Passed``, ``Errors`` and
       ``Checked``; missing ones get defaults.
 
-      In VHDL, ``ReadSpecification`` reads a specification into the test case.
+      In :acs:`VHDL`, ``ReadSpecification`` reads a specification into the test case.
 
    .. grid-item::
       :columns: 6

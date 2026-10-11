@@ -8,15 +8,16 @@ Build Report
    .. grid-item::
       :columns: 6
 
-      The build report :file:`<BuildName>/<BuildName>.yml` records one :ref:`RUFF/osvvm/build`: its test suites, each
-      test case with its status and alert counts, the build's timing, the tools and the paths of the other reports.
-      It is the source of the build summary reports - HTML, JUnit XML - and of the build's entry in
-      :ref:`index.yml <YAML/Index>`.
+      The build report :file:`<BuildName>/<BuildName>.yml` records one :ref:`RUFF/osvvm/build`: its
+      :term:`test suites <test suite>`, each :term:`test case` with its status and :term:`alert` counts, the
+      :term:`build`'s timing, the tools and the paths of the other reports. It is the source of the build summary
+      reports - :acs:`HTML`, :term:`JUnit XML` - and of the build's entry in :ref:`index.yml <YAML/Index>`.
 
       Two writers share the file while a build runs:
 
       * OSVVM-Scripts writes the build, test suite and test case frame, and the build information at the end.
-      * OSVVM's utility library writes each test case's results from VHDL, in ``EndOfTestReports``.
+      * :acs:`OSVVM`'s :term:`utility library` writes each test case's results from :acs:`VHDL`, in
+        ``EndOfTestReports``.
 
       The file starts as :file:`OsvvmRun.yml` in the temporary output directory (:file:`OsvvmTemp_<ToolName>/`); both
       writers append to it. At the end of the build, it is copied to :file:`<BuildName>/<BuildName>.yml` and deleted.
@@ -116,8 +117,8 @@ Test Cases
 
       Each :ref:`RUFF/osvvm/simulate` adds one entry to its test suite's ``TestCases``. OSVVM-Scripts writes
       ``TestCaseName`` before the simulation starts (``StartSimulateBuildYaml``); during the simulation,
-      ``EndOfTestReports`` appends the results from VHDL; after it, OSVVM-Scripts appends the file name, generics and
-      time (``FinishSimulateBuildYaml``).
+      ``EndOfTestReports`` appends the results from VHDL; after it, OSVVM-Scripts appends the file name,
+      :term:`generics <generic>` and time (``FinishSimulateBuildYaml``).
 
       .. tree::
 
@@ -180,7 +181,7 @@ Test Cases
              MII_BPS: "BPS_1G"
            ElapsedTime: 0.193
 
-      A test case skipped with :ref:`RUFF/osvvm/SkipTest`, or whose analysis failed, has no VHDL part:
+      A test case skipped with :ref:`RUFF/osvvm/SkipTest`, or whose :term:`analysis` failed, has no VHDL part:
 
       .. code-block:: yaml
 
@@ -219,7 +220,7 @@ Status
            - errors (``TotalErrors`` > 0)
          * - ``NOCHECKS``
            - VHDL
-           - no errors, but no affirmation was checked
+           - no errors, but no :term:`affirmation` was checked
          * - ``MANUALCHECKS``
            - VHDL
            - no errors, manual checks are required
@@ -289,7 +290,7 @@ Settings
              - "reports/CssOsvvmStyle.css"
            Report2PngFile:  "reports/OsvvmLogo.png"
 
-      With code coverage, ``CoverageSubdirectory`` names the simulator's report (NVC):
+      With :term:`code coverage`, ``CoverageSubdirectory`` names the simulator's report (NVC):
 
       .. code-block:: yaml
 
@@ -307,7 +308,7 @@ Readers
       :columns: 6
 
       * :ref:`RUFF/osvvm/CreateBuildReports` reads the file with :ref:`RUFF/osvvm/ReportBuildYaml2Dict` and writes
-        the HTML (:ref:`RUFF/osvvm/ReportBuildDict2Html`) and JUnit XML (:ref:`RUFF/osvvm/ReportBuildDict2Junit`)
+        the HTML (:ref:`RUFF/osvvm/ReportBuildDict2Html`) and JUnit :acs:`XML` (:ref:`RUFF/osvvm/ReportBuildDict2Junit`)
         build summary reports - see :ref:`RPT/HTML/BuildSummary` and :ref:`RPT/XML`.
       * `pyEDAA.OSVVM <https://github.com/edaa-org/pyEDAA.OSVVM>`__ reads it in Python (``pyEDAA.OSVVM.Build``).
 

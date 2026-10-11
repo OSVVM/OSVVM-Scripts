@@ -8,14 +8,16 @@ Requirements Tracking
    .. grid-item::
       :columns: 6
 
-      When a test case tracks requirements - in VHDL, a requirement ID from OSVVM's ``NewReqID`` used in ``AffirmIf`` -,
-      it writes a requirements file next to its report, and a requirements report is created for it.
+      When a :term:`test case` tracks :term:`requirements <requirement>` - in :acs:`VHDL`, a requirement :acs:`ID` from
+      :acs:`OSVVM`'s ``NewReqID`` used in ``AffirmIf`` -, it writes a requirements file next to its report, and a
+      requirements report is created for it.
 
-      When a test suite completes, the requirements of its test cases are merged into a test suite requirements report;
-      when the build completes, all of them are merged into a build requirements report, as HTML and CSV. No script
-      command is needed; see :ref:`RPT` for the reports.
+      When a :term:`test suite` completes, the requirements of its test cases are merged into a test suite requirements
+      report; when the :term:`build` completes, all of them are merged into a build requirements report, as :acs:`HTML`
+      and :acs:`CSV`. No script command is needed; see :ref:`RPT` for the reports.
 
-      :ref:`RUFF/osvvm/RequirementsCsv2Yaml` converts a requirements specification from CSV into OSVVM's YAML format.
+      :ref:`RUFF/osvvm/RequirementsCsv2Yaml` converts a requirements specification from CSV into OSVVM's :acs:`YAML`
+      format.
 
    .. grid-item::
       :columns: 6
