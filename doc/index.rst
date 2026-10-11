@@ -15,6 +15,15 @@ This scripting approach provides:
 
 
 
+.. _NEWS:
+
+News
+****
+
+Latest blog posts and news are available at the `OSVVM Blog <https://osvvm.org/blog>`__; the changes of each release
+are in OsvvmLibraries' `CHANGELOG.md <https://github.com/OSVVM/OsvvmLibraries/blob/main/CHANGELOG.md>`__.
+
+
 .. _CONTRIBUTORS:
 
 Contributors
@@ -48,6 +57,8 @@ License
 
    Installation
    QuickStartGuide
+   SimulatorSpecifics
+   Support
 
 .. raw:: latex
 
