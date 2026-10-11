@@ -232,6 +232,45 @@ EOF
 		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Remove inline code markers from parameter names${ANSI_NOCOLOR}\n"
 			sed -i -E 's/^:``(\w+)``:/:\1:/g' ${rstFile}
 
+		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Insert index entries for the namespaces${ANSI_NOCOLOR}\n"
+			for namespace in ${RUFF_NAMESPACES}; do
+				namespace="${namespace#::}"
+				sed -i -E "/^\.\. _r-${namespace}:$/a \\\n.. index::\n   single: ::${namespace}" ${rstFile}
+			done
+
+		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Move the return value up${ANSI_NOCOLOR}\n"
+			if ! python - "${rstFile}" <<'EOF'
+import re, sys
+from pathlib import Path
+
+file = Path(sys.argv[1])
+lines = file.read_text(encoding="utf-8").split("\n")
+blockStart = re.compile(r"^\.\. (rubric::|index::|_)")
+index = 0
+while index < len(lines):
+	if lines[index] == ".. rubric:: Return value":
+		end = index + 1
+		while end < len(lines) and blockStart.match(lines[end]) is None:
+			end += 1
+		description = index - 1
+		while description >= 0 and not lines[description].startswith(".. _"):
+			if lines[description] == ".. rubric:: Description":
+				break
+			description -= 1
+		if description >= 0 and lines[description] == ".. rubric:: Description":
+			block = lines[index:end]
+			del lines[index:end]
+			lines[description:description] = block
+		index = end
+	else:
+		index += 1
+file.write_text("\n".join(lines), encoding="utf-8")
+EOF
+			then
+				PrintError "    " "Moving the return values in '${rstFile}' failed."
+				exit 1
+			fi
+
 		test $VERBOSE -eq 1 && printf -- "    ${ANSI_LIGHT_CYAN}Link glossary terms and abbreviations${ANSI_NOCOLOR}\n"
 			if ! python LinkTerms.py --glossary Glossary.rst --abbreviations Abbreviations.rst "${rstFile}"; then
 				PrintError "    " "Linking glossary terms and abbreviations in '${rstFile}' failed."

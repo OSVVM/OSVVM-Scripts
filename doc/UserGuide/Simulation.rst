@@ -108,8 +108,9 @@ Saving Waveforms with GHDL and NVC
    .. grid-item::
       :columns: 6
 
-      :acs:`GHDL` and NVC run in batch mode, but can save waveforms for a separate viewer like GTKWave or Surfer.
-      :ref:`RUFF/osvvm/SetSaveWaves` turns it on; without an argument, it means ``true``. The default is ``false``.
+      :acs:`GHDL` and NVC run in batch mode, but can save waveforms for a separate viewer like :term:`GTKWave` or
+      :term:`Surfer`. :ref:`RUFF/osvvm/SetSaveWaves` turns it on; without an argument, it means ``true``. The default
+      is ``false``.
 
       The waveform file is written next to the test case's report: :file:`<BuildName>/reports/<TestSuite>/`.
 
