@@ -101,7 +101,7 @@ any other OSVVM command.
 
 * Simulators with a Tcl console of their own (Riviera-PRO, Active-HDL, Questa, ModelSim, Visualizer, Vivado) use
   :file:`StartUp.tcl`. It detects the simulator it runs in.
-* Simulators started from the command line (:acs:`GHDL`, NVC, VCS, Xcelium, DSim) run OSVVM in :program:`tclsh`, with a
+* Simulators started from the command line (:acs:`GHDL`, NVC, VCS, Xcelium, DSim, yavs) run OSVVM in :program:`tclsh`, with a
   start-up script named after the simulator, like :file:`StartNVC.tcl`. In :program:`tclsh`, :file:`StartUp.tcl` can't
   detect the simulator and selects GHDL.
 * The environment variable ``OSVVM_TOOL`` overrides the detection: it names the :term:`vendor script` to load, like
@@ -384,6 +384,30 @@ any other OSVVM command.
 
                cd <work>/sim
                source ../OsvvmLibraries/Scripts/StartXSIM.tcl
+
+   .. tab-item:: yavs
+      :sync: YAVS
+
+      .. grid:: 2
+
+         .. grid-item::
+            :columns: 6
+
+            yavs has no Tcl shell: run OSVVM in :program:`tclsh` and source :file:`StartYAVS.tcl`. OSVVM then calls
+            :program:`yavs` for each step. :program:`yavs` is found on the ``PATH``, or in the directory named by the
+            environment variable ``VUNIT_YAVS_PATH``.
+
+         .. grid-item::
+            :columns: 6
+
+            .. code-block:: bash
+
+               cd <work>/sim
+               rlwrap tclsh
+
+            .. code-block:: tcl
+
+               source ../OsvvmLibraries/Scripts/StartYAVS.tcl
 
 The start-up script prints the versions it found, for example:
 
