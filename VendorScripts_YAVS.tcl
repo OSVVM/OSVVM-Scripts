@@ -2,11 +2,22 @@
 #  Purpose:           Scripts for running simulations with yavs
 #  Revision:          OSVVM MODELS STANDARD VERSION
 #
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Jim Lewis      email:  jim@synthworks.com
+#
 #  Description
 #    Tcl procedures with the intent of making running
 #    compiling and simulations tool independent
 #
 #    Select with:  set ::env(OSVVM_TOOL) YAVS
+#
+#  Developed by:
+#        SynthWorks Design Inc.
+#        VHDL Training Classes
+#        OSVVM Methodology and Model Library
+#        11898 SW 128th Ave.  Tigard, Or  97223
+#        http://www.SynthWorks.com
 #
 #  Revision History:
 #    Date      Version    Description
@@ -14,6 +25,8 @@
 #
 #
 #  This file is part of OSVVM.
+#
+#  Copyright (c) 2020 - 2022 by SynthWorks Design Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -76,6 +89,11 @@
 #
 proc vendor_SetCoverageAnalyzeDefaults {} {
   variable CoverageAnalyzeOptions
+#    set defaults here
+}
+
+proc vendor_SetCoverageElaborateDefaults {} {
+  variable CoverageElaborateOptions
 #    set defaults here
 }
 
@@ -170,7 +188,7 @@ proc vendor_simulate {LibraryName LibraryUnit args} {
   variable ExtendedElaborateOptions
   variable ExtendedRunOptions
 
-  set Options [concat {*}$::osvvm::ExtendedGlobalOptions {*}[YavsLibraryOptions $LibraryName] {*}${ExtendedElaborateOptions} {*}${ExtendedRunOptions} {*}${args} {*}${::osvvm::GenericOptions}]
+  set Options [concat {*}$::osvvm::ExtendedGlobalOptions {*}[YavsLibraryOptions $LibraryName] {*}${::osvvm::ElaborateOptions} {*}${ExtendedElaborateOptions} {*}${ExtendedRunOptions} {*}${args} {*}${::osvvm::GenericOptions}]
   if {$::osvvm::SaveWaves} {
     lappend Options --wave=${::osvvm::ReportsTestSuiteDirectory}/${LibraryUnit}.fst
   }
@@ -197,7 +215,10 @@ proc vendor_generic {Name Value} {
 proc vendor_MergeCodeCoverage {TestSuiteName CoverageDirectory BuildName} {
 }
 
-proc vendor_ReportCodeCoverage {TestSuiteName ResultsDirectory} {
+proc vendor_ReportCodeCoverage {TestSuiteName CodeCoverageDirectory} {
+}
+
+proc vendor_ExportCodeCoverage {BuildName CodeCoverageDirectory FileName Options} {
 }
 
 proc vendor_GetCoverageFileName {TestName} {

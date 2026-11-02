@@ -1,11 +1,11 @@
 #  File Name:         StartYAVS.tcl
 #  Purpose:           Scripts for running simulations
 #  Revision:          OSVVM MODELS STANDARD VERSION
-# 
-#  Maintainer:        Jim Lewis      email:  jim@synthworks.com 
-#  Contributor(s):            
-#     Jim Lewis      email:  jim@synthworks.com   
-# 
+#
+#  Maintainer:        Jim Lewis      email:  jim@synthworks.com
+#  Contributor(s):
+#     Jim Lewis      email:  jim@synthworks.com
+#
 #  Description
 #    Tcl procedures to configure and adapt the OSVVM simulator 
 #    scripting methodology for a particular project.
