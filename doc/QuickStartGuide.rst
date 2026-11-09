@@ -101,7 +101,8 @@ any other OSVVM command.
 
 * Simulators with a Tcl console of their own (Riviera-PRO, Active-HDL, Questa, ModelSim, Visualizer, Vivado) use
   :file:`StartUp.tcl`. It detects the simulator it runs in.
-* Simulators started from the command line (:acs:`GHDL`, NVC, VCS, Xcelium, DSim, yavs) run OSVVM in :program:`tclsh`, with a
+* Simulators started from the command line (:acs:`GHDL`, NVC, VCS, Xcelium, DSim, yavs, JanusHDL) run OSVVM in
+  :program:`tclsh`, with a
   start-up script named after the simulator, like :file:`StartNVC.tcl`. In :program:`tclsh`, :file:`StartUp.tcl` can't
   detect the simulator and selects GHDL.
 * The environment variable ``OSVVM_TOOL`` overrides the detection: it names the :term:`vendor script` to load, like
@@ -408,6 +409,31 @@ any other OSVVM command.
             .. code-block:: tcl
 
                source ../OsvvmLibraries/Scripts/StartYAVS.tcl
+
+   .. tab-item:: JanusHDL
+      :sync: JanusHDL
+
+      .. grid:: 2
+
+         .. grid-item::
+            :columns: 6
+
+            JanusHDL runs from the command line: run OSVVM in :program:`tclsh` and source
+            :file:`StartJanusHDL.tcl`. OSVVM then calls :program:`jhdl` for each step; each library is kept in a
+            directory of its own. :program:`jhdl` is found on the ``PATH``, or in the directory named by the
+            environment variable ``JANUSHDL_PATH``. JanusHDL 0.13.0 or newer is needed.
+
+         .. grid-item::
+            :columns: 6
+
+            .. code-block:: bash
+
+               cd <work>/sim
+               rlwrap tclsh
+
+            .. code-block:: tcl
+
+               source ../OsvvmLibraries/Scripts/StartJanusHDL.tcl
 
 The start-up script prints the versions it found, for example:
 

@@ -86,6 +86,7 @@ namespace eval ::osvvm {
     other tool is detected. The environment variable `OSVVM_TOOL` names the vendor script and skips the detection.
     `StartGHDL.tcl` - Start-up script for GHDL, run in `tclsh`.
     `StartNVC.tcl` - Start-up script for NVC, run in `tclsh`.
+    `StartJanusHDL.tcl` - Start-up script for JanusHDL, run in `tclsh`.
     `StartDSim.tcl` - Start-up script for DSim.
     `StartVCS.tcl` - Start-up script for Synopsys VCS, run in `tclsh`.
     `StartXcelium.tcl` - Start-up script for Cadence Xcelium, run in `tclsh`.
@@ -136,6 +137,7 @@ namespace eval ::osvvm {
     `VendorScripts_Visualizer.tcl` - Siemens Visualizer. Selected with `OSVVM_TOOL` only.
     `VendorScripts_GHDL.tcl` - GHDL.
     `VendorScripts_NVC.tcl` - NVC.
+    `VendorScripts_JanusHDL.tcl` - JanusHDL.
     `VendorScripts_DSim.tcl` - DSim.
     `VendorScripts_VCS.tcl` - Synopsys VCS.
     `VendorScripts_Xcelium.tcl` - Cadence Xcelium.
