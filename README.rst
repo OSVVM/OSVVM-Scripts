@@ -1196,6 +1196,10 @@ in the table below.
       - YAVS
       - simulator
       -
+    * - JanusHDL
+      - JanusHDL
+      - simulator
+      -
     * - Siemens
       - ModelSim
       - simulator
@@ -1259,7 +1263,7 @@ Script File Summary
 
 - StartTTT.tcl
    - Version of StartUp.tcl that is specific to tool TTT
-   - "TTT" = one of (GHDL, NVC, YAVS, Visualizer, Questa, VCS, Xcelium, XSIM)    
+   - "TTT" = one of (GHDL, NVC, YAVS, JanusHDL, Visualizer, Questa, VCS, Xcelium, XSIM)    
 
 - OsvvmProjectScripts.tcl  
    - TCL procedures that do common simulator and project build tasks.
@@ -1267,7 +1271,7 @@ Script File Summary
 
 - VendorScript_TTT.tcl  
    - TCL procedures that do simulator specific actions.
-   - "TTT" = one of (ActiveHDL, GHDL, NVC, YAVS, Visualizer, Siemens, RivieraPro, VSimSA, VCS, Xcelium, Xsim)
+   - "TTT" = one of (ActiveHDL, GHDL, NVC, YAVS, JanusHDL, Visualizer, Siemens, RivieraPro, VSimSA, VCS, Xcelium, Xsim)
    - VSimSA is the one associated with ActiveHDL.
    - Called by StartUpShared.tcl 
 

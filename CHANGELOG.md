@@ -3,6 +3,7 @@
 | **Revision**  |   **Release Summary**                                                                         |
 |---------------|-----------------------------------------------------------------------------------------------|
 | 2026.11       |  Added yavs support: VendorScripts_YAVS.tcl and StartYAVS.tcl                                 |
+|               |  Added JanusHDL support: VendorScripts_JanusHDL.tcl and StartJanusHDL.tcl                     |
 | 2026.08       |  Generate Package header and settings from deferred constants in package body                 |
 |               |  Added ExpectedStatus and KnownStatus and updated reports                                     |
 |               |  Added settings for requirements                                                              |
